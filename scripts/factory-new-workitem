@@ -1,0 +1,201 @@
+#!/usr/bin/env python3
+
+import argparse
+import re
+from datetime import datetime
+from pathlib import Path
+import sys
+
+from factory_core import (
+    append_log_line,
+    format_effort_days,
+    generate_work_blocks,
+    parse_effort_days,
+    project_lock,
+    render_work_block_table,
+)
+
+
+TYPE_CONFIG = {
+    "task": {
+        "prefix": "TASK",
+        "directory": ".factory/workitems/implementation",
+        "label": "实施任务",
+        "default_status": "待开始",
+    },
+    "change": {
+        "prefix": "CR",
+        "directory": ".factory/workitems/changes",
+        "label": "需求变更",
+        "default_status": "待评估",
+    },
+    "bug": {
+        "prefix": "BUG",
+        "directory": ".factory/workitems/bugs",
+        "label": "缺陷修复",
+        "default_status": "待复现",
+    },
+}
+
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description="在 CLI 模式下创建按人天拆解的任务、变更或缺陷条目。")
+    parser.add_argument("--project", required=True, help="项目根目录。")
+    parser.add_argument("--type", choices=TYPE_CONFIG.keys(), required=True, help="条目类型。")
+    parser.add_argument("--title", required=True, help="条目标题。")
+    parser.add_argument("--days", type=float, default=None, help="预估总人天，最小单位 0.5。")
+    parser.add_argument("--hours", type=float, default=None, help="兼容旧参数：预估总工时，将按 8h=1 人天转换。")
+    parser.add_argument("--owner", default="待分配", help="负责人。")
+    parser.add_argument("--priority", default="P1", help="优先级，例如 P0/P1/P2。")
+    parser.add_argument("--links", default="", help="关联 ID，逗号分隔，例如 REQ-001,API-003。")
+    parser.add_argument("--summary", default="", help="补充说明。")
+    parser.add_argument("--breakdown", default="", help="可选的人天拆分，逗号分隔，例如 2,1.5,0.5。")
+    parser.add_argument("--block-titles", default="", help="可选的工作块标题，逗号分隔，需与 breakdown 数量一致。")
+    return parser.parse_args()
+
+
+def resolve_effort_days(days: float | None, hours: float | None) -> float:
+    if days is not None:
+        return parse_effort_days(days)
+    if hours is not None:
+        return parse_effort_days(f"{hours}h")
+    return parse_effort_days(0.5)
+
+
+def parse_breakdown(raw: str) -> list[str]:
+    return [item.strip() for item in raw.split(",") if item.strip()]
+
+
+def ensure_project(project_root: Path) -> None:
+    if not project_root.exists():
+        raise RuntimeError(f"项目目录不存在：{project_root}")
+    if not (project_root / ".factory" / "project.json").exists():
+        raise RuntimeError(f"未找到项目配置：{project_root / '.factory' / 'project.json'}")
+
+
+def next_item_id(target_dir: Path, prefix: str) -> str:
+    max_number = 0
+    pattern = re.compile(rf"^{prefix}-(\d+)\.md$")
+    if target_dir.exists():
+        for item in target_dir.iterdir():
+            match = pattern.match(item.name)
+            if match:
+                max_number = max(max_number, int(match.group(1)))
+    return f"{prefix}-{max_number + 1:03d}"
+
+
+def build_markdown(
+    item_id: str,
+    item_type: str,
+    title: str,
+    days: float,
+    owner: str,
+    priority: str,
+    links: list,
+    summary: str,
+    breakdown: list[str],
+    block_titles: list[str],
+) -> str:
+    cfg = TYPE_CONFIG[item_type]
+    created_at = datetime.now().strftime("%Y-%m-%d")
+    blocks = generate_work_blocks(
+        days,
+        item_id,
+        item_type,
+        item_title=title,
+        breakdown=breakdown,
+        block_titles=block_titles,
+    )
+    link_text = "、".join(links) if links else "无"
+    summary_text = summary if summary else "待补充。"
+    table_lines = render_work_block_table(blocks)
+
+    lines = [
+        f"# {item_id} {title}",
+        "",
+        f"- 编号：{item_id}",
+        f"- 类型：{cfg['label']}",
+        f"- 状态：{cfg['default_status']}",
+        f"- 优先级：{priority}",
+        f"- 负责人：{owner}",
+        f"- 预估总人天：{format_effort_days(days)}",
+        f"- 关联项：{link_text}",
+        f"- 创建日期：{created_at}",
+        "",
+        "## 背景与目标",
+        "",
+        summary_text,
+        "",
+        "## 工作块",
+        "",
+        *table_lines,
+        "",
+        "## 执行记录",
+        "",
+        "- 待开始。",
+        "",
+        "## 影响范围",
+        "",
+        "- 代码：待分析",
+        "- 文档：待分析",
+        "- 测试：待分析",
+        "- AI 记忆：待分析",
+        "",
+        "## 完成定义",
+        "",
+        "- 相关代码已修改并通过验证",
+        "- 相关文档已更新为单文件最新版本",
+        "- 相关测试已补齐或回归通过",
+        "- `/.factory/memory/` 摘要已刷新",
+    ]
+    return "\n".join(lines)
+
+
+def append_execution_log(project_root: Path, item_id: str, title: str, item_type: str, days: float) -> None:
+    log_path = project_root / ".factory" / "process" / "execution-log.md"
+    line = f"- {datetime.now().strftime('%Y-%m-%d')}: 创建 {TYPE_CONFIG[item_type]['label']} `{item_id}`，标题“{title}”，预估 {format_effort_days(days)}。"
+    if log_path.exists() and line in log_path.read_text(encoding="utf-8"):
+        return
+    append_log_line(log_path, line)
+
+
+def main() -> int:
+    args = parse_args()
+    project_root = Path(args.project).expanduser().resolve()
+
+    try:
+        with project_lock(project_root, reason=f"创建工作项 {args.type}:{args.title.strip()}"):
+            ensure_project(project_root)
+            cfg = TYPE_CONFIG[args.type]
+            target_dir = project_root / cfg["directory"]
+            target_dir.mkdir(parents=True, exist_ok=True)
+            item_id = next_item_id(target_dir, cfg["prefix"])
+            links = [item.strip() for item in args.links.split(",") if item.strip()]
+            effort_days = resolve_effort_days(args.days, args.hours)
+            breakdown = parse_breakdown(args.breakdown)
+            block_titles = parse_breakdown(args.block_titles)
+            content = build_markdown(
+                item_id=item_id,
+                item_type=args.type,
+                title=args.title.strip(),
+                days=effort_days,
+                owner=args.owner.strip(),
+                priority=args.priority.strip(),
+                links=links,
+                summary=args.summary.strip(),
+                breakdown=breakdown,
+                block_titles=block_titles,
+            )
+            output_path = target_dir / f"{item_id}.md"
+            output_path.write_text(content + "\n", encoding="utf-8")
+            append_execution_log(project_root, item_id, args.title.strip(), args.type, effort_days)
+    except Exception as exc:
+        print(f"创建工作项失败：{exc}", file=sys.stderr)
+        return 1
+
+    print(f"已创建 {cfg['label']}：{output_path}")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

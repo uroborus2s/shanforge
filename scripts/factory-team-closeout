@@ -1,0 +1,246 @@
+#!/usr/bin/env python3
+
+import argparse
+import json
+from datetime import datetime
+from pathlib import Path
+import sys
+
+from factory_core import (
+    append_log_line,
+    current_role_assignment,
+    ensure_role_catalog,
+    load_project_config,
+    parse_list,
+    prepend_history_entry,
+    project_lock,
+    role_default_owner,
+    run_script,
+    save_project_config,
+    selected_roles,
+    upsert_section,
+    write_text,
+)
+
+
+TEAM_CLOSE_RESULTS = ["已完成", "已移交", "已暂停", "已关闭"]
+
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description="按团队维度批量执行角色收尾，并输出团队收尾记录。")
+    parser.add_argument("--project", required=True, help="项目根目录。")
+    parser.add_argument("--roles", default="", help="要收尾的角色，逗号分隔；默认取当前阶段活跃角色。")
+    parser.add_argument("--owner", default="项目协调者", help="团队收尾发起人。")
+    parser.add_argument("--reviewer", default="", help="统一复核人，默认回退到角色负责人。")
+    parser.add_argument("--docs", default="", help="本轮收尾涉及的文档，逗号分隔。")
+    parser.add_argument("--tests", default="", help="本轮收尾涉及的测试，逗号分隔。")
+    parser.add_argument("--code", default="", help="本轮收尾涉及的代码文件，逗号分隔。")
+    parser.add_argument("--summary", default="", help="团队收尾总结。")
+    parser.add_argument("--note", default="", help="补充说明。")
+    parser.add_argument("--result", default="已完成", choices=TEAM_CLOSE_RESULTS, help="统一角色收尾结果。")
+    parser.add_argument("--item-result", default="已完成", help="若关闭工作项，工作项关闭结果。")
+    parser.add_argument("--close-items", action="store_true", help="收尾时自动关闭各角色当前工作项。")
+    parser.add_argument("--snapshot", action="store_true", help="团队收尾后生成项目快照。")
+    parser.add_argument("--force", action="store_true", help="即使复核未通过也继续执行角色收尾。")
+    parser.add_argument("--strict", action="store_true", help="若任一步骤失败则返回非 0。")
+    return parser.parse_args()
+
+
+def main() -> int:
+    args = parse_args()
+    project_root = Path(args.project).expanduser().resolve()
+    result = "失败"
+
+    try:
+        with project_lock(project_root, reason="执行团队收尾"):
+            config = load_project_config(project_root)
+            ensure_role_catalog(config)
+            roles = selected_roles(config, args.roles, stage=config.get("stage", ""))
+            if not roles:
+                raise RuntimeError("未找到可收尾的角色。")
+
+            steps: list[dict] = []
+            role_statuses: list[dict] = []
+            docs = ",".join(parse_list(args.docs))
+            tests = ",".join(parse_list(args.tests))
+            code = ",".join(parse_list(args.code))
+
+            for role in roles:
+                assignment = current_role_assignment(config, role["id"])
+                role_owner = role_default_owner(config, role["id"], assignment)
+                reviewer = args.reviewer.strip() or role_owner
+                step = run_script(
+                    "factory-role-closeout",
+                    "--project",
+                    str(project_root),
+                    "--role",
+                    role["id"],
+                    "--owner",
+                    role_owner,
+                    "--reviewer",
+                    reviewer,
+                    "--docs",
+                    docs,
+                    "--tests",
+                    tests,
+                    "--code",
+                    code,
+                    "--summary",
+                    args.summary.strip(),
+                    "--note",
+                    args.note.strip() or args.summary.strip() or f"team-closeout:{role['id']}",
+                    "--result",
+                    args.result,
+                    "--item-result",
+                    args.item_result.strip(),
+                    *(["--close-items"] if args.close_items else []),
+                    *(["--force"] if args.force else []),
+                    label=f"收尾 {role['title']}",
+                )
+                steps.append(step)
+                role_statuses.append(
+                    {
+                        "role": role["id"],
+                        "title": role["title"],
+                        "owner": role_owner,
+                        "reviewer": reviewer,
+                        "result": "成功" if step["returncode"] == 0 else f"失败({step['returncode']})",
+                    }
+                )
+
+            steps.append(
+                run_script(
+                    "factory-multi-agent-board",
+                    "--project",
+                    str(project_root),
+                    "--owner",
+                    args.owner.strip(),
+                    "--focus",
+                    args.summary.strip() or args.note.strip() or "团队收尾后刷新协作看板",
+                    label="刷新团队协作看板",
+                )
+            )
+            if args.snapshot:
+                steps.append(
+                    run_script(
+                        "factory-project-snapshot",
+                        "--project",
+                        str(project_root),
+                        "--owner",
+                        args.owner.strip(),
+                        "--note",
+                        args.note.strip() or args.summary.strip() or "team-closeout",
+                        label="生成项目快照",
+                    )
+                )
+
+            result = "完成" if all(step["returncode"] == 0 for step in steps) else "失败"
+            now_text = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            config = load_project_config(project_root)
+            config["last_team_closeout_at"] = now_text
+            config["last_team_closeout_result"] = result
+            config["last_team_closeout_roles"] = [role["id"] for role in roles]
+            config.setdefault("team_closeouts", []).append(
+                {
+                    "roles": [role["id"] for role in roles],
+                    "owner": args.owner.strip(),
+                    "reviewer": args.reviewer.strip(),
+                    "result": args.result,
+                    "close_items": args.close_items,
+                    "run_result": result,
+                    "note": args.note.strip(),
+                    "closed_at": now_text,
+                }
+            )
+            save_project_config(project_root, config)
+
+            latest_lines = [
+                f"- 时间：{now_text}",
+                f"- 当前阶段：{config.get('stage', '未知')}",
+                f"- 发起人：{args.owner.strip()}",
+                f"- 统一收尾结果：{args.result}",
+                f"- 团队执行结果：{result}",
+                f"- 角色范围：{'、'.join(role['title'] for role in roles)}",
+                f"- 自动关闭工作项：{'是' if args.close_items else '否'}",
+                f"- 总结：{args.summary.strip() or '无'}",
+                f"- 备注：{args.note.strip() or '无'}",
+            ]
+
+            refreshed = load_project_config(project_root)
+            role_lines = []
+            for role in roles:
+                assignment = current_role_assignment(refreshed, role["id"])
+                role_lines.append(
+                    f"- `{role['title']}` | 负责人：{assignment.get('owner', role['title']) or role['title']} | "
+                    f"状态：{assignment.get('status', '未知') or '未知'} | 工具：{assignment.get('tool', 'shared') or 'shared'}"
+                )
+
+            step_lines = []
+            for step in steps:
+                step_result = "成功" if step["returncode"] == 0 else f"失败({step['returncode']})"
+                step_lines.append(f"- {step['label']}：{step_result}")
+                if step["stdout"]:
+                    step_lines.append(f"  输出：{step['stdout']}")
+                if step["stderr"]:
+                    step_lines.append(f"  错误：{step['stderr']}")
+
+            doc_path = project_root / ".factory" / "process" / "team-closeouts.md"
+            upsert_section(doc_path, "## 最新团队收尾", latest_lines, default_title="# 团队收尾记录")
+            upsert_section(doc_path, "## 角色状态", role_lines or ["- 无"], default_title="# 团队收尾记录")
+            upsert_section(doc_path, "## 步骤结果", step_lines or ["- 无"], default_title="# 团队收尾记录")
+            prepend_history_entry(
+                doc_path,
+                "## 历史团队收尾记录",
+                f"- {now_text}: 团队收尾完成，结果：{result}，角色：{'、'.join(role['title'] for role in roles)}。",
+                default_title="# 团队收尾记录",
+            )
+
+            write_text(
+                project_root / ".factory" / "memory" / "team-closeout.summary.md",
+                "\n".join(
+                    [
+                        "# 团队收尾摘要",
+                        "",
+                        *latest_lines,
+                        "",
+                        "## 角色状态",
+                        "",
+                        *(role_lines or ["- 无"]),
+                        "",
+                        "## 步骤结果",
+                        "",
+                        *(step_lines or ["- 无"]),
+                    ]
+                ),
+            )
+            write_text(
+                project_root / ".factory" / "team-closeout.json",
+                json.dumps(
+                    {
+                        "closed_at": now_text,
+                        "stage": config.get("stage", "未知"),
+                        "owner": args.owner.strip(),
+                        "roles": role_statuses,
+                        "requested_result": args.result,
+                        "run_result": result,
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                ),
+            )
+            append_log_line(
+                project_root / ".factory" / "process" / "execution-log.md",
+                f"- {datetime.now().strftime('%Y-%m-%d')}: 执行团队收尾，结果：{result}，发起人：{args.owner.strip()}。",
+            )
+    except Exception as exc:
+        print(f"团队收尾失败：{exc}", file=sys.stderr)
+        return 1
+
+    print(f"已生成团队收尾记录：{project_root / '.factory' / 'process' / 'team-closeouts.md'}")
+    if args.strict and result != "完成":
+        return 2
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

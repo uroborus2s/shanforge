@@ -1,0 +1,200 @@
+#!/usr/bin/env python3
+
+import argparse
+import json
+from datetime import datetime
+from pathlib import Path
+import sys
+
+from factory_core import (
+    append_log_line,
+    find_pr_record,
+    infer_remote_tool,
+    load_pr_records,
+    load_project_config,
+    normalize_remote_tool,
+    project_lock,
+    refresh_ai_memory,
+    run_script,
+    run_step,
+    save_pr_records,
+    save_project_config,
+    upsert_item_pr_section,
+    write_pr_tracker,
+    write_remote_pr_tracker,
+    write_text,
+)
+
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description="通过远端仓库 CLI 合并 PR，并可选自动关单。")
+    parser.add_argument("--project", required=True, help="项目根目录。")
+    parser.add_argument("--pr", required=True, help="PR 编号，例如 PR-001。")
+    parser.add_argument("--owner", default="项目协调者", help="执行人。")
+    parser.add_argument(
+        "--tool",
+        choices=["auto", "gh", "glab", "record-only"],
+        default="auto",
+        help="远端工具类型。",
+    )
+    parser.add_argument("--method", choices=["merge", "squash", "rebase"], default="merge", help="合并方式。")
+    parser.add_argument("--delete-branch", action="store_true", help="合并后删除远端分支。")
+    parser.add_argument("--close-items", action="store_true", help="合并后自动关闭关联工作项。")
+    parser.add_argument("--item-result", default="已完成", help="自动关闭工作项时写入的结果。")
+    parser.add_argument("--force", action="store_true", help="即使评审未通过也强制继续。")
+    parser.add_argument("--note", default="", help="补充说明。")
+    return parser.parse_args()
+
+
+def gh_merge_command(record: dict, args: argparse.Namespace) -> list[str]:
+    identifier = str(record.get("remote_id") or record.get("branch") or record.get("remote_url") or record.get("id"))
+    command = ["gh", "pr", "merge", identifier]
+    command.append({"merge": "--merge", "squash": "--squash", "rebase": "--rebase"}[args.method])
+    if args.delete_branch:
+        command.append("--delete-branch")
+    return command
+
+
+def glab_merge_command(record: dict, args: argparse.Namespace) -> list[str]:
+    identifier = str(record.get("remote_id") or record.get("branch") or record.get("id"))
+    command = ["glab", "mr", "merge", identifier]
+    if args.method == "squash":
+        command.append("--squash")
+    if args.delete_branch:
+        command.append("--remove-source-branch")
+    return command
+
+
+def main() -> int:
+    args = parse_args()
+    project_root = Path(args.project).expanduser().resolve()
+
+    try:
+        with project_lock(project_root, reason=f"远端合并 PR {args.pr.strip()}"):
+            load_project_config(project_root)
+            records = load_pr_records(project_root)
+            record = find_pr_record(records, args.pr.strip())
+            if record.get("status") == "merged":
+                raise RuntimeError(f"{record['id']} 已处于已合并状态。")
+            if record.get("review_result") != "通过" and not args.force:
+                raise RuntimeError("当前 PR 尚未处于已通过评审状态。")
+
+            tool = normalize_remote_tool(
+                args.tool if args.tool != "auto" else record.get("remote_provider") or infer_remote_tool(project_root)
+            )
+            steps: list[dict] = []
+            if tool == "gh":
+                steps.append(run_step(gh_merge_command(record, args), f"远端合并 {record['id']}", cwd=project_root))
+            elif tool == "glab":
+                steps.append(run_step(glab_merge_command(record, args), f"远端合并 {record['id']}", cwd=project_root))
+            elif tool != "record-only":
+                raise RuntimeError(f"不支持的远端工具：{tool}")
+
+            if steps and steps[-1]["returncode"] != 0:
+                raise RuntimeError(steps[-1]["stderr"] or steps[-1]["stdout"] or "远端合并失败")
+
+            now_text = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            updated = dict(record)
+            updated["remote_provider"] = tool
+            updated["remote_state"] = "merged"
+            updated["status"] = "merged"
+            updated["merge_status"] = "已合并"
+            updated["merged_at"] = now_text
+            updated["merged_by"] = args.owner.strip()
+            updated["remote_synced_at"] = now_text
+            updated["updated_at"] = now_text
+            updated["merge_mode"] = f"remote-{tool}" if tool != "record-only" else "record-only"
+            updated.setdefault("history", []).append(
+                {
+                    "action": "remote-merge",
+                    "owner": args.owner.strip(),
+                    "time": now_text,
+                    "tool": tool,
+                    "method": args.method,
+                }
+            )
+
+            normalized_records = [updated if item.get("id") == updated["id"] else item for item in records]
+            save_pr_records(project_root, normalized_records)
+            for item_id in updated.get("items", []):
+                upsert_item_pr_section(project_root, item_id, updated)
+
+            if args.close_items:
+                for item_id in updated.get("items", []):
+                    close_step = run_script(
+                        "factory-close-workitem",
+                        "--project",
+                        str(project_root),
+                        "--item",
+                        item_id,
+                        "--result",
+                        args.item_result.strip(),
+                        "--owner",
+                        args.owner.strip(),
+                        "--summary",
+                        updated.get("summary", "") or updated.get("title", ""),
+                        "--docs",
+                        ",".join(updated.get("docs", [])),
+                        "--tests",
+                        ",".join(updated.get("tests", [])),
+                        "--code",
+                        ",".join(updated.get("code", [])),
+                        "--note",
+                        args.note.strip() or f"{updated['id']} remote merged",
+                        label=f"关闭 {item_id}",
+                    )
+                    steps.append(close_step)
+
+            latest_lines = [
+                f"- 时间：{now_text}",
+                f"- PR：{updated['id']}",
+                f"- 执行人：{args.owner.strip()}",
+                f"- 工具：{tool}",
+                f"- 合并方式：{args.method}",
+                f"- 自动关单：{'是' if args.close_items else '否'}",
+                f"- 备注：{args.note.strip() or '无'}",
+            ]
+            step_lines: list[str] = []
+            for step in steps:
+                step_lines.append(f"- {step['label']}：{'成功' if step['returncode'] == 0 else f'失败({step['returncode']})'}")
+                if step["stdout"]:
+                    step_lines.append(f"  输出：{step['stdout']}")
+                if step["stderr"]:
+                    step_lines.append(f"  错误：{step['stderr']}")
+            if not step_lines:
+                step_lines = ["- 本次仅记录远端已合并结果，没有实际调用远端 CLI。"]
+
+            history_line = f"- {now_text}: 远端合并 `{updated['id']}`，工具：{tool}，执行人：{args.owner.strip()}。"
+            write_pr_tracker(project_root, "## 最新远端合并", latest_lines, step_lines, normalized_records, history_line)
+            write_remote_pr_tracker(project_root, "## 最新远端合并", latest_lines, step_lines, normalized_records, history_line)
+            write_text(project_root / f".factory/pr-remote-merge.{updated['id']}.json", json.dumps(updated, ensure_ascii=False, indent=2))
+
+            config = load_project_config(project_root)
+            config["last_pr_remote_action_at"] = now_text
+            config["last_pr_remote_action"] = "merge"
+            config["last_pr_id"] = updated["id"]
+            config.setdefault("pr_remote_actions", []).append(
+                {
+                    "action": "merge",
+                    "pr": updated["id"],
+                    "owner": args.owner.strip(),
+                    "tool": tool,
+                    "time": now_text,
+                }
+            )
+            save_project_config(project_root, config)
+            refresh_ai_memory(project_root)
+            append_log_line(
+                project_root / ".factory" / "process" / "execution-log.md",
+                f"- {datetime.now().strftime('%Y-%m-%d')}: 远端合并 `{updated['id']}`，工具：{tool}，执行人：{args.owner.strip()}。",
+            )
+    except Exception as exc:
+        print(f"远端合并 PR 失败：{exc}", file=sys.stderr)
+        return 1
+
+    print(f"已完成远端 PR 合并：{updated['id']}")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

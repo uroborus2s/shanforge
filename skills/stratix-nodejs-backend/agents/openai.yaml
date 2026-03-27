@@ -1,0 +1,4 @@
+interface:
+  display_name: "Stratix Backend"
+  short_description: "Build and review Stratix 1.1.x Node.js backends"
+  default_prompt: "Use $stratix-nodejs-backend when building, refactoring, debugging, or reviewing a Stratix application or ecosystem plugin on the current 1.1.x stack. Prefer @stratix/cli 1.1.0 for init, generate, add preset, doctor, start, and config workflows before manual scaffolding. Follow controller -> service -> repository layering, treat @stratix/database 1.1.0 as BaseRepository-first, and use the current withRegisterAutoDI plugin conventions."

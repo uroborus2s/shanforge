@@ -1,0 +1,247 @@
+#!/usr/bin/env python3
+
+import argparse
+from datetime import datetime
+from pathlib import Path
+import sys
+import textwrap
+
+from factory_core import append_log_line, file_readiness, load_project_config, project_lock, refresh_ai_memory, save_project_config, write_text
+
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description="初始化需求阶段文档骨架，生成 PRD、需求分析和 PRD 摘要。")
+    parser.add_argument("--project", required=True, help="项目根目录。")
+    parser.add_argument("--owner", default="需求负责人", help="文档负责人。")
+    parser.add_argument("--req-count", type=int, default=5, help="预生成的需求条目数量。")
+    parser.add_argument("--personas", default="核心用户,业务管理员,项目负责人", help="用户角色，逗号分隔。")
+    parser.add_argument("--note", default="", help="补充说明。")
+    parser.add_argument("--force", action="store_true", help="即使文档已有实质内容也强制覆盖。")
+    return parser.parse_args()
+
+
+def ensure_writable(path: Path, force: bool) -> None:
+    if not path.exists() or force:
+        return
+    readiness, _ = file_readiness(path)
+    if readiness == "就绪":
+        raise RuntimeError(f"文档已有实质内容，若确认覆盖请加 --force：{path}")
+
+
+def build_req_ids(count: int) -> list[str]:
+    return [f"REQ-{index:03d}" for index in range(1, max(1, count) + 1)]
+
+
+def build_personas(raw: str) -> list[str]:
+    personas = [item.strip() for item in raw.split(",") if item.strip()]
+    return personas or ["核心用户", "业务管理员", "项目负责人"]
+
+
+def build_prd(config: dict, owner: str, req_ids: list[str], personas: list[str], note: str) -> str:
+    now_text = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    req_sections = []
+    for index, req_id in enumerate(req_ids, start=1):
+        req_sections.append(
+            textwrap.dedent(
+                f"""
+                ### {req_id} 需求 {index}
+
+                - 目标：围绕项目创意进一步澄清该需求的业务目标。
+                - 用户故事：作为_____，我希望_____，以便_____。
+                - 前置条件：待补充
+                - 主流程：待补充
+                - 异常/边界：待补充
+                - 业务规则：待补充
+                - 数据约束：待补充
+                - 权限/角色：待补充
+                - 验收标准：
+                  1. 待补充
+                  2. 待补充
+                - 优先级：P1
+                - 状态：待完善
+                - 关联设计：待补充
+                - 关联测试：待补充
+                """
+            ).strip()
+        )
+
+    persona_lines = "\n".join(f"- {index + 1}. {persona}" for index, persona in enumerate(personas))
+    req_text = "\n\n".join(req_sections)
+    return textwrap.dedent(
+        f"""
+        # 产品需求文档
+
+        - 文档状态：草稿
+        - 当前阶段：REQUIREMENTS
+        - 最近更新：{now_text}
+        - 负责人：{owner}
+        - 备注：{note or '无'}
+
+        ## 产品背景
+
+        {config.get('idea', '待补充项目背景。')}
+
+        ## 产品目标
+
+        - 明确项目要解决的核心业务问题。
+        - 建立可追踪的需求编号、验收标准和非功能约束。
+        - 为后续设计、开发、测试和交付提供统一事实来源。
+
+        ## 用户角色
+
+        {persona_lines}
+
+        ## 需求列表
+
+        {req_text}
+
+        ## 非功能需求
+
+        ### NFR-001 性能
+        - 描述：待补充
+        - 度量口径：待补充
+        - 验收方式：待补充
+
+        ### NFR-002 安全
+        - 描述：待补充
+        - 控制措施：待补充
+        - 验收方式：待补充
+
+        ### NFR-003 可运维性
+        - 描述：待补充
+        - 监控与告警：待补充
+        - 验收方式：待补充
+
+        ## 范围外
+
+        - 当前迭代不覆盖的功能和限制条件待补充。
+
+        ## 风险与约束
+
+        - 需要补充业务约束、数据约束、交付时间和资源限制。
+
+        ## 审批记录
+
+        - 待补充。
+        """
+    ).strip()
+
+
+def build_analysis(config: dict, owner: str, req_ids: list[str], note: str) -> str:
+    sections = []
+    for req_id in req_ids:
+        sections.append(
+            textwrap.dedent(
+                f"""
+                ### {req_id}
+
+                - 业务价值：待分析
+                - 优先级理由：待分析
+                - 依赖关系：待分析
+                - 风险点：待分析
+                - 影响角色/系统：待分析
+                - 待澄清问题：待分析
+                - 建议拆分：待分析
+                - 建议测试点：待分析
+                """
+            ).strip()
+        )
+
+    return textwrap.dedent(
+        f"""
+        # 需求分析文档
+
+        - 文档状态：草稿
+        - 当前阶段：REQUIREMENTS
+        - 最近更新：{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
+        - 负责人：{owner}
+        - 备注：{note or '无'}
+
+        ## 分析原则
+
+        - 先确认业务价值，再确认依赖、风险和拆分策略。
+        - 所有需求都要能够追踪到设计、任务和测试。
+        - 对高风险需求应尽早补齐澄清项与验收标准。
+
+        ## 逐条分析
+
+        {"\n\n".join(sections)}
+
+        ## 建议下一步
+
+        - 使用 Gemini CLI 进一步补齐业务语义和验收标准。
+        - 使用 `factory-requirements-verify` 做需求覆盖与一致性校验。
+        - 使用 `factory-update-singlefile-doc` 记录正式版本演化。
+        - 在进入设计前补齐追踪关系和审批信息。
+        """
+    ).strip()
+
+
+def build_prd_summary(config: dict, req_ids: list[str]) -> str:
+    lines = [
+        "# PRD 摘要",
+        "",
+        f"- 项目：{config.get('project_name', '未命名项目')}",
+        f"- 当前阶段：{config.get('stage', '未知')}",
+        f"- 生成时间：{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
+        "",
+        "## 需求索引",
+        "",
+    ]
+    for req_id in req_ids:
+        lines.append(f"- `{req_id}` 待补充一句话描述 | 状态：待完善")
+    lines.extend(
+        [
+            "",
+            "## 非功能需求索引",
+            "",
+            "- `NFR-001` 性能 | 状态：待完善",
+            "- `NFR-002` 安全 | 状态：待完善",
+            "- `NFR-003` 可运维性 | 状态：待完善",
+        ]
+    )
+    return "\n".join(lines)
+
+
+def main() -> int:
+    args = parse_args()
+    project_root = Path(args.project).expanduser().resolve()
+
+    prd_path = project_root / "docs" / "02-requirements" / "prd.md"
+    analysis_path = project_root / "docs" / "02-requirements" / "requirements-analysis.md"
+    summary_path = project_root / ".factory" / "memory" / "prd.summary.md"
+
+    try:
+        with project_lock(project_root, reason="初始化需求阶段文档"):
+            ensure_writable(prd_path, args.force)
+            ensure_writable(analysis_path, args.force)
+
+            config = load_project_config(project_root)
+            req_ids = build_req_ids(args.req_count)
+            personas = build_personas(args.personas)
+
+            write_text(prd_path, build_prd(config, args.owner.strip(), req_ids, personas, args.note.strip()))
+            write_text(analysis_path, build_analysis(config, args.owner.strip(), req_ids, args.note.strip()))
+            write_text(summary_path, build_prd_summary(config, req_ids))
+
+            now_text = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            config["last_prd_bootstrap_at"] = now_text
+            config["last_prd_bootstrap_owner"] = args.owner.strip()
+            config["last_prd_bootstrap_req_count"] = len(req_ids)
+            save_project_config(project_root, config)
+
+            append_log_line(
+                project_root / ".factory" / "process" / "execution-log.md",
+                f"- {datetime.now().strftime('%Y-%m-%d')}: 初始化需求阶段文档，生成 {len(req_ids)} 条 REQ 草稿，负责人：{args.owner.strip()}。",
+            )
+            refresh_ai_memory(project_root)
+    except Exception as exc:
+        print(f"初始化需求阶段文档失败：{exc}", file=sys.stderr)
+        return 1
+
+    print(f"已初始化需求阶段文档：{prd_path}、{analysis_path}")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

@@ -1,0 +1,260 @@
+#!/usr/bin/env python3
+
+import argparse
+import json
+from datetime import datetime
+from pathlib import Path
+import shutil
+import sys
+
+from factory_core import (
+    append_log_line,
+    copy_relative_if_exists,
+    find_item_file,
+    latest_dir_id,
+    load_pr_records,
+    load_project_config,
+    next_dir_id,
+    pr_record_line,
+    prepend_history_entry,
+    project_lock,
+    refresh_ai_memory,
+    save_project_config,
+    selected_pr_records,
+    unique_preserve,
+    upsert_section,
+    write_text,
+)
+
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description="为一组 PR 生成交接包，供团队成员或 AI 代理接手。")
+    parser.add_argument("--project", required=True, help="项目根目录。")
+    parser.add_argument("--prs", default="", help="要交接的 PR，逗号分隔；默认交接活跃 PR。")
+    parser.add_argument("--owner", default="项目协调者", help="交接负责人。")
+    parser.add_argument("--audience", default="下一位协作者与 AI 代理", help="交接对象。")
+    parser.add_argument("--note", default="", help="补充说明。")
+    return parser.parse_args()
+
+
+def copy_project_asset_if_exists(project_root: Path, asset: str, handover_dir: Path) -> list[str]:
+    raw = asset.strip()
+    if not raw:
+        return []
+    path = Path(raw)
+    if path.is_absolute():
+        try:
+            relative = str(path.resolve().relative_to(project_root))
+        except Exception:
+            return []
+        return copy_relative_if_exists(project_root, relative, handover_dir)
+    return copy_relative_if_exists(project_root, raw, handover_dir)
+
+
+def copy_item_if_exists(project_root: Path, item_id: str, handover_dir: Path) -> list[str]:
+    try:
+        source = find_item_file(project_root, item_id)
+    except Exception:
+        return []
+    try:
+        relative = str(source.relative_to(project_root))
+    except Exception:
+        return []
+    target = handover_dir / relative
+    target.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copy2(source, target)
+    return [relative]
+
+
+def build_summary(
+    handover_id: str,
+    config: dict,
+    records: list[dict],
+    item_ids: list[str],
+    docs: list[str],
+    tests: list[str],
+    code: list[str],
+    copied: list[str],
+    owner: str,
+    audience: str,
+    note: str,
+    latest_release: str,
+) -> str:
+    lines = [
+        f"# {handover_id} PR 交接摘要",
+        "",
+        f"- 交接编号：{handover_id}",
+        f"- 交接时间：{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
+        f"- 当前阶段：{config.get('stage', '未知')}",
+        f"- 交接负责人：{owner}",
+        f"- 交接对象：{audience}",
+        f"- PR 数：{len(records)}",
+        f"- 工作项数：{len(item_ids)}",
+        f"- 文档资产：{len(docs)}",
+        f"- 测试资产：{len(tests)}",
+        f"- 代码资产：{len(code)}",
+        f"- 最近发布包：{latest_release}",
+        f"- 说明：{note or '无'}",
+        "",
+        "## 本次 PR",
+        "",
+    ]
+    lines.extend(pr_record_line(record) for record in records)
+    lines.extend(["", "## 关联工作项", ""])
+    if item_ids:
+        lines.extend(f"- `{item_id}`" for item_id in item_ids)
+    else:
+        lines.append("- 无")
+    lines.extend(["", "## 已包含文件", ""])
+    if copied:
+        lines.extend(f"- `{asset}`" for asset in copied)
+    else:
+        lines.append("- 无")
+    return "\n".join(lines)
+
+
+def main() -> int:
+    args = parse_args()
+    project_root = Path(args.project).expanduser().resolve()
+
+    try:
+        with project_lock(project_root, reason="生成 PR 交接包"):
+            config = load_project_config(project_root)
+            records = load_pr_records(project_root)
+            selected = selected_pr_records(records, args.prs, default_active=True)
+            if not selected:
+                raise RuntimeError("当前没有可交接的 PR。可通过 --prs 指定已合并 PR。")
+
+            handover_id = next_dir_id(project_root, "handover", "PRHO-")
+            handover_dir = project_root / "handover" / handover_id
+            handover_dir.mkdir(parents=True, exist_ok=True)
+
+            item_ids = unique_preserve(item_id for record in selected for item_id in record.get("items", []))
+            docs = unique_preserve(path for record in selected for path in record.get("docs", []))
+            tests = unique_preserve(path for record in selected for path in record.get("tests", []))
+            code = unique_preserve(path for record in selected for path in record.get("code", []))
+
+            copied: list[str] = []
+            for relative in [
+                "AGENTS.md",
+                "GEMINI.md",
+                ".factory/project.json",
+                ".factory/process/pull-requests.md",
+                ".factory/process/pr-board.md",
+                ".factory/process/pr-check-report.md",
+                "docs/traceability/requirements-matrix.md",
+                ".factory/memory/project-index.md",
+                ".factory/memory/current-state.md",
+                ".factory/memory/pr.summary.md",
+                ".factory/memory/pr-board.summary.md",
+                ".factory/memory/pr-check.summary.md",
+            ]:
+                copied.extend(copy_relative_if_exists(project_root, relative, handover_dir))
+
+            for item_id in item_ids:
+                copied.extend(copy_item_if_exists(project_root, item_id, handover_dir))
+            for asset in [*docs, *tests, *code]:
+                copied.extend(copy_project_asset_if_exists(project_root, asset, handover_dir))
+
+            copied = unique_preserve(copied)
+            now_text = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            latest_release = latest_dir_id(project_root, "releases", "REL-")
+            summary = build_summary(
+                handover_id,
+                config=config,
+                records=selected,
+                item_ids=item_ids,
+                docs=docs,
+                tests=tests,
+                code=code,
+                copied=copied,
+                owner=args.owner.strip(),
+                audience=args.audience.strip(),
+                note=args.note.strip(),
+                latest_release=latest_release,
+            )
+            write_text(handover_dir / "handover-summary.md", summary)
+
+            latest_lines = [
+                f"- 时间：{now_text}",
+                f"- 交接编号：{handover_id}",
+                f"- 交接负责人：{args.owner.strip()}",
+                f"- 交接对象：{args.audience.strip()}",
+                f"- PR：{'、'.join(record.get('id', '未知 PR') for record in selected)}",
+                f"- 工作项：{'、'.join(item_ids) or '无'}",
+                f"- 已包含文件：{len(copied)}",
+                f"- 说明：{args.note.strip() or '无'}",
+            ]
+            pr_lines = [pr_record_line(record) for record in selected] or ["- 无"]
+            copied_lines = [f"- `{asset}`" for asset in copied] or ["- 无"]
+            doc_path = project_root / ".factory" / "process" / "pr-handovers.md"
+            upsert_section(doc_path, "## 最新 PR 交接", latest_lines, default_title="# PR 交接记录")
+            upsert_section(doc_path, "## 本次 PR", pr_lines, default_title="# PR 交接记录")
+            upsert_section(doc_path, "## 本次交接包文件", copied_lines, default_title="# PR 交接记录")
+            prepend_history_entry(
+                doc_path,
+                "## 历史交接",
+                f"- {now_text}: 生成 `{handover_id}`，PR：{'、'.join(record.get('id', '未知 PR') for record in selected)}，负责人：{args.owner.strip()}。",
+                default_title="# PR 交接记录",
+            )
+
+            write_text(
+                project_root / ".factory" / "memory" / "pr-handover.summary.md",
+                "\n".join(
+                    [
+                        "# PR 交接摘要",
+                        "",
+                        *latest_lines,
+                        "",
+                        "## 本次 PR",
+                        "",
+                        *pr_lines,
+                    ]
+                ),
+            )
+            write_text(
+                project_root / f".factory/pr-handover.{handover_id}.json",
+                json.dumps(
+                    {
+                        "handover_id": handover_id,
+                        "created_at": now_text,
+                        "owner": args.owner.strip(),
+                        "audience": args.audience.strip(),
+                        "note": args.note.strip(),
+                        "prs": [record.get("id") for record in selected],
+                        "items": item_ids,
+                        "copied": copied,
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                ),
+            )
+
+            config["last_pr_handover_at"] = now_text
+            config["last_pr_handover_id"] = handover_id
+            config.setdefault("pr_handovers", []).append(
+                {
+                    "handover_id": handover_id,
+                    "owner": args.owner.strip(),
+                    "audience": args.audience.strip(),
+                    "prs": [record.get("id") for record in selected],
+                    "items": item_ids,
+                    "created_at": now_text,
+                }
+            )
+            save_project_config(project_root, config)
+            append_log_line(
+                project_root / ".factory" / "process" / "execution-log.md",
+                f"- {datetime.now().strftime('%Y-%m-%d')}: 生成 `{handover_id}` PR 交接包，PR 数：{len(selected)}，负责人：{args.owner.strip()}。",
+            )
+            refresh_ai_memory(project_root)
+    except Exception as exc:
+        print(f"生成 PR 交接包失败：{exc}", file=sys.stderr)
+        return 1
+
+    print(f"已生成 PR 交接包：{handover_dir}")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

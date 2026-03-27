@@ -1,0 +1,320 @@
+#!/usr/bin/env python3
+
+import argparse
+from datetime import datetime
+from pathlib import Path
+import sys
+
+from factory_core import (
+    append_log_line,
+    collect_items,
+    current_tech_profile,
+    latest_dir_id,
+    load_project_config,
+    project_lock,
+    read_risks,
+    refresh_ai_memory,
+    save_project_config,
+)
+
+
+SUMMARY_MAP = {
+    "docs/02-requirements/prd.md": [".factory/memory/prd.summary.md", ".factory/memory/requirements-verification.summary.md"],
+    "docs/02-requirements/requirements-analysis.md": [".factory/memory/requirements-verification.summary.md"],
+    "docs/03-solution/system-architecture.md": [".factory/memory/architecture.summary.md"],
+    "docs/03-solution/backend-design.md": [".factory/memory/architecture.summary.md"],
+    "docs/03-solution/database-design.md": [".factory/memory/architecture.summary.md"],
+    "docs/03-solution/api-design.md": [".factory/memory/api.summary.md"],
+    "docs/03-solution/ux-ui-design.md": [".factory/memory/ui.summary.md", ".factory/memory/design-assets.summary.md"],
+    "docs/03-solution/technical-selection.md": [".factory/memory/tech-stack.summary.md"],
+    "docs/05-quality/test-plan.md": [".factory/memory/tests.summary.md"],
+    "docs/05-quality/test-report.md": [".factory/memory/tests.summary.md"],
+    ".factory/process/stage-check-report.md": [".factory/memory/stage-check.summary.md"],
+    ".factory/process/quality-check-report.md": [".factory/memory/quality-check.summary.md"],
+    ".factory/process/state-doctor-report.md": [".factory/memory/state-doctor.summary.md"],
+    ".factory/process/team-energy.md": [".factory/memory/motivation-state.md", ".factory/memory/autonomy-rules.md"],
+    ".factory/process/recovery-review.md": [".factory/memory/recovery-playbook.md"],
+    ".factory/process/pattern-fix-report.md": [".factory/memory/pattern-fix.summary.md", ".factory/memory/evolution-baseline.md"],
+    "docs/traceability/requirements-matrix.md": [".factory/memory/traceability.summary.md", ".factory/memory/graph/traceability.json"],
+}
+
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description="为项目生成更短的 AI 入口文档，并刷新 AGENTS.md / GEMINI.md 到项目级压缩入口。")
+    parser.add_argument("--project", required=True, help="项目根目录。")
+    parser.add_argument("--owner", default="项目协调者", help="负责人。")
+    parser.add_argument("--note", default="", help="补充说明。")
+    return parser.parse_args()
+
+
+def project_docs(project_root: Path) -> list[Path]:
+    return sorted(path for path in (project_root / "docs").rglob("*.md") if path.is_file())
+
+
+def readable_stage_docs(config: dict) -> list[str]:
+    stage = str(config.get("stage", "BRAINSTORM"))
+    mapping = {
+        "BRAINSTORM": ["docs/01-discovery/input.md", "docs/01-discovery/brainstorm-record.md"],
+        "REQUIREMENTS": ["docs/02-requirements/prd.md", "docs/02-requirements/requirements-analysis.md", "docs/02-requirements/requirements-verification.md"],
+        "ANALYSIS": ["docs/02-requirements/prd.md", "docs/02-requirements/requirements-analysis.md", "docs/02-requirements/requirements-verification.md"],
+        "DESIGN": ["docs/03-solution/technical-selection.md", "docs/03-solution/system-architecture.md", "docs/03-solution/api-design.md", "docs/03-solution/backend-design.md", "docs/03-solution/ux-ui-design.md"],
+        "PLAN": ["docs/04-delivery/wbs.md", "docs/04-delivery/task-breakdown.md", "docs/04-delivery/implementation-plan.md"],
+        "IMPLEMENTATION": ["docs/04-delivery/implementation-plan.md", "docs/03-solution/technical-selection.md", "docs/03-solution/api-design.md", "docs/03-solution/backend-design.md"],
+        "TESTING": ["docs/05-quality/test-plan.md", "docs/05-quality/test-report.md"],
+        "ACCEPTANCE": [".factory/process/stage-check-report.md", ".factory/process/quality-check-report.md"],
+        "RELEASE": ["docs/06-release/release-notes.md", "docs/07-operations/deployment-guide.md", "docs/08-handover/user-guide.md"],
+        "MAINTENANCE": ["docs/09-evolution/retrospective.md", "docs/traceability/requirements-matrix.md"],
+    }
+    return mapping.get(stage, [])
+
+
+def build_runtime_brief(project_root: Path, config: dict, owner: str, note: str) -> str:
+    items = collect_items(project_root)
+    active_items = [item for item in items if item["status"] not in {"已完成", "已关闭", "已发布", "已移交"}]
+    blocked_items = [item for item in items if item["status"] == "阻塞"]
+    open_risks, _ = read_risks(project_root)
+    tech = current_tech_profile(config)
+    stage_docs = readable_stage_docs(config)
+    latest_release = latest_dir_id(project_root, "releases", "REL-")
+    latest_handover = latest_dir_id(project_root, "handover", "HO-")
+    latest_snapshot = latest_dir_id(project_root, "snapshots", "SNAP-")
+    lines = [
+        "# 项目压缩运行卡",
+        "",
+        f"- 生成时间：{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
+        f"- 负责人：{owner}",
+        f"- 项目：{config.get('project_name', project_root.name)}",
+        f"- 当前阶段：{config.get('stage', '未知')}",
+        f"- 当前模式：{config.get('active_mode', '未知')}",
+        f"- 技术画像：{tech.get('title', '未登记') or '未登记'}",
+        f"- 技术栈：{tech.get('stack', config.get('stack', '未设置')) or '未设置'}",
+        f"- 活跃工作项：{len(active_items)}",
+        f"- 阻塞项：{len(blocked_items)}",
+        f"- 开放风险：{len(open_risks)}",
+        f"- 最近发布包：{latest_release}",
+        f"- 最近交接包：{latest_handover}",
+        f"- 最近快照：{latest_snapshot}",
+        f"- 备注：{note or '无'}",
+        "",
+        "## AI 最小读取顺序",
+        "",
+        "1. 先读本文件 `/.factory/memory/runtime-brief.md`",
+        "2. 再读 `/.factory/memory/role-charter.project.md`",
+        "3. 再读 `/.factory/project.json`",
+        "4. 再读 `/.factory/memory/motivation-state.md`、`/.factory/memory/autonomy-rules.md`、`/.factory/memory/evolution-baseline.md`",
+        "5. 再读当前阶段核心文档",
+        "6. 只有需要背景解释时，才读人类长文档",
+        "",
+        "## 当前阶段核心文档",
+        "",
+    ]
+    lines.extend(f"- `{path}`" for path in stage_docs or ["无"])
+    lines.extend(
+        [
+            "",
+            "## 必守规则",
+            "",
+            "- 不跳阶段。",
+        "- 代码类工作必须走 PR 闭环后再关单。",
+        "- 任何已接受变更都要同步代码、文档、测试、`.factory/memory/`。",
+        "- 遇到阻塞、空转或质量漂移时，优先执行 `factory-dispatch recovery`。",
+        "- 发现问题时优先做模式级修复，再把有效做法沉淀到 `evolution-baseline.md`。",
+        "- 实现前优先读取 `docs/03-solution/technical-selection.md`。",
+        "- 任务单位是人天，最小精度 0.5，但不是默认拆分步长。",
+            "",
+            "## 当前推荐动作",
+            "",
+            f"- `python3 /Users/uroborus/shanforge/scripts/factory-dispatch session --project \"{project_root}\" --owner \"{owner}\"`",
+            f"- `python3 /Users/uroborus/shanforge/scripts/factory-dispatch board --project \"{project_root}\" --owner \"{owner}\" --focus \"当前协作焦点\"`",
+            f"- `python3 /Users/uroborus/shanforge/scripts/factory-dispatch doctor --project \"{project_root}\" --owner \"{owner}\" --scope full`",
+        ]
+    )
+    if active_items:
+        lines.extend(["", "## 当前前 5 个活跃工作项", ""])
+        for item in active_items[:5]:
+            lines.append(f"- `{item['id']}` {item['title']} | 状态：{item['status']} | 负责人：{item['owner']}")
+    return "\n".join(lines).rstrip() + "\n"
+
+
+def build_role_charter_project(project_root: Path, config: dict, owner: str) -> str:
+    stage = str(config.get("stage", "BRAINSTORM"))
+    role_focus = {
+        "BRAINSTORM": ["coordinator", "product-manager"],
+        "REQUIREMENTS": ["coordinator", "product-manager", "requirements-analyst"],
+        "ANALYSIS": ["coordinator", "requirements-analyst"],
+        "DESIGN": ["coordinator", "ux-designer", "solution-architect", "api-architect"],
+        "PLAN": ["coordinator", "solution-architect", "documentation-librarian"],
+        "IMPLEMENTATION": ["coordinator", "backend-engineer", "frontend-engineer", "documentation-librarian", "memory-librarian"],
+        "TESTING": ["coordinator", "qa-engineer", "documentation-librarian"],
+        "ACCEPTANCE": ["coordinator", "qa-engineer", "release-manager"],
+        "RELEASE": ["coordinator", "release-manager", "memory-librarian"],
+        "MAINTENANCE": ["coordinator", "requirements-analyst", "backend-engineer", "frontend-engineer", "qa-engineer"],
+    }
+    rules = {
+        "coordinator": ("推进阶段、看板、Gate、交接、团队动能", ".factory/memory/runtime-brief.md、motivation-state.md、阶段检查/质量报告"),
+        "product-manager": ("范围与优先级", "docs/01-discovery/*、docs/02-requirements/prd.md"),
+        "requirements-analyst": ("结构化 REQ/NFR、依赖、风险、建议测试点", "docs/02-requirements/prd.md、requirements-analysis.md、requirements-verification.md"),
+        "ux-designer": ("用户旅程、页面与交互、设计交付物", "docs/03-solution/ux-ui-design.md、docs/02-requirements/*"),
+        "solution-architect": ("技术画像、系统边界、分层", "docs/03-solution/technical-selection.md、system-architecture.md"),
+        "api-architect": ("接口契约", "docs/03-solution/api-design.md"),
+        "backend-engineer": ("后端代码、测试、PR", "technical-selection.md、backend-design.md、api-design.md、TASK-*"),
+        "frontend-engineer": ("前端代码、测试、PR", "technical-selection.md、ux-ui-design.md、api-design.md、TASK-*"),
+        "qa-engineer": ("测试计划、回归、质量门禁", "docs/05-quality/*、docs/06-release/*"),
+        "release-manager": ("发布、交付、上线检查", "release-notes.md、delivery-package.md、deployment-guide.md、user-guide.md"),
+        "documentation-librarian": ("文档同步与单文件版本演化", "所有受影响 docs/*"),
+        "memory-librarian": ("`.factory/memory/` 摘要、上下文压缩与基线沉淀", "所有最新正式文档、执行记录、motivation-state.md、evolution-baseline.md"),
+    }
+    lines = [
+        "# 项目角色压缩卡",
+        "",
+        f"- 生成时间：{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
+        f"- 负责人：{owner}",
+        f"- 当前阶段：{stage}",
+        "",
+        "## 当前阶段主要角色",
+        "",
+    ]
+    for role_id in role_focus.get(stage, ["coordinator"]):
+        owns, reads = rules.get(role_id, ("待补充", "待补充"))
+        lines.extend(
+            [
+                f"### {role_id}",
+                f"- 负责：{owns}",
+                f"- 优先读取：{reads}",
+                f"- 交付要求：只改自己负责的产物，并在交接时说明输入、输出、未决问题、下一步。",
+                "",
+            ]
+        )
+    return "\n".join(lines).rstrip() + "\n"
+
+
+def build_doc_map(project_root: Path) -> str:
+    lines = [
+        "# 文档压缩映射",
+        "",
+        "## 读取规则",
+        "",
+        "- 人类文档保留为正式说明层。",
+        "- AI 默认先读压缩文档与 summary，再按需回看正式文档。",
+        "",
+        "## 映射表",
+        "",
+    ]
+    for path in project_docs(project_root):
+        rel = path.relative_to(project_root).as_posix()
+        summaries = SUMMARY_MAP.get(rel, [".factory/memory/runtime-brief.md"])
+        lines.append(f"- `{rel}` -> {', '.join(f'`{item}`' for item in summaries)}")
+    return "\n".join(lines).rstrip() + "\n"
+
+
+def build_agents_md(project_root: Path, config: dict) -> str:
+    return "\n".join(
+        [
+            "# AI 软件工厂规则",
+            "",
+            "默认不要散读整仓文档。",
+            "",
+            f"项目根目录：`{project_root}`",
+            f"项目名称：`{config.get('project_name', project_root.name)}`",
+            "",
+            "优先读取顺序：",
+            "- `.factory/memory/runtime-brief.md`",
+            "- `.factory/memory/role-charter.project.md`",
+            "- `.factory/memory/motivation-state.md`",
+            "- `.factory/memory/autonomy-rules.md`",
+            "- `.factory/memory/evolution-baseline.md`",
+            "- `.factory/project.json`",
+            "- `.factory/memory/current-state.md`",
+            "- 当前阶段核心文档",
+            "",
+            "补充协议：",
+            "- `/Users/uroborus/shanforge/skills/software-factory-cli/references/ai-runtime-protocol.md`",
+            "- `/Users/uroborus/shanforge/skills/software-factory-cli/references/ai-role-charter.md`",
+            "",
+            "规则：",
+            "- 默认不全文加载人类长文档。",
+            "- `AGENTS.md` / `GEMINI.md` 只保留稳定协作入口，不写安装结果、测试状态或当天运行结论。",
+            "- 只在解释背景、方案原理或用户明确要求时读取 `docs/*.md` 中的相关长文。",
+            "- 代码类工作必须走 PR 闭环。",
+            "- 变更必须同步代码、文档、测试、`.factory/memory/`。",
+        ]
+    ).rstrip() + "\n"
+
+
+def build_gemini_md(project_root: Path, config: dict) -> str:
+    return "\n".join(
+        [
+            "# Gemini 项目说明",
+            "",
+            "默认先读压缩入口，不要全文加载长篇说明。",
+            "",
+            f"项目根目录：`{project_root}`",
+            f"项目名称：`{config.get('project_name', project_root.name)}`",
+            "",
+            "优先读取顺序：",
+            "- `.factory/memory/runtime-brief.md`",
+            "- `.factory/memory/role-charter.project.md`",
+            "- `.factory/memory/motivation-state.md`",
+            "- `.factory/memory/autonomy-rules.md`",
+            "- `.factory/memory/evolution-baseline.md`",
+            "- `.factory/project.json`",
+            "- 当前阶段核心文档",
+            "",
+            "全局补充协议：",
+            "- `/Users/uroborus/shanforge/skills/software-factory-cli/references/ai-runtime-protocol.md`",
+            "- `/Users/uroborus/shanforge/skills/software-factory-cli/references/ai-role-charter.md`",
+            "",
+            "Gemini 默认职责：",
+            "- 需求、分析、架构、影响分析、复核",
+            "",
+            "规则：",
+            "- 默认不要全文读取人类长文档。",
+            "- `AGENTS.md` / `GEMINI.md` 只保留稳定协作入口，不写安装结果、测试状态或当天运行结论。",
+            "- 编写需求后先看 `requirements-verification.md`。",
+            "- 进入实现前先看 `technical-selection.md`。",
+            "- 需要视觉交付时优先看 `docs/03-solution/ux-ui-design.md` 和 `docs/03-solution/assets/`。",
+        ]
+    ).rstrip() + "\n"
+
+
+def main() -> int:
+    args = parse_args()
+    project_root = Path(args.project).expanduser().resolve()
+
+    try:
+        with project_lock(project_root, reason="生成项目压缩入口"):
+            config = load_project_config(project_root)
+            runtime_path = project_root / ".factory" / "memory" / "runtime-brief.md"
+            role_path = project_root / ".factory" / "memory" / "role-charter.project.md"
+            doc_map_path = project_root / ".factory" / "memory" / "doc-map.md"
+
+            runtime_path.write_text(build_runtime_brief(project_root, config, args.owner.strip(), args.note.strip()), encoding="utf-8")
+            role_path.write_text(build_role_charter_project(project_root, config, args.owner.strip()), encoding="utf-8")
+            doc_map_path.write_text(build_doc_map(project_root), encoding="utf-8")
+            (project_root / "AGENTS.md").write_text(build_agents_md(project_root, config), encoding="utf-8")
+            (project_root / "GEMINI.md").write_text(build_gemini_md(project_root, config), encoding="utf-8")
+
+            config["compressed_entry_docs"] = [
+                str(runtime_path),
+                str(role_path),
+                str(doc_map_path),
+            ]
+            config["last_project_compress_at"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            config["last_project_compress_owner"] = args.owner.strip()
+            save_project_config(project_root, config)
+
+            append_log_line(
+                project_root / ".factory" / "process" / "execution-log.md",
+                f"- {datetime.now().strftime('%Y-%m-%d')}: 生成项目压缩入口文档并刷新 `AGENTS.md` / `GEMINI.md`，负责人：{args.owner.strip()}，备注：{args.note.strip() or '无'}。",
+            )
+            refresh_ai_memory(project_root)
+    except Exception as exc:
+        print(f"生成项目压缩入口失败：{exc}", file=sys.stderr)
+        return 1
+
+    print(f"已生成项目压缩入口：{runtime_path}、{role_path}、{doc_map_path}")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

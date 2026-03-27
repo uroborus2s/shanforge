@@ -1,0 +1,209 @@
+#!/usr/bin/env python3
+
+import argparse
+import json
+from datetime import datetime
+from pathlib import Path
+import sys
+
+from factory_core import (
+    append_log_line,
+    find_pr_record,
+    git_branch_exists,
+    git_current_branch,
+    git_head_commit,
+    is_git_repo,
+    load_pr_records,
+    load_project_config,
+    project_lock,
+    refresh_ai_memory,
+    run_script,
+    run_step,
+    save_pr_records,
+    save_project_config,
+    upsert_item_pr_section,
+    write_text,
+    write_pr_tracker,
+)
+
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description="合并一个 PR，并可选自动关闭关联工作项。")
+    parser.add_argument("--project", required=True, help="项目根目录。")
+    parser.add_argument("--pr", required=True, help="PR 编号，例如 PR-001。")
+    parser.add_argument("--owner", default="待记录", help="合并执行人。")
+    parser.add_argument("--target-branch", default="", help="目标分支，默认使用 PR 记录中的目标分支。")
+    parser.add_argument(
+        "--merge-mode",
+        choices=["auto", "record-only", "local-git"],
+        default="auto",
+        help="合并模式。auto 会在 git 仓库中优先使用 local-git。",
+    )
+    parser.add_argument("--close-items", action="store_true", help="合并后自动关闭关联工作项。")
+    parser.add_argument("--item-result", default="已完成", help="自动关闭工作项时的结果。")
+    parser.add_argument("--delete-branch", action="store_true", help="本地合并成功后删除源分支。")
+    parser.add_argument("--force", action="store_true", help="即使 PR 尚未评审通过也强制标记合并。")
+    parser.add_argument("--note", default="", help="补充说明。")
+    return parser.parse_args()
+
+
+def resolve_merge_mode(requested: str, git_repo: bool, record: dict) -> str:
+    if requested == "record-only":
+        return "record-only"
+    if requested == "local-git" and git_repo:
+        return "local-git"
+    if requested == "auto" and git_repo and record.get("provider") == "git-local":
+        return "local-git"
+    return "record-only"
+
+
+def main() -> int:
+    args = parse_args()
+    project_root = Path(args.project).expanduser().resolve()
+
+    try:
+        with project_lock(project_root, reason=f"合并 PR {args.pr.strip()}"):
+            load_project_config(project_root)
+            records = load_pr_records(project_root)
+            record = find_pr_record(records, args.pr.strip())
+            if record.get("status") == "merged":
+                raise RuntimeError(f"{record['id']} 已经处于已合并状态。")
+            if record.get("review_result") != "通过" and not args.force:
+                raise RuntimeError("PR 尚未评审通过，不能合并。可使用 --force 强制继续。")
+
+            git_repo = is_git_repo(project_root)
+            merge_mode = resolve_merge_mode(args.merge_mode, git_repo, record)
+            target_branch = args.target_branch.strip() or record.get("base_branch", "main") or "main"
+            source_branch = record.get("branch", "")
+            steps: list[dict] = []
+
+            if merge_mode == "local-git":
+                if not source_branch:
+                    raise RuntimeError("PR 缺少源分支，无法执行本地合并。")
+                if not git_branch_exists(project_root, target_branch):
+                    raise RuntimeError(f"目标分支不存在：{target_branch}")
+                if not git_branch_exists(project_root, source_branch):
+                    raise RuntimeError(f"源分支不存在：{source_branch}")
+                current_branch = git_current_branch(project_root)
+                if current_branch != target_branch:
+                    steps.append(run_step(["git", "checkout", target_branch], f"切换到 {target_branch}", cwd=project_root))
+                    if steps[-1]["returncode"] != 0:
+                        raise RuntimeError(steps[-1]["stderr"] or steps[-1]["stdout"] or "切换目标分支失败")
+                merge_message = f"Merge {record['id']}: {record.get('title', '未命名 PR')}"
+                steps.append(
+                    run_step(
+                        ["git", "merge", "--no-ff", source_branch, "-m", merge_message],
+                        f"合并 {source_branch} -> {target_branch}",
+                        cwd=project_root,
+                    )
+                )
+                if steps[-1]["returncode"] != 0:
+                    raise RuntimeError(steps[-1]["stderr"] or steps[-1]["stdout"] or "本地合并失败")
+                if args.delete_branch and source_branch != target_branch:
+                    steps.append(run_step(["git", "branch", "-d", source_branch], f"删除分支 {source_branch}", cwd=project_root))
+
+            now_text = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            updated = dict(record)
+            updated["status"] = "merged"
+            updated["merge_status"] = "已合并"
+            updated["merged_at"] = now_text
+            updated["merged_by"] = args.owner.strip()
+            updated["updated_at"] = now_text
+            updated["merge_mode"] = merge_mode
+            updated["head_commit"] = git_head_commit(project_root) if git_repo else updated.get("head_commit", "")
+            updated.setdefault("history", []).append(
+                {
+                    "action": "merge",
+                    "owner": args.owner.strip(),
+                    "time": now_text,
+                    "note": args.note.strip(),
+                    "mode": merge_mode,
+                }
+            )
+
+            normalized_records = [updated if item.get("id") == updated["id"] else item for item in records]
+            save_pr_records(project_root, normalized_records)
+            for item_id in updated.get("items", []):
+                upsert_item_pr_section(project_root, item_id, updated)
+
+            if args.close_items:
+                for item_id in updated.get("items", []):
+                    steps.append(
+                        run_script(
+                            "factory-close-workitem",
+                            "--project",
+                            str(project_root),
+                            "--item",
+                            item_id,
+                            "--result",
+                            args.item_result.strip(),
+                            "--owner",
+                            args.owner.strip(),
+                            "--summary",
+                            updated.get("summary", "") or updated.get("title", ""),
+                            "--docs",
+                            ",".join(updated.get("docs", [])),
+                            "--tests",
+                            ",".join(updated.get("tests", [])),
+                            "--code",
+                            ",".join(updated.get("code", [])),
+                            "--note",
+                            args.note.strip() or f"{updated['id']} merged",
+                            label=f"关闭 {item_id}",
+                        )
+                    )
+
+            latest_lines = [
+                f"- 时间：{now_text}",
+                f"- PR：{updated['id']}",
+                f"- 标题：{updated.get('title', '未命名 PR')}",
+                f"- 合并人：{args.owner.strip()}",
+                f"- 合并模式：{merge_mode}",
+                f"- 目标分支：{target_branch}",
+                f"- 工作项：{'、'.join(updated.get('items', [])) or '无'}",
+                f"- 自动关单：{'是' if args.close_items else '否'}",
+                f"- 提交：{updated.get('head_commit', '') or '无'}",
+                f"- 备注：{args.note.strip() or '无'}",
+            ]
+            step_lines = []
+            for step in steps:
+                step_lines.append(f"- {step['label']}：{'成功' if step['returncode'] == 0 else f'失败({step['returncode']})'}")
+                if step["stdout"]:
+                    step_lines.append(f"  输出：{step['stdout']}")
+                if step["stderr"]:
+                    step_lines.append(f"  错误：{step['stderr']}")
+            if not step_lines:
+                step_lines = ["- 本次仅登记 PR 合并结果，没有执行本地 git 动作。"]
+            history_line = f"- {now_text}: 合并 `{updated['id']}`，模式：{merge_mode}，执行人：{args.owner.strip()}。"
+            write_pr_tracker(project_root, "## 最新 PR 合并", latest_lines, step_lines, normalized_records, history_line)
+            write_text(project_root / f".factory/pr-merge.{updated['id']}.json", json.dumps(updated, ensure_ascii=False, indent=2))
+
+            config = load_project_config(project_root)
+            config["last_pr_action_at"] = now_text
+            config["last_pr_action"] = "merge"
+            config["last_pr_id"] = updated["id"]
+            config.setdefault("pr_actions", []).append(
+                {
+                    "action": "merge",
+                    "pr": updated["id"],
+                    "owner": args.owner.strip(),
+                    "mode": merge_mode,
+                    "time": now_text,
+                }
+            )
+            save_project_config(project_root, config)
+            refresh_ai_memory(project_root)
+            append_log_line(
+                project_root / ".factory" / "process" / "execution-log.md",
+                f"- {datetime.now().strftime('%Y-%m-%d')}: 合并 `{updated['id']}`，模式：{merge_mode}，执行人：{args.owner.strip()}。",
+            )
+    except Exception as exc:
+        print(f"PR 合并失败：{exc}", file=sys.stderr)
+        return 1
+
+    print(f"已合并 PR：{updated['id']}")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

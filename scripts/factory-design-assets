@@ -1,0 +1,251 @@
+#!/usr/bin/env python3
+
+import argparse
+import shutil
+from datetime import datetime
+from pathlib import Path
+import sys
+
+from factory_core import (
+    append_log_line,
+    design_asset_records,
+    load_project_config,
+    next_sequence_id,
+    parse_list,
+    project_lock,
+    refresh_ai_memory,
+    save_design_asset_state,
+    save_project_config,
+    unique_preserve,
+    write_text,
+)
+
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description="把可直观看到的 UI/UX 设计交付物登记进项目，并同步写入 UX/UI 设计文档。")
+    parser.add_argument("--project", required=True, help="项目根目录。")
+    parser.add_argument("--title", required=True, help="设计交付物标题。")
+    parser.add_argument("--images", default="", help="兼容旧参数：图片路径列表，逗号分隔。")
+    parser.add_argument("--files", default="", help="本地文件路径列表，支持图片、HTML 原型、SVG、PDF、视频等，逗号分隔。")
+    parser.add_argument("--links", default="", help="外部链接列表，例如 Figma 原型地址，逗号分隔。")
+    parser.add_argument("--ui-id", default="", help="关联的 UI 编号，例如 UI-001。")
+    parser.add_argument("--kind", default="设计交付物", help="交付物类型，例如 线框图/高保真/流程图/HTML 原型/竞品参考。")
+    parser.add_argument("--owner", default="设计负责人", help="登记负责人。")
+    parser.add_argument("--source", default="", help="图片来源，例如 Figma 导出/手绘/竞品参考。")
+    parser.add_argument("--note", default="", help="补充说明。")
+    return parser.parse_args()
+
+
+def classify_render_mode(value: str) -> str:
+    lower = value.lower()
+    if lower.startswith("http://") or lower.startswith("https://"):
+        return "link"
+    suffix = Path(value).suffix.lower()
+    if suffix in {".png", ".jpg", ".jpeg", ".gif", ".webp", ".svg"}:
+        return "image"
+    if suffix in {".html", ".htm"}:
+        return "html"
+    if suffix in {".pdf"}:
+        return "pdf"
+    if suffix in {".mp4", ".mov", ".webm"}:
+        return "video"
+    return "file"
+
+
+def render_entry_lines(value: str, *, relative_prefix: str = "") -> list[str]:
+    mode = classify_render_mode(value)
+    if relative_prefix:
+        target = f"{relative_prefix}{Path(value).name}"
+    elif value.startswith("docs/03-solution/assets/"):
+        target = Path(value).name
+    else:
+        target = value
+    if mode == "image":
+        return [f"- 文件：`{value}`", f"![{Path(value).name}]({target})", ""]
+    if mode == "html":
+        return [f"- HTML 原型：`{value}`", f"- 预览入口：[{Path(value).name}]({target})", ""]
+    if mode in {"pdf", "video", "file"}:
+        return [f"- 文件：`{value}`", f"- 打开交付物：[{Path(value).name}]({target})", ""]
+    return [f"- 外部链接：[{value}]({value})", ""]
+
+
+def build_assets_doc(records: list[dict]) -> str:
+    lines = [
+        "# 设计交付物目录",
+        "",
+        f"- 最近更新：{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
+        f"- 交付物数：{len(records)}",
+        "",
+    ]
+    if not records:
+        lines.append("暂无设计交付物。")
+        return "\n".join(lines).rstrip() + "\n"
+
+    for record in records:
+        lines.extend(
+            [
+                f"## {record['id']} {record.get('title', '未命名设计交付物')}",
+                "",
+                f"- 类型：{record.get('kind', '设计交付物')}",
+                f"- 关联 UI：{record.get('ui_id', '未绑定') or '未绑定'}",
+                f"- 来源：{record.get('source', '未说明') or '未说明'}",
+                f"- 录入人：{record.get('owner', '未知')}",
+                f"- 录入时间：{record.get('created_at', '未知')}",
+                f"- 说明：{record.get('note', '无') or '无'}",
+                "",
+            ]
+        )
+        for file_path in record.get("files", []):
+            lines.extend(render_entry_lines(file_path))
+        for link in record.get("links", []):
+            lines.extend(render_entry_lines(link))
+    return "\n".join(lines).rstrip() + "\n"
+
+
+def build_ui_doc_asset_section(records: list[dict]) -> list[str]:
+    if not records:
+        return ["- 暂无已登记的设计交付物。"]
+
+    lines: list[str] = []
+    for record in records:
+        lines.extend(
+            [
+                f"### {record['id']} {record.get('title', '未命名设计交付物')}",
+                "",
+                f"- 类型：{record.get('kind', '设计交付物')}",
+                f"- 关联 UI：{record.get('ui_id', '未绑定') or '未绑定'}",
+                f"- 来源：{record.get('source', '未说明') or '未说明'}",
+                f"- 录入人：{record.get('owner', '未知')}",
+                f"- 录入时间：{record.get('created_at', '未知')}",
+                f"- 说明：{record.get('note', '无') or '无'}",
+                "",
+            ]
+        )
+        for file_path in record.get("files", []):
+            lines.extend(render_entry_lines(file_path, relative_prefix="assets/"))
+        for link in record.get("links", []):
+            lines.extend(render_entry_lines(link))
+    return lines
+
+
+def replace_or_append_section(path: Path, header: str, content_lines: list[str], *, default_title: str) -> None:
+    if path.exists():
+        lines = path.read_text(encoding="utf-8").splitlines()
+    else:
+        lines = [default_title, ""]
+
+    legacy_headers = {"## 设计图片资产"} if header != "## 设计图片资产" else set()
+    for legacy in legacy_headers:
+        while True:
+            legacy_start = next((i for i, line in enumerate(lines) if line.strip() == legacy), None)
+            if legacy_start is None:
+                break
+            legacy_end = len(lines)
+            for index in range(legacy_start + 1, len(lines)):
+                if lines[index].strip().startswith("## "):
+                    legacy_end = index
+                    break
+            lines = lines[:legacy_start] + lines[legacy_end:]
+
+    start = None
+    for index, line in enumerate(lines):
+        if line.strip() == header:
+            start = index
+            break
+
+    if start is not None:
+        end = len(lines)
+        for index in range(start + 1, len(lines)):
+            if lines[index].strip().startswith("## "):
+                end = index
+                break
+        lines = lines[: start + 1] + [""] + content_lines + [""] + lines[end:]
+    else:
+        if lines and lines[-1] != "":
+            lines.append("")
+        lines.extend([header, "", *content_lines, ""])
+
+    cleaned: list[str] = []
+    index = 0
+    seen_header = False
+    while index < len(lines):
+        if lines[index].strip() == header:
+            if seen_header:
+                index += 1
+                while index < len(lines) and not lines[index].strip().startswith("## "):
+                    index += 1
+                continue
+            seen_header = True
+        cleaned.append(lines[index])
+        index += 1
+    write_text(path, "\n".join(cleaned))
+
+
+def main() -> int:
+    args = parse_args()
+    project_root = Path(args.project).expanduser().resolve()
+    raw_files = unique_preserve(parse_list(args.files) + parse_list(args.images))
+    source_paths = [Path(item).expanduser().resolve() for item in raw_files]
+    external_links = unique_preserve(parse_list(args.links))
+    if not source_paths and not external_links:
+        print("设计交付物登记失败：至少提供一个本地文件或外部链接。", file=sys.stderr)
+        return 1
+
+    try:
+        with project_lock(project_root, reason="登记设计交付物"):
+            config = load_project_config(project_root)
+            records = design_asset_records(config)
+            asset_id = next_sequence_id(records, "DA-")
+            asset_root = project_root / "docs" / "03-solution" / "assets"
+            asset_root.mkdir(parents=True, exist_ok=True)
+
+            copied_relatives: list[str] = []
+            for index, source in enumerate(source_paths, start=1):
+                if not source.exists():
+                    raise RuntimeError(f"设计交付物文件不存在：{source}")
+                suffix = source.suffix or ".bin"
+                filename = f"{asset_id}-{index:02d}{suffix}"
+                target = asset_root / filename
+                shutil.copy2(source, target)
+                copied_relatives.append(f"docs/03-solution/assets/{filename}")
+
+            record = {
+                "id": asset_id,
+                "title": args.title.strip(),
+                "ui_id": args.ui_id.strip(),
+                "kind": args.kind.strip(),
+                "owner": args.owner.strip(),
+                "source": args.source.strip(),
+                "note": args.note.strip(),
+                "files": copied_relatives,
+                "links": external_links,
+                "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            }
+            records.append(record)
+            config["design_assets"] = records
+            save_project_config(project_root, config)
+            save_design_asset_state(project_root, records)
+
+            write_text(asset_root / "README.md", build_assets_doc(records))
+            replace_or_append_section(
+                project_root / "docs" / "03-solution" / "ux-ui-design.md",
+                "## 设计交付物",
+                build_ui_doc_asset_section(records),
+                default_title="# UX/UI 设计文档",
+            )
+
+            append_log_line(
+                project_root / ".factory" / "process" / "execution-log.md",
+                f"- {datetime.now().strftime('%Y-%m-%d')}: 新增设计交付物 `{asset_id}` {args.title.strip()}，负责人：{args.owner.strip()}。",
+            )
+            refresh_ai_memory(project_root)
+    except Exception as exc:
+        print(f"登记设计交付物失败：{exc}", file=sys.stderr)
+        return 1
+
+    print(f"已登记设计交付物：{asset_id}")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

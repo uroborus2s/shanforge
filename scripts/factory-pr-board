@@ -1,0 +1,152 @@
+#!/usr/bin/env python3
+
+import argparse
+import json
+from datetime import datetime
+from pathlib import Path
+import sys
+
+from factory_core import (
+    append_log_line,
+    load_pr_records,
+    load_project_config,
+    merged_pr_line,
+    pr_record_line,
+    pr_status_text,
+    project_lock,
+    save_project_config,
+    selected_pr_records,
+    upsert_section,
+    write_text,
+)
+
+
+STATUS_ORDER = ["draft", "open", "reviewing", "changes_requested", "approved", "blocked", "merged"]
+
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description="生成 PR 协作看板，供团队和模型快速查看当前 PR 局面。")
+    parser.add_argument("--project", required=True, help="项目根目录。")
+    parser.add_argument("--owner", default="项目协调者", help="看板负责人。")
+    parser.add_argument("--prs", default="", help="要展示的 PR，逗号分隔；默认展示活跃 PR。")
+    parser.add_argument("--focus", default="", help="当前看板焦点。")
+    parser.add_argument("--top", type=int, default=5, help="每个泳道展示数量。")
+    return parser.parse_args()
+
+
+def status_lines(records: list[dict], top: int) -> list[str]:
+    lines: list[str] = []
+    for status in STATUS_ORDER:
+        bucket = [record for record in records if record.get("status") == status][:top]
+        if not bucket:
+            continue
+        lines.append(f"### {pr_status_text({'status': status})}")
+        for record in bucket:
+            lines.append(pr_record_line(record))
+        lines.append("")
+    return lines[:-1] if lines else ["- 当前无符合条件的 PR。"]
+
+
+def owner_lines(records: list[dict], top: int) -> list[str]:
+    grouped: dict[str, list[dict]] = {}
+    for record in records:
+        grouped.setdefault(record.get("owner", "待记录"), []).append(record)
+    if not grouped:
+        return ["- 当前无负责人可统计。"]
+
+    lines: list[str] = []
+    for owner, items in sorted(grouped.items(), key=lambda item: item[0]):
+        lines.append(f"### {owner}")
+        for record in items[:top]:
+            lines.append(pr_record_line(record))
+        lines.append("")
+    return lines[:-1]
+
+
+def main() -> int:
+    args = parse_args()
+    project_root = Path(args.project).expanduser().resolve()
+
+    try:
+        with project_lock(project_root, reason="生成 PR 协作看板"):
+            config = load_project_config(project_root)
+            records = load_pr_records(project_root)
+            selected = selected_pr_records(records, args.prs, default_active=True)
+            merged = [record for record in records if record.get("status") == "merged"][-max(1, args.top):]
+            now_text = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+            latest_lines = [
+                f"- 时间：{now_text}",
+                f"- 当前阶段：{config.get('stage', '未知')}",
+                f"- 看板负责人：{args.owner.strip()}",
+                f"- 焦点：{args.focus.strip() or '无'}",
+                f"- 展示 PR 数：{len(selected)}",
+                f"- 最近已合并：{len(merged)}",
+            ]
+            lane_lines = status_lines(selected, max(1, args.top))
+            grouped_lines = owner_lines(selected, max(1, args.top))
+            merged_lines = [merged_pr_line(record) for record in merged] or ["- 当前无已合并 PR。"]
+
+            doc_path = project_root / ".factory" / "process" / "pr-board.md"
+            upsert_section(doc_path, "## 当前看板摘要", latest_lines, default_title="# PR 协作看板")
+            upsert_section(doc_path, "## 状态泳道", lane_lines, default_title="# PR 协作看板")
+            upsert_section(doc_path, "## 按负责人查看", grouped_lines, default_title="# PR 协作看板")
+            upsert_section(doc_path, "## 最近已合并", merged_lines, default_title="# PR 协作看板")
+
+            write_text(
+                project_root / ".factory" / "memory" / "pr-board.summary.md",
+                "\n".join(
+                    [
+                        "# PR 看板摘要",
+                        "",
+                        *latest_lines,
+                        "",
+                        "## 状态泳道",
+                        "",
+                        *lane_lines,
+                        "",
+                        "## 按负责人查看",
+                        "",
+                        *grouped_lines,
+                    ]
+                ),
+            )
+            write_text(
+                project_root / ".factory" / "pr-board.json",
+                json.dumps(
+                    {
+                        "generated_at": now_text,
+                        "owner": args.owner.strip(),
+                        "focus": args.focus.strip(),
+                        "prs": [record.get("id") for record in selected],
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                ),
+            )
+
+            config["last_pr_board_at"] = now_text
+            config["last_pr_board_focus"] = args.focus.strip()
+            config.setdefault("pr_boards", []).append(
+                {
+                    "owner": args.owner.strip(),
+                    "focus": args.focus.strip(),
+                    "created_at": now_text,
+                    "prs": [record.get("id") for record in selected],
+                }
+            )
+            save_project_config(project_root, config)
+            append_log_line(
+                project_root / ".factory" / "process" / "execution-log.md",
+                f"- {datetime.now().strftime('%Y-%m-%d')}: 刷新 PR 协作看板，负责人：{args.owner.strip()}。",
+            )
+    except Exception as exc:
+        print(f"生成 PR 协作看板失败：{exc}", file=sys.stderr)
+        return 1
+
+    print(f"已生成 PR 协作看板：{project_root / '.factory' / 'process' / 'pr-board.md'}")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

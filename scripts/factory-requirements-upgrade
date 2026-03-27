@@ -1,0 +1,503 @@
+#!/usr/bin/env python3
+
+import argparse
+import re
+from dataclasses import dataclass
+from datetime import datetime
+from pathlib import Path
+import sys
+
+from factory_core import append_log_line, project_lock, refresh_ai_memory, write_text
+
+
+REQ_HEADING = re.compile(r"^###\s+(REQ-\d{3})(?:[:：]\s*|\s+)?(.*)?$")
+PROCESS_HEADING = re.compile(r"^###\s+流程\s+\d+:\s*(.*?)(?:\s*\(→\s*(.*?)\))?$")
+UI_HEADING = re.compile(r"^###\s+(UI-\d{3}):\s*(.*?)(?:\s*\(→\s*(.*?)\))?$")
+CHANGE_ROW = re.compile(r"^\|\s*v\d+\.\d+\s*\|")
+
+PRD_START_MARKER = "## 4A. 结构化需求明细（升级版）"
+PRD_INSERT_BEFORE = "## 4. 核心功能需求"
+ANALYSIS_START_MARKER = "## A. 逐条需求分析（结构化补强）"
+ANALYSIS_INSERT_BEFORE = "## 1. 核心流程分析"
+
+
+@dataclass
+class ProcessSection:
+    title: str
+    req_ids: list[str]
+    steps: list[str]
+
+
+@dataclass
+class UISection:
+    ui_id: str
+    title: str
+
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description="将历史项目的 PRD/需求分析升级到新版结构化字段，供新版校验与后续流程复用。")
+    parser.add_argument("--project", required=True, help="项目根目录。")
+    parser.add_argument("--owner", default="需求负责人", help="执行负责人。")
+    parser.add_argument("--note", default="", help="补充说明。")
+    return parser.parse_args()
+
+
+def read_text(path: Path) -> str:
+    if not path.exists():
+        raise RuntimeError(f"文件不存在：{path}")
+    return path.read_text(encoding="utf-8")
+
+
+def clean_inline(text: str) -> str:
+    text = re.sub(r"`([^`]+)`", r"\1", text)
+    text = text.replace("**", "").replace("*", "")
+    return re.sub(r"\s+", " ", text).strip(" -")
+
+
+def parse_req_sections(prd_text: str) -> dict[str, dict[str, object]]:
+    lines = prd_text.splitlines()
+    sections: dict[str, list[str]] = {}
+    current = None
+    for line in lines:
+        match = REQ_HEADING.match(line.strip())
+        if match:
+            current = match.group(1)
+            sections[current] = [line]
+            continue
+        if current and line.strip().startswith("### "):
+            current = None
+        if current:
+            sections[current].append(line)
+
+    result: dict[str, dict[str, object]] = {}
+    for req_id, section_lines in sections.items():
+        joined = "\n".join(section_lines)
+        result[req_id] = {
+            "title": clean_inline(REQ_HEADING.match(section_lines[0].strip()).group(2) or req_id),
+            "priority": extract_field(joined, ["优先级："]),
+            "status": extract_field(joined, ["状态："]),
+            "description": extract_field(joined, ["描述："]),
+            "user_story": extract_field(joined, ["用户故事："]),
+            "constraints": extract_field(joined, ["约束："]),
+            "acceptance": extract_acceptance(joined),
+            "section": joined,
+        }
+    return result
+
+
+def extract_field(section: str, labels: list[str]) -> str:
+    for raw_line in section.splitlines():
+        line = raw_line.strip()
+        for label in labels:
+            compact = label.replace("：", "")
+            if compact in line.replace("：", ""):
+                idx = line.find("：")
+                if idx >= 0:
+                    value = clean_inline(line[idx + 1 :])
+                    if value:
+                        return value
+    return ""
+
+
+def extract_acceptance(section: str) -> list[str]:
+    lines = section.splitlines()
+    capture = False
+    items: list[str] = []
+    for raw_line in lines:
+        line = raw_line.strip()
+        if "验收标准" in line:
+            capture = True
+            continue
+        if capture and line.startswith("- **") and "：" in line:
+            break
+        if capture and line.startswith("- ["):
+            items.append(clean_inline(re.sub(r"^- \[[ xX]\]\s*", "", line)))
+        elif capture and re.match(r"^\d+\.", line):
+            items.append(clean_inline(re.sub(r"^\d+\.\s*", "", line)))
+    return items
+
+
+def parse_processes(text: str) -> list[ProcessSection]:
+    lines = text.splitlines()
+    processes: list[ProcessSection] = []
+    current: ProcessSection | None = None
+    for raw_line in lines:
+        line = raw_line.strip()
+        match = PROCESS_HEADING.match(line)
+        if match:
+            req_ids = re.findall(r"REQ-\d{3}", match.group(2) or "")
+            current = ProcessSection(title=clean_inline(match.group(1)), req_ids=req_ids, steps=[])
+            processes.append(current)
+            continue
+        if current and re.match(r"^\d+\.", line):
+            step_text = clean_inline(re.sub(r"^\d+\.\s*", "", line))
+            current.steps.append(step_text)
+        elif current and line.startswith("## "):
+            current = None
+    return processes
+
+
+def parse_ui_map(text: str) -> dict[str, list[UISection]]:
+    mapping: dict[str, list[UISection]] = {}
+    for raw_line in text.splitlines():
+        line = raw_line.strip()
+        match = UI_HEADING.match(line)
+        if not match:
+            continue
+        ui_id = match.group(1)
+        title = clean_inline(match.group(2))
+        req_ids = re.findall(r"REQ-\d{3}", match.group(3) or "")
+        for req_id in req_ids:
+            mapping.setdefault(req_id, []).append(UISection(ui_id=ui_id, title=title))
+    return mapping
+
+
+def parse_simple_table(text: str, title: str) -> list[list[str]]:
+    lines = text.splitlines()
+    start = None
+    for index, raw_line in enumerate(lines):
+        if raw_line.strip() == title:
+            start = index + 1
+            break
+    if start is None:
+        return []
+    rows: list[list[str]] = []
+    for raw_line in lines[start:]:
+        line = raw_line.strip()
+        if not line:
+            continue
+        if line.startswith("## "):
+            break
+        if not line.startswith("|"):
+            continue
+        cols = [clean_inline(col) for col in line.strip("|").split("|")]
+        if cols and all(col.startswith("---") or not col for col in cols):
+            continue
+        if cols and cols[0] in {"需求 ID", "风险"}:
+            continue
+        rows.append(cols)
+    return rows
+
+
+def build_priority_map(analysis_text: str) -> dict[str, dict[str, str]]:
+    result: dict[str, dict[str, str]] = {}
+    for cols in parse_simple_table(analysis_text, "## 3. 优先级矩阵"):
+        if len(cols) < 5 or not cols[0].startswith("REQ-"):
+            continue
+        result[cols[0]] = {
+            "business_value": cols[1],
+            "difficulty": cols[2],
+            "priority": cols[3],
+            "iteration": cols[4],
+        }
+    return result
+
+
+def build_dependency_map(analysis_text: str) -> dict[str, dict[str, str]]:
+    result: dict[str, dict[str, str]] = {}
+    for cols in parse_simple_table(analysis_text, "## 4. 依赖关系分析"):
+        if len(cols) < 3 or not cols[0].startswith("REQ-"):
+            continue
+        result[cols[0]] = {
+            "deps": cols[1],
+            "desc": cols[2],
+        }
+    return result
+
+
+def build_risk_rows(analysis_text: str) -> list[dict[str, str]]:
+    rows = []
+    for cols in parse_simple_table(analysis_text, "## 5. 风险评估"):
+        if len(cols) < 4:
+            continue
+        rows.append(
+            {
+                "risk": cols[0],
+                "probability": cols[1],
+                "impact": cols[2],
+                "mitigation": cols[3],
+            }
+        )
+    return rows
+
+
+def extract_roles(user_story: str) -> str:
+    match = re.search(r"作为([^，。,]+)", user_story)
+    if not match:
+        return "乘客、司机、管理员及相关业务系统"
+    primary = match.group(1).strip()
+    if primary == "乘客":
+        return "乘客、小程序业务服务、支付与券/订单域"
+    if primary == "司机":
+        return "司机、司机 App、钱包/结算域、运营后台"
+    return f"{primary}及相关业务系统"
+
+
+def summarize_steps(steps: list[str], limit: int = 4) -> list[str]:
+    return [clean_inline(step) for step in steps[:limit] if clean_inline(step)]
+
+
+def related_processes(req_id: str, processes: list[ProcessSection]) -> list[ProcessSection]:
+    return [process for process in processes if req_id in process.req_ids]
+
+
+def related_risks(req_blob: str, risks: list[dict[str, str]]) -> list[dict[str, str]]:
+    keywords = [token for token in re.findall(r"[\u4e00-\u9fffA-Za-z]{2,}", req_blob) if len(token) >= 2]
+    matched: list[dict[str, str]] = []
+    for risk in risks:
+        text = f"{risk['risk']} {risk['mitigation']}"
+        if any(keyword in text for keyword in keywords):
+            matched.append(risk)
+    return matched[:2] if matched else risks[:2]
+
+
+def extract_data_terms(text: str) -> list[str]:
+    tokens = re.findall(r"`([^`]+)`", text)
+    ordered: list[str] = []
+    for token in tokens:
+        if token not in ordered:
+            ordered.append(token)
+    return ordered[:6]
+
+
+def build_prd_structured(req_id: str, info: dict[str, object], processes: list[ProcessSection], ui_map: dict[str, list[UISection]], dependency_map: dict[str, dict[str, str]], risks: list[dict[str, str]]) -> str:
+    process_list = related_processes(req_id, processes)
+    step_lines = summarize_steps([step for process in process_list for step in process.steps], limit=5)
+    priority = info.get("priority") or dependency_map.get(req_id, {}).get("priority") or "待确认"
+    acceptance = info.get("acceptance") or []
+    description = str(info.get("description") or info.get("title") or req_id)
+    constraints = str(info.get("constraints") or "")
+    user_story = str(info.get("user_story") or description)
+    roles = extract_roles(user_story)
+    ui_refs = ui_map.get(req_id, [])
+    design_text = "；".join(f"{item.ui_id} {item.title}" for item in ui_refs) or "当前无显式 UI 编号，需在后续设计扩展时补齐。"
+    data_terms = extract_data_terms(description + "\n" + "\n".join(step_lines))
+    risk_lines = related_risks(description + "\n" + user_story + "\n" + constraints, risks)
+    exception_text = "；".join(f"{item['risk']}，缓解：{item['mitigation']}" for item in risk_lines) or "需关注异常链路、弱网与幂等场景。"
+    deps = dependency_map.get(req_id, {})
+    business_rules = []
+    if constraints:
+        business_rules.append(constraints)
+    if deps.get("desc"):
+        business_rules.append(f"依赖规则：{deps['desc']}")
+    if acceptance:
+        business_rules.append(f"验收闭环：{'；'.join(acceptance[:3])}")
+
+    preconditions = []
+    if step_lines:
+        preconditions.append(step_lines[0])
+    if len(step_lines) > 1:
+        preconditions.append(step_lines[1])
+    if constraints:
+        preconditions.append(constraints)
+
+    related_tests = []
+    for index, item in enumerate(acceptance, start=1):
+        related_tests.append(f"TC-{req_id}-{index:02d}：{item}")
+    if risk_lines:
+        related_tests.append("补充异常测试：" + "；".join(item["risk"] for item in risk_lines))
+
+    lines = [
+        f"### {req_id} {info.get('title') or description}",
+        f"- 目标：{description}",
+        f"- 用户故事：{user_story}",
+        f"- 前置条件：{'；'.join(preconditions) or '需确保相关入口、数据和基础服务已准备就绪。'}",
+        f"- 主流程：{step_lines[0] if step_lines else description}",
+    ]
+    for index, step in enumerate(step_lines[1:], start=2):
+        lines.append(f"  {index}. {step}")
+    lines.extend(
+        [
+            f"- 异常/边界：{exception_text}",
+            f"- 业务规则：{'；'.join(business_rules) or '需遵循现有业务约束、依赖关系与验收闭环。'}",
+            f"- 数据约束：{('涉及字段/实体：' + '、'.join(data_terms)) if data_terms else '需明确关键业务实体、主键、状态与幂等键。'}",
+            f"- 权限/角色：{roles}",
+            "- 验收标准：",
+        ]
+    )
+    if acceptance:
+        for index, item in enumerate(acceptance, start=1):
+            lines.append(f"  {index}. {item}")
+    else:
+        lines.append(f"  1. 需围绕 {description} 补齐正式验收标准。")
+    lines.extend(
+        [
+            f"- 优先级：{priority}",
+            f"- 状态：{info.get('status') or '待确认'}",
+            f"- 关联设计：{design_text}",
+            f"- 关联测试：{'；'.join(related_tests) or '需在测试计划中补齐正向、异常和回归用例。'}",
+        ]
+    )
+    return "\n".join(lines)
+
+
+def build_analysis_structured(req_id: str, info: dict[str, object], processes: list[ProcessSection], priority_map: dict[str, dict[str, str]], dependency_map: dict[str, dict[str, str]], risks: list[dict[str, str]], ui_map: dict[str, list[UISection]]) -> str:
+    process_list = related_processes(req_id, processes)
+    process_titles = [process.title for process in process_list]
+    step_lines = summarize_steps([step for process in process_list for step in process.steps], limit=5)
+    priority = priority_map.get(req_id, {})
+    deps = dependency_map.get(req_id, {})
+    risk_lines = related_risks(str(info.get("description") or "") + "\n" + str(info.get("user_story") or ""), risks)
+    ui_refs = ui_map.get(req_id, [])
+    roles = extract_roles(str(info.get("user_story") or ""))
+    business_value = priority.get("business_value") or "高"
+    priority_reason = f"业务价值 {business_value}，技术复杂度 {priority.get('difficulty', '中')}，建议纳入 {priority.get('iteration', '近期迭代')}。"
+    split_suggestion = []
+    if ui_refs:
+        split_suggestion.append("按前台交互、后端接口、状态流转、异常处理拆分")
+    if process_titles:
+        split_suggestion.append("按核心流程分段：" + "；".join(process_titles[:3]))
+    test_points = []
+    for item in info.get("acceptance") or []:
+        test_points.append(item)
+    for risk in risk_lines:
+        test_points.append(f"异常回归：{risk['risk']}")
+    clarifications = []
+    if deps.get("desc"):
+        clarifications.append(f"需在详细设计阶段锁定依赖边界：{deps['desc']}")
+    if ui_refs:
+        clarifications.append("需与 UI/UX 原型核对关键状态与异常反馈。")
+    else:
+        clarifications.append("需在设计阶段补齐关键界面与交互挂接。")
+    clarifications.append("需在 API/测试设计阶段确认字段、状态机和幂等策略。")
+    risk_text = "；".join(f"{item['risk']}（缓解：{item['mitigation']}）" for item in risk_lines)
+
+    lines = [
+        f"### {req_id}",
+        f"- 业务价值：{business_value}，直接支撑 {info.get('title') or info.get('description')}",
+        f"- 优先级理由：{priority_reason}",
+        f"- 依赖关系：{deps.get('deps') or '需结合上下游服务进一步确认'}；{deps.get('desc') or '当前未记录额外依赖说明。'}",
+        f"- 风险点：{risk_text or '暂无显式高风险，仍需在实现前复核异常链路。'}",
+        f"- 影响角色/系统：{roles}；涉及流程/界面：{('；'.join(process_titles[:3])) or '需结合详细设计进一步拆分'}{'；设计参考：' + '、'.join(item.ui_id for item in ui_refs) if ui_refs else ''}",
+        f"- 待澄清问题：{'；'.join(clarifications)}",
+        f"- 建议拆分：{'；'.join(split_suggestion) or '建议按接口、数据模型、交互状态和回归测试拆分。'}",
+        f"- 建议测试点：{'；'.join(test_points) or '需补齐正向、异常、弱网、幂等等测试点。'}",
+    ]
+    if step_lines:
+        lines.extend(["- 关键流程依据：", *[f"  {index}. {step}" for index, step in enumerate(step_lines, start=1)]])
+    return "\n".join(lines)
+
+
+def replace_or_insert(text: str, start_marker: str, insert_before: str, replacement: str) -> str:
+    if start_marker in text:
+        start = text.index(start_marker)
+        end = text.find(insert_before, start + len(start_marker))
+        if end == -1:
+            end = len(text)
+        return text[:start] + replacement.rstrip() + "\n\n" + text[end:]
+    if insert_before in text:
+        index = text.index(insert_before)
+        return text[:index] + replacement.rstrip() + "\n\n" + text[index:]
+    return text.rstrip() + "\n\n" + replacement.rstrip() + "\n"
+
+
+def bump_header_version(text: str) -> tuple[str, str]:
+    match = re.search(r"\*\*版本：\*\*\s*v(\d+)\.(\d+)", text)
+    if not match:
+        return text, "v1.0"
+    major = int(match.group(1))
+    minor = int(match.group(2)) + 1
+    next_version = f"v{major}.{minor}"
+    updated = re.sub(r"(\*\*版本：\*\*\s*)v\d+\.\d+", lambda match: f"{match.group(1)}{next_version}", text, count=1)
+    updated = re.sub(
+        r"(\*\*日期：\*\*\s*).+",
+        lambda match: f"{match.group(1)}{datetime.now().strftime('%Y-%m-%d')}",
+        updated,
+        count=1,
+    )
+    return updated, next_version
+
+
+def upsert_analysis_version(text: str, version: str) -> str:
+    if "**版本：**" in text:
+        text = re.sub(r"(\*\*版本：\*\*\s*)v\d+\.\d+", lambda match: f"{match.group(1)}{version}", text, count=1)
+    else:
+        text = text.replace("**关联 PRD：**", f"**版本：** {version}\n**关联 PRD：**", 1)
+    return re.sub(r"(\*\*关联 PRD：\*\*\s*)v\d+\.\d+", lambda match: f"{match.group(1)}{version}", text, count=1)
+
+
+def append_change_row(text: str, version: str, note: str) -> str:
+    lines = text.splitlines()
+    for index, line in enumerate(lines):
+        if CHANGE_ROW.match(line):
+            lines.insert(index, f"| {version} | {datetime.now().strftime('%Y-%m-%d')} | {note} | — |")
+            return "\n".join(lines)
+    return text.rstrip() + "\n\n## 变更记录\n| 版本 | 日期 | 变更内容 | 关联 CR |\n|------|------|---------|---------|\n" + f"| {version} | {datetime.now().strftime('%Y-%m-%d')} | {note} | — |\n"
+
+
+def build_structured_prd_section(req_map: dict[str, dict[str, object]], processes: list[ProcessSection], ui_map: dict[str, list[UISection]], dependency_map: dict[str, dict[str, str]], risks: list[dict[str, str]]) -> str:
+    sections = [
+        PRD_START_MARKER,
+        "",
+        "> 本节用于把历史项目升级到新版结构化需求字段，作为后续设计、测试与变更同步的主读取入口。",
+        "",
+    ]
+    for req_id in sorted(req_map):
+        sections.append(build_prd_structured(req_id, req_map[req_id], processes, ui_map, dependency_map, risks))
+        sections.append("")
+    return "\n".join(sections).rstrip()
+
+
+def build_structured_analysis_section(req_map: dict[str, dict[str, object]], processes: list[ProcessSection], priority_map: dict[str, dict[str, str]], dependency_map: dict[str, dict[str, str]], risks: list[dict[str, str]], ui_map: dict[str, list[UISection]]) -> str:
+    sections = [
+        ANALYSIS_START_MARKER,
+        "",
+        "> 本节由需求升级器生成，用于补齐逐条业务价值、依赖、风险、测试点和后续拆分依据。",
+        "",
+    ]
+    for req_id in sorted(req_map):
+        sections.append(build_analysis_structured(req_id, req_map[req_id], processes, priority_map, dependency_map, risks, ui_map))
+        sections.append("")
+    return "\n".join(sections).rstrip()
+
+
+def main() -> int:
+    args = parse_args()
+    project_root = Path(args.project).expanduser().resolve()
+    prd_path = project_root / "docs" / "02-requirements" / "prd.md"
+    analysis_path = project_root / "docs" / "02-requirements" / "requirements-analysis.md"
+    ui_path = project_root / "docs" / "03-solution" / "ux-ui-design.md"
+
+    try:
+        with project_lock(project_root, reason="升级需求文档结构"):
+            prd_text = read_text(prd_path)
+            analysis_text = read_text(analysis_path)
+            ui_text = ui_path.read_text(encoding="utf-8") if ui_path.exists() else ""
+
+            req_map = parse_req_sections(prd_text)
+            if not req_map:
+                raise RuntimeError("未在 PRD 中识别到 REQ 段落，无法升级。")
+            processes = parse_processes(analysis_text)
+            ui_map = parse_ui_map(ui_text)
+            priority_map = build_priority_map(analysis_text)
+            dependency_map = build_dependency_map(analysis_text)
+            risks = build_risk_rows(analysis_text)
+
+            prd_structured = build_structured_prd_section(req_map, processes, ui_map, dependency_map, risks)
+            upgraded_prd, next_version = bump_header_version(prd_text)
+            upgraded_prd = replace_or_insert(upgraded_prd, PRD_START_MARKER, PRD_INSERT_BEFORE, prd_structured)
+            upgraded_prd = append_change_row(upgraded_prd, next_version, args.note.strip() or "补齐结构化需求字段，适配新版需求校验与后续设计/测试联动")
+
+            analysis_structured = build_structured_analysis_section(req_map, processes, priority_map, dependency_map, risks, ui_map)
+            upgraded_analysis = upsert_analysis_version(analysis_text, next_version)
+            upgraded_analysis = replace_or_insert(upgraded_analysis, ANALYSIS_START_MARKER, ANALYSIS_INSERT_BEFORE, analysis_structured)
+            upgraded_analysis = append_change_row(upgraded_analysis, next_version, args.note.strip() or "补齐逐条需求分析字段，增强依赖/风险/测试点可追踪性")
+
+            write_text(prd_path, upgraded_prd.rstrip() + "\n")
+            write_text(analysis_path, upgraded_analysis.rstrip() + "\n")
+
+            append_log_line(
+                project_root / ".factory" / "process" / "execution-log.md",
+                f"- {datetime.now().strftime('%Y-%m-%d')}: 升级需求文档结构，补齐新版 REQ/分析字段，负责人：{args.owner.strip()}。",
+            )
+            refresh_ai_memory(project_root)
+    except Exception as exc:
+        print(f"升级需求文档结构失败：{exc}", file=sys.stderr)
+        return 1
+
+    print(f"已升级需求文档结构：{prd_path}、{analysis_path}")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

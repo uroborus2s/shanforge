@@ -1,0 +1,69 @@
+#!/usr/bin/env python3
+
+import argparse
+from datetime import datetime
+from pathlib import Path
+import sys
+from typing import Optional, Tuple
+
+from factory_core import append_log_line, load_project_config, project_lock, refresh_ai_memory, save_project_config
+
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description="推进 CLI 项目的当前阶段，并写入执行记录。")
+    parser.add_argument("--project", required=True, help="项目根目录。")
+    parser.add_argument("--stage", help="目标阶段；若不传则自动进入下一阶段。")
+    parser.add_argument("--note", default="", help="阶段推进备注。")
+    parser.add_argument("--approver", default="待记录", help="审批人或确认人。")
+    return parser.parse_args()
+def choose_next_stage(config: dict, requested_stage: Optional[str]) -> Tuple[str, str]:
+    current = config.get("stage", "BRAINSTORM")
+    order = config.get("stage_order", [])
+    if requested_stage:
+        if requested_stage not in order:
+            raise RuntimeError(f"无效阶段：{requested_stage}")
+        return current, requested_stage
+    if current not in order:
+        raise RuntimeError(f"当前阶段不在阶段列表中：{current}")
+    index = order.index(current)
+    if index >= len(order) - 1:
+        raise RuntimeError(f"当前已经是最后阶段：{current}")
+    return current, order[index + 1]
+
+
+def append_execution_log(project_root: Path, previous_stage: str, next_stage: str, approver: str, note: str) -> None:
+    lines = [
+        f"- {datetime.now().strftime('%Y-%m-%d')}: 阶段推进 `{previous_stage}` -> `{next_stage}`，审批人：{approver}。",
+    ]
+    if note:
+        lines.append(f"  备注：{note}")
+    for line in lines:
+        append_log_line(project_root / ".factory" / "process" / "execution-log.md", line)
+
+
+def main() -> int:
+    args = parse_args()
+    project_root = Path(args.project).expanduser().resolve()
+
+    try:
+        with project_lock(project_root, reason="推进项目阶段"):
+            config = load_project_config(project_root)
+            previous_stage, next_stage = choose_next_stage(config, args.stage.strip() if args.stage else None)
+            config["stage"] = next_stage
+            config["last_stage_update_at"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            config["last_stage_approver"] = args.approver.strip()
+            if args.note.strip():
+                config["last_stage_note"] = args.note.strip()
+            save_project_config(project_root, config)
+            append_execution_log(project_root, previous_stage, next_stage, args.approver.strip(), args.note.strip())
+            refresh_ai_memory(project_root)
+    except Exception as exc:
+        print(f"阶段推进失败：{exc}", file=sys.stderr)
+        return 1
+
+    print(f"已将项目阶段从 {previous_stage} 推进到 {next_stage}")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

@@ -1,0 +1,238 @@
+#!/usr/bin/env python3
+
+import argparse
+import json
+import re
+from datetime import datetime
+from pathlib import Path
+import sys
+
+from factory_core import (
+    append_log_line,
+    collect_active_items,
+    current_role_assignment,
+    ensure_role_assignment_state,
+    ensure_role_catalog,
+    format_item_brief,
+    load_project_config,
+    parse_list,
+    prepend_history_entry,
+    project_lock,
+    resolve_role,
+    role_assigned_items,
+    role_document_reads,
+    role_recommended_commands,
+    save_project_config,
+    set_current_role_assignment,
+    upsert_section,
+    write_text,
+)
+
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description="给角色分派执行责任、工具和工作项。")
+    parser.add_argument("--project", required=True, help="项目根目录。")
+    parser.add_argument("--role", required=True, help="目标角色。")
+    parser.add_argument("--owner", default="", help="该角色当前负责人。")
+    parser.add_argument("--tool", default="shared", help="该角色当前主要工具，例如 codex、gemini。")
+    parser.add_argument("--items", default="", help="要分派的工作项 ID，逗号分隔。")
+    parser.add_argument("--focus", default="", help="当前执行焦点。")
+    parser.add_argument("--note", default="", help="补充说明。")
+    parser.add_argument(
+        "--status",
+        default="待执行",
+        choices=["待执行", "进行中", "阻塞", "已完成"],
+        help="角色分派状态。",
+    )
+    parser.add_argument("--set-active", action="store_true", help="同时把该角色写为当前活跃角色。")
+    parser.add_argument("--sync-item-owner", action="store_true", help="把所选工作项中的负责人同步为 --owner。")
+    parser.add_argument("--top", type=int, default=5, help="未显式传入工作项时，默认选择的条目数量。")
+    return parser.parse_args()
+
+
+def update_item_owner(path: Path, owner: str) -> None:
+    lines = path.read_text(encoding="utf-8").splitlines()
+    updated = []
+    replaced = False
+    pattern = re.compile(r"^- 负责人：")
+    for line in lines:
+        if pattern.match(line):
+            updated.append(f"- 负责人：{owner}")
+            replaced = True
+        else:
+            updated.append(line)
+    if not replaced:
+        insert_at = 1 if updated and updated[0].startswith("# ") else 0
+        updated.insert(insert_at, f"- 负责人：{owner}")
+    path.write_text("\n".join(updated).rstrip() + "\n", encoding="utf-8")
+
+
+def select_items(project_root: Path, config: dict, role_id: str, raw_items: str, top: int) -> list[dict]:
+    item_lookup = {item["id"]: item for item in collect_active_items(project_root)}
+    requested = parse_list(raw_items)
+    if requested:
+        selected = []
+        for item_id in requested:
+            path = next((item["path"] for item in item_lookup.values() if item["id"] == item_id), None)
+            if path is None:
+                all_items = {item["id"]: item for item in role_assigned_items(project_root, config, role_id, include_closed=True)}
+                if item_id not in all_items:
+                    raise RuntimeError(f"未找到要分派的工作项：{item_id}")
+                selected.append(all_items[item_id])
+                continue
+            selected.append(item_lookup[item_id])
+        return selected
+    fallback = role_assigned_items(project_root, config, role_id)
+    return fallback[:top]
+
+
+def main() -> int:
+    args = parse_args()
+    project_root = Path(args.project).expanduser().resolve()
+
+    try:
+        with project_lock(project_root, reason="分派角色执行责任"):
+            config = load_project_config(project_root)
+            ensure_role_catalog(config)
+            ensure_role_assignment_state(config)
+            role = resolve_role(config, args.role.strip())
+            current_assignment = current_role_assignment(config, role["id"])
+            items = select_items(project_root, config, role["id"], args.items, max(1, args.top))
+
+            owner = args.owner.strip() or current_assignment.get("owner") or role["title"]
+            tool = args.tool.strip() or current_assignment.get("tool") or "shared"
+            focus = args.focus.strip() or current_assignment.get("focus") or f"{role['title']}执行当前分派"
+            note = args.note.strip()
+            now_text = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            item_ids = [item["id"] for item in items]
+
+            if args.sync_item_owner and args.owner.strip():
+                for item in items:
+                    update_item_owner(item["path"], owner)
+
+            assignment_payload = {
+                "owner": owner,
+                "tool": tool,
+                "items": item_ids,
+                "status": args.status,
+                "focus": focus,
+                "note": note,
+                "assigned_at": now_text,
+            }
+            set_current_role_assignment(config, role["id"], assignment_payload)
+            config["last_role_assign_at"] = now_text
+            config["last_role_assign_role"] = role["id"]
+            config["last_role_assign_owner"] = owner
+            if args.set_active:
+                config["active_role"] = role["id"]
+                config["active_role_tool"] = tool
+            config.setdefault("role_assignments", []).append(
+                {
+                    "role": role["id"],
+                    "owner": owner,
+                    "tool": tool,
+                    "items": item_ids,
+                    "status": args.status,
+                    "focus": focus,
+                    "note": note,
+                    "assigned_at": now_text,
+                }
+            )
+            save_project_config(project_root, config)
+
+            reads = role_document_reads(project_root, config, role["id"])[:8]
+            commands = role_recommended_commands(project_root, config, role["id"], owner, focus)[:6]
+            item_lines = [format_item_brief(item) for item in items] or ["- 当前未绑定工作项。"]
+            doc_path = project_root / ".factory" / "process" / "role-assignments.md"
+            upsert_section(
+                doc_path,
+                "## 最新分派",
+                [
+                    f"- 时间：{now_text}",
+                    f"- 角色：{role['title']}",
+                    f"- 负责人：{owner}",
+                    f"- 工具：{tool}",
+                    f"- 状态：{args.status}",
+                    f"- 焦点：{focus}",
+                    f"- 备注：{note or '无'}",
+                ],
+                default_title="# 角色分派记录",
+            )
+            upsert_section(
+                doc_path,
+                "## 当前分派工作项",
+                item_lines,
+                default_title="# 角色分派记录",
+            )
+            upsert_section(
+                doc_path,
+                "## 建议先读",
+                [f"- `{item}`" for item in reads] or ["- 无"],
+                default_title="# 角色分派记录",
+            )
+            upsert_section(
+                doc_path,
+                "## 建议下一步",
+                [f"- `{item}`" for item in commands] or ["- 无"],
+                default_title="# 角色分派记录",
+            )
+            prepend_history_entry(
+                doc_path,
+                "## 历史分派记录",
+                f"- {now_text}: `{role['title']}` 已分派给 `{owner}`，状态：{args.status}，工具：{tool}。",
+                default_title="# 角色分派记录",
+            )
+
+            write_text(
+                project_root / ".factory" / "memory" / "role-assignments.summary.md",
+                "\n".join(
+                    [
+                        "# 角色分派摘要",
+                        "",
+                        f"- 时间：{now_text}",
+                        f"- 角色：{role['title']}",
+                        f"- 负责人：{owner}",
+                        f"- 工具：{tool}",
+                        f"- 状态：{args.status}",
+                        f"- 焦点：{focus}",
+                        "",
+                        "## 工作项",
+                        "",
+                        *item_lines,
+                    ]
+                ),
+            )
+            write_text(
+                project_root / ".factory" / "role-assignment.json",
+                json.dumps(
+                    {
+                        "assigned_at": now_text,
+                        "role": role["id"],
+                        "owner": owner,
+                        "tool": tool,
+                        "status": args.status,
+                        "focus": focus,
+                        "note": note,
+                        "items": item_ids,
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                ),
+            )
+            append_log_line(
+                project_root / ".factory" / "process" / "execution-log.md",
+                (
+                    f"- {datetime.now().strftime('%Y-%m-%d')}: 角色 `{role['title']}` 分派给 `{owner}`，"
+                    f"状态：{args.status}，工具：{tool}。"
+                ),
+            )
+    except Exception as exc:
+        print(f"角色分派失败：{exc}", file=sys.stderr)
+        return 1
+
+    print(f"已生成角色分派记录：{project_root / '.factory' / 'process' / 'role-assignments.md'}")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

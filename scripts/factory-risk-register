@@ -1,0 +1,253 @@
+#!/usr/bin/env python3
+
+import argparse
+from datetime import datetime
+from pathlib import Path
+import sys
+
+from factory_core import append_log_line, load_project_config, parse_list, project_lock, refresh_ai_memory, save_project_config
+
+
+CLOSED_RISK_STATUSES = {"已关闭", "已接受", "已消除"}
+LEVEL_ORDER = {"高": 0, "中": 1, "低": 2}
+
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description="创建或更新项目风险登记，并同步人类文档与 AI 摘要。")
+    parser.add_argument("--project", required=True, help="项目根目录。")
+    parser.add_argument("--title", required=True, help="风险标题。")
+    parser.add_argument("--risk-id", default="", help="已有风险编号，例如 RISK-001；不传则创建新风险。")
+    parser.add_argument("--level", default="中", choices=["高", "中", "低"], help="风险等级。")
+    parser.add_argument("--status", default="开放", help="风险状态，例如 开放/监控中/已关闭。")
+    parser.add_argument("--owner", default="待记录", help="责任人。")
+    parser.add_argument("--trigger", default="", help="触发条件。")
+    parser.add_argument("--impact", default="", help="影响说明。")
+    parser.add_argument("--mitigation", default="", help="缓解措施。")
+    parser.add_argument("--contingency", default="", help="应急预案。")
+    parser.add_argument("--related", default="", help="关联项，逗号分隔。")
+    parser.add_argument("--note", default="", help="补充说明。")
+    return parser.parse_args()
+def ensure_risk_doc(path: Path) -> list[str]:
+    if path.exists():
+        return path.read_text(encoding="utf-8").splitlines()
+    return [
+        "# 风险登记册",
+        "",
+        "记录项目风险、触发条件、影响、缓解措施和应急预案。",
+        "",
+        "## 风险列表",
+        "",
+        "| 编号 | 标题 | 等级 | 状态 | 责任人 | 关联项 | 最近更新 |",
+        "|---|---|---|---|---|---|---|",
+        "",
+        "## 风险详情",
+        "",
+        "## 更新记录",
+        "",
+    ]
+
+
+def parse_risk_doc(lines: list[str]) -> tuple[dict[str, dict], list[str]]:
+    risks: dict[str, dict] = {}
+    current_id = ""
+    in_details = False
+    in_history = False
+    history_lines: list[str] = []
+
+    for line in lines:
+        if line == "## 风险详情":
+            in_details = True
+            in_history = False
+            current_id = ""
+            continue
+        if line == "## 更新记录":
+            in_details = False
+            in_history = True
+            current_id = ""
+            continue
+        if in_history and line.startswith("- "):
+            history_lines.append(line)
+            continue
+        if in_details and line.startswith("### RISK-"):
+            current_id = line[4:].split(" ", 1)[0].strip()
+            title = line[4:].split(" ", 1)[1].strip() if " " in line[4:] else current_id
+            risks.setdefault(current_id, {})["id"] = current_id
+            risks[current_id]["title"] = title
+            continue
+        if in_details and current_id and line.startswith("- "):
+            key, _, value = line[2:].partition("：")
+            risks.setdefault(current_id, {})[key.strip()] = value.strip()
+
+    return risks, history_lines
+
+
+def next_risk_id(risks: dict[str, dict]) -> str:
+    max_number = 0
+    for risk_id in risks:
+        try:
+            max_number = max(max_number, int(risk_id.split("-")[1]))
+        except Exception:
+            pass
+    return f"RISK-{max_number + 1:03d}"
+
+
+def write_risk_doc(path: Path, risks: dict[str, dict], history_lines: list[str]) -> None:
+    ordered = sorted(
+        risks.values(),
+        key=lambda item: (
+            LEVEL_ORDER.get(item.get("等级", "中"), 99),
+            item.get("状态", ""),
+            item.get("id", ""),
+        ),
+    )
+    lines = [
+        "# 风险登记册",
+        "",
+        "记录项目风险、触发条件、影响、缓解措施和应急预案。",
+        "",
+        "## 风险列表",
+        "",
+        "| 编号 | 标题 | 等级 | 状态 | 责任人 | 关联项 | 最近更新 |",
+        "|---|---|---|---|---|---|---|",
+    ]
+    for risk in ordered:
+        lines.append(
+            "| {id} | {title} | {level} | {status} | {owner} | {related} | {updated_at} |".format(
+                id=risk.get("id", "未知"),
+                title=risk.get("title", "未命名风险").replace("|", "/"),
+                level=risk.get("等级", "未知"),
+                status=risk.get("状态", "未知"),
+                owner=risk.get("责任人", "未知"),
+                related=(risk.get("关联项", "无") or "无").replace("|", "/"),
+                updated_at=risk.get("最近更新", "未知"),
+            )
+        )
+    lines.extend(["", "## 风险详情", ""])
+    for risk in ordered:
+        lines.extend(
+            [
+                f"### {risk.get('id', '未知')} {risk.get('title', '未命名风险')}",
+                "",
+                f"- 等级：{risk.get('等级', '未知')}",
+                f"- 状态：{risk.get('状态', '未知')}",
+                f"- 责任人：{risk.get('责任人', '未知')}",
+                f"- 触发条件：{risk.get('触发条件', '无') or '无'}",
+                f"- 影响：{risk.get('影响', '无') or '无'}",
+                f"- 缓解措施：{risk.get('缓解措施', '无') or '无'}",
+                f"- 应急预案：{risk.get('应急预案', '无') or '无'}",
+                f"- 关联项：{risk.get('关联项', '无') or '无'}",
+                f"- 备注：{risk.get('备注', '无') or '无'}",
+                f"- 最近更新：{risk.get('最近更新', '未知')}",
+                "",
+            ]
+        )
+    lines.extend(["## 更新记录", ""])
+    lines.extend(history_lines or ["- 暂无记录。"])
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text("\n".join(lines).rstrip() + "\n", encoding="utf-8")
+
+
+def write_risk_summary(path: Path, risks: dict[str, dict]) -> None:
+    ordered = sorted(
+        risks.values(),
+        key=lambda item: (
+            item.get("状态", "") in CLOSED_RISK_STATUSES,
+            LEVEL_ORDER.get(item.get("等级", "中"), 99),
+            item.get("id", ""),
+        ),
+    )
+    open_risks = [risk for risk in ordered if risk.get("状态", "") not in CLOSED_RISK_STATUSES]
+    lines = [
+        "# 风险摘要",
+        "",
+        f"- 总风险数：{len(ordered)}",
+        f"- 开放风险数：{len(open_risks)}",
+        "",
+        "## 当前重点风险",
+        "",
+    ]
+    target = open_risks[:10] if open_risks else ordered[:10]
+    if target:
+        for risk in target:
+            lines.append(
+                f"- `{risk.get('id', '未知')}` {risk.get('title', '未命名风险')} | 等级：{risk.get('等级', '未知')} | 状态：{risk.get('状态', '未知')} | 责任人：{risk.get('责任人', '未知')}"
+            )
+    else:
+        lines.append("- 暂无风险记录。")
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text("\n".join(lines).rstrip() + "\n", encoding="utf-8")
+def main() -> int:
+    args = parse_args()
+    project_root = Path(args.project).expanduser().resolve()
+    risk_path = project_root / ".factory" / "process" / "risk-register.md"
+    now_text = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    related = "、".join(parse_list(args.related))
+
+    try:
+        with project_lock(project_root, reason="更新风险台账"):
+            config = load_project_config(project_root)
+            lines = ensure_risk_doc(risk_path)
+            risks, history_lines = parse_risk_doc(lines)
+            risk_id = args.risk_id.strip() or next_risk_id(risks)
+            risk = risks.setdefault(risk_id, {})
+            risk.update(
+                {
+                    "id": risk_id,
+                    "title": args.title.strip(),
+                    "等级": args.level,
+                    "状态": args.status.strip(),
+                    "责任人": args.owner.strip(),
+                    "触发条件": args.trigger.strip() or risk.get("触发条件", "无"),
+                    "影响": args.impact.strip() or risk.get("影响", "无"),
+                    "缓解措施": args.mitigation.strip() or risk.get("缓解措施", "无"),
+                    "应急预案": args.contingency.strip() or risk.get("应急预案", "无"),
+                    "关联项": related or risk.get("关联项", "无"),
+                    "备注": args.note.strip() or risk.get("备注", "无"),
+                    "最近更新": now_text,
+                }
+            )
+
+            history_line = (
+                f"- {now_text}: 更新风险 `{risk_id}`，标题“{args.title.strip()}”，等级：{args.level}，"
+                f"状态：{args.status.strip()}，责任人：{args.owner.strip()}。"
+            )
+            history_lines = [line for line in history_lines if line != "- 暂无记录。"]
+            if history_line not in history_lines:
+                history_lines.insert(0, history_line)
+
+            write_risk_doc(risk_path, risks, history_lines)
+            write_risk_summary(project_root / ".factory" / "memory" / "risk-summary.md", risks)
+
+            config["last_risk_update_at"] = now_text
+            config["last_risk_id"] = risk_id
+            config.setdefault("risk_updates", []).append(
+                {
+                    "risk_id": risk_id,
+                    "title": args.title.strip(),
+                    "status": args.status.strip(),
+                    "level": args.level,
+                    "owner": args.owner.strip(),
+                    "updated_at": now_text,
+                }
+            )
+            save_project_config(project_root, config)
+
+            append_log_line(
+                project_root / ".factory" / "process" / "execution-log.md",
+                f"- {datetime.now().strftime('%Y-%m-%d')}: 更新风险 `{risk_id}`，等级：{args.level}，状态：{args.status.strip()}，责任人：{args.owner.strip()}。",
+            )
+            append_log_line(
+                project_root / "docs" / "06-release" / "acceptance-checklist.md",
+                f"- {datetime.now().strftime('%Y-%m-%d')}: 风险 `{risk_id}` 状态更新为 `{args.status.strip()}`，责任人：{args.owner.strip()}。",
+            )
+            refresh_ai_memory(project_root)
+    except Exception as exc:
+        print(f"更新风险登记失败：{exc}", file=sys.stderr)
+        return 1
+
+    print(f"已更新风险：{risk_id}")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

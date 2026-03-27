@@ -1,0 +1,234 @@
+#!/usr/bin/env python3
+
+import argparse
+from datetime import datetime
+from pathlib import Path
+import sys
+import textwrap
+
+from factory_core import (
+    append_log_line,
+    file_readiness,
+    format_effort_days,
+    load_project_config,
+    parse_effort_days,
+    parse_list,
+    project_lock,
+    refresh_ai_memory,
+    run_script,
+    save_project_config,
+    write_text,
+)
+
+
+DEFAULT_TASK_TITLES = [
+    "上下文梳理与验收标准确认",
+    "测试基线与回归策略补齐",
+    "核心实现",
+    "边界处理与异常路径补齐",
+    "文档、测试与交付同步",
+]
+
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description="初始化迭代计划文档，并可选自动创建一组按人天拆解的任务。")
+    parser.add_argument("--project", required=True, help="项目根目录。")
+    parser.add_argument("--owner", default="项目经理", help="计划负责人。")
+    parser.add_argument("--iteration", default="迭代 1", help="迭代名称。")
+    parser.add_argument("--task-count", type=int, default=5, help="计划中的任务数量。")
+    parser.add_argument("--days-per-task", type=float, default=1.0, help="每个任务默认人天，最小单位 0.5。")
+    parser.add_argument("--hours-per-task", type=float, default=None, help="兼容旧参数：每个任务默认工时。")
+    parser.add_argument("--related", default="", help="关联需求或设计编号，逗号分隔。")
+    parser.add_argument("--note", default="", help="补充说明。")
+    parser.add_argument("--create-items", action="store_true", help="同时自动创建 TASK-* 工作项。")
+    parser.add_argument("--force", action="store_true", help="即使计划文档已有实质内容也强制覆盖。")
+    return parser.parse_args()
+
+
+def resolve_days_per_task(days_per_task: float, hours_per_task: float | None) -> float:
+    if hours_per_task is not None:
+        return parse_effort_days(f"{hours_per_task}h")
+    return parse_effort_days(days_per_task)
+
+
+def ensure_writable(path: Path, force: bool) -> None:
+    if not path.exists() or force:
+        return
+    readiness, _ = file_readiness(path)
+    if readiness == "就绪":
+        raise RuntimeError(f"文档已有实质内容，若确认覆盖请加 --force：{path}")
+
+
+def task_titles(iteration: str, count: int) -> list[str]:
+    titles = []
+    for index in range(max(1, count)):
+        base = DEFAULT_TASK_TITLES[index] if index < len(DEFAULT_TASK_TITLES) else f"补充任务 {index + 1}"
+        titles.append(f"{iteration} - {base}")
+    return titles
+
+
+def build_wbs(iteration: str, related: list[str], titles: list[str], owner: str, note: str) -> str:
+    lines = [
+        "# 工作分解结构",
+        "",
+        f"- 迭代：{iteration}",
+        f"- 负责人：{owner}",
+        f"- 最近更新：{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
+        f"- 关联项：{'、'.join(related) if related else '无'}",
+        f"- 备注：{note or '无'}",
+        "",
+        "## WBS 分层",
+        "",
+        f"- Epic：{iteration}",
+        "- Feature：需求分组待补充",
+        "- Task：如下",
+        "",
+    ]
+    for index, title in enumerate(titles, start=1):
+        lines.append(f"### WBS-{index:03d} {title}")
+        lines.append("")
+        lines.append("- 交付目标：待补充")
+        lines.append("- 前置依赖：待补充")
+        lines.append("- 验收方式：待补充")
+        lines.append("")
+    return "\n".join(lines).strip()
+
+
+def build_task_breakdown(iteration: str, titles: list[str], days_per_task: float, related: list[str], owner: str) -> str:
+    lines = [
+        "# 任务分解文档",
+        "",
+        f"- 迭代：{iteration}",
+        f"- 负责人：{owner}",
+        f"- 默认人天：{format_effort_days(days_per_task)}",
+        "",
+        "| 计划编号 | 任务标题 | 默认人天 | 负责人 | 关联项 | 状态 |",
+        "|---|---|---:|---|---|---|",
+    ]
+    related_text = "、".join(related) if related else "无"
+    for index, title in enumerate(titles, start=1):
+        lines.append(f"| PLAN-TASK-{index:03d} | {title} | {format_effort_days(days_per_task)} | {owner} | {related_text} | 待创建 |")
+    return "\n".join(lines)
+
+
+def build_implementation_plan(iteration: str, related: list[str], task_count: int, days_per_task: float, owner: str, note: str) -> str:
+    total_days = task_count * days_per_task
+    return textwrap.dedent(
+        f"""
+        # 实施计划
+
+        - 迭代：{iteration}
+        - 负责人：{owner}
+        - 最近更新：{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
+        - 关联项：{'、'.join(related) if related else '无'}
+        - 计划任务数：{task_count}
+        - 计划总人天：{format_effort_days(total_days)}
+        - 备注：{note or '无'}
+
+        ## 实施策略
+
+        - 先补齐上下文、验收标准和测试基线。
+        - 中段聚焦核心实现和边界处理。
+        - 收尾阶段同步代码、文档、测试和 `/.factory/memory/` 记忆。
+
+        ## 节奏建议
+
+        - 每个任务默认按 0.5 人天粒度的工作块拆分。
+        - 每次工作块推进后运行 `factory-run-task`。
+        - 每个变更完成后同步执行 `factory-refresh-memory`。
+
+        ## 风险与缓冲
+
+        - 预留 10%-20% 时间处理返工与风险项。
+        - 高风险条目优先在迭代前半段完成验证。
+        """
+    ).strip()
+
+
+def maybe_create_items(project_root: Path, titles: list[str], days_per_task: float, owner: str, related: list[str]) -> list[str]:
+    created: list[str] = []
+    for title in titles:
+        result = run_script(
+            "factory-new-workitem",
+            "--project",
+            str(project_root),
+            "--type",
+            "task",
+            "--title",
+            title,
+            "--days",
+            str(days_per_task),
+            "--owner",
+            owner,
+            "--links",
+            ",".join(related),
+            "--summary",
+            f"{title} 的迭代计划自动创建。",
+            label=f"创建任务 {title}",
+        )
+        if result["returncode"] != 0:
+            raise RuntimeError(result["stderr"] or result["stdout"] or f"创建任务失败：{title}")
+        created.append(result["stdout"])
+    return created
+
+
+def main() -> int:
+    args = parse_args()
+    project_root = Path(args.project).expanduser().resolve()
+    related = parse_list(args.related)
+
+    wbs_path = project_root / "docs" / "04-delivery" / "wbs.md"
+    breakdown_path = project_root / "docs" / "04-delivery" / "task-breakdown.md"
+    plan_path = project_root / "docs" / "04-delivery" / "implementation-plan.md"
+
+    try:
+        with project_lock(project_root, reason=f"初始化迭代计划 {args.iteration.strip()}"):
+            for path in [wbs_path, breakdown_path, plan_path]:
+                ensure_writable(path, args.force)
+
+            config = load_project_config(project_root)
+            titles = task_titles(args.iteration.strip(), args.task_count)
+            days_per_task = resolve_days_per_task(args.days_per_task, args.hours_per_task)
+
+            write_text(wbs_path, build_wbs(args.iteration.strip(), related, titles, args.owner.strip(), args.note.strip()))
+            write_text(
+                breakdown_path,
+                build_task_breakdown(args.iteration.strip(), titles, days_per_task, related, args.owner.strip()),
+            )
+            write_text(
+                plan_path,
+                build_implementation_plan(
+                    args.iteration.strip(),
+                    related,
+                    len(titles),
+                    days_per_task,
+                    args.owner.strip(),
+                    args.note.strip(),
+                ),
+            )
+
+            created = maybe_create_items(project_root, titles, days_per_task, args.owner.strip(), related) if args.create_items else []
+
+            now_text = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            config["last_iteration_plan_at"] = now_text
+            config["last_iteration_plan_name"] = args.iteration.strip()
+            config["last_iteration_plan_owner"] = args.owner.strip()
+            save_project_config(project_root, config)
+
+            append_log_line(
+                project_root / ".factory" / "process" / "execution-log.md",
+                f"- {datetime.now().strftime('%Y-%m-%d')}: 初始化迭代计划 `{args.iteration.strip()}`，任务数 {len(titles)}，自动创建任务 {len(created)} 个。",
+            )
+            refresh_ai_memory(project_root)
+    except Exception as exc:
+        print(f"初始化迭代计划失败：{exc}", file=sys.stderr)
+        return 1
+
+    print(f"已初始化迭代计划：{args.iteration.strip()}")
+    if created:
+        print(f"已自动创建任务：{len(created)} 个")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

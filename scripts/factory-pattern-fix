@@ -1,0 +1,171 @@
+#!/usr/bin/env python3
+
+import argparse
+from datetime import datetime
+from pathlib import Path
+import sys
+
+from factory_core import (
+    PATTERN_FIX_REPORT_RELATIVE,
+    PATTERN_FIX_SUMMARY_RELATIVE,
+    append_log_line,
+    collect_items,
+    find_item_file,
+    load_project_config,
+    parse_list,
+    parse_work_item,
+    prepend_history_entry,
+    project_lock,
+    refresh_ai_memory,
+    related_item_candidates,
+    save_project_config,
+    upsert_section,
+    write_text,
+)
+
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description="把单点修复扩展为模式级扫描与修复报告。")
+    parser.add_argument("--project", required=True, help="项目根目录。")
+    parser.add_argument("--item", required=True, help="源工作项，例如 BUG-001 / CR-001 / TASK-001。")
+    parser.add_argument("--owner", default="模式修复负责人", help="负责人。")
+    parser.add_argument("--scope", default="pattern", choices=["single", "module", "pattern"], help="扫描范围。")
+    parser.add_argument("--root-cause", default="", help="根因描述。")
+    parser.add_argument("--related", default="", help="显式关联的同类条目，逗号分隔。")
+    parser.add_argument("--docs", default="", help="受影响文档，逗号分隔。")
+    parser.add_argument("--tests", default="", help="受影响测试，逗号分隔。")
+    parser.add_argument("--code", default="", help="受影响代码，逗号分隔。")
+    parser.add_argument("--note", default="", help="补充说明。")
+    parser.add_argument("--top", type=int, default=8, help="最多展示的扫描对象数量。")
+    return parser.parse_args()
+
+
+def main() -> int:
+    args = parse_args()
+    project_root = Path(args.project).expanduser().resolve()
+    now_text = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+    try:
+        with project_lock(project_root, reason="生成模式级修复报告"):
+            config = load_project_config(project_root)
+            source_item = parse_work_item(find_item_file(project_root, args.item.strip()))
+            all_items = collect_items(project_root)
+
+            explicit_related = parse_list(args.related)
+            if explicit_related:
+                related = []
+                for item_id in explicit_related:
+                    try:
+                        related.append(parse_work_item(find_item_file(project_root, item_id)))
+                    except Exception:
+                        continue
+            elif args.scope == "single":
+                related = []
+            else:
+                related = related_item_candidates(all_items, source_item, limit=max(1, args.top))
+
+            root_cause = args.root_cause.strip() or "待补充。建议至少描述触发条件、错误层级和为何之前未被拦截。"
+            affected_docs = parse_list(args.docs)
+            affected_tests = parse_list(args.tests)
+            affected_code = parse_list(args.code)
+
+            latest_lines = [
+                f"- 时间：{now_text}",
+                f"- 负责人：{args.owner.strip()}",
+                f"- 当前阶段：{config.get('stage', '未知')}",
+                f"- 源工作项：`{source_item['id']}` {source_item['title']}",
+                f"- 扫描范围：{args.scope}",
+                f"- 备注：{args.note.strip() or '无'}",
+            ]
+            source_lines = [
+                f"- 状态：{source_item['status']}",
+                f"- 负责人：{source_item['owner']}",
+                f"- 关联项：{source_item['links']}",
+                f"- 根因：{root_cause}",
+            ]
+            related_lines = [
+                f"- `{item['id']}` {item['title']} | 状态：{item['status']} | 负责人：{item['owner']} | 关联：{item['links']}"
+                for item in related
+            ] or ["- 当前未发现额外同类条目；若本次问题具备复用性，建议补显式扫描对象。"]
+            asset_lines = []
+            asset_lines.extend(f"- 文档：`{item}`" for item in affected_docs)
+            asset_lines.extend(f"- 测试：`{item}`" for item in affected_tests)
+            asset_lines.extend(f"- 代码：`{item}`" for item in affected_code)
+            if not asset_lines:
+                asset_lines = ["- 当前尚未登记受影响资产，请在修复后补齐代码、文档和测试路径。"]
+
+            prevention_lines = [
+                "- 先修源问题，再把相同模式的检查点扩到同模块或同链路。",
+                "- 至少补一条回归测试或检查动作，确保问题不会静默回归。",
+                "- 同步更新正式文档、测试和 AI 记忆，不把知识只留在代码里。",
+            ]
+            if related:
+                prevention_lines.append("- 已识别同类对象，优先逐个确认是否需要同批修复或登记待办。")
+
+            report_path = project_root / PATTERN_FIX_REPORT_RELATIVE
+            upsert_section(report_path, "## 本次模式级修复", latest_lines, default_title="# 模式级修复报告")
+            upsert_section(report_path, "## 源问题概览", source_lines, default_title="# 模式级修复报告")
+            upsert_section(report_path, "## 同类扫描对象", related_lines, default_title="# 模式级修复报告")
+            upsert_section(report_path, "## 受影响资产", asset_lines, default_title="# 模式级修复报告")
+            upsert_section(report_path, "## 预防动作", prevention_lines, default_title="# 模式级修复报告")
+            prepend_history_entry(
+                report_path,
+                "## 历史模式修复记录",
+                f"- {now_text}: 处理 `{source_item['id']}`，扫描范围：{args.scope}，负责人：{args.owner.strip()}。",
+                default_title="# 模式级修复报告",
+            )
+
+            write_text(
+                project_root / PATTERN_FIX_SUMMARY_RELATIVE,
+                "\n".join(
+                    [
+                        "# 模式级修复摘要",
+                        "",
+                        *latest_lines,
+                        "",
+                        "## 源问题概览",
+                        "",
+                        *source_lines,
+                        "",
+                        "## 同类扫描对象",
+                        "",
+                        *related_lines,
+                        "",
+                        "## 预防动作",
+                        "",
+                        *prevention_lines,
+                    ]
+                ),
+            )
+
+            config["last_pattern_fix_at"] = now_text
+            config.setdefault("pattern_fix_reports", []).append(
+                {
+                    "created_at": now_text,
+                    "owner": args.owner.strip(),
+                    "item": source_item["id"],
+                    "scope": args.scope,
+                    "root_cause": root_cause,
+                    "related": [item["id"] for item in related],
+                    "docs": affected_docs,
+                    "tests": affected_tests,
+                    "code": affected_code,
+                    "note": args.note.strip(),
+                }
+            )
+            save_project_config(project_root, config)
+            refresh_ai_memory(project_root)
+            append_log_line(
+                project_root / ".factory" / "process" / "execution-log.md",
+                f"- {datetime.now().strftime('%Y-%m-%d')}: 生成模式级修复报告，源工作项：{source_item['id']}，负责人：{args.owner.strip()}。",
+            )
+    except Exception as exc:
+        print(f"生成模式级修复报告失败：{exc}", file=sys.stderr)
+        return 1
+
+    print(f"已生成模式级修复报告：{project_root / PATTERN_FIX_REPORT_RELATIVE}")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

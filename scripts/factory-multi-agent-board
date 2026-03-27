@@ -1,0 +1,235 @@
+#!/usr/bin/env python3
+
+import argparse
+import json
+from datetime import datetime
+from pathlib import Path
+import sys
+
+from factory_core import (
+    append_log_line,
+    active_roles_for_stage,
+    collect_active_items,
+    ensure_role_catalog,
+    group_items_by_role,
+    load_project_config,
+    prepend_history_entry,
+    project_lock,
+    read_risks,
+    refresh_ai_memory,
+    role_document_reads,
+    role_recommended_commands,
+    save_project_config,
+    upsert_section,
+    write_text,
+)
+
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description="生成当前项目的多 Agent 协作看板。")
+    parser.add_argument("--project", required=True, help="项目根目录。")
+    parser.add_argument("--owner", default="项目协调者", help="看板负责人。")
+    parser.add_argument("--focus", default="", help="看板焦点。")
+    parser.add_argument("--top", type=int, default=4, help="每个角色展示的工作项数量。")
+    parser.add_argument("--skip-refresh-memory", action="store_true", help="跳过看板生成前的 AI 记忆刷新。")
+    return parser.parse_args()
+
+
+def handoff_lines(config: dict, top: int) -> list[str]:
+    history = list(config.get("role_handoffs", []))
+    if not history:
+        return ["- 当前暂无角色交接记录。"]
+    lines = []
+    for item in reversed(history[-top:]):
+        lines.append(
+            f"- {item.get('handoff_at', '未知时间')}：`{item.get('from_role', '未知')}` -> "
+            f"`{item.get('to_role', '未知')}` | 状态：{item.get('status', '未知')} | 焦点：{item.get('focus', '无') or '无'}"
+        )
+    return lines
+
+
+def lane_lines(project_root: Path, config: dict, role: dict, grouped: dict[str, list[dict]], owner: str, focus: str, top: int) -> list[str]:
+    items = grouped.get(role["id"], [])[:top]
+    skill_text = "、".join(skill["name"] for skill in role.get("skills", [])) or "无"
+    doc_text = "、".join(role_document_reads(project_root, config, role["id"], include_ai=False)[:3]) or "无"
+    commands = role_recommended_commands(project_root, config, role["id"], owner, focus)[:2]
+
+    lines = [
+        f"### {role['title']}",
+        f"- 说明：{role.get('description', '无')}",
+        f"- 推荐工具：{' / '.join(role.get('preferred_tools', [])) or '无'}",
+        f"- 共享技能：{skill_text}",
+        f"- 优先文档：{doc_text}",
+    ]
+    if items:
+        lines.append("- 当前工作项：")
+        for item in items:
+            lines.append(
+                f"  - `{item['id']}` {item['title']} | 状态：{item['status']} | 负责人：{item['owner']}"
+            )
+    else:
+        lines.append("- 当前工作项：无")
+    if commands:
+        lines.append("- 推荐动作：")
+        for command in commands:
+            lines.append(f"  - `{command}`")
+    return lines
+
+
+def summary_markdown(config: dict, focus: str, active_items: list[dict], risks: list[str], active_roles: list[dict], grouped: dict[str, list[dict]], project_root: Path, owner: str, top: int) -> str:
+    lines = [
+        "# 多 Agent 协作看板摘要",
+        "",
+        f"- 时间：{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
+        f"- 当前阶段：{config.get('stage', '未知')}",
+        f"- 看板负责人：{owner}",
+        f"- 焦点：{focus or '无'}",
+        f"- 活跃工作项：{len(active_items)}",
+        f"- 开放风险：{len(risks)}",
+        "",
+        "## 当前主要角色",
+        "",
+    ]
+    for role in active_roles:
+        lines.append(
+            f"- `{role['title']}` | 工具：{' / '.join(role.get('preferred_tools', [])) or '无'} | 共享技能：{'、'.join(skill['name'] for skill in role.get('skills', [])) or '无'}"
+        )
+    lines.extend(["", "## 角色泳道", ""])
+    for role in active_roles:
+        lines.extend(lane_lines(project_root, config, role, grouped, owner, focus, top))
+        lines.append("")
+    lines.extend(["## 最近交接", "", *handoff_lines(config, top)])
+    if risks:
+        lines.extend(["", "## 开放风险", "", *risks[:top]])
+    return "\n".join(lines).rstrip() + "\n"
+
+
+def main() -> int:
+    args = parse_args()
+    project_root = Path(args.project).expanduser().resolve()
+
+    try:
+        with project_lock(project_root, reason="生成多 agent 协作看板"):
+            if not args.skip_refresh_memory:
+                refresh_ai_memory(project_root)
+            config = load_project_config(project_root)
+            ensure_role_catalog(config)
+            active_roles = active_roles_for_stage(config, config.get("stage", ""))
+            active_items = collect_active_items(project_root)
+            grouped = group_items_by_role(config, active_items)
+            open_risks, _ = read_risks(project_root)
+
+            board_markdown = summary_markdown(
+                config,
+                args.focus.strip(),
+                active_items,
+                open_risks,
+                active_roles,
+                grouped,
+                project_root,
+                args.owner.strip(),
+                max(1, args.top),
+            )
+            board_payload = {
+                "generated_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                "stage": config.get("stage", "未知"),
+                "focus": args.focus.strip(),
+                "owner": args.owner.strip(),
+                "active_roles": [role["id"] for role in active_roles],
+                "active_items": [item["id"] for item in active_items[:20]],
+                "open_risks": open_risks[:20],
+            }
+
+            doc_path = project_root / ".factory" / "process" / "multi-agent-board.md"
+            upsert_section(
+                doc_path,
+                "## 当前看板摘要",
+                [
+                    f"- 时间：{board_payload['generated_at']}",
+                    f"- 当前阶段：{board_payload['stage']}",
+                    f"- 看板负责人：{args.owner.strip()}",
+                    f"- 焦点：{args.focus.strip() or '无'}",
+                    f"- 活跃工作项：{len(active_items)}",
+                    f"- 开放风险：{len(open_risks)}",
+                ],
+                default_title="# 多 Agent 协作看板",
+            )
+            lane_content: list[str] = []
+            for role in active_roles:
+                lane_content.extend(
+                    lane_lines(
+                        project_root,
+                        config,
+                        role,
+                        grouped,
+                        args.owner.strip(),
+                        args.focus.strip() or role["title"],
+                        max(1, args.top),
+                    )
+                )
+                lane_content.append("")
+            upsert_section(
+                doc_path,
+                "## 角色泳道",
+                lane_content[:-1] if lane_content else ["- 当前没有可展示的角色泳道。"],
+                default_title="# 多 Agent 协作看板",
+            )
+            upsert_section(
+                doc_path,
+                "## 最近交接",
+                handoff_lines(config, max(1, args.top)),
+                default_title="# 多 Agent 协作看板",
+            )
+            upsert_section(
+                doc_path,
+                "## 风险与提醒",
+                open_risks[: max(1, args.top)] or ["- 当前无开放风险。"],
+                default_title="# 多 Agent 协作看板",
+            )
+            prepend_history_entry(
+                doc_path,
+                "## 历史看板记录",
+                (
+                    f"- {board_payload['generated_at']}: 阶段 `{board_payload['stage']}` 看板已刷新，"
+                    f"负责人：{args.owner.strip()}，焦点：{args.focus.strip() or '无'}。"
+                ),
+                default_title="# 多 Agent 协作看板",
+            )
+
+            write_text(project_root / ".factory" / "memory" / "multi-agent-board.summary.md", board_markdown)
+            write_text(
+                project_root / ".factory" / "multi-agent-board.json",
+                json.dumps(board_payload, ensure_ascii=False, indent=2),
+            )
+
+            now_text = board_payload["generated_at"]
+            config["last_multi_agent_board_at"] = now_text
+            config["last_multi_agent_board_owner"] = args.owner.strip()
+            config["last_multi_agent_board_focus"] = args.focus.strip()
+            config.setdefault("multi_agent_boards", []).append(
+                {
+                    "stage": board_payload["stage"],
+                    "owner": args.owner.strip(),
+                    "focus": args.focus.strip(),
+                    "active_roles": board_payload["active_roles"],
+                    "created_at": now_text,
+                }
+            )
+            save_project_config(project_root, config)
+            append_log_line(
+                project_root / ".factory" / "process" / "execution-log.md",
+                (
+                    f"- {datetime.now().strftime('%Y-%m-%d')}: 刷新多 Agent 协作看板，"
+                    f"阶段：{board_payload['stage']}，负责人：{args.owner.strip()}。"
+                ),
+            )
+    except Exception as exc:
+        print(f"生成多 Agent 协作看板失败：{exc}", file=sys.stderr)
+        return 1
+
+    print(f"已生成多 Agent 协作看板：{project_root / '.factory' / 'process' / 'multi-agent-board.md'}")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

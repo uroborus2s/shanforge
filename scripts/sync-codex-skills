@@ -1,0 +1,229 @@
+#!/usr/bin/env python3
+
+from __future__ import annotations
+
+import argparse
+from dataclasses import dataclass
+from pathlib import Path
+import sys
+
+
+ROOT = Path(__file__).resolve().parent.parent
+DEFAULT_SOURCE = ROOT / "skills"
+DEFAULT_CODEX_DIR = Path.home() / ".codex" / "skills"
+DEFAULT_GEMINI_DIR = Path.home() / ".gemini" / "skills"
+
+
+@dataclass
+class SyncStats:
+    linked: int = 0
+    unchanged: int = 0
+    renamed: int = 0
+    skipped_hidden: int = 0
+    conflicts: int = 0
+
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(
+        description="把 shanforge 的共享 skills 增量同步到 ~/.codex/skills 和 ~/.gemini/skills。"
+    )
+    parser.add_argument(
+        "--source",
+        default=str(DEFAULT_SOURCE),
+        help="skills 源目录，默认使用当前仓库下的 skills/。",
+    )
+    parser.add_argument(
+        "--codex-dir",
+        default=str(DEFAULT_CODEX_DIR),
+        help="Codex skills 目录，默认 ~/.codex/skills。",
+    )
+    parser.add_argument(
+        "--gemini-dir",
+        default=str(DEFAULT_GEMINI_DIR),
+        help="Gemini skills 目录，默认 ~/.gemini/skills。",
+    )
+    parser.add_argument(
+        "--skip-codex",
+        action="store_true",
+        help="跳过 Codex 目录，只同步 Gemini。",
+    )
+    parser.add_argument(
+        "--skip-gemini",
+        action="store_true",
+        help="跳过 Gemini 目录，只同步 Codex。",
+    )
+    parser.add_argument(
+        "--include-hidden",
+        action="store_true",
+        help="包含隐藏目录，默认跳过 .system 一类隐藏目录。",
+    )
+    parser.add_argument(
+        "--conflict-prefix",
+        default="shanforge-",
+        help="目标目录中已存在同名项时使用的前缀，默认 shanforge-。",
+    )
+    parser.add_argument(
+        "--repair-broken-target-links",
+        action="store_true",
+        help="若 ~/.codex/skills 或 ~/.gemini/skills 是损坏的软链接，则删除后重建目录。",
+    )
+    parser.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="只输出计划动作，不实际创建软链接。",
+    )
+    return parser.parse_args()
+
+
+def ensure_directory(target_root: Path, repair_broken_links: bool, dry_run: bool) -> None:
+    if target_root.exists():
+        if not target_root.is_dir():
+            raise RuntimeError(f"目标路径不是目录：{target_root}")
+        return
+
+    if target_root.is_symlink():
+        if not repair_broken_links:
+            raise RuntimeError(
+                f"目标路径是损坏的软链接：{target_root}。"
+                " 如需自动修复，请加 --repair-broken-target-links。"
+            )
+        if dry_run:
+            print(f"[dry-run] repair broken link: {target_root}")
+            return
+        target_root.unlink()
+
+    if dry_run:
+        print(f"[dry-run] mkdir -p {target_root}")
+        return
+
+    target_root.mkdir(parents=True, exist_ok=True)
+
+
+def is_hidden(path: Path) -> bool:
+    return path.name.startswith(".")
+
+
+def safe_same_symlink(target: Path, source: Path) -> bool:
+    if not target.is_symlink():
+        return False
+    try:
+        return target.resolve() == source.resolve()
+    except FileNotFoundError:
+        return False
+
+
+def candidate_path(target_root: Path, source_dir: Path, prefix: str) -> tuple[Path, bool]:
+    direct = target_root / source_dir.name
+    if not direct.exists() and not direct.is_symlink():
+        return direct, False
+    if safe_same_symlink(direct, source_dir):
+        return direct, False
+    renamed = target_root / f"{prefix}{source_dir.name}"
+    return renamed, True
+
+
+def sync_target(
+    source_root: Path,
+    target_root: Path,
+    *,
+    include_hidden: bool,
+    conflict_prefix: str,
+    repair_broken_links: bool,
+    dry_run: bool,
+) -> tuple[SyncStats, list[str]]:
+    ensure_directory(target_root, repair_broken_links, dry_run)
+    stats = SyncStats()
+    lines: list[str] = []
+
+    for source_dir in sorted(source_root.iterdir(), key=lambda item: item.name):
+        if not source_dir.is_dir():
+            continue
+        if is_hidden(source_dir) and not include_hidden:
+            stats.skipped_hidden += 1
+            lines.append(f"skip hidden: {source_dir.name}")
+            continue
+
+        destination, renamed = candidate_path(target_root, source_dir, conflict_prefix)
+
+        if safe_same_symlink(destination, source_dir):
+            stats.unchanged += 1
+            label = "unchanged alias" if renamed else "unchanged"
+            lines.append(f"{label}: {destination.name}")
+            continue
+
+        if destination.exists() or destination.is_symlink():
+            stats.conflicts += 1
+            lines.append(f"conflict: {destination.name} already exists and points elsewhere")
+            continue
+
+        if dry_run:
+            lines.append(f"[dry-run] link: {destination} -> {source_dir}")
+        else:
+            destination.symlink_to(source_dir, target_is_directory=True)
+            lines.append(f"linked: {destination.name} -> {source_dir}")
+
+        stats.linked += 1
+        if renamed:
+            stats.renamed += 1
+
+    return stats, lines
+
+
+def print_summary(label: str, target_root: Path, stats: SyncStats, lines: list[str]) -> None:
+    print(f"[{label}] {target_root}")
+    for line in lines:
+        print(f"- {line}")
+    print(
+        "- summary:"
+        f" linked={stats.linked}"
+        f", unchanged={stats.unchanged}"
+        f", renamed={stats.renamed}"
+        f", hidden_skipped={stats.skipped_hidden}"
+        f", conflicts={stats.conflicts}"
+    )
+    print()
+
+
+def main() -> int:
+    args = parse_args()
+    source_root = Path(args.source).expanduser().resolve()
+    codex_dir = Path(args.codex_dir).expanduser()
+    gemini_dir = Path(args.gemini_dir).expanduser()
+
+    if not source_root.exists() or not source_root.is_dir():
+        print(f"skills 源目录不存在或不可读：{source_root}", file=sys.stderr)
+        return 1
+
+    if args.skip_codex and args.skip_gemini:
+        print("没有可同步的目标：--skip-codex 和 --skip-gemini 不能同时使用。", file=sys.stderr)
+        return 1
+
+    targets: list[tuple[str, Path]] = []
+    if not args.skip_codex:
+        targets.append(("codex", codex_dir))
+    if not args.skip_gemini:
+        targets.append(("gemini", gemini_dir))
+
+    exit_code = 0
+    for label, target_root in targets:
+        try:
+            stats, lines = sync_target(
+                source_root,
+                target_root,
+                include_hidden=args.include_hidden,
+                conflict_prefix=args.conflict_prefix,
+                repair_broken_links=args.repair_broken_target_links,
+                dry_run=args.dry_run,
+            )
+            print_summary(label, target_root, stats, lines)
+            if stats.conflicts:
+                exit_code = 2
+        except Exception as exc:
+            exit_code = 1
+            print(f"[{label}] 同步失败：{exc}", file=sys.stderr)
+
+    return exit_code
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

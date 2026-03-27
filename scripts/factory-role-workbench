@@ -1,0 +1,202 @@
+#!/usr/bin/env python3
+
+import argparse
+import json
+from datetime import datetime
+from pathlib import Path
+import sys
+
+from factory_core import (
+    append_log_line,
+    current_role_assignment,
+    ensure_role_catalog,
+    file_readiness,
+    format_item_brief,
+    load_project_config,
+    project_lock,
+    read_recent_log_lines,
+    read_risks,
+    refresh_ai_memory,
+    resolve_role,
+    role_assigned_items,
+    role_document_reads,
+    role_recommended_commands,
+    role_workbench_ai_relative,
+    role_workbench_relative,
+    save_project_config,
+    set_current_role_assignment,
+    tech_required_skill_records,
+    upsert_section,
+    write_text,
+)
+
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description="生成角色执行工作台。")
+    parser.add_argument("--project", required=True, help="项目根目录。")
+    parser.add_argument("--role", required=True, help="角色。")
+    parser.add_argument("--owner", default="", help="工作台负责人。")
+    parser.add_argument("--tool", default="", help="当前工具。")
+    parser.add_argument("--focus", default="", help="当前工作台焦点。")
+    parser.add_argument("--top", type=int, default=5, help="展示条目数量。")
+    parser.add_argument("--skip-refresh-memory", action="store_true", help="跳过工作台生成前的 AI 记忆刷新。")
+    return parser.parse_args()
+
+
+def main() -> int:
+    args = parse_args()
+    project_root = Path(args.project).expanduser().resolve()
+
+    try:
+        with project_lock(project_root, reason="生成角色执行工作台"):
+            if not args.skip_refresh_memory:
+                refresh_ai_memory(project_root)
+            config = load_project_config(project_root)
+            ensure_role_catalog(config)
+            role = resolve_role(config, args.role.strip())
+            assignment = current_role_assignment(config, role["id"])
+            owner = args.owner.strip() or assignment.get("owner") or role["title"]
+            tool = args.tool.strip() or assignment.get("tool") or (role.get("preferred_tools", ["shared"])[0] if role.get("preferred_tools") else "shared")
+            focus = args.focus.strip() or assignment.get("focus") or f"{role['title']}执行工作台"
+            items = role_assigned_items(project_root, config, role["id"], include_closed=True)[: max(1, args.top)]
+            reads = role_document_reads(project_root, config, role["id"])[: max(8, args.top + 3)]
+            commands = role_recommended_commands(project_root, config, role["id"], owner, focus)[:8]
+            tech_skills = tech_required_skill_records(config, role["id"])
+            open_risks, _ = read_risks(project_root)
+            recent_logs = read_recent_log_lines(project_root, max(1, args.top))
+            doc_lines = []
+            for relative in reads[:8]:
+                status, reason = file_readiness(project_root / relative)
+                doc_lines.append(f"- `{relative}`：{status}，{reason}")
+
+            item_lines = [format_item_brief(item) for item in items] or ["- 当前无明确工作项。"]
+            read_lines = [f"- `{item}`" for item in reads] or ["- 无"]
+            command_lines = [f"- `{item}`" for item in commands] or ["- 无"]
+            tech_skill_lines = [
+                f"- `{item['name']}`：{item.get('purpose', '无说明')}" + (" | 当前缺失" if item.get("missing") else "")
+                for item in tech_skills
+            ] or ["- 当前技术画像未额外要求专用 skills。"]
+            log_lines = recent_logs or ["- 暂无最近执行记录。"]
+            risk_lines = open_risks[: max(1, args.top)] or ["- 当前无开放风险。"]
+            now_text = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+            markdown = "\n".join(
+                [
+                    f"# {role['title']}执行工作台",
+                    "",
+                    f"- 时间：{now_text}",
+                    f"- 当前阶段：{config.get('stage', '未知')}",
+                    f"- 负责人：{owner}",
+                    f"- 工具：{tool}",
+                    f"- 分派状态：{assignment.get('status', '未分派') or '未分派'}",
+                    f"- 焦点：{focus}",
+                    "",
+                    "## 当前工作项",
+                    "",
+                    *item_lines,
+                    "",
+                    "## 文档就绪度",
+                    "",
+                    *(doc_lines or ["- 暂无文档。"]),
+                    "",
+                    "## 建议先读",
+                    "",
+                    *read_lines,
+                    "",
+                    "## 推荐动作",
+                    "",
+                    *command_lines,
+                    "",
+                    "## 当前技术画像强制技能",
+                    "",
+                    *tech_skill_lines,
+                    "",
+                    "## 最近执行记录",
+                    "",
+                    *log_lines,
+                    "",
+                    "## 风险与提醒",
+                    "",
+                    *risk_lines,
+                    "",
+                    "## 结束条件",
+                    "",
+                    "- 当前角色负责的工作项状态被推进或关闭。",
+                    "- 相关正式文档完成单文件版本更新。",
+                    "- 必要测试、追踪关系和 AI 记忆已经同步。",
+                ]
+            ).rstrip() + "\n"
+
+            doc_relative = role_workbench_relative(role["id"], config)
+            ai_relative = role_workbench_ai_relative(role["id"], config)
+            doc_path = project_root / doc_relative
+            write_text(doc_path, markdown)
+            write_text(project_root / ai_relative, markdown)
+            write_text(
+                project_root / ".factory" / f"role-workbench.{role['id']}.json",
+                json.dumps(
+                    {
+                        "generated_at": now_text,
+                        "role": role["id"],
+                        "owner": owner,
+                        "tool": tool,
+                        "focus": focus,
+                        "items": [item["id"] for item in items],
+                        "reads": reads,
+                        "commands": commands,
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                ),
+            )
+
+            summary_doc = project_root / ".factory" / "process" / "role-assignments.md"
+            upsert_section(
+                summary_doc,
+                "## 最近工作台",
+                [
+                    f"- 时间：{now_text}",
+                    f"- 角色：{role['title']}",
+                    f"- 负责人：{owner}",
+                    f"- 工具：{tool}",
+                    f"- 焦点：{focus}",
+                    f"- 工作台：`{doc_relative}`",
+                ],
+                default_title="# 角色分派记录",
+            )
+
+            assignment["last_workbench_at"] = now_text
+            assignment["owner"] = owner
+            assignment["tool"] = tool
+            assignment["focus"] = focus
+            set_current_role_assignment(config, role["id"], assignment)
+            config["last_role_workbench_at"] = now_text
+            config["last_role_workbench_role"] = role["id"]
+            config.setdefault("role_workbenches", []).append(
+                {
+                    "role": role["id"],
+                    "owner": owner,
+                    "tool": tool,
+                    "focus": focus,
+                    "items": [item["id"] for item in items],
+                    "generated_at": now_text,
+                }
+            )
+            save_project_config(project_root, config)
+            append_log_line(
+                project_root / ".factory" / "process" / "execution-log.md",
+                (
+                    f"- {datetime.now().strftime('%Y-%m-%d')}: 生成 `{role['title']}` 执行工作台，"
+                    f"负责人：{owner}，工具：{tool}。"
+                ),
+            )
+    except Exception as exc:
+        print(f"生成角色执行工作台失败：{exc}", file=sys.stderr)
+        return 1
+
+    print(f"已生成角色执行工作台：{doc_path}")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

@@ -1,0 +1,246 @@
+#!/usr/bin/env python3
+
+import argparse
+import json
+from datetime import datetime
+from pathlib import Path
+import sys
+
+from factory_core import (
+    append_log_line,
+    extract_first_url,
+    find_pr_record,
+    git_remote_url,
+    infer_remote_tool,
+    is_git_repo,
+    load_pr_records,
+    load_project_config,
+    normalize_remote_tool,
+    parse_list,
+    project_lock,
+    refresh_ai_memory,
+    run_script,
+    run_step,
+    save_pr_records,
+    save_project_config,
+    upsert_item_pr_section,
+    write_pr_tracker,
+    write_remote_pr_tracker,
+    write_text,
+)
+
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description="把现有 PR 记录发布到远端仓库，或登记远端编号与地址。")
+    parser.add_argument("--project", required=True, help="项目根目录。")
+    parser.add_argument("--pr", required=True, help="PR 编号，例如 PR-001。")
+    parser.add_argument("--owner", default="项目协调者", help="执行人。")
+    parser.add_argument(
+        "--tool",
+        choices=["auto", "gh", "glab", "record-only"],
+        default="auto",
+        help="远端工具类型。",
+    )
+    parser.add_argument("--title", default="", help="远端 PR 标题。")
+    parser.add_argument("--body", default="", help="远端 PR 描述。")
+    parser.add_argument("--reviewers", default="", help="远端评审人，逗号分隔。")
+    parser.add_argument("--labels", default="", help="远端标签，逗号分隔。")
+    parser.add_argument("--push", action="store_true", help="创建前先执行 `git push -u origin <branch>`。")
+    parser.add_argument("--draft", action="store_true", help="远端创建为草稿。")
+    parser.add_argument("--remote-id", default="", help="手工记录模式下的远端编号。")
+    parser.add_argument("--remote-url", default="", help="手工记录模式下的远端地址。")
+    parser.add_argument("--note", default="", help="补充说明。")
+    parser.add_argument("--force", action="store_true", help="即使已存在远端关联也继续覆盖。")
+    parser.add_argument("--no-sync", action="store_true", help="创建后不自动执行远端同步。")
+    return parser.parse_args()
+
+
+def default_body(record: dict) -> str:
+    lines = [
+        f"软件工厂 PR：{record.get('id', '未知')}",
+        "",
+        f"- 标题：{record.get('title', '未命名 PR')}",
+        f"- 工作项：{'、'.join(record.get('items', [])) or '无'}",
+        f"- 文档：{'、'.join(record.get('docs', [])) or '无'}",
+        f"- 测试：{'、'.join(record.get('tests', [])) or '无'}",
+        f"- 代码：{'、'.join(record.get('code', [])) or '无'}",
+        "",
+        record.get("summary", "") or record.get("note", "") or "由 shanforge 自动生成。",
+    ]
+    return "\n".join(lines).strip()
+
+
+def gh_create_command(record: dict, args: argparse.Namespace) -> list[str]:
+    command = [
+        "gh",
+        "pr",
+        "create",
+        "--base",
+        record.get("base_branch", "main") or "main",
+        "--head",
+        record.get("branch", ""),
+        "--title",
+        args.title.strip() or record.get("title", "未命名 PR"),
+        "--body",
+        args.body.strip() or default_body(record),
+    ]
+    if args.draft or record.get("status") == "draft":
+        command.append("--draft")
+    for reviewer in parse_list(args.reviewers):
+        command.extend(["--reviewer", reviewer])
+    for label in parse_list(args.labels):
+        command.extend(["--label", label])
+    return command
+
+
+def glab_create_command(record: dict, args: argparse.Namespace) -> list[str]:
+    command = [
+        "glab",
+        "mr",
+        "create",
+        "--source-branch",
+        record.get("branch", ""),
+        "--target-branch",
+        record.get("base_branch", "main") or "main",
+        "--title",
+        args.title.strip() or record.get("title", "未命名 PR"),
+        "--description",
+        args.body.strip() or default_body(record),
+    ]
+    if args.draft or record.get("status") == "draft":
+        command.append("--draft")
+    return command
+
+
+def main() -> int:
+    args = parse_args()
+    project_root = Path(args.project).expanduser().resolve()
+
+    try:
+        with project_lock(project_root, reason=f"创建远端 PR {args.pr.strip()}"):
+            load_project_config(project_root)
+            records = load_pr_records(project_root)
+            record = find_pr_record(records, args.pr.strip())
+            if (record.get("remote_id") or record.get("remote_url")) and not args.force:
+                raise RuntimeError("当前 PR 已存在远端关联；如需覆盖，请显式传 --force。")
+
+            tool = normalize_remote_tool(
+                args.tool if args.tool != "auto" else record.get("remote_provider") or infer_remote_tool(project_root)
+            )
+            now_text = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            steps: list[dict] = []
+            remote_url = args.remote_url.strip()
+
+            if tool != "record-only":
+                if not is_git_repo(project_root):
+                    raise RuntimeError("当前项目不是 git 仓库，不能直接创建远端 PR。")
+                if args.push:
+                    steps.append(
+                        run_step(
+                            ["git", "push", "-u", "origin", record.get("branch", "")],
+                            f"推送分支 {record.get('branch', '')}",
+                            cwd=project_root,
+                        )
+                    )
+                    if steps[-1]["returncode"] != 0:
+                        raise RuntimeError(steps[-1]["stderr"] or steps[-1]["stdout"] or "推送分支失败")
+
+                if tool == "gh":
+                    create_step = run_step(gh_create_command(record, args), f"创建 GitHub PR {record['id']}", cwd=project_root)
+                elif tool == "glab":
+                    create_step = run_step(glab_create_command(record, args), f"创建 GitLab MR {record['id']}", cwd=project_root)
+                else:
+                    raise RuntimeError(f"不支持的远端工具：{tool}")
+                steps.append(create_step)
+                if create_step["returncode"] != 0:
+                    raise RuntimeError(create_step["stderr"] or create_step["stdout"] or "创建远端 PR 失败")
+                remote_url = extract_first_url(create_step["stdout"]) or remote_url
+
+            updated = dict(record)
+            updated["remote_provider"] = tool
+            updated["remote_url"] = remote_url or updated.get("remote_url", "")
+            if args.remote_id.strip():
+                updated["remote_id"] = args.remote_id.strip()
+            updated["remote_state"] = "draft" if args.draft or updated.get("status") == "draft" else "open"
+            updated["remote_synced_at"] = now_text
+            updated["updated_at"] = now_text
+            updated.setdefault("history", []).append(
+                {"action": "remote-open", "owner": args.owner.strip(), "time": now_text, "tool": tool}
+            )
+
+            normalized_records = [updated if item.get("id") == updated["id"] else item for item in records]
+            save_pr_records(project_root, normalized_records)
+            for item_id in updated.get("items", []):
+                upsert_item_pr_section(project_root, item_id, updated)
+
+            latest_lines = [
+                f"- 时间：{now_text}",
+                f"- PR：{updated['id']}",
+                f"- 执行人：{args.owner.strip()}",
+                f"- 工具：{tool}",
+                f"- 远端地址：{updated.get('remote_url', '') or '无'}",
+                f"- 远端编号：{updated.get('remote_id', '') or '无'}",
+                f"- 说明：{args.note.strip() or '无'}",
+            ]
+            step_lines: list[str] = []
+            for step in steps:
+                step_result = "成功" if step["returncode"] == 0 else f"失败({step['returncode']})"
+                step_lines.append(f"- {step['label']}：{step_result}")
+                if step["stdout"]:
+                    step_lines.append(f"  输出：{step['stdout']}")
+                if step["stderr"]:
+                    step_lines.append(f"  错误：{step['stderr']}")
+            if not step_lines:
+                step_lines = ["- 本次仅登记远端关联，没有实际调用远端 CLI。"]
+
+            history_line = f"- {now_text}: 为 `{updated['id']}` 建立远端 PR，工具：{tool}，执行人：{args.owner.strip()}。"
+            write_pr_tracker(project_root, "## 最新远端创建", latest_lines, step_lines, normalized_records, history_line)
+            write_remote_pr_tracker(project_root, "## 最新远端创建", latest_lines, step_lines, normalized_records, history_line)
+            write_text(project_root / f".factory/pr-remote-open.{updated['id']}.json", json.dumps(updated, ensure_ascii=False, indent=2))
+
+            config = load_project_config(project_root)
+            config["last_pr_remote_action_at"] = now_text
+            config["last_pr_remote_action"] = "open"
+            config["last_pr_id"] = updated["id"]
+            config.setdefault("pr_remote_actions", []).append(
+                {
+                    "action": "open",
+                    "pr": updated["id"],
+                    "owner": args.owner.strip(),
+                    "tool": tool,
+                    "time": now_text,
+                }
+            )
+            save_project_config(project_root, config)
+
+            if not args.no_sync:
+                sync_step = run_script(
+                    "factory-pr-remote-sync",
+                    "--project",
+                    str(project_root),
+                    "--pr",
+                    updated["id"],
+                    "--owner",
+                    args.owner.strip(),
+                    "--tool",
+                    tool,
+                    label=f"同步远端 {updated['id']}",
+                )
+                if sync_step["returncode"] != 0:
+                    raise RuntimeError(sync_step["stderr"] or sync_step["stdout"] or "远端同步失败")
+
+            refresh_ai_memory(project_root)
+            append_log_line(
+                project_root / ".factory" / "process" / "execution-log.md",
+                f"- {datetime.now().strftime('%Y-%m-%d')}: 为 `{updated['id']}` 创建远端 PR，工具：{tool}，执行人：{args.owner.strip()}。",
+            )
+    except Exception as exc:
+        print(f"创建远端 PR 失败：{exc}", file=sys.stderr)
+        return 1
+
+    print(f"已完成远端 PR 创建：{updated['id']}")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

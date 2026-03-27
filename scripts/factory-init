@@ -1,0 +1,663 @@
+#!/usr/bin/env python3
+
+import argparse
+import json
+from datetime import datetime, timezone
+from pathlib import Path
+import sys
+import textwrap
+
+from factory_core import build_default_roles
+
+
+ROOT = Path(__file__).resolve().parent.parent
+CONFIG_PATH = ROOT / "config" / "software-factory.defaults.json"
+
+
+def load_config() -> dict:
+    return json.loads(CONFIG_PATH.read_text(encoding="utf-8"))
+
+
+def ensure_directory(path: Path) -> None:
+    path.mkdir(parents=True, exist_ok=True)
+
+
+def write_file(path: Path, content: str, force: bool) -> None:
+    if path.exists() and not force:
+        return
+    ensure_directory(path.parent)
+    path.write_text(content.rstrip() + "\n", encoding="utf-8")
+
+
+def build_project_config(
+    project_name: str,
+    idea: str,
+    stack: str,
+    owner: str,
+    target: Path,
+    config: dict,
+) -> str:
+    shared_skills = []
+    for item in config["shared_skills"]:
+        shared_skills.append(
+            {
+                "name": item["name"],
+                "path": str((ROOT / item["path"]).resolve()),
+                "purpose": item["purpose"],
+            }
+        )
+
+    payload = {
+        "version": 1,
+        "project_name": project_name,
+        "project_root": str(target.resolve()),
+        "owner": owner,
+        "idea": idea,
+        "stack": stack,
+        "created_at": datetime.now(timezone.utc).isoformat(),
+        "active_mode": config["v1_active_mode"],
+        "supported_modes": config["supported_modes"],
+        "v1_scope_note": config["v1_scope_note"],
+        "stage": "BRAINSTORM",
+        "ai_runtime_docs": [str((ROOT / item).resolve()) for item in config.get("ai_runtime_docs", [])],
+        "human_workflow_docs": [
+            str((ROOT / item).resolve()) for item in config.get("human_workflow_docs", config["workflow_docs"])
+        ],
+        "workflow_docs": [str((ROOT / item).resolve()) for item in config["workflow_docs"]],
+        "stage_order": config["stage_order"],
+        "shared_skills": shared_skills,
+        "roles": build_default_roles(shared_skills),
+        "technical_profile": {
+            "preset": "custom",
+            "title": "自定义技术画像",
+            "stack": stack,
+            "summary": "",
+            "projects": [],
+            "modules": [],
+            "rules": [],
+            "admin_requirements": [],
+            "commands": [],
+            "guides": [],
+            "owner": owner,
+            "note": "",
+            "applied_at": "",
+        },
+        "technical_profile_history": [],
+        "design_assets": [],
+        "pr_workflow": {
+            "enabled": True,
+            "required_for_prefixes": ["TASK-", "CR-", "BUG-"],
+            "gate_required_for": ["implementation", "testing", "acceptance", "release"],
+            "remote_tools": ["gh", "glab", "record-only"],
+        },
+        "motivation_runs": [],
+        "recovery_cases": [],
+        "pattern_fix_reports": [],
+        "evolution_baselines": [],
+    }
+    return json.dumps(payload, ensure_ascii=False, indent=2)
+
+
+def build_agents_md(project_name: str, target: Path, config: dict) -> str:
+    ai_doc_paths = [str((ROOT / item).resolve()) for item in config.get("ai_runtime_docs", [])]
+    skill_lines = [
+        "- `{name}`: {purpose} ({path})".format(
+            name=item["name"],
+            purpose=item["purpose"],
+            path=str((ROOT / item["path"]).resolve()),
+        )
+        for item in config["shared_skills"]
+    ]
+
+    lines = [
+        "# AI 软件工厂规则",
+        "",
+        "这个项目遵循阶段化的软件工厂工作流。",
+        "当前版本只落地 `Codex / Gemini CLI` 直接使用方式。",
+        "",
+        f"项目根目录：`{target.resolve()}`",
+        f"项目名称：`{project_name}`",
+        "",
+        "AI 运行时协议：",
+        *[f"- `{item}`" for item in ai_doc_paths],
+        "",
+        "共享全局 skills：",
+        *skill_lines,
+        "",
+        "工作规则：",
+        "- 默认先读 AI 运行时协议，再读当前项目事实；不要默认全文加载人类长文档。",
+        "- `AGENTS.md` / `GEMINI.md` 只保留稳定协作规则、读取顺序和边界；安装结果、测试结论、当前运行状态写入 `.factory/project.json`、`.factory/memory/current-state.md` 和阶段文档。",
+        "- 开始工作前先阅读 `docs/00-governance/project-charter.md` 和 `docs/01-discovery/input.md`。",
+        "- 始终保持正式 `docs/` 与隐藏控制面 `/.factory/` 同步。",
+        "- 当前 V1 不以 API 平台为执行入口，而是直接在本地 CLI 工具中协作。",
+        "- 使用稳定 ID：`REQ-*`、`NFR-*`、`ARCH-*`、`MOD-*`、`API-*`、`DATA-*`、`UI-*`、`TASK-*`、`TC-*`、`CR-*`、`BUG-*`、`REL-*`、`OPS-*`。",
+        "- 进入代码开发后，使用 `factory-pr-start / factory-pr-review / factory-pr-merge` 维护 PR 闭环。",
+        "- 进入实现前先确认 `docs/03-solution/technical-selection.md` 已明确技术选型、必装模块、工程规则和后台范围。",
+        "- 默认额外读取 `/.factory/memory/motivation-state.md`、`/.factory/memory/autonomy-rules.md`、`/.factory/memory/evolution-baseline.md`，维持团队高主动性但不越界。",
+        "- 遇到阻塞、空转、证据不足或质量漂移时，优先执行 `factory-recovery-coach`，而不是重复施压。",
+        "- 发现单点问题时优先做 `factory-pattern-fix` 模式级扫描，再把有效做法沉淀到 `factory-evolution-baseline`。",
+        "- 若 UX/UI 需要评审或交接，优先用 `factory-design-assets` 把可直观看到的设计交付物写入 `docs/03-solution/ux-ui-design.md`。",
+        "- 需求阶段不要只停留在大纲；PRD 和需求分析应尽量详细，并在进入设计前执行 `factory-requirements-verify`。",
+        "- 如需和远程仓库协作，使用 `factory-pr-remote-open / factory-pr-remote-sync / factory-pr-remote-merge`。",
+        "- 不要跳阶段。需求和设计审批必须先于实施。",
+        "- 涉及创意、功能或方案设计时，先使用 `brainstorming`。",
+        "- 进入实现阶段后，遵循 `tdd-workflow`。",
+        "- 对于需求变更和缺陷修复，除了更新受影响文档，还要同步更新 `.factory/memory/current-state.md` 和 `.factory/memory/change-summary.md`。",
+    ]
+    return "\n".join(lines)
+
+
+def build_gemini_md(project_name: str, target: Path, config: dict) -> str:
+    ai_doc_paths = [str((ROOT / item).resolve()) for item in config.get("ai_runtime_docs", [])]
+    skill_lines = [
+        "- `{name}`: {path}".format(
+            name=item["name"],
+            path=str((ROOT / item["path"]).resolve()),
+        )
+        for item in config["shared_skills"]
+    ]
+
+    lines = [
+        "# Gemini 项目说明",
+        "",
+        "你正在一个共享的软件工厂工作区中工作。",
+        "当前版本只落地 `Codex / Gemini CLI` 直接使用方式。",
+        "",
+        f"项目根目录：`{target.resolve()}`",
+        f"项目名称：`{project_name}`",
+        "",
+        "优先阅读（运行时）：",
+        *[f"- `{item}`" for item in ai_doc_paths],
+        "- `docs/00-governance/project-charter.md`",
+        "- `docs/01-discovery/input.md`",
+        "- `.factory/project.json`",
+        "",
+        "共享 skill 引用：",
+        *skill_lines,
+        "",
+        "Gemini CLI 推荐职责：",
+        "- 头脑风暴和方案探索",
+        "- PRD 与需求分析",
+        "- 架构设计与 API 设计",
+        "- 变更影响分析",
+        "- 发布说明与验收复查",
+        "",
+        "规则：",
+        "- 默认先按 AI 运行时协议工作，不要默认全文加载长篇工作流说明。",
+        "- `AGENTS.md` / `GEMINI.md` 不是现状快照；当前安装、构建、测试和运行结论应写入 `.factory/project.json`、`.factory/memory/current-state.md` 和阶段文档。",
+        "- 把 Markdown 文档当成事实来源",
+        "- 当前 V1 以本地 CLI 协作为主，不以 API 平台作为执行入口",
+        "- 需求和设计未获批准前，不要进入代码实现",
+        "- 进入实现前先读取 `docs/03-solution/technical-selection.md`，确认当前技术栈、模块清单和后台要求",
+        "- 默认补读 `/.factory/memory/motivation-state.md`、`/.factory/memory/autonomy-rules.md`、`/.factory/memory/evolution-baseline.md`，维持高主动性但不越界",
+        "- 遇到阻塞、空转、证据不足或质量漂移时，优先执行恢复教练，不要重复同一路径",
+        "- 发现问题后优先做模式级修复，再把有效做法沉淀到自进化基线",
+        "- UX/UI 文档允许包含图片、HTML 原型、流程图和外部原型链接等设计交付物，必要时用 `factory-design-assets` 录入并引用",
+        "- 编写需求文档时尽量详细，完成后执行 `factory-requirements-verify` 反复比对 PRD 与需求分析，避免遗漏需求",
+        "- 代码类工作项在关单前需要完成 PR 创建、评审和合并",
+        "- 如果项目接入了远程仓库，优先用 `factory-pr-remote-open / sync / merge` 把远端状态同步回本地文档",
+        "- 任何已接受内容变更后，都要同步更新 `/.factory/memory/` 摘要",
+    ]
+    return "\n".join(lines)
+
+
+def build_brainstorm_input(project_name: str, idea: str, stack: str, owner: str) -> str:
+    return textwrap.dedent(
+        f"""
+        # 项目创意
+
+        - 项目名称：{project_name}
+        - 项目负责人：{owner}
+        - 期望技术栈：{stack}
+
+        ## 创意说明
+
+        {idea}
+
+        ## 下一步
+
+        使用 `brainstorming` skill 探索项目范围、约束、备选方案和成功标准。
+        """
+    ).strip()
+
+
+def build_placeholder(title: str, body: str) -> str:
+    return textwrap.dedent(
+        f"""
+        # {title}
+
+        {body}
+        """
+    ).strip()
+
+
+def build_tech_profile_state(stack: str, owner: str) -> str:
+    payload = {
+        "preset": "custom",
+        "title": "自定义技术画像",
+        "stack": stack,
+        "summary": "",
+        "projects": [],
+        "modules": [],
+        "rules": [],
+        "admin_requirements": [],
+        "commands": [],
+        "guides": [],
+        "owner": owner,
+        "note": "",
+        "applied_at": "",
+    }
+    return json.dumps(payload, ensure_ascii=False, indent=2)
+
+
+def initialize_project(target: Path, project_name: str, idea: str, stack: str, owner: str, force: bool) -> list:
+    config = load_config()
+    if target.exists() and any(target.iterdir()) and not force:
+        raise RuntimeError(f"目标目录不是空目录：{target}")
+
+    ensure_directory(target)
+    for directory in config["project_scaffold"]["directories"]:
+        ensure_directory(target / directory)
+
+    files = {
+        "AGENTS.md": build_agents_md(project_name, target, config),
+        "GEMINI.md": build_gemini_md(project_name, target, config),
+        ".factory/project.json": build_project_config(project_name, idea, stack, owner, target, config),
+        "docs/00-governance/project-charter.md": build_placeholder(
+            "项目章程",
+            "明确项目目标、范围、成功标准、关键里程碑、风险和负责人。",
+        ),
+        "docs/01-discovery/input.md": build_brainstorm_input(project_name, idea, stack, owner),
+        "docs/01-discovery/brainstorm-record.md": build_placeholder(
+            "头脑风暴记录",
+            "记录项目背景、已探索方案、最终方向、约束条件和已批准范围。",
+        ),
+        "docs/02-requirements/prd.md": build_placeholder(
+            "产品需求文档",
+            "定义项目目标、用户角色、REQ 编号、验收标准、NFR、约束条件和排除范围。",
+        ),
+        "docs/02-requirements/requirements-analysis.md": build_placeholder(
+            "需求分析文档",
+            "围绕需求编号分析流程、可行性、优先级、依赖关系、风险和建议。",
+        ),
+        "docs/02-requirements/requirements-verification.md": build_placeholder(
+            "需求一致性校验报告",
+            "反复比对 PRD、需求分析、范围和关键字段，识别遗漏需求和字段缺口。",
+        ),
+        "docs/02-requirements/changelog.md": build_placeholder(
+            "需求变更日志",
+            "记录需求级别的变化、审批结果和关联的变更请求。",
+        ),
+        "docs/03-solution/system-architecture.md": build_placeholder(
+            "系统架构设计",
+            "描述系统组件、职责、数据流、风险和关联的 ARCH 编号。",
+        ),
+        "docs/03-solution/module-boundaries.md": build_placeholder(
+            "模块边界文档",
+            "定义模块职责、数据所有权、允许依赖、禁止耦合和运维责任。",
+        ),
+        "docs/03-solution/technical-selection.md": build_placeholder(
+            "技术选型与工程规则",
+            "明确技术栈、框架、必装模块、后台范围、编码规则和进入实施前必须遵守的工程约束。",
+        ),
+        "docs/03-solution/api-design.md": build_placeholder(
+            "API 设计文档",
+            "描述资源、接口、契约、校验规则和关联的 API 编号。",
+        ),
+        "docs/03-solution/database-design.md": build_placeholder(
+            "数据库设计文档",
+            "描述实体、关系、索引、迁移方案和关联的 DB 编号。",
+        ),
+        "docs/03-solution/backend-design.md": build_placeholder(
+            "后端设计文档",
+            "描述服务层、仓储层、后台任务、校验机制和运维关注点。",
+        ),
+        "docs/03-solution/ux-ui-design.md": build_placeholder(
+            "UX/UI 设计文档",
+            "描述用户流程、页面、组件、状态、可直观看到的设计交付物和关联的 UI 编号。",
+        ),
+        "docs/03-solution/assets/README.md": build_placeholder(
+            "设计交付物目录",
+            "登记可直观看到的线框图、高保真稿、HTML 原型、流程图、竞品参考图、Figma 链接等设计交付物，并同步到 UX/UI 设计文档。",
+        ),
+        "docs/04-delivery/wbs.md": build_placeholder(
+            "工作分解结构",
+            "把已批准工作拆成可交付物、里程碑和依赖分组。",
+        ),
+        "docs/04-delivery/task-breakdown.md": build_placeholder(
+            "任务分解文档",
+            "定义 TASK 编号、负责人、依赖关系和实施顺序。",
+        ),
+        "docs/04-delivery/implementation-plan.md": build_placeholder(
+            "实施计划",
+            "描述迭代范围、工程策略和测试策略。",
+        ),
+        ".factory/process/execution-log.md": build_placeholder(
+            "执行日志",
+            "按日期记录已实现内容、测试结果、文档更新和审批情况。",
+        ),
+        ".factory/process/daily-status.md": build_placeholder(
+            "每日报告",
+            "记录当日进展、阻塞、风险和下一步动作。",
+        ),
+        ".factory/process/risk-register.md": build_placeholder(
+            "交付风险登记册",
+            "持续维护交付阶段的风险、状态、负责人和缓解动作。",
+        ),
+        ".factory/process/pull-requests.md": build_placeholder(
+            "PR 记录",
+            "记录 PR 编号、分支、目标分支、关联工作项、评审结果和合并状态。",
+        ),
+        ".factory/process/pr-board.md": build_placeholder(
+            "PR 协作看板",
+            "展示当前活跃 PR、负责人分布、状态泳道和最近已合并记录。",
+        ),
+        ".factory/process/pr-handovers.md": build_placeholder(
+            "PR 交接记录",
+            "记录 PR 交接包、交接对象、关联工作项和关键交接说明。",
+        ),
+        ".factory/process/remote-prs.md": build_placeholder(
+            "远程 PR 协作文档",
+            "记录远端 PR 的创建、同步、合并和与本地 PR 记录的映射关系。",
+        ),
+        ".factory/process/multi-agent-board.md": build_placeholder(
+            "多 Agent 协作看板",
+            "展示当前阶段主要角色、负责人、活跃工作项、阻塞项、风险和建议动作。",
+        ),
+        ".factory/process/role-assignments.md": build_placeholder(
+            "角色分派记录",
+            "记录角色、负责人、主要工具、已分派工作项、执行焦点和建议动作。",
+        ),
+        ".factory/process/role-handoffs.md": build_placeholder(
+            "角色交接记录",
+            "记录角色之间的交接背景、待办、关键文档、推荐命令和接手状态。",
+        ),
+        ".factory/process/role-sync.md": build_placeholder(
+            "角色同步记录",
+            "记录角色执行过程中对代码、文档、测试和 AI 记忆的同步结果。",
+        ),
+        ".factory/process/team-sync.md": build_placeholder(
+            "团队同步记录",
+            "记录团队级同步、覆盖角色、统一结果和关键附加动作。",
+        ),
+        ".factory/process/team-energy.md": build_placeholder(
+            "团队动能记录",
+            "记录当前阶段的团队推进节奏、角色自治预算、当前关注项和正向强化信号。",
+        ),
+        ".factory/process/agent-achievements.md": build_placeholder(
+            "Agent 成就记录",
+            "记录最近完成项、已合并 PR、复核通过和其他值得强化的执行信号。",
+        ),
+        ".factory/process/recovery-review.md": build_placeholder(
+            "恢复教练记录",
+            "记录阻塞、空转、证据不足或质量漂移时的恢复方案、已排除路径和下一条不同路径。",
+        ),
+        ".factory/process/pattern-fix-report.md": build_placeholder(
+            "模式级修复报告",
+            "把单点问题扩展为同类扫描、预防动作和默认检查规则。",
+        ),
+        ".factory/process/auto-sync.md": build_placeholder(
+            "自动同步记录",
+            "记录自动同步动作、涉及资产、执行结果和后续建议。",
+        ),
+        ".factory/process/command-profiles.md": build_placeholder(
+            "命令画像执行记录",
+            "记录高层 profile 的执行结果、步骤明细和历史轨迹。",
+        ),
+        ".factory/process/workflow-runs.md": build_placeholder(
+            "工作流运行记录",
+            "记录 daily-close、pre-gate、release-ready、handover-ready 等工作流的执行结果。",
+        ),
+        ".factory/process/chat-bootstrap.md": build_placeholder(
+            "对话启动记录",
+            "记录为 Codex / Gemini CLI 生成的角色化会话启动入口和使用场景。",
+        ),
+        ".factory/process/role-retrospectives/README.md": build_placeholder(
+            "角色复盘目录",
+            "存放每个角色的阶段性复盘文档。",
+        ),
+        ".factory/process/team-retro.md": build_placeholder(
+            "团队复盘",
+            "记录团队层面的阶段性复盘、共性问题、亮点和后续动作。",
+        ),
+        "docs/05-quality/test-plan.md": build_placeholder(
+            "测试计划",
+            "定义与 REQ 编号关联的单元测试、集成测试和端到端测试覆盖目标。",
+        ),
+        "docs/05-quality/test-cases.md": build_placeholder(
+            "测试用例",
+            "列出 TC 编号、前置条件、执行动作、预期结果和关联需求。",
+        ),
+        "docs/05-quality/test-report.md": build_placeholder(
+            "测试报告",
+            "记录已执行测试、失败项、回归结果、覆盖率和发布准备情况。",
+        ),
+        "docs/06-release/acceptance-checklist.md": build_placeholder(
+            "验收清单",
+            "跟踪验收项、审批结果、阻塞问题和最终签字情况。",
+        ),
+        ".factory/process/pr-check-report.md": build_placeholder(
+            "PR 检查报告",
+            "记录 PR 的 review-ready、merge-ready 或 gate-ready 检查结果和问题。",
+        ),
+        ".factory/process/stage-check-report.md": build_placeholder(
+            "阶段检查报告",
+            "记录阶段文档完备度、任务状态和是否具备进入 Gate 的条件。",
+        ),
+        ".factory/process/quality-check-report.md": build_placeholder(
+            "质量检查报告",
+            "记录文档、测试、追踪和风险的项目级质量检查结论。",
+        ),
+        ".factory/process/state-doctor-report.md": build_placeholder(
+            "状态诊断报告",
+            "记录项目状态、阻塞、缺失资产和上下文健康度诊断结果。",
+        ),
+        "docs/06-release/release-notes.md": build_placeholder(
+            "发布说明",
+            "汇总本次交付的功能、修复项、已知问题和升级说明。",
+        ),
+        "docs/06-release/delivery-package.md": build_placeholder(
+            "交付文档",
+            "说明交付物、代码仓库引用、文档集合和支持交接内容。",
+        ),
+        ".factory/process/role-reviews.md": build_placeholder(
+            "角色执行复核记录",
+            "记录角色执行闭环中的复核结果、问题、关注项和建议动作。",
+        ),
+        ".factory/process/role-closeouts.md": build_placeholder(
+            "角色收尾记录",
+            "记录角色收尾、移交、关闭工作项和角色结果。",
+        ),
+        ".factory/process/team-closeouts.md": build_placeholder(
+            "团队收尾记录",
+            "记录团队范围内的统一收尾结果、覆盖角色和后续动作。",
+        ),
+        "docs/07-operations/deployment-guide.md": build_placeholder(
+            "部署手册",
+            "描述环境信息、前置条件、部署步骤、验证方法和回滚方案。",
+        ),
+        "docs/07-operations/operations-runbook.md": build_placeholder(
+            "运维手册",
+            "记录启停、巡检、监控、常见故障处理和升级路径。",
+        ),
+        "docs/08-handover/user-guide.md": build_placeholder(
+            "使用手册",
+            "从用户视角说明配置方法、关键流程、限制条件和常见问题处理。",
+        ),
+        "docs/08-handover/admin-guide.md": build_placeholder(
+            "管理员指南",
+            "说明初始化、权限、配置、升级和维护动作。",
+        ),
+        "docs/09-evolution/retrospective.md": build_placeholder(
+            "项目复盘",
+            "总结阶段结果、问题模式、改进建议和后续演进方向。",
+        ),
+        "docs/traceability/requirements-matrix.md": build_placeholder(
+            "需求追踪矩阵",
+            "把 REQ、NFR、ARCH、API、UI、TASK、TC、CR 和 BUG 记录关联到一个矩阵中。",
+        ),
+        ".factory/memory/project-index.md": build_placeholder(
+            "项目索引",
+            "汇总项目目标、当前阶段、活跃需求和最关键的项目文件。",
+        ),
+        ".factory/memory/current-state.md": build_placeholder(
+            "当前状态",
+            "汇总已批准内容、进行中事项、当前阻塞和下一步动作。",
+        ),
+        ".factory/memory/prd.summary.md": build_placeholder(
+            "PRD 摘要",
+            "保留 REQ 和 NFR 编号的一句话描述、优先级和状态。",
+        ),
+        ".factory/memory/requirements-verification.summary.md": build_placeholder(
+            "需求一致性校验摘要",
+            "汇总需求覆盖、字段缺口和是否存在遗漏需求。",
+        ),
+        ".factory/memory/architecture.summary.md": build_placeholder(
+            "架构摘要",
+            "保留 ARCH 决策、关联需求、风险和约束条件。",
+        ),
+        ".factory/memory/tech-stack.summary.md": build_placeholder(
+            "技术画像摘要",
+            "汇总技术选型、必装模块、管理后台范围和关键工程规则。",
+        ),
+        ".factory/memory/api.summary.md": build_placeholder(
+            "API 摘要",
+            "保留 API 编号、接口、契约、鉴权方式和校验说明。",
+        ),
+        ".factory/memory/ui.summary.md": build_placeholder(
+            "界面摘要",
+            "保留 UI 编号、关键页面、状态和交互约束。",
+        ),
+        ".factory/memory/design-assets.summary.md": build_placeholder(
+            "设计交付物摘要",
+            "汇总已登记的设计交付物、关联 UI 编号和来源信息。",
+        ),
+        ".factory/memory/motivation-state.md": build_placeholder(
+            "动能状态摘要",
+            "保留当前阶段的推进节奏、强化信号、关注项和下一轮默认动作。",
+        ),
+        ".factory/memory/autonomy-rules.md": build_placeholder(
+            "自治规则摘要",
+            "保留当前阶段和各角色的自治预算、边界和高主动性规则。",
+        ),
+        ".factory/memory/recovery-playbook.md": build_placeholder(
+            "恢复教练摘要",
+            "保留最近一次恢复模式、下一条不同路径和必要证据。",
+        ),
+        ".factory/memory/evolution-baseline.md": build_placeholder(
+            "自进化基线",
+            "沉淀当前默认做法、反模式、证据和下一轮演进实验。",
+        ),
+        ".factory/memory/tasks.summary.md": build_placeholder(
+            "任务摘要",
+            "保留 TASK 编号、负责人、状态、依赖关系和完成说明。",
+        ),
+        ".factory/memory/tests.summary.md": build_placeholder(
+            "测试摘要",
+            "保留 TC 编号、覆盖说明、活跃失败项和回归范围。",
+        ),
+        ".factory/memory/change-summary.md": build_placeholder(
+            "变更摘要",
+            "列出近期 CR 和 BUG 项、受影响资产、审批结果和后续工作。",
+        ),
+        ".factory/memory/pr.summary.md": build_placeholder(
+            "PR 摘要",
+            "汇总当前活跃 PR、最近已合并 PR、关联工作项和审查状态。",
+        ),
+        ".factory/memory/pr-board.summary.md": build_placeholder(
+            "PR 看板摘要",
+            "汇总 PR 状态泳道、负责人分布和当前看板焦点。",
+        ),
+        ".factory/memory/pr-check.summary.md": build_placeholder(
+            "PR 检查摘要",
+            "汇总 PR 检查模式、检查结果和需要关注的问题。",
+        ),
+        ".factory/memory/pr-handover.summary.md": build_placeholder(
+            "PR 交接摘要",
+            "汇总最近一次 PR 交接包、目标对象和包含的关键文件。",
+        ),
+        ".factory/memory/remote-pr.summary.md": build_placeholder(
+            "远程 PR 摘要",
+            "汇总远端 PR 的编号、地址、状态、评审和检查结果。",
+        ),
+        ".factory/memory/pattern-fix.summary.md": build_placeholder(
+            "模式级修复摘要",
+            "汇总源问题、扫描对象、预防动作和默认检查规则。",
+        ),
+        ".factory/memory/history/README.md": build_placeholder(
+            "历史记忆说明",
+            "此目录用于保存 AI 记忆快照，帮助模型快速恢复项目背景、阶段状态和近期变化。",
+        ),
+        ".factory/memory/graph/traceability.json": "{\n  \"nodes\": [],\n  \"edges\": []\n}",
+        ".factory/tech-profile.json": build_tech_profile_state(stack, owner),
+        ".factory/design-assets.json": "[]\n",
+        ".factory/workitems/implementation/README.md": build_placeholder(
+            "实施任务目录",
+            "使用 `factory-new-workitem --type task` 创建正式实施任务。任务默认按真实人天记录，只有确实需要时再细化，最小精度为 0.5 人天。",
+        ),
+        ".factory/workitems/changes/README.md": build_placeholder(
+            "需求变更目录",
+            "使用 `factory-new-workitem --type change` 创建正式需求变更条目，并同步更新主文档单文件。",
+        ),
+        ".factory/workitems/bugs/README.md": build_placeholder(
+            "缺陷目录",
+            "使用 `factory-new-workitem --type bug` 创建正式缺陷条目，并补齐回归测试。",
+        ),
+    }
+
+    written = []
+    for relative_path, content in files.items():
+        path = target / relative_path
+        write_file(path, content, force)
+        written.append(str(path))
+
+    return written
+
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(
+        description="为 Codex 和 Gemini CLI 初始化一个共享的 AI 软件工厂项目。"
+    )
+    parser.add_argument("--path", required=True, help="目标项目目录，可使用绝对路径或相对路径。")
+    parser.add_argument("--name", required=True, help="项目显示名称。")
+    parser.add_argument("--idea", required=True, help="初始项目创意或产品简介。")
+    parser.add_argument("--stack", default="auto", help="期望技术栈，例如 react+fastapi。")
+    parser.add_argument("--owner", default="user", help="项目负责人或团队名称。")
+    parser.add_argument("--force", action="store_true", help="允许写入一个非空目标目录。")
+    return parser.parse_args()
+
+
+def main() -> int:
+    args = parse_args()
+    target = Path(args.path).expanduser().resolve()
+
+    try:
+        written = initialize_project(
+            target=target,
+            project_name=args.name.strip(),
+            idea=args.idea.strip(),
+            stack=args.stack.strip(),
+            owner=args.owner.strip(),
+            force=args.force,
+        )
+    except Exception as exc:
+        print(f"初始化失败：{exc}", file=sys.stderr)
+        return 1
+
+    print(f"已在 {target} 初始化软件工厂项目")
+    print("关键文件：")
+    for item in [
+        target / "AGENTS.md",
+        target / "GEMINI.md",
+        target / ".factory/project.json",
+        target / "docs/00-governance/project-charter.md",
+        target / "docs/01-discovery/input.md",
+        target / "docs/02-requirements/prd.md",
+    ]:
+        print(f"- {item}")
+    print(f"共创建 {len(written)} 个文件。")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

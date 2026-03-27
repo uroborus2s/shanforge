@@ -1,0 +1,192 @@
+#!/usr/bin/env python3
+
+import argparse
+from datetime import datetime
+from pathlib import Path
+import sys
+
+from factory_core import (
+    CLOSED_STATUSES,
+    append_log_line,
+    collect_items,
+    latest_dir_id,
+    load_project_config,
+    project_lock,
+    read_recent_log_lines,
+    read_risks,
+    save_project_config,
+)
+
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description="生成项目复盘文档和 AI 摘要。")
+    parser.add_argument("--project", required=True, help="项目根目录。")
+    parser.add_argument("--owner", default="待记录", help="复盘负责人。")
+    parser.add_argument("--period", default="", help="复盘周期标签，例如 需求阶段/本周。")
+    parser.add_argument("--note", default="", help="补充说明。")
+    parser.add_argument("--top", type=int, default=5, help="复盘中展示的重点条目数量。")
+    return parser.parse_args()
+def read_gate_history(config: dict, top: int) -> list[str]:
+    gates = config.get("gate_history", [])[-top:]
+    return [
+        f"- `{item.get('gate', '未知')}`：{item.get('result', '未知')} | 评审人：{item.get('reviewer', '未知')}"
+        for item in reversed(gates)
+    ]
+def upsert_report(path: Path, latest_lines: list[str], good_lines: list[str], issue_lines: list[str], action_lines: list[str], history_line: str) -> None:
+    if path.exists():
+        lines = path.read_text(encoding="utf-8").splitlines()
+    else:
+        lines = ["# 项目复盘", ""]
+
+    sections = {
+        "## 本次复盘": latest_lines,
+        "## 做得好的地方": good_lines,
+        "## 暴露的问题": issue_lines,
+        "## 后续行动": action_lines,
+    }
+    for header, content in sections.items():
+        if header in lines:
+            start = lines.index(header)
+            end = len(lines)
+            for index in range(start + 1, len(lines)):
+                if lines[index].startswith("## "):
+                    end = index
+                    break
+            lines = lines[: start + 1] + [""] + content + [""] + lines[end:]
+        else:
+            if lines and lines[-1] != "":
+                lines.append("")
+            lines.extend([header, "", *content, ""])
+
+    history_header = "## 历史复盘记录"
+    if history_header in lines:
+        start = lines.index(history_header)
+        insert_at = start + 2 if start + 1 < len(lines) and lines[start + 1] == "" else start + 1
+        if history_line not in lines:
+            lines.insert(insert_at, history_line)
+    else:
+        if lines and lines[-1] != "":
+            lines.append("")
+        lines.extend([history_header, "", history_line, ""])
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text("\n".join(lines).rstrip() + "\n", encoding="utf-8")
+def main() -> int:
+    args = parse_args()
+    project_root = Path(args.project).expanduser().resolve()
+    now_text = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    today = datetime.now().strftime("%Y-%m-%d")
+
+    try:
+        with project_lock(project_root, reason="生成项目复盘"):
+            config = load_project_config(project_root)
+            items = collect_items(project_root)
+            active_items = [item for item in items if item["status"] not in CLOSED_STATUSES]
+            closed_items = [item for item in items if item["status"] in CLOSED_STATUSES]
+            blocked_items = [item for item in items if item["status"] == "阻塞"]
+            recent_logs = read_recent_log_lines(project_root, max(1, args.top))
+            open_risks, all_risks = read_risks(project_root)
+            gate_lines = read_gate_history(config, max(1, args.top))
+            latest_release = latest_dir_id(project_root, "releases", "REL-")
+            latest_handover = latest_dir_id(project_root, "handover", "HO-")
+            latest_snapshot = latest_dir_id(project_root, "snapshots", "SNAP-")
+
+            period = args.period.strip() or config.get("stage", "当前阶段")
+            latest_lines = [
+                f"- 复盘周期：{period}",
+                f"- 复盘时间：{now_text}",
+                f"- 复盘负责人：{args.owner.strip()}",
+                f"- 当前阶段：{config.get('stage', '未知')}",
+                f"- 最近发布包：{latest_release}",
+                f"- 最近交接包：{latest_handover}",
+                f"- 最近快照：{latest_snapshot}",
+                f"- 备注：{args.note.strip() or '无'}",
+            ]
+            good_lines = []
+            if closed_items:
+                for item in closed_items[: args.top]:
+                    good_lines.append(f"- 已完成 `{item['id']}` {item['title']} | 负责人：{item['owner']}")
+            if gate_lines:
+                good_lines.extend(gate_lines[: max(0, args.top - len(good_lines))])
+            if recent_logs and len(good_lines) < args.top:
+                good_lines.extend(f"- 最近进展：{line[2:]}" for line in recent_logs[: max(0, args.top - len(good_lines))])
+            if not good_lines:
+                good_lines = ["- 当前缺少可归纳的正向产出，请先补齐执行记录。"]
+
+            issue_lines = []
+            if blocked_items:
+                issue_lines.extend(f"- 阻塞项：`{item['id']}` {item['title']} | 负责人：{item['owner']}" for item in blocked_items[: args.top])
+            if open_risks:
+                issue_lines.extend(f"- 开放风险：{line[2:]}" for line in open_risks[: args.top])
+            if config.get("last_stage_check_result") == "未通过":
+                issue_lines.append("- 阶段检查最近结果为未通过。")
+            if config.get("last_quality_check_result") == "未通过":
+                issue_lines.append("- 质量检查最近结果为未通过。")
+            if not issue_lines:
+                issue_lines = ["- 当前未发现新的阻塞项或开放风险。"]
+
+            action_lines = []
+            if blocked_items:
+                action_lines.append("- 优先解除阻塞任务，再推进下一个阶段或 Gate。")
+            if open_risks:
+                action_lines.append("- 对开放风险逐条指定缓解措施和时间窗口。")
+            if config.get("last_stage_check_result") == "未通过":
+                action_lines.append("- 先补齐阶段关键文档，避免继续沿用占位内容。")
+            if config.get("last_quality_check_result") == "未通过":
+                action_lines.append("- 根据质量报告补齐缺失文档和追踪关系。")
+            if not action_lines:
+                action_lines = ["- 继续保持当前节奏，按既定工作流推进。"]
+
+            history_line = f"- {now_text}: 完成 `{period}` 复盘，负责人：{args.owner.strip()}。"
+            upsert_report(
+                project_root / "docs" / "09-evolution" / "retrospective.md",
+                latest_lines=latest_lines,
+                good_lines=good_lines,
+                issue_lines=issue_lines,
+                action_lines=action_lines,
+                history_line=history_line,
+            )
+
+            ai_lines = [
+                "# 复盘摘要",
+                "",
+                *latest_lines,
+                "",
+                "## 做得好的地方",
+                "",
+                *good_lines,
+                "",
+                "## 暴露的问题",
+                "",
+                *issue_lines,
+                "",
+                "## 后续行动",
+                "",
+                *action_lines,
+            ]
+            (project_root / ".factory" / "memory" / "retrospective.summary.md").write_text("\n".join(ai_lines).rstrip() + "\n", encoding="utf-8")
+
+            config["last_retrospective_at"] = now_text
+            config.setdefault("retrospectives", []).append(
+                {
+                    "period": period,
+                    "owner": args.owner.strip(),
+                    "note": args.note.strip(),
+                    "created_at": now_text,
+                }
+            )
+            save_project_config(project_root, config)
+
+            append_log_line(
+                project_root / ".factory" / "process" / "execution-log.md",
+                f"- {today}: 生成项目复盘，周期：{period}，负责人：{args.owner.strip()}。",
+            )
+    except Exception as exc:
+        print(f"生成项目复盘失败：{exc}", file=sys.stderr)
+        return 1
+
+    print(f"已生成项目复盘：{period}")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

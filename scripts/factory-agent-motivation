@@ -1,0 +1,247 @@
+#!/usr/bin/env python3
+
+import argparse
+from datetime import datetime
+from pathlib import Path
+import sys
+
+from factory_core import (
+    AGENT_ACHIEVEMENTS_RELATIVE,
+    AUTONOMY_RULES_RELATIVE,
+    MOTIVATION_STATE_RELATIVE,
+    TEAM_ENERGY_RELATIVE,
+    active_items,
+    append_log_line,
+    autonomy_budget,
+    autonomy_guardrails,
+    blocked_items,
+    collect_items,
+    completed_items,
+    current_role_assignment,
+    ensure_role_catalog,
+    load_pr_records,
+    load_project_config,
+    merged_pr_records,
+    prepend_history_entry,
+    project_lock,
+    read_recent_log_lines,
+    read_risks,
+    refresh_ai_memory,
+    save_project_config,
+    selected_roles,
+    upsert_section,
+    write_text,
+)
+
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description="生成团队动能、正向强化和自治规则文档。")
+    parser.add_argument("--project", required=True, help="项目根目录。")
+    parser.add_argument("--owner", default="项目协调者", help="负责人。")
+    parser.add_argument("--role", default="", help="单个角色。")
+    parser.add_argument("--roles", default="", help="多个角色，逗号分隔；默认取当前阶段活跃角色。")
+    parser.add_argument("--focus", default="", help="本轮重点。")
+    parser.add_argument("--note", default="", help="补充说明。")
+    parser.add_argument("--top", type=int, default=5, help="展示的重点数量。")
+    return parser.parse_args()
+
+
+def merge_roles(args: argparse.Namespace) -> str:
+    if args.roles.strip() and args.role.strip():
+        return f"{args.roles.strip()},{args.role.strip()}"
+    return args.roles.strip() or args.role.strip()
+
+
+def energy_level(active_count: int, blocked_count: int, risk_count: int) -> tuple[str, str]:
+    if blocked_count >= 3 or risk_count >= 3:
+        return "需要恢复", "阻塞项或开放风险偏多，优先稳住节奏、保护交付质量。"
+    if active_count == 0:
+        return "待激活", "当前缺少明确推进项，适合重新聚焦本轮目标。"
+    if blocked_count > 0 or risk_count > 0:
+        return "保持专注", "整体仍在推进，但需要及时处理阻塞与风险，避免节奏衰减。"
+    return "稳定推进", "当前推进节奏健康，可以继续保持高主动性和闭环执行。"
+
+
+def main() -> int:
+    args = parse_args()
+    project_root = Path(args.project).expanduser().resolve()
+    now_text = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+    try:
+        with project_lock(project_root, reason="生成团队动能与自治协议"):
+            config = load_project_config(project_root)
+            ensure_role_catalog(config)
+            roles = selected_roles(config, merge_roles(args), stage=config.get("stage", ""))
+            items = collect_items(project_root)
+            active = active_items(items)
+            blocked = blocked_items(items)
+            completed = completed_items(items, top=max(1, args.top))
+            prs = load_pr_records(project_root)
+            merged_prs = merged_pr_records(prs)[-max(1, args.top) :]
+            open_risks, _ = read_risks(project_root)
+            recent_logs = read_recent_log_lines(project_root, max(1, args.top))
+            stage = str(config.get("stage", "未知"))
+            level, level_summary = energy_level(len(active), len(blocked), len(open_risks))
+
+            latest_lines = [
+                f"- 时间：{now_text}",
+                f"- 负责人：{args.owner.strip()}",
+                f"- 当前阶段：{stage}",
+                f"- 当前焦点：{args.focus.strip() or '无'}",
+                f"- 动能状态：{level}",
+                f"- 说明：{level_summary}",
+                f"- 覆盖角色：{'、'.join(role.get('title', role.get('id', '未知角色')) for role in roles) or '无'}",
+                f"- 备注：{args.note.strip() or '无'}",
+            ]
+
+            achievement_lines = []
+            for item in completed:
+                achievement_lines.append(
+                    f"- 完成项：`{item['id']}` {item['title']} | 负责人：{item['owner']} | 状态：{item['status']}"
+                )
+            for record in merged_prs:
+                achievement_lines.append(
+                    f"- 已合并 PR：`{record.get('id', '未知')}` {record.get('title', '未命名 PR')} | 工作项：{', '.join(record.get('items', [])) or '无'}"
+                )
+            passed_reviews = [
+                entry
+                for entry in config.get("role_reviews", [])
+                if entry.get("result") == "通过"
+            ][-max(1, args.top) :]
+            for entry in passed_reviews:
+                achievement_lines.append(
+                    f"- 角色复核通过：`{entry.get('role', '未知角色')}` | 时间：{entry.get('reviewed_at', '未知时间')} | 范围：{entry.get('scope', '未知')}"
+                )
+            if not achievement_lines:
+                achievement_lines = ["- 当前还缺少明确的完成信号，建议先锁定一个最小闭环并做成可验证结果。"]
+
+            concern_lines = [
+                f"- 阻塞项：`{item['id']}` {item['title']} | 负责人：{item['owner']}"
+                for item in blocked[: args.top]
+            ]
+            concern_lines.extend(open_risks[: args.top])
+            if not concern_lines:
+                concern_lines = ["- 当前没有新的阻塞项或开放风险。"]
+
+            role_budget_lines = []
+            for role in roles:
+                assignment = current_role_assignment(config, role["id"])
+                role_budget_lines.extend(
+                    [
+                        f"### {role.get('title', role.get('id', '未知角色'))}",
+                        f"- 当前负责人：{assignment.get('owner', role.get('title', '未分派')) or role.get('title', '未分派')}",
+                        f"- 当前状态：{assignment.get('status', '未分派') or '未分派'}",
+                        f"- 自治预算：{autonomy_budget(config, role['id'])}",
+                        "",
+                    ]
+                )
+            if not role_budget_lines:
+                role_budget_lines = ["- 当前没有可用角色。"]
+
+            coach_lines = [f"- {item}" for item in autonomy_guardrails(stage)]
+            if blocked:
+                coach_lines.append("- 当前存在阻塞项，优先执行 `factory-dispatch recovery --project <项目路径> --item <工作项>`。")
+            if open_risks:
+                coach_lines.append("- 当前存在开放风险，推进时先保证证据链和同步闭环，再继续扩展实现。")
+            if not blocked and not open_risks:
+                coach_lines.append("- 当前适合继续采用“先验证、再扩展、最后同步”的节奏。")
+
+            achievement_doc = project_root / AGENT_ACHIEVEMENTS_RELATIVE
+            upsert_section(achievement_doc, "## 最新亮点", achievement_lines, default_title="# Agent 成就记录")
+            upsert_section(
+                achievement_doc,
+                "## 最近执行信号",
+                [f"- {line[2:]}" for line in recent_logs[-args.top :]] or ["- 暂无最近执行记录。"],
+                default_title="# Agent 成就记录",
+            )
+            prepend_history_entry(
+                achievement_doc,
+                "## 历史强化记录",
+                f"- {now_text}: 刷新团队亮点，阶段：{stage}，负责人：{args.owner.strip()}。",
+                default_title="# Agent 成就记录",
+            )
+
+            energy_doc = project_root / TEAM_ENERGY_RELATIVE
+            upsert_section(energy_doc, "## 本次动能评估", latest_lines, default_title="# 团队动能记录")
+            upsert_section(energy_doc, "## 角色自治预算", role_budget_lines, default_title="# 团队动能记录")
+            upsert_section(energy_doc, "## 当前关注项", concern_lines, default_title="# 团队动能记录")
+            upsert_section(energy_doc, "## 当前教练策略", coach_lines, default_title="# 团队动能记录")
+            prepend_history_entry(
+                energy_doc,
+                "## 历史动能记录",
+                f"- {now_text}: 动能状态 `{level}`，阶段：{stage}，负责人：{args.owner.strip()}。",
+                default_title="# 团队动能记录",
+            )
+
+            write_text(
+                project_root / MOTIVATION_STATE_RELATIVE,
+                "\n".join(
+                    [
+                        "# 动能状态摘要",
+                        "",
+                        *latest_lines,
+                        "",
+                        "## 当前强化信号",
+                        "",
+                        *achievement_lines,
+                        "",
+                        "## 当前风险与阻塞",
+                        "",
+                        *concern_lines,
+                        "",
+                        "## 当前默认动作",
+                        "",
+                        *coach_lines,
+                    ]
+                ),
+            )
+            write_text(
+                project_root / AUTONOMY_RULES_RELATIVE,
+                "\n".join(
+                    [
+                        "# 自治规则摘要",
+                        "",
+                        f"- 更新时间：{now_text}",
+                        f"- 当前阶段：{stage}",
+                        "",
+                        "## 阶段共通边界",
+                        "",
+                        *[f"- {item}" for item in autonomy_guardrails(stage)],
+                        "",
+                        "## 角色预算",
+                        "",
+                        *role_budget_lines,
+                    ]
+                ),
+            )
+
+            config["last_motivation_at"] = now_text
+            config["last_motivation_level"] = level
+            config["last_motivation_focus"] = args.focus.strip()
+            config.setdefault("motivation_runs", []).append(
+                {
+                    "created_at": now_text,
+                    "owner": args.owner.strip(),
+                    "roles": [role["id"] for role in roles],
+                    "focus": args.focus.strip(),
+                    "level": level,
+                    "note": args.note.strip(),
+                }
+            )
+            save_project_config(project_root, config)
+            refresh_ai_memory(project_root)
+            append_log_line(
+                project_root / ".factory" / "process" / "execution-log.md",
+                f"- {datetime.now().strftime('%Y-%m-%d')}: 刷新团队动能与自治协议，状态：{level}，负责人：{args.owner.strip()}。",
+            )
+    except Exception as exc:
+        print(f"生成团队动能失败：{exc}", file=sys.stderr)
+        return 1
+
+    print(f"已刷新团队动能：{project_root / TEAM_ENERGY_RELATIVE}")
+    print(f"已刷新成就记录：{project_root / AGENT_ACHIEVEMENTS_RELATIVE}")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

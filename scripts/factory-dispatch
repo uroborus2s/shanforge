@@ -1,0 +1,195 @@
+#!/usr/bin/env python3
+
+import argparse
+import sys
+
+from factory_core import run_script
+
+
+ACTIONS = {
+    "init": ("factory-init", "初始化项目"),
+    "historical-project-onboarding": ("factory-historical-project-onboarding", "纳管非软件工厂历史项目"),
+    "prd-bootstrap": ("factory-prd-bootstrap", "初始化需求阶段文档"),
+    "requirements-upgrade": ("factory-requirements-upgrade", "升级历史需求文档到新版结构"),
+    "requirements-verify": ("factory-requirements-verify", "执行需求一致性校验"),
+    "design-bootstrap": ("factory-design-bootstrap", "初始化设计阶段文档"),
+    "tech-profile": ("factory-tech-profile", "登记技术画像"),
+    "design-assets": ("factory-design-assets", "登记设计交付物"),
+    "iteration-plan": ("factory-iteration-plan", "初始化迭代计划"),
+    "new-workitem": ("factory-new-workitem", "创建任务、变更或缺陷"),
+    "workblock-refine": ("factory-workblock-refine", "修复人天工作块拆解"),
+    "run-task": ("factory-run-task", "推进人天工作块"),
+    "pr-start": ("factory-pr-start", "创建或登记 PR"),
+    "pr-review": ("factory-pr-review", "记录 PR 评审"),
+    "pr-merge": ("factory-pr-merge", "合并 PR"),
+    "pr-board": ("factory-pr-board", "生成 PR 协作看板"),
+    "pr-check": ("factory-pr-check", "执行 PR 预检查"),
+    "pr-handover": ("factory-pr-handover", "生成 PR 交接包"),
+    "pr-remote-open": ("factory-pr-remote-open", "创建远端 PR"),
+    "pr-remote-sync": ("factory-pr-remote-sync", "同步远端 PR 状态"),
+    "pr-remote-merge": ("factory-pr-remote-merge", "远端合并 PR"),
+    "change-impact": ("factory-change-impact", "记录影响分析"),
+    "risk-register": ("factory-risk-register", "维护风险台账"),
+    "trace-link": ("factory-trace-link", "维护追踪关系"),
+    "update-singlefile-doc": ("factory-update-singlefile-doc", "更新正式单文件文档"),
+    "sync-change": ("factory-sync-change", "同步变更"),
+    "auto-sync": ("factory-auto-sync", "自动同步并收尾"),
+    "close-workitem": ("factory-close-workitem", "关闭工作项"),
+    "stage-check": ("factory-stage-check", "执行阶段检查"),
+    "quality-check": ("factory-quality-check", "执行质量检查"),
+    "review-gate": ("factory-review-gate", "记录 Gate 评审"),
+    "next-stage": ("factory-next-stage", "推进项目阶段"),
+    "agent-session": ("factory-agent-session", "生成给模型会话读取的入口"),
+    "project-rules-refresh": ("factory-project-rules-refresh", "刷新项目规则文件"),
+    "project-compress": ("factory-project-compress", "生成项目压缩入口"),
+    "role-assign": ("factory-role-assign", "分派角色执行责任"),
+    "role-handoff": ("factory-role-handoff", "记录角色交接"),
+    "role-workbench": ("factory-role-workbench", "生成角色执行工作台"),
+    "role-sync": ("factory-role-sync", "同步角色执行状态"),
+    "multi-agent-board": ("factory-multi-agent-board", "生成多 agent 协作看板"),
+    "chat-bootstrap": ("factory-chat-bootstrap", "生成角色化对话启动入口"),
+    "role-review": ("factory-role-review", "复核角色执行状态"),
+    "role-closeout": ("factory-role-closeout", "执行角色收尾"),
+    "role-retro": ("factory-role-retro", "生成角色复盘"),
+    "team-sync": ("factory-team-sync", "执行团队同步"),
+    "team-closeout": ("factory-team-closeout", "执行团队收尾"),
+    "team-retro": ("factory-team-retro", "生成团队复盘"),
+    "state-doctor": ("factory-state-doctor", "诊断项目状态"),
+    "agent-motivation": ("factory-agent-motivation", "刷新团队动能与自治协议"),
+    "recovery-coach": ("factory-recovery-coach", "生成失败恢复教练方案"),
+    "pattern-fix": ("factory-pattern-fix", "生成模式级修复报告"),
+    "evolution-baseline": ("factory-evolution-baseline", "刷新自进化基线"),
+    "refresh-memory": ("factory-refresh-memory", "刷新 AI 记忆"),
+    "daily-status": ("factory-daily-status", "生成每日报告"),
+    "release-pack": ("factory-release-pack", "生成发布包"),
+    "handover-pack": ("factory-handover-pack", "生成交接包"),
+    "project-snapshot": ("factory-project-snapshot", "生成项目快照"),
+    "retrospective": ("factory-retrospective", "生成项目复盘"),
+    "workflow-runner": ("factory-workflow-runner", "运行高层工作流"),
+    "command-profiles": ("factory-command-profiles", "执行高层命令画像"),
+}
+
+ALIASES = {
+    "legacy-onboard": "historical-project-onboarding",
+    "historical-onboard": "historical-project-onboarding",
+    "prd": "prd-bootstrap",
+    "requirements": "prd-bootstrap",
+    "upgrade-req": "requirements-upgrade",
+    "req-upgrade": "requirements-upgrade",
+    "verify-req": "requirements-verify",
+    "req-verify": "requirements-verify",
+    "design": "design-bootstrap",
+    "tech": "tech-profile",
+    "design-image": "design-assets",
+    "design-images": "design-assets",
+    "design-deliverable": "design-assets",
+    "design-deliverables": "design-assets",
+    "plan": "iteration-plan",
+    "new": "new-workitem",
+    "workblocks": "workblock-refine",
+    "refine-workblocks": "workblock-refine",
+    "run": "run-task",
+    "pr": "pr-start",
+    "review-pr": "pr-review",
+    "merge-pr": "pr-merge",
+    "board-pr": "pr-board",
+    "check-pr": "pr-check",
+    "handover-pr": "pr-handover",
+    "open-remote-pr": "pr-remote-open",
+    "sync-remote-pr": "pr-remote-sync",
+    "merge-remote-pr": "pr-remote-merge",
+    "impact": "change-impact",
+    "risk": "risk-register",
+    "trace": "trace-link",
+    "doc": "update-singlefile-doc",
+    "sync": "sync-change",
+    "auto": "auto-sync",
+    "close": "close-workitem",
+    "stage": "stage-check",
+    "quality": "quality-check",
+    "gate": "review-gate",
+    "advance": "next-stage",
+    "session": "agent-session",
+    "refresh-rules": "project-rules-refresh",
+    "compress": "project-compress",
+    "assign": "role-assign",
+    "handoff": "role-handoff",
+    "workbench": "role-workbench",
+    "sync-role": "role-sync",
+    "board": "multi-agent-board",
+    "chat": "chat-bootstrap",
+    "review-role": "role-review",
+    "close-role": "role-closeout",
+    "retro-role": "role-retro",
+    "sync-team": "team-sync",
+    "close-team": "team-closeout",
+    "retro-team": "team-retro",
+    "doctor": "state-doctor",
+    "motivation": "agent-motivation",
+    "recovery": "recovery-coach",
+    "coach": "recovery-coach",
+    "pattern": "pattern-fix",
+    "evolution": "evolution-baseline",
+    "baseline": "evolution-baseline",
+    "memory": "refresh-memory",
+    "daily": "daily-status",
+    "release": "release-pack",
+    "handover": "handover-pack",
+    "snapshot": "project-snapshot",
+    "retro": "retrospective",
+    "workflow": "workflow-runner",
+    "profile": "command-profiles",
+    "profiles": "command-profiles",
+}
+
+
+def parse_args() -> tuple[argparse.Namespace, list[str]]:
+    parser = argparse.ArgumentParser(
+        description="软件工厂单入口调度器。把统一动作分派给对应的 factory-* 命令。"
+    )
+    parser.add_argument("action", nargs="?", help="动作名称，例如 prd-bootstrap、workflow-runner、auto-sync。")
+    parser.add_argument("--list-actions", action="store_true", help="列出可用动作。")
+    return parser.parse_known_args()
+
+
+def resolve_action(raw: str) -> str:
+    action = raw.strip()
+    if action in ACTIONS:
+        return action
+    if action in ALIASES:
+        return ALIASES[action]
+    raise RuntimeError(f"未知动作：{raw}")
+
+
+def print_actions() -> None:
+    print("可用动作：")
+    for name, (_, description) in ACTIONS.items():
+        aliases = [alias for alias, target in ALIASES.items() if target == name]
+        alias_text = f" | 别名：{', '.join(aliases)}" if aliases else ""
+        print(f"- {name}: {description}{alias_text}")
+
+
+def main() -> int:
+    args, passthrough = parse_args()
+
+    if args.list_actions or not args.action:
+        print_actions()
+        return 0 if args.list_actions else 1
+
+    try:
+        action = resolve_action(args.action)
+        script_name, description = ACTIONS[action]
+        result = run_script(script_name, *passthrough, label=description)
+    except Exception as exc:
+        print(f"分派失败：{exc}", file=sys.stderr)
+        return 1
+
+    if result["stdout"]:
+        print(result["stdout"])
+    if result["stderr"]:
+        print(result["stderr"], file=sys.stderr)
+    return result["returncode"]
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

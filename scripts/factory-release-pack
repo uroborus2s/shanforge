@@ -1,0 +1,93 @@
+#!/usr/bin/env python3
+
+import argparse
+from datetime import datetime
+from pathlib import Path
+import sys
+
+from factory_core import append_log_line, latest_dir_id, load_project_config, next_dir_id, project_lock, refresh_ai_memory
+
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description="生成 CLI 项目的发布交付包。")
+    parser.add_argument("--project", required=True, help="项目根目录。")
+    parser.add_argument("--note", default="", help="发布说明补充备注。")
+    parser.add_argument("--owner", default="待记录", help="发布负责人。")
+    return parser.parse_args()
+def copy_if_exists(source: Path, target_dir: Path) -> list[str]:
+    copied = []
+    if source.exists():
+        target = target_dir / source.name
+        target.write_bytes(source.read_bytes())
+        copied.append(str(target))
+    return copied
+
+
+def build_manifest(release_id: str, owner: str, note: str, copied: list[str]) -> str:
+    lines = [
+        f"# {release_id} 发布包",
+        "",
+        f"- 发布编号：{release_id}",
+        f"- 打包时间：{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
+        f"- 发布负责人：{owner}",
+        f"- 备注：{note or '无'}",
+        "",
+        "## 包含文件",
+    ]
+    if copied:
+        lines.extend(f"- `{item}`" for item in copied)
+    else:
+        lines.append("- 无")
+    return "\n".join(lines)
+
+
+def append_release_log(project_root: Path, release_id: str, owner: str, note: str) -> None:
+    for relative in [
+        "docs/06-release/release-notes.md",
+        "docs/06-release/delivery-package.md",
+        ".factory/process/execution-log.md",
+    ]:
+        path = project_root / relative
+        append_log_line(
+            path,
+            f"- {datetime.now().strftime('%Y-%m-%d')}: 生成发布包 `{release_id}`，负责人：{owner}，备注：{note or '无'}。",
+        )
+
+
+def main() -> int:
+    args = parse_args()
+    project_root = Path(args.project).expanduser().resolve()
+
+    try:
+        with project_lock(project_root, reason="生成发布包"):
+            load_project_config(project_root)
+            release_id = next_dir_id(project_root, "releases", "REL-")
+            release_dir = project_root / "releases" / release_id
+            release_dir.mkdir(parents=True, exist_ok=True)
+
+            copied = []
+            for relative in [
+                "docs/06-release/release-notes.md",
+                "docs/06-release/delivery-package.md",
+                "docs/07-operations/deployment-guide.md",
+                "docs/08-handover/user-guide.md",
+                ".factory/memory/project-index.md",
+                ".factory/memory/current-state.md",
+            ]:
+                copied.extend(copy_if_exists(project_root / relative, release_dir))
+
+            manifest = build_manifest(release_id, args.owner.strip(), args.note.strip(), copied)
+            manifest_path = release_dir / "manifest.md"
+            manifest_path.write_text(manifest + "\n", encoding="utf-8")
+            append_release_log(project_root, release_id, args.owner.strip(), args.note.strip())
+            refresh_ai_memory(project_root)
+    except Exception as exc:
+        print(f"生成发布包失败：{exc}", file=sys.stderr)
+        return 1
+
+    print(f"已生成发布包：{manifest_path.parent}")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

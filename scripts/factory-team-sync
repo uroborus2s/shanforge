@@ -1,0 +1,250 @@
+#!/usr/bin/env python3
+
+import argparse
+import json
+from datetime import datetime
+from pathlib import Path
+import sys
+
+from factory_core import (
+    append_log_line,
+    current_role_assignment,
+    ensure_role_catalog,
+    load_project_config,
+    parse_list,
+    prepend_history_entry,
+    project_lock,
+    role_default_owner,
+    role_default_tool,
+    run_script,
+    save_project_config,
+    selected_roles,
+    upsert_section,
+    write_text,
+)
+
+
+SYNC_STATUSES = ["待执行", "进行中", "已同步", "阻塞", "已完成"]
+
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description="按团队维度批量执行角色同步，并输出团队同步记录。")
+    parser.add_argument("--project", required=True, help="项目根目录。")
+    parser.add_argument("--roles", default="", help="要同步的角色，逗号分隔；默认取当前阶段活跃角色。")
+    parser.add_argument("--owner", default="项目协调者", help="团队同步发起人。")
+    parser.add_argument("--docs", default="", help="本轮同步涉及的文档，逗号分隔。")
+    parser.add_argument("--tests", default="", help="本轮同步涉及的测试，逗号分隔。")
+    parser.add_argument("--code", default="", help="本轮同步涉及的代码文件，逗号分隔。")
+    parser.add_argument("--focus", default="", help="团队同步焦点。")
+    parser.add_argument("--summary", default="", help="团队同步总结。")
+    parser.add_argument("--note", default="", help="补充说明。")
+    parser.add_argument("--status", default="已同步", choices=SYNC_STATUSES, help="角色同步后的统一状态。")
+    parser.add_argument("--daily-focus", default="", help="若传入则在团队同步后生成每日报告。")
+    parser.add_argument("--snapshot", action="store_true", help="团队同步后生成项目快照。")
+    parser.add_argument("--strict", action="store_true", help="若任一步骤失败则返回非 0。")
+    return parser.parse_args()
+
+
+def build_role_step(project_root: Path, role: dict, owner: str, tool: str, focus: str, args: argparse.Namespace) -> dict:
+    return run_script(
+        "factory-role-sync",
+        "--project",
+        str(project_root),
+        "--role",
+        role["id"],
+        "--owner",
+        owner,
+        "--tool",
+        tool,
+        "--docs",
+        ",".join(parse_list(args.docs)),
+        "--tests",
+        ",".join(parse_list(args.tests)),
+        "--code",
+        ",".join(parse_list(args.code)),
+        "--focus",
+        focus,
+        "--summary",
+        args.summary.strip(),
+        "--note",
+        args.note.strip() or args.summary.strip() or f"team-sync:{role['id']}",
+        "--status",
+        args.status,
+        label=f"同步 {role['title']}",
+    )
+
+
+def main() -> int:
+    args = parse_args()
+    project_root = Path(args.project).expanduser().resolve()
+    result = "失败"
+
+    try:
+        with project_lock(project_root, reason="执行团队同步"):
+            config = load_project_config(project_root)
+            ensure_role_catalog(config)
+            roles = selected_roles(config, args.roles, stage=config.get("stage", ""))
+            if not roles:
+                raise RuntimeError("未找到可同步的角色。")
+
+            role_steps: list[dict] = []
+            role_statuses: list[dict] = []
+            for role in roles:
+                assignment = current_role_assignment(config, role["id"])
+                role_owner = role_default_owner(config, role["id"], assignment)
+                role_tool = role_default_tool(config, role["id"], assignment)
+                role_focus = args.focus.strip() or assignment.get("focus") or f"团队同步：{role['title']}"
+                step = build_role_step(project_root, role, role_owner, role_tool, role_focus, args)
+                role_steps.append(step)
+                role_statuses.append(
+                    {
+                        "role": role["id"],
+                        "title": role["title"],
+                        "owner": role_owner,
+                        "tool": role_tool,
+                        "focus": role_focus,
+                        "result": "成功" if step["returncode"] == 0 else f"失败({step['returncode']})",
+                    }
+                )
+
+            extra_steps: list[dict] = [
+                run_script(
+                    "factory-multi-agent-board",
+                    "--project",
+                    str(project_root),
+                    "--owner",
+                    args.owner.strip(),
+                    "--focus",
+                    args.focus.strip() or args.summary.strip() or "团队同步后刷新协作看板",
+                    label="刷新团队协作看板",
+                )
+            ]
+            if args.daily_focus.strip():
+                extra_steps.append(
+                    run_script(
+                        "factory-daily-status",
+                        "--project",
+                        str(project_root),
+                        "--owner",
+                        args.owner.strip(),
+                        "--focus",
+                        args.daily_focus.strip(),
+                        label="生成每日报告",
+                    )
+                )
+            if args.snapshot:
+                extra_steps.append(
+                    run_script(
+                        "factory-project-snapshot",
+                        "--project",
+                        str(project_root),
+                        "--owner",
+                        args.owner.strip(),
+                        "--note",
+                        args.note.strip() or args.summary.strip() or "team-sync",
+                        label="生成项目快照",
+                    )
+                )
+
+            steps = role_steps + extra_steps
+            result = "完成" if all(step["returncode"] == 0 for step in steps) else "失败"
+            now_text = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+            config = load_project_config(project_root)
+            config["last_team_sync_at"] = now_text
+            config["last_team_sync_result"] = result
+            config["last_team_sync_roles"] = [role["id"] for role in roles]
+            config.setdefault("team_sync_history", []).append(
+                {
+                    "roles": [role["id"] for role in roles],
+                    "owner": args.owner.strip(),
+                    "status": args.status,
+                    "result": result,
+                    "summary": args.summary.strip(),
+                    "note": args.note.strip(),
+                    "synced_at": now_text,
+                }
+            )
+            save_project_config(project_root, config)
+
+            latest_lines = [
+                f"- 时间：{now_text}",
+                f"- 当前阶段：{config.get('stage', '未知')}",
+                f"- 发起人：{args.owner.strip()}",
+                f"- 团队结果：{result}",
+                f"- 角色范围：{'、'.join(role['title'] for role in roles)}",
+                f"- 统一状态：{args.status}",
+                f"- 总结：{args.summary.strip() or '无'}",
+                f"- 备注：{args.note.strip() or '无'}",
+            ]
+            role_lines = [
+                f"- `{item['title']}` | 负责人：{item['owner']} | 工具：{item['tool']} | 焦点：{item['focus']} | 结果：{item['result']}"
+                for item in role_statuses
+            ]
+            step_lines = []
+            for step in steps:
+                step_lines.append(f"- {step['label']}：{'成功' if step['returncode'] == 0 else f'失败({step['returncode']})'}")
+                if step["stdout"]:
+                    step_lines.append(f"  输出：{step['stdout']}")
+                if step["stderr"]:
+                    step_lines.append(f"  错误：{step['stderr']}")
+
+            doc_path = project_root / ".factory" / "process" / "team-sync.md"
+            upsert_section(doc_path, "## 最新团队同步", latest_lines, default_title="# 团队同步记录")
+            upsert_section(doc_path, "## 角色结果", role_lines or ["- 无"], default_title="# 团队同步记录")
+            upsert_section(doc_path, "## 步骤结果", step_lines or ["- 无"], default_title="# 团队同步记录")
+            prepend_history_entry(
+                doc_path,
+                "## 历史团队同步记录",
+                f"- {now_text}: 团队同步完成，结果：{result}，角色：{'、'.join(role['title'] for role in roles)}。",
+                default_title="# 团队同步记录",
+            )
+
+            write_text(
+                project_root / ".factory" / "memory" / "team-sync.summary.md",
+                "\n".join(
+                    [
+                        "# 团队同步摘要",
+                        "",
+                        *latest_lines,
+                        "",
+                        "## 角色结果",
+                        "",
+                        *(role_lines or ["- 无"]),
+                        "",
+                        "## 步骤结果",
+                        "",
+                        *(step_lines or ["- 无"]),
+                    ]
+                ),
+            )
+            write_text(
+                project_root / ".factory" / "team-sync.json",
+                json.dumps(
+                    {
+                        "synced_at": now_text,
+                        "stage": config.get("stage", "未知"),
+                        "owner": args.owner.strip(),
+                        "roles": role_statuses,
+                        "result": result,
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                ),
+            )
+            append_log_line(
+                project_root / ".factory" / "process" / "execution-log.md",
+                f"- {datetime.now().strftime('%Y-%m-%d')}: 执行团队同步，结果：{result}，发起人：{args.owner.strip()}。",
+            )
+    except Exception as exc:
+        print(f"团队同步失败：{exc}", file=sys.stderr)
+        return 1
+
+    print(f"已生成团队同步记录：{project_root / '.factory' / 'process' / 'team-sync.md'}")
+    if args.strict and result != "完成":
+        return 2
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

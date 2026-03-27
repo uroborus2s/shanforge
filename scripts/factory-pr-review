@@ -1,0 +1,149 @@
+#!/usr/bin/env python3
+
+import argparse
+import json
+from datetime import datetime
+from pathlib import Path
+import sys
+
+from factory_core import (
+    append_log_line,
+    find_pr_record,
+    load_pr_records,
+    load_project_config,
+    parse_list,
+    pr_status_text,
+    project_lock,
+    refresh_ai_memory,
+    save_pr_records,
+    save_project_config,
+    unique_preserve,
+    upsert_item_pr_section,
+    write_text,
+    write_pr_tracker,
+)
+
+
+RESULT_MAPPING = {
+    "通过": ("approved", "通过"),
+    "需修改": ("changes_requested", "需修改"),
+    "阻塞": ("blocked", "阻塞"),
+}
+
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description="记录 PR 评审结果，并同步相关工作项与文档。")
+    parser.add_argument("--project", required=True, help="项目根目录。")
+    parser.add_argument("--pr", required=True, help="PR 编号，例如 PR-001。")
+    parser.add_argument("--reviewer", required=True, help="评审人。")
+    parser.add_argument("--result", choices=RESULT_MAPPING.keys(), required=True, help="评审结果。")
+    parser.add_argument("--checks", choices=["通过", "关注", "失败"], default="通过", help="检查结果。")
+    parser.add_argument("--docs", default="", help="评审确认涉及的文档，逗号分隔。")
+    parser.add_argument("--tests", default="", help="评审确认涉及的测试，逗号分隔。")
+    parser.add_argument("--code", default="", help="评审确认涉及的代码，逗号分隔。")
+    parser.add_argument("--summary", default="", help="评审总结。")
+    parser.add_argument("--note", default="", help="补充说明。")
+    return parser.parse_args()
+
+
+def main() -> int:
+    args = parse_args()
+    project_root = Path(args.project).expanduser().resolve()
+
+    try:
+        with project_lock(project_root, reason=f"评审 PR {args.pr.strip()}"):
+            load_project_config(project_root)
+            records = load_pr_records(project_root)
+            record = find_pr_record(records, args.pr.strip())
+            now_text = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            status, review_result = RESULT_MAPPING[args.result]
+            docs = unique_preserve([*record.get("docs", []), *parse_list(args.docs)])
+            tests = unique_preserve([*record.get("tests", []), *parse_list(args.tests)])
+            code = unique_preserve([*record.get("code", []), *parse_list(args.code)])
+            reviewers = unique_preserve([*record.get("reviewers", []), args.reviewer.strip()])
+
+            updated = dict(record)
+            updated["status"] = status
+            updated["review_result"] = review_result
+            updated["checks_result"] = args.checks
+            updated["docs"] = docs
+            updated["tests"] = tests
+            updated["code"] = code
+            updated["reviewers"] = reviewers
+            updated["updated_at"] = now_text
+            updated["reviewed_at"] = now_text
+            updated.setdefault("reviews", []).append(
+                {
+                    "reviewer": args.reviewer.strip(),
+                    "result": args.result,
+                    "checks": args.checks,
+                    "summary": args.summary.strip(),
+                    "note": args.note.strip(),
+                    "time": now_text,
+                }
+            )
+            updated.setdefault("history", []).append(
+                {
+                    "action": "review",
+                    "reviewer": args.reviewer.strip(),
+                    "result": args.result,
+                    "time": now_text,
+                }
+            )
+
+            normalized_records = [updated if item.get("id") == updated["id"] else item for item in records]
+            save_pr_records(project_root, normalized_records)
+            for item_id in updated.get("items", []):
+                upsert_item_pr_section(project_root, item_id, updated)
+
+            latest_lines = [
+                f"- 时间：{now_text}",
+                f"- PR：{updated['id']}",
+                f"- 标题：{updated.get('title', '未命名 PR')}",
+                f"- 评审人：{args.reviewer.strip()}",
+                f"- 评审结果：{args.result}",
+                f"- PR 状态：{pr_status_text(updated)}",
+                f"- 检查结果：{args.checks}",
+                f"- 工作项：{'、'.join(updated.get('items', [])) or '无'}",
+                f"- 总结：{args.summary.strip() or '无'}",
+                f"- 备注：{args.note.strip() or '无'}",
+            ]
+            step_lines = [
+                f"- 更新文档：{'、'.join(docs) if docs else '无'}",
+                f"- 更新测试：{'、'.join(tests) if tests else '无'}",
+                f"- 更新代码：{'、'.join(code) if code else '无'}",
+            ]
+            history_line = f"- {now_text}: 评审 `{updated['id']}`，结果：{args.result}，评审人：{args.reviewer.strip()}。"
+            write_pr_tracker(project_root, "## 最新 PR 评审", latest_lines, step_lines, normalized_records, history_line)
+            write_text(project_root / f".factory/pr-review.{updated['id']}.json", json.dumps(updated, ensure_ascii=False, indent=2))
+
+            config = load_project_config(project_root)
+            config["last_pr_action_at"] = now_text
+            config["last_pr_action"] = "review"
+            config["last_pr_id"] = updated["id"]
+            config["last_pr_review_result"] = args.result
+            config.setdefault("pr_actions", []).append(
+                {
+                    "action": "review",
+                    "pr": updated["id"],
+                    "reviewer": args.reviewer.strip(),
+                    "result": args.result,
+                    "time": now_text,
+                }
+            )
+            save_project_config(project_root, config)
+            refresh_ai_memory(project_root)
+            append_log_line(
+                project_root / ".factory" / "process" / "execution-log.md",
+                f"- {datetime.now().strftime('%Y-%m-%d')}: 评审 `{updated['id']}`，结果：{args.result}，评审人：{args.reviewer.strip()}。",
+            )
+    except Exception as exc:
+        print(f"PR 评审失败：{exc}", file=sys.stderr)
+        return 1
+
+    print(f"已更新 PR 评审：{updated['id']} -> {args.result}")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

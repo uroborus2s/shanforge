@@ -1,0 +1,225 @@
+#!/usr/bin/env python3
+
+import argparse
+from datetime import datetime
+from pathlib import Path
+import sys
+from factory_core import (
+    append_log_line,
+    build_tech_profile_from_preset,
+    built_in_tech_presets,
+    current_tech_profile,
+    load_project_config,
+    normalize_tech_profile_record,
+    parse_list,
+    project_lock,
+    refresh_ai_memory,
+    save_project_config,
+    save_tech_profile_state,
+    unique_preserve,
+    write_text,
+)
+
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description="登记项目技术画像，把技术选型、必装模块、工程规则和后台范围接入软件工厂工作流。")
+    parser.add_argument("--project", default="", help="项目根目录。")
+    parser.add_argument("--preset", default="", help="技术画像预设，例如 stratix-admin。")
+    parser.add_argument("--title", default="", help="技术画像标题。")
+    parser.add_argument("--stack", default="", help="技术栈说明。")
+    parser.add_argument("--owner", default="架构负责人", help="登记负责人。")
+    parser.add_argument("--summary", default="", help="技术画像摘要。")
+    parser.add_argument("--projects", default="", help="必须落地的项目范围，逗号分隔。")
+    parser.add_argument("--modules", default="", help="必装/必选模块，逗号分隔。")
+    parser.add_argument("--rules", default="", help="编码与工程规则，逗号分隔。")
+    parser.add_argument("--admin-items", default="", help="管理后台要求，逗号分隔。")
+    parser.add_argument("--commands", default="", help="初始化或安装动作，逗号分隔。")
+    parser.add_argument("--guides", default="", help="参考资料路径或说明，逗号分隔。")
+    parser.add_argument("--required-skills", default="", help="技术画像强制技能，逗号分隔。")
+    parser.add_argument("--architect-skills", default="", help="架构师强制技能，逗号分隔。")
+    parser.add_argument("--ux-skills", default="", help="UX/UI 设计师强制技能，逗号分隔。")
+    parser.add_argument("--backend-skills", default="", help="后端工程师强制技能，逗号分隔。")
+    parser.add_argument("--frontend-skills", default="", help="前端工程师强制技能，逗号分隔。")
+    parser.add_argument("--qa-skills", default="", help="测试工程师强制技能，逗号分隔。")
+    parser.add_argument("--note", default="", help="补充说明。")
+    parser.add_argument("--replace", action="store_true", help="替换当前技术画像，而不是与已有内容合并。")
+    parser.add_argument("--list-presets", action="store_true", help="列出内置技术画像预设。")
+    return parser.parse_args()
+
+
+def print_presets() -> None:
+    print("可用技术画像预设：")
+    for preset_id, payload in built_in_tech_presets().items():
+        print(f"- {preset_id}: {payload.get('title', preset_id)}")
+
+
+def merged_list(*values: list[str]) -> list[str]:
+    result: list[str] = []
+    for value in values:
+        result.extend(value)
+    return unique_preserve(result)
+
+
+def merge_profile(existing: dict, incoming: dict, *, replace: bool) -> dict:
+    if replace:
+        base = {}
+    else:
+        base = dict(existing)
+
+    result = normalize_tech_profile_record(base)
+    if incoming.get("preset") and incoming.get("preset") != "custom":
+        preset_payload = build_tech_profile_from_preset(incoming["preset"])
+        if replace:
+            result = normalize_tech_profile_record(preset_payload)
+        else:
+            seeded = dict(preset_payload)
+            seeded.update(result)
+            for key in ("projects", "modules", "rules", "admin_requirements", "commands", "guides"):
+                seeded[key] = merged_list(preset_payload.get(key, []), result.get(key, []))
+            result = normalize_tech_profile_record(seeded)
+            result["title"] = preset_payload.get("title", result.get("title", ""))
+            result["stack"] = preset_payload.get("stack", result.get("stack", ""))
+            if not str(result.get("summary", "")).strip():
+                result["summary"] = preset_payload.get("summary", "")
+
+    for key in ("title", "stack", "summary", "owner", "note"):
+        if incoming.get(key):
+            result[key] = incoming[key]
+    for key in ("projects", "modules", "rules", "admin_requirements", "commands", "guides", "required_skills"):
+        if incoming.get(key):
+            existing_values = [] if replace else list(result.get(key, []))
+            result[key] = merged_list(existing_values, incoming[key])
+    if incoming.get("role_required_skills"):
+        role_required = {} if replace else dict(result.get("role_required_skills", {}))
+        for role_id, names in incoming["role_required_skills"].items():
+            if names:
+                existing_values = [] if replace else list(role_required.get(role_id, []))
+                role_required[role_id] = merged_list(existing_values, names)
+        result["role_required_skills"] = role_required
+    if incoming.get("preset"):
+        result["preset"] = incoming["preset"]
+    return normalize_tech_profile_record(result)
+
+
+def build_doc(profile: dict, history: list[dict]) -> str:
+    now_text = profile.get("applied_at", datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+    sections = [
+        ("## 技术画像摘要", [profile.get("summary", "") or "待补充当前技术画像摘要。"]),
+        ("## 必须落地的项目范围", [f"- {item}" for item in profile.get("projects", [])] or ["- 待补充。"]),
+        ("## 必装/必选模块", [f"- {item}" for item in profile.get("modules", [])] or ["- 待补充。"]),
+        ("## 编码与工程规则", [f"- {item}" for item in profile.get("rules", [])] or ["- 待补充。"]),
+        ("## 管理后台要求", [f"- {item}" for item in profile.get("admin_requirements", [])] or ["- 若当前项目不需要后台，请明确说明。"]),
+        ("## 强制技能", [f"- {item}" for item in profile.get("required_skills", [])] or ["- 暂无。"]),
+        ("## 初始化与安装动作", [f"- {item}" for item in profile.get("commands", [])] or ["- 待补充。"]),
+        ("## 设计/开发/Gate 同步要求", [
+            "- 进入 IMPLEMENTATION 前，解决方案架构师、后端工程师和前端工程师必须先阅读本文件。",
+            "- 技术选型、模块清单或后台范围变化后，同步更新 `module-boundaries.md`、`backend-design.md`、`api-design.md`、`test-plan.md`、`deployment-guide.md`、`user-guide.md` 和 `.factory/memory/tech-stack.summary.md`。",
+            "- 任何涉及该技术画像的 TASK/CR/BUG 在创建或变更时，都应在关联项或说明中引用相关设计条目。",
+            "- PR 评审时需检查代码实现、依赖安装、后台范围和文档同步是否与本文件一致。",
+        ]),
+        ("## 参考资料", [f"- {item}" for item in profile.get("guides", [])] or ["- 暂无。"]),
+    ]
+    role_skill_lines: list[str] = []
+    for role_id, names in profile.get("role_required_skills", {}).items():
+        if names:
+            role_skill_lines.append(f"- {role_id}：{'、'.join(names)}")
+    history_lines = []
+    for entry in history[-10:]:
+        history_lines.append(
+            f"- {entry.get('applied_at', '未知时间')}: `{entry.get('title', '未命名画像')}` | 负责人：{entry.get('owner', '未知')} | 备注：{entry.get('note', '无') or '无'}"
+        )
+    if not history_lines:
+        history_lines = ["- 暂无历史记录。"]
+
+    lines = [
+        "# 技术选型与工程规则",
+        "",
+        "- 文档状态：就绪",
+        "- 当前阶段：DESIGN",
+        f"- 最近更新：{now_text}",
+        f"- 负责人：{profile.get('owner', '架构负责人')}",
+        f"- 技术画像：{profile.get('title', '自定义技术画像')}",
+        f"- 技术栈：{profile.get('stack', '未设置') or '未设置'}",
+        f"- 预设：{profile.get('preset', 'custom')}",
+        f"- 备注：{profile.get('note', '无') or '无'}",
+        "",
+    ]
+    for header, content in sections:
+        lines.append(header)
+        lines.append("")
+        lines.extend(content)
+        lines.append("")
+    lines.extend(["## 角色强制技能", "", *(role_skill_lines or ["- 暂无。"]), ""])
+    lines.extend(["## 版本记录", "", *history_lines])
+    return "\n".join(lines).rstrip() + "\n"
+
+
+def main() -> int:
+    args = parse_args()
+    if args.list_presets:
+        print_presets()
+        return 0
+    if not args.project.strip():
+        print("登记技术画像失败：缺少 --project。", file=sys.stderr)
+        return 1
+
+    project_root = Path(args.project).expanduser().resolve()
+    incoming = {
+        "preset": args.preset.strip() or "",
+        "title": args.title.strip(),
+        "stack": args.stack.strip(),
+        "owner": args.owner.strip(),
+        "summary": args.summary.strip(),
+        "projects": parse_list(args.projects),
+        "modules": parse_list(args.modules),
+        "rules": parse_list(args.rules),
+        "admin_requirements": parse_list(args.admin_items),
+        "commands": parse_list(args.commands),
+        "guides": parse_list(args.guides),
+        "required_skills": parse_list(args.required_skills),
+        "role_required_skills": {
+            "solution-architect": parse_list(args.architect_skills),
+            "ux-designer": parse_list(args.ux_skills),
+            "backend-engineer": parse_list(args.backend_skills),
+            "frontend-engineer": parse_list(args.frontend_skills),
+            "qa-engineer": parse_list(args.qa_skills),
+        },
+        "note": args.note.strip(),
+    }
+
+    try:
+        with project_lock(project_root, reason="登记技术画像"):
+            config = load_project_config(project_root)
+            existing = current_tech_profile(config)
+            merged = merge_profile(existing, incoming, replace=args.replace)
+            now_text = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            merged["applied_at"] = now_text
+            if not merged.get("owner"):
+                merged["owner"] = args.owner.strip()
+
+            config["technical_profile"] = normalize_tech_profile_record(merged)
+            if merged.get("stack"):
+                config["stack"] = merged["stack"]
+            history = config.setdefault("technical_profile_history", [])
+            history.append(dict(config["technical_profile"]))
+            save_project_config(project_root, config)
+            save_tech_profile_state(project_root, config["technical_profile"])
+
+            doc_path = project_root / "docs" / "03-solution" / "technical-selection.md"
+            write_text(doc_path, build_doc(config["technical_profile"], history))
+
+            append_log_line(
+                project_root / ".factory" / "process" / "execution-log.md",
+                f"- {datetime.now().strftime('%Y-%m-%d')}: 更新技术画像 `{config['technical_profile']['title']}`，负责人：{args.owner.strip()}。",
+            )
+            refresh_ai_memory(project_root)
+    except Exception as exc:
+        print(f"登记技术画像失败：{exc}", file=sys.stderr)
+        return 1
+
+    print(f"已更新技术画像：{project_root / 'docs' / '03-solution' / 'technical-selection.md'}")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

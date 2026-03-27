@@ -1,0 +1,251 @@
+#!/usr/bin/env python3
+
+import argparse
+import json
+from datetime import datetime
+from pathlib import Path
+import sys
+
+from factory_core import (
+    append_log_line,
+    current_role_assignment,
+    ensure_role_catalog,
+    load_project_config,
+    prepend_history_entry,
+    project_lock,
+    read_recent_log_lines,
+    read_risks,
+    role_assigned_items,
+    run_script,
+    save_project_config,
+    selected_roles,
+    upsert_section,
+    write_text,
+)
+
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description="按团队维度批量生成角色复盘，并沉淀团队级复盘。")
+    parser.add_argument("--project", required=True, help="项目根目录。")
+    parser.add_argument("--roles", default="", help="要参与团队复盘的角色，逗号分隔；默认取当前阶段活跃角色。")
+    parser.add_argument("--owner", default="项目协调者", help="团队复盘负责人。")
+    parser.add_argument("--period", default="", help="复盘周期标签。")
+    parser.add_argument("--note", default="", help="补充说明。")
+    parser.add_argument("--top", type=int, default=5, help="团队复盘中展示的重点数量。")
+    parser.add_argument("--skip-project-retro", action="store_true", help="只生成角色复盘，不额外生成项目级复盘。")
+    parser.add_argument("--strict", action="store_true", help="若任一步骤失败则返回非 0。")
+    return parser.parse_args()
+
+
+def main() -> int:
+    args = parse_args()
+    project_root = Path(args.project).expanduser().resolve()
+    result = "失败"
+
+    try:
+        with project_lock(project_root, reason="生成团队复盘"):
+            config = load_project_config(project_root)
+            ensure_role_catalog(config)
+            roles = selected_roles(config, args.roles, stage=config.get("stage", ""))
+            if not roles:
+                raise RuntimeError("未找到可复盘的角色。")
+
+            steps: list[dict] = []
+            for role in roles:
+                steps.append(
+                    run_script(
+                        "factory-role-retro",
+                        "--project",
+                        str(project_root),
+                        "--role",
+                        role["id"],
+                        "--owner",
+                        args.owner.strip(),
+                        "--period",
+                        args.period.strip(),
+                        "--note",
+                        args.note.strip() or f"team-retro:{role['id']}",
+                        "--top",
+                        str(max(1, args.top)),
+                        label=f"复盘 {role['title']}",
+                    )
+                )
+
+            if not args.skip_project_retro:
+                steps.append(
+                    run_script(
+                        "factory-retrospective",
+                        "--project",
+                        str(project_root),
+                        "--owner",
+                        args.owner.strip(),
+                        "--period",
+                        args.period.strip(),
+                        "--note",
+                        args.note.strip() or "team-retro",
+                        "--top",
+                        str(max(1, args.top)),
+                        label="生成项目复盘",
+                    )
+                )
+
+            result = "完成" if all(step["returncode"] == 0 for step in steps) else "失败"
+            now_text = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            config = load_project_config(project_root)
+            period = args.period.strip() or config.get("stage", "当前阶段")
+
+            role_lines = []
+            good_lines = []
+            issue_lines = []
+            for role in roles:
+                assignment = current_role_assignment(config, role["id"])
+                items = role_assigned_items(project_root, config, role["id"], include_closed=True)
+                open_items = [item for item in items if item["status"] not in {"已完成", "已关闭", "已取消", "已驳回"}]
+                role_lines.append(
+                    f"- `{role['title']}` | 负责人：{assignment.get('owner', role['title']) or role['title']} | "
+                    f"状态：{assignment.get('status', '未分派') or '未分派'} | 工作项：{len(items)} | 未完成：{len(open_items)}"
+                )
+                if assignment.get("status") in {"已完成", "已关闭", "已移交", "已同步"}:
+                    good_lines.append(f"- `{role['title']}` 当前状态为 `{assignment.get('status')}`。")
+                if assignment.get("status") == "阻塞":
+                    issue_lines.append(f"- `{role['title']}` 当前仍处于阻塞状态。")
+                latest_review = [
+                    entry
+                    for entry in config.get("role_reviews", [])
+                    if entry.get("role") == role["id"] and entry.get("result") == "未通过"
+                ]
+                if latest_review:
+                    issue_lines.append(
+                        f"- `{role['title']}` 最近一次角色复核未通过：{latest_review[-1].get('reviewed_at', '未知时间')}。"
+                    )
+
+            open_risks, _ = read_risks(project_root)
+            if open_risks:
+                issue_lines.extend(f"- 开放风险：{line[2:]}" for line in open_risks[: args.top])
+            recent_logs = read_recent_log_lines(project_root, max(1, args.top))
+            if recent_logs and len(good_lines) < args.top:
+                good_lines.extend(
+                    f"- 最近进展：{line[2:]}" for line in recent_logs[: max(0, args.top - len(good_lines))]
+                )
+
+            if not good_lines:
+                good_lines = ["- 当前团队还缺少明确的正向沉淀，请先补齐同步、复核或收尾记录。"]
+            if not issue_lines:
+                issue_lines = ["- 当前团队没有新的阻塞项或复核失败项。"]
+
+            action_lines = []
+            if any("阻塞" in line for line in issue_lines):
+                action_lines.append("- 优先解除团队中的阻塞角色，再继续推进下一轮分工。")
+            if open_risks:
+                action_lines.append("- 对开放风险逐条指定责任人和缓解时间窗口。")
+            if any("未通过" in line for line in issue_lines):
+                action_lines.append("- 根据最近一次角色复核结果补齐文档、追踪关系和执行闭环。")
+            if not args.skip_project_retro:
+                action_lines.append("- 结合项目复盘，统一下一轮团队协作节奏和交接策略。")
+            if not action_lines:
+                action_lines = ["- 团队协作节奏稳定，可继续沿用当前分工与工作流。"]
+
+            latest_lines = [
+                f"- 复盘时间：{now_text}",
+                f"- 复盘负责人：{args.owner.strip()}",
+                f"- 复盘周期：{period}",
+                f"- 当前阶段：{config.get('stage', '未知')}",
+                f"- 覆盖角色：{'、'.join(role['title'] for role in roles)}",
+                f"- 项目复盘：{'已生成' if not args.skip_project_retro else '已跳过'}",
+                f"- 备注：{args.note.strip() or '无'}",
+            ]
+            step_lines = []
+            for step in steps:
+                step_result = "成功" if step["returncode"] == 0 else f"失败({step['returncode']})"
+                step_lines.append(f"- {step['label']}：{step_result}")
+                if step["stdout"]:
+                    step_lines.append(f"  输出：{step['stdout']}")
+                if step["stderr"]:
+                    step_lines.append(f"  错误：{step['stderr']}")
+
+            doc_path = project_root / ".factory" / "process" / "team-retro.md"
+            upsert_section(doc_path, "## 本次团队复盘", latest_lines, default_title="# 团队复盘")
+            upsert_section(doc_path, "## 团队角色概览", role_lines or ["- 无"], default_title="# 团队复盘")
+            upsert_section(doc_path, "## 做得好的地方", good_lines, default_title="# 团队复盘")
+            upsert_section(doc_path, "## 暴露的问题", issue_lines, default_title="# 团队复盘")
+            upsert_section(doc_path, "## 后续行动", action_lines, default_title="# 团队复盘")
+            upsert_section(doc_path, "## 步骤结果", step_lines or ["- 无"], default_title="# 团队复盘")
+            prepend_history_entry(
+                doc_path,
+                "## 历史团队复盘记录",
+                f"- {now_text}: 团队复盘完成，结果：{result}，覆盖角色：{'、'.join(role['title'] for role in roles)}。",
+                default_title="# 团队复盘",
+            )
+
+            write_text(
+                project_root / ".factory" / "memory" / "team-retro.summary.md",
+                "\n".join(
+                    [
+                        "# 团队复盘摘要",
+                        "",
+                        *latest_lines,
+                        "",
+                        "## 团队角色概览",
+                        "",
+                        *(role_lines or ["- 无"]),
+                        "",
+                        "## 做得好的地方",
+                        "",
+                        *good_lines,
+                        "",
+                        "## 暴露的问题",
+                        "",
+                        *issue_lines,
+                        "",
+                        "## 后续行动",
+                        "",
+                        *action_lines,
+                    ]
+                ),
+            )
+            write_text(
+                project_root / ".factory" / "team-retro.json",
+                json.dumps(
+                    {
+                        "created_at": now_text,
+                        "period": period,
+                        "owner": args.owner.strip(),
+                        "roles": [role["id"] for role in roles],
+                        "result": result,
+                        "include_project_retro": not args.skip_project_retro,
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                ),
+            )
+
+            config["last_team_retro_at"] = now_text
+            config["last_team_retro_result"] = result
+            config["last_team_retro_roles"] = [role["id"] for role in roles]
+            config.setdefault("team_retros", []).append(
+                {
+                    "roles": [role["id"] for role in roles],
+                    "owner": args.owner.strip(),
+                    "period": period,
+                    "note": args.note.strip(),
+                    "result": result,
+                    "created_at": now_text,
+                }
+            )
+            save_project_config(project_root, config)
+            append_log_line(
+                project_root / ".factory" / "process" / "execution-log.md",
+                f"- {datetime.now().strftime('%Y-%m-%d')}: 生成团队复盘，结果：{result}，负责人：{args.owner.strip()}。",
+            )
+    except Exception as exc:
+        print(f"生成团队复盘失败：{exc}", file=sys.stderr)
+        return 1
+
+    print(f"已生成团队复盘：{project_root / '.factory' / 'process' / 'team-retro.md'}")
+    if args.strict and result != "完成":
+        return 2
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

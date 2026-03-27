@@ -1,0 +1,388 @@
+#!/usr/bin/env python3
+
+import argparse
+import re
+from datetime import datetime
+from pathlib import Path
+import sys
+import textwrap
+
+from factory_core import append_log_line, file_readiness, load_project_config, project_lock, refresh_ai_memory, save_project_config, write_text
+
+
+REQ_PATTERN = re.compile(r"\bREQ-\d{3}\b")
+
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description="初始化设计阶段文档骨架，生成技术选型、架构、模块边界、API、后端、数据库和 UX/UI 设计文档。")
+    parser.add_argument("--project", required=True, help="项目根目录。")
+    parser.add_argument("--owner", default="架构负责人", help="文档负责人。")
+    parser.add_argument("--arch-count", type=int, default=3, help="预生成的架构决策数量。")
+    parser.add_argument("--api-count", type=int, default=3, help="预生成的 API 条目数量。")
+    parser.add_argument("--ui-count", type=int, default=3, help="预生成的 UI 条目数量。")
+    parser.add_argument("--db-count", type=int, default=2, help="预生成的数据库设计条目数量。")
+    parser.add_argument("--note", default="", help="补充说明。")
+    parser.add_argument("--force", action="store_true", help="即使文档已有实质内容也强制覆盖。")
+    return parser.parse_args()
+
+
+def ensure_writable(path: Path, force: bool) -> None:
+    if not path.exists() or force:
+        return
+    readiness, _ = file_readiness(path)
+    if readiness == "就绪":
+        raise RuntimeError(f"文档已有实质内容，若确认覆盖请加 --force：{path}")
+
+
+def extract_req_ids(project_root: Path) -> list[str]:
+    prd_path = project_root / "docs" / "02-requirements" / "prd.md"
+    if not prd_path.exists():
+        return ["REQ-001", "REQ-002", "REQ-003"]
+    content = prd_path.read_text(encoding="utf-8")
+    req_ids = sorted(set(REQ_PATTERN.findall(content)))
+    return req_ids or ["REQ-001", "REQ-002", "REQ-003"]
+
+
+def id_list(prefix: str, count: int) -> list[str]:
+    return [f"{prefix}-{index:03d}" for index in range(1, max(1, count) + 1)]
+
+
+def build_architecture(config: dict, owner: str, req_ids: list[str], arch_ids: list[str], note: str) -> str:
+    sections = []
+    for index, arch_id in enumerate(arch_ids, start=1):
+        sections.append(
+            textwrap.dedent(
+                f"""
+                ### {arch_id} 架构决策 {index}
+
+                - 目标：待补充
+                - 关联需求：{req_ids[min(index - 1, len(req_ids) - 1)]}
+                - 决策内容：待补充
+                - 替代方案：待补充
+                - 风险与权衡：待补充
+                """
+            ).strip()
+        )
+
+    return textwrap.dedent(
+        f"""
+        # 系统架构设计
+
+        - 文档状态：草稿
+        - 当前阶段：DESIGN
+        - 最近更新：{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
+        - 负责人：{owner}
+        - 备注：{note or '无'}
+
+        ## 设计目标
+
+        - 支撑已批准需求的端到端实现。
+        - 形成可追踪的架构决策和风险说明。
+        - 为后续 API、后端、测试和发布准备提供边界。
+
+        ## 系统分层
+
+        - 接入层：待补充
+        - 应用层：待补充
+        - 领域层：待补充
+        - 数据层：待补充
+
+        ## 架构决策
+
+        {"\n\n".join(sections)}
+
+        ## 风险与约束
+
+        - 待补充。
+        """
+    ).strip()
+
+
+def build_technical_selection(config: dict, owner: str, note: str) -> str:
+    stack = config.get("stack", "待确定")
+    return textwrap.dedent(
+        f"""
+        # 技术选型与工程规则
+
+        - 文档状态：草稿
+        - 当前阶段：DESIGN
+        - 最近更新：{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
+        - 负责人：{owner}
+        - 当前技术栈：{stack}
+        - 备注：{note or '无'}
+
+        ## 技术画像摘要
+
+        - 选型目标：待补充
+        - 适用范围：待补充
+        - 必须同步的项目范围：待补充
+
+        ## 必装/必选模块
+
+        - 待补充
+
+        ## 编码与工程规则
+
+        - 待补充
+
+        ## 管理后台要求
+
+        - 待补充
+
+        ## 初始化与安装动作
+
+        - 待补充
+        """
+    ).strip()
+
+
+def build_api_design(owner: str, req_ids: list[str], api_ids: list[str], note: str) -> str:
+    sections = []
+    for index, api_id in enumerate(api_ids, start=1):
+        sections.append(
+            textwrap.dedent(
+                f"""
+                ### {api_id} 接口 {index}
+
+                - 关联需求：{req_ids[min(index - 1, len(req_ids) - 1)]}
+                - 路径：待补充
+                - 方法：待补充
+                - 请求：待补充
+                - 响应：待补充
+                - 鉴权：待补充
+                - 错误处理：待补充
+                """
+            ).strip()
+        )
+
+    return textwrap.dedent(
+        f"""
+        # API 设计文档
+
+        - 文档状态：草稿
+        - 当前阶段：DESIGN
+        - 最近更新：{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
+        - 负责人：{owner}
+        - 备注：{note or '无'}
+
+        ## 设计原则
+
+        - 资源命名统一、错误响应统一、版本策略明确。
+        - 所有接口都要能追踪到需求、测试和实现任务。
+
+        ## 接口清单
+
+        {"\n\n".join(sections)}
+        """
+    ).strip()
+
+
+def build_backend_design(owner: str, req_ids: list[str], note: str) -> str:
+    req_text = "、".join(req_ids)
+    return textwrap.dedent(
+        f"""
+        # 后端设计文档
+
+        - 文档状态：草稿
+        - 当前阶段：DESIGN
+        - 最近更新：{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
+        - 负责人：{owner}
+        - 备注：{note or '无'}
+
+        ## 关联需求
+
+        - {req_text}
+
+        ## 服务划分
+
+        - 服务边界：待补充
+        - 模块职责：待补充
+        - 校验策略：待补充
+        - 后台任务：待补充
+        - 可观测性：待补充
+
+        ## 关键流程
+
+        - 主流程：待补充
+        - 异常流程：待补充
+        - 幂等与重试：待补充
+        """
+    ).strip()
+
+
+def build_module_boundaries(owner: str, req_ids: list[str], note: str) -> str:
+    req_text = "、".join(req_ids)
+    return textwrap.dedent(
+        f"""
+        # 模块边界文档
+
+        - 文档状态：草稿
+        - 当前阶段：DESIGN
+        - 最近更新：{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
+        - 负责人：{owner}
+        - 备注：{note or '无'}
+
+        ## 关联需求
+
+        - {req_text}
+
+        ## 模块清单
+
+        - 模块名称：待补充
+        - 负责范围：待补充
+        - 不负责范围：待补充
+        - 拥有数据：待补充
+        - 允许依赖：待补充
+        - 禁止耦合：待补充
+
+        ## 失败与降级策略
+
+        - 待补充
+        """
+    ).strip()
+
+
+def build_database_design(owner: str, db_ids: list[str], note: str) -> str:
+    sections = []
+    for index, db_id in enumerate(db_ids, start=1):
+        sections.append(
+            textwrap.dedent(
+                f"""
+                ### {db_id} 数据对象 {index}
+
+                - 实体名称：待补充
+                - 主键：待补充
+                - 关键字段：待补充
+                - 索引：待补充
+                - 生命周期：待补充
+                """
+            ).strip()
+        )
+    return textwrap.dedent(
+        f"""
+        # 数据库设计文档
+
+        - 文档状态：草稿
+        - 当前阶段：DESIGN
+        - 最近更新：{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
+        - 负责人：{owner}
+        - 备注：{note or '无'}
+
+        ## 数据对象
+
+        {"\n\n".join(sections)}
+
+        ## 迁移与回滚策略
+
+        - 待补充。
+        """
+    ).strip()
+
+
+def build_ui_design(owner: str, req_ids: list[str], ui_ids: list[str], note: str) -> str:
+    sections = []
+    for index, ui_id in enumerate(ui_ids, start=1):
+        sections.append(
+            textwrap.dedent(
+                f"""
+                ### {ui_id} 页面/交互 {index}
+
+                - 关联需求：{req_ids[min(index - 1, len(req_ids) - 1)]}
+                - 页面目标：待补充
+                - 关键状态：待补充
+                - 异常状态：待补充
+                - 可用性要求：待补充
+                """
+            ).strip()
+        )
+    lines = [
+        "# UX/UI 设计文档",
+        "",
+        "- 文档状态：草稿",
+        "- 当前阶段：DESIGN",
+        f"- 最近更新：{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
+        f"- 负责人：{owner}",
+        f"- 备注：{note or '无'}",
+        "",
+        "## 用户流程",
+        "",
+        "- 主用户路径：待补充",
+        "- 失败与兜底路径：待补充",
+        "",
+        "## 页面与交互清单",
+        "",
+        "\n\n".join(sections),
+        "",
+        "## 设计交付物",
+        "",
+        "- 当前未登记可直观看到的设计交付物。需要时使用 `factory-design-assets` 录入图片、HTML 原型、流程图、PDF 或外部原型链接。",
+    ]
+    return "\n".join(lines).strip()
+
+
+def build_summary(title: str, prefix: str, count: int) -> str:
+    lines = [f"# {title}", "", f"- 生成时间：{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}", ""]
+    for index in range(1, count + 1):
+        lines.append(f"- `{prefix}-{index:03d}` 待补充一句话描述 | 状态：待完善")
+    return "\n".join(lines)
+
+
+def main() -> int:
+    args = parse_args()
+    project_root = Path(args.project).expanduser().resolve()
+
+    targets = [
+        project_root / "docs" / "03-solution" / "system-architecture.md",
+        project_root / "docs" / "03-solution" / "technical-selection.md",
+        project_root / "docs" / "03-solution" / "module-boundaries.md",
+        project_root / "docs" / "03-solution" / "api-design.md",
+        project_root / "docs" / "03-solution" / "backend-design.md",
+        project_root / "docs" / "03-solution" / "database-design.md",
+        project_root / "docs" / "03-solution" / "ux-ui-design.md",
+    ]
+
+    try:
+        with project_lock(project_root, reason="初始化设计阶段文档"):
+            for path in targets:
+                ensure_writable(path, args.force)
+
+            config = load_project_config(project_root)
+            req_ids = extract_req_ids(project_root)
+            arch_ids = id_list("ARCH", args.arch_count)
+            api_ids = id_list("API", args.api_count)
+            ui_ids = id_list("UI", args.ui_count)
+            db_ids = id_list("DB", args.db_count)
+
+            write_text(targets[0], build_architecture(config, args.owner.strip(), req_ids, arch_ids, args.note.strip()))
+            write_text(targets[1], build_technical_selection(config, args.owner.strip(), args.note.strip()))
+            write_text(targets[2], build_module_boundaries(args.owner.strip(), req_ids, args.note.strip()))
+            write_text(targets[3], build_api_design(args.owner.strip(), req_ids, api_ids, args.note.strip()))
+            write_text(targets[4], build_backend_design(args.owner.strip(), req_ids, args.note.strip()))
+            write_text(targets[5], build_database_design(args.owner.strip(), db_ids, args.note.strip()))
+            write_text(targets[6], build_ui_design(args.owner.strip(), req_ids, ui_ids, args.note.strip()))
+
+            write_text(project_root / ".factory" / "memory" / "architecture.summary.md", build_summary("架构摘要", "ARCH", len(arch_ids)))
+            write_text(project_root / ".factory" / "memory" / "tech-stack.summary.md", build_summary("技术画像摘要", "TECH", 1))
+            write_text(project_root / ".factory" / "memory" / "api.summary.md", build_summary("API 摘要", "API", len(api_ids)))
+            write_text(project_root / ".factory" / "memory" / "ui.summary.md", build_summary("界面摘要", "UI", len(ui_ids)))
+
+            now_text = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            config["last_design_bootstrap_at"] = now_text
+            config["last_design_bootstrap_owner"] = args.owner.strip()
+            save_project_config(project_root, config)
+
+            append_log_line(
+                project_root / ".factory" / "process" / "execution-log.md",
+                f"- {datetime.now().strftime('%Y-%m-%d')}: 初始化设计阶段文档，生成 ARCH/API/UI 草稿，负责人：{args.owner.strip()}。",
+            )
+            refresh_ai_memory(project_root)
+    except Exception as exc:
+        print(f"初始化设计阶段文档失败：{exc}", file=sys.stderr)
+        return 1
+
+    print(f"已初始化设计阶段文档：{project_root / 'docs' / '03-solution'}")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

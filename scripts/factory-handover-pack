@@ -1,0 +1,159 @@
+#!/usr/bin/env python3
+
+import argparse
+from datetime import datetime
+from pathlib import Path
+import sys
+
+from factory_core import (
+    CLOSED_STATUSES,
+    append_log_line,
+    collect_items,
+    copy_relative_if_exists,
+    latest_dir_id,
+    load_project_config,
+    next_dir_id,
+    project_lock,
+    refresh_ai_memory,
+    save_project_config,
+)
+
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description="生成项目交接包，供新成员或 AI 代理快速接手。")
+    parser.add_argument("--project", required=True, help="项目根目录。")
+    parser.add_argument("--owner", default="待记录", help="交接负责人。")
+    parser.add_argument("--audience", default="新接手成员与 AI 代理", help="交接对象。")
+    parser.add_argument("--note", default="", help="交接说明。")
+    return parser.parse_args()
+def build_summary(handover_id: str, config: dict, items: list[dict], owner: str, audience: str, note: str, copied: list[str], latest_rel: str) -> str:
+    active_items = [item for item in items if item["status"] not in CLOSED_STATUSES]
+    blocked_items = [item for item in active_items if item["status"] == "阻塞"]
+    lines = [
+        f"# {handover_id} 交接摘要",
+        "",
+        f"- 交接编号：{handover_id}",
+        f"- 交接时间：{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
+        f"- 交接负责人：{owner}",
+        f"- 交接对象：{audience}",
+        f"- 当前阶段：{config.get('stage', '未知')}",
+        f"- 当前模式：{config.get('active_mode', '未知')}",
+        f"- 最近发布包：{latest_rel}",
+        f"- 说明：{note or '无'}",
+        "",
+        "## 当前项目状态",
+        "",
+        f"- 活跃工作项：{len(active_items)}",
+        f"- 阻塞项：{len(blocked_items)}",
+        "",
+        "## 优先阅读顺序",
+        "",
+        "- 人类：`docs/02-requirements/prd.md` -> `docs/03-solution/*` -> `.factory/process/daily-status.md` -> `docs/05-quality/test-report.md` -> `docs/07-operations/*` -> `docs/08-handover/*`",
+        "- AI：`.factory/memory/project-index.md` -> `.factory/memory/current-state.md` -> `.factory/memory/tasks.summary.md` -> `.factory/memory/change-summary.md` -> `.factory/memory/traceability.summary.md`",
+        "",
+        "## 待关注工作项",
+        "",
+    ]
+    if blocked_items:
+        lines.extend(f"- `{item['id']}` {item['title']} | 负责人：{item['owner']}" for item in blocked_items)
+    elif active_items:
+        lines.extend(f"- `{item['id']}` {item['title']} | 状态：{item['status']}" for item in active_items[:10])
+    else:
+        lines.append("- 当前无活跃工作项。")
+
+    lines.extend(["", "## 已包含文件", ""])
+    if copied:
+        lines.extend(f"- `{item}`" for item in copied)
+    else:
+        lines.append("- 无")
+    return "\n".join(lines)
+def main() -> int:
+    args = parse_args()
+    project_root = Path(args.project).expanduser().resolve()
+
+    try:
+        with project_lock(project_root, reason="生成交接包"):
+            config = load_project_config(project_root)
+            items = collect_items(project_root)
+            handover_id = next_dir_id(project_root, "handover", "HO-")
+            handover_dir = project_root / "handover" / handover_id
+            handover_dir.mkdir(parents=True, exist_ok=True)
+
+            copied = []
+            for relative in [
+                "AGENTS.md",
+                "GEMINI.md",
+                ".factory/project.json",
+                "docs/02-requirements/prd.md",
+                "docs/02-requirements/requirements-analysis.md",
+                "docs/03-solution/system-architecture.md",
+                "docs/03-solution/api-design.md",
+                "docs/03-solution/backend-design.md",
+                "docs/03-solution/ux-ui-design.md",
+                "docs/04-delivery/implementation-plan.md",
+                "docs/04-delivery/wbs.md",
+                "docs/04-delivery/task-breakdown.md",
+                ".factory/process/daily-status.md",
+                "docs/05-quality/test-report.md",
+                "docs/06-release/acceptance-checklist.md",
+                ".factory/process/stage-check-report.md",
+                "docs/06-release/delivery-package.md",
+                "docs/06-release/release-notes.md",
+                "docs/07-operations/deployment-guide.md",
+                "docs/08-handover/user-guide.md",
+                "docs/traceability/requirements-matrix.md",
+                ".factory/memory/project-index.md",
+                ".factory/memory/current-state.md",
+                ".factory/memory/tasks.summary.md",
+                ".factory/memory/change-summary.md",
+                ".factory/memory/daily-status.summary.md",
+                ".factory/memory/stage-check.summary.md",
+                ".factory/memory/traceability.summary.md",
+                ".factory/memory/graph/traceability.json",
+            ]:
+                copied.extend(copy_relative_if_exists(project_root, relative, handover_dir))
+
+            latest_rel = latest_dir_id(project_root, "releases", "REL-")
+            summary = build_summary(
+                handover_id,
+                config=config,
+                items=items,
+                owner=args.owner.strip(),
+                audience=args.audience.strip(),
+                note=args.note.strip(),
+                copied=copied,
+                latest_rel=latest_rel,
+            )
+            (handover_dir / "handover-summary.md").write_text(summary + "\n", encoding="utf-8")
+
+            log_line = (
+                f"- {datetime.now().strftime('%Y-%m-%d')}: 生成交接包 `{handover_id}`，负责人：{args.owner.strip()}，"
+                f"对象：{args.audience.strip()}，备注：{args.note.strip() or '无'}。"
+            )
+            append_log_line(project_root / ".factory" / "process" / "execution-log.md", log_line)
+            append_log_line(project_root / "docs" / "06-release" / "delivery-package.md", log_line)
+
+            handovers = config.setdefault("handover_history", [])
+            handovers.append(
+                {
+                    "handover_id": handover_id,
+                    "owner": args.owner.strip(),
+                    "audience": args.audience.strip(),
+                    "note": args.note.strip(),
+                    "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                }
+            )
+            config["last_handover_pack_at"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            config["last_handover_pack_id"] = handover_id
+            save_project_config(project_root, config)
+            refresh_ai_memory(project_root)
+    except Exception as exc:
+        print(f"生成交接包失败：{exc}", file=sys.stderr)
+        return 1
+
+    print(f"已生成交接包：{handover_dir}")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

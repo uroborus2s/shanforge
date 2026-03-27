@@ -1,0 +1,125 @@
+{
+  "version": 1,
+  "supported_modes": [
+    "cli_direct",
+    "api_platform"
+  ],
+  "v1_active_mode": "cli_direct",
+  "v1_scope_note": "当前版本只落地 Codex 或 Gemini CLI 直接使用方式，API Agent 平台作为后续演进目标保留。",
+  "ai_runtime_docs": [
+    "skills/software-factory-cli/references/ai-runtime-protocol.md",
+    "skills/software-factory-cli/references/ai-role-charter.md"
+  ],
+  "human_workflow_docs": [
+    "docs/README.md",
+    "docs/02-requirements/prd.md",
+    "docs/03-solution/solution-overview.md",
+    "docs/03-solution/system-architecture.md",
+    "docs/08-handover/user-guide.md",
+    "docs/09-evolution/agent-motivation-autonomy-integration.md"
+  ],
+  "workflow_docs": [
+    "docs/README.md",
+    "docs/02-requirements/prd.md",
+    "docs/03-solution/solution-overview.md",
+    "docs/03-solution/system-architecture.md",
+    "docs/08-handover/user-guide.md",
+    "docs/09-evolution/agent-motivation-autonomy-integration.md"
+  ],
+  "shared_skills": [
+    {
+      "name": "brainstorming",
+      "path": "skills/brainstorming/SKILL.md",
+      "purpose": "在实施前探索产品意图、约束条件、备选方案，并完成设计确认。"
+    },
+    {
+      "name": "document-templates",
+      "path": "skills/document-templates/SKILL.md",
+      "purpose": "初始化并维护标准的 docs/ 和 .factory/ 文档结构。"
+    },
+    {
+      "name": "requirements-engineering",
+      "path": "skills/requirements-engineering/SKILL.md",
+      "purpose": "用稳定 ID 编写 REQ、NFR、验收标准和需求分析文档。"
+    },
+    {
+      "name": "doc-coauthoring",
+      "path": "skills/doc-coauthoring/SKILL.md",
+      "purpose": "通过迭代方式共同创作设计文档、提案和决策文档。"
+    },
+    {
+      "name": "api-design",
+      "path": "skills/api-design/SKILL.md",
+      "purpose": "设计资源导向的 API，包括状态码、校验、分页和错误契约。"
+    },
+    {
+      "name": "backend-patterns",
+      "path": "skills/backend-patterns/SKILL.md",
+      "purpose": "设计服务层、仓储层、中间件、校验和数据访问模式。"
+    },
+    {
+      "name": "python-uv-project",
+      "path": "skills/python-uv-project/SKILL.md",
+      "purpose": "在 Python 项目中统一使用 uv 管理 Python 版本、虚拟环境、依赖、锁文件与开发工具，并约束 pyproject、pytest、ruff、mypy 工作流。"
+    },
+    {
+      "name": "frontend-patterns",
+      "path": "skills/frontend-patterns/SKILL.md",
+      "purpose": "实现 React 组件、状态管理、数据流和可访问的响应式界面模式。"
+    },
+    {
+      "name": "ui-ux-pro-max",
+      "path": "skills/ui-ux-pro-max/SKILL.md",
+      "purpose": "生成 UI 体系、配色、字体和页面结构建议。"
+    },
+    {
+      "name": "tdd-workflow",
+      "path": "skills/tdd-workflow/SKILL.md",
+      "purpose": "通过测试、覆盖率和回归验证驱动实施过程。"
+    },
+    {
+      "name": "webapp-testing",
+      "path": "skills/webapp-testing/SKILL.md",
+      "purpose": "在需要界面验证时，用 Playwright 驱动本地 Web 应用测试。"
+    }
+  ],
+  "stage_order": [
+    "BRAINSTORM",
+    "REQUIREMENTS",
+    "ANALYSIS",
+    "DESIGN",
+    "PLAN",
+    "IMPLEMENTATION",
+    "TESTING",
+    "ACCEPTANCE",
+    "RELEASE",
+    "MAINTENANCE"
+  ],
+  "project_scaffold": {
+    "directories": [
+      "docs/00-governance",
+      "docs/01-discovery",
+      "docs/02-requirements",
+      "docs/03-solution",
+      "docs/03-solution/assets",
+      "docs/04-delivery",
+      "docs/05-quality",
+      "docs/06-release",
+      "docs/07-operations",
+      "docs/08-handover",
+      "docs/09-evolution",
+      "docs/traceability",
+      ".factory",
+      ".factory/memory",
+      ".factory/memory/graph",
+      ".factory/memory/history",
+      ".factory/process",
+      ".factory/process/role-retrospectives",
+      ".factory/process/role-workbenches",
+      ".factory/workitems",
+      ".factory/workitems/implementation",
+      ".factory/workitems/changes",
+      ".factory/workitems/bugs"
+    ]
+  }
+}

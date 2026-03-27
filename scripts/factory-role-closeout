@@ -1,0 +1,373 @@
+#!/usr/bin/env python3
+
+import argparse
+import json
+from datetime import datetime
+from pathlib import Path
+import sys
+
+from factory_core import (
+    append_log_line,
+    current_role_assignment,
+    ensure_role_catalog,
+    load_project_config,
+    parse_list,
+    project_lock,
+    role_assigned_items,
+    run_script,
+    save_project_config,
+    set_current_role_assignment,
+    upsert_section,
+    write_text,
+    prepend_history_entry,
+    resolve_role,
+)
+
+
+ROLE_CLOSE_RESULTS = ["已完成", "已移交", "已暂停", "已关闭"]
+
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description="执行角色收尾、可选移交并更新闭环状态。")
+    parser.add_argument("--project", required=True, help="项目根目录。")
+    parser.add_argument("--role", required=True, help="当前角色。")
+    parser.add_argument("--owner", default="", help="当前角色负责人。")
+    parser.add_argument("--reviewer", default="", help="角色复核人。")
+    parser.add_argument("--items", default="", help="要收尾的工作项，逗号分隔。")
+    parser.add_argument("--docs", default="", help="收尾涉及的文档，逗号分隔。")
+    parser.add_argument("--tests", default="", help="收尾涉及的测试，逗号分隔。")
+    parser.add_argument("--code", default="", help="收尾涉及的代码，逗号分隔。")
+    parser.add_argument("--summary", default="", help="收尾总结。")
+    parser.add_argument("--note", default="", help="补充说明。")
+    parser.add_argument("--result", default="已完成", choices=ROLE_CLOSE_RESULTS, help="角色收尾结果。")
+    parser.add_argument("--item-result", default="已完成", help="若关闭工作项，工作项的关闭结果。")
+    parser.add_argument("--close-items", action="store_true", help="收尾时自动关闭当前角色工作项。")
+    parser.add_argument("--next-role", default="", help="若传入则在收尾后自动移交给下一个角色。")
+    parser.add_argument("--next-owner", default="", help="下一个角色负责人。")
+    parser.add_argument("--next-tool", default="shared", help="下一个角色主要工具。")
+    parser.add_argument("--next-focus", default="", help="下一个角色接手焦点。")
+    parser.add_argument("--snapshot", action="store_true", help="收尾后生成项目快照。")
+    parser.add_argument("--force", action="store_true", help="即使角色复核未通过，也强制收尾。")
+    return parser.parse_args()
+
+
+def selected_item_ids(project_root: Path, config: dict, role_id: str, raw_items: str) -> list[str]:
+    requested = parse_list(raw_items)
+    if requested:
+        return requested
+    assignment = current_role_assignment(config, role_id)
+    if assignment.get("items"):
+        return list(assignment.get("items", []))
+    return [item["id"] for item in role_assigned_items(project_root, config, role_id)]
+
+
+def main() -> int:
+    args = parse_args()
+    project_root = Path(args.project).expanduser().resolve()
+
+    try:
+        with project_lock(project_root, reason="执行角色收尾"):
+            config = load_project_config(project_root)
+            ensure_role_catalog(config)
+            role = resolve_role(config, args.role.strip())
+            assignment = current_role_assignment(config, role["id"])
+            owner = args.owner.strip() or assignment.get("owner") or role["title"]
+            reviewer = args.reviewer.strip() or owner
+            item_ids = selected_item_ids(project_root, config, role["id"], args.items)
+            docs = ",".join(parse_list(args.docs))
+            tests = ",".join(parse_list(args.tests))
+            code = ",".join(parse_list(args.code))
+            focus = assignment.get("focus") or f"{role['title']}角色收尾"
+            note = args.note.strip() or args.summary.strip() or f"{role['title']} closeout"
+            now_text = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+            steps: list[dict] = []
+            steps.append(
+                run_script(
+                    "factory-role-sync",
+                    "--project",
+                    str(project_root),
+                    "--role",
+                    role["id"],
+                    "--owner",
+                    owner,
+                    "--tool",
+                    assignment.get("tool", "shared") or "shared",
+                    "--items",
+                    ",".join(item_ids),
+                    "--docs",
+                    docs,
+                    "--tests",
+                    tests,
+                    "--code",
+                    code,
+                    "--focus",
+                    focus,
+                    "--summary",
+                    args.summary.strip(),
+                    "--note",
+                    note,
+                    "--status",
+                    "已同步",
+                    label="同步角色状态",
+                )
+            )
+            steps.append(
+                run_script(
+                    "factory-role-review",
+                    "--project",
+                    str(project_root),
+                    "--role",
+                    role["id"],
+                    "--reviewer",
+                    reviewer,
+                    "--scope",
+                    "full",
+                    "--note",
+                    note,
+                    label="复核角色执行",
+                )
+            )
+
+            config = load_project_config(project_root)
+            review_result = config.get("last_role_review_result", "未知")
+            if args.result == "已完成" and review_result == "未通过" and not args.force:
+                raise RuntimeError("角色复核未通过，已阻止收尾。可使用 --force 强制继续。")
+
+            if args.close_items:
+                for item_id in item_ids:
+                    steps.append(
+                        run_script(
+                            "factory-close-workitem",
+                            "--project",
+                            str(project_root),
+                            "--item",
+                            item_id,
+                            "--result",
+                            args.item_result.strip(),
+                            "--owner",
+                            owner,
+                            "--summary",
+                            args.summary.strip() or note,
+                            "--docs",
+                            docs,
+                            "--tests",
+                            tests,
+                            "--code",
+                            code,
+                            "--note",
+                            note,
+                            label=f"关闭 {item_id}",
+                        )
+                    )
+
+            if args.next_role.strip():
+                next_role = resolve_role(config, args.next_role.strip())
+                next_owner = args.next_owner.strip() or next_role["title"]
+                next_focus = args.next_focus.strip() or f"承接来自{role['title']}的工作"
+                if item_ids and not args.close_items:
+                    steps.append(
+                        run_script(
+                            "factory-role-assign",
+                            "--project",
+                            str(project_root),
+                            "--role",
+                            next_role["id"],
+                            "--owner",
+                            next_owner,
+                            "--tool",
+                            args.next_tool.strip(),
+                            "--items",
+                            ",".join(item_ids),
+                            "--focus",
+                            next_focus,
+                            label=f"分派给 {next_role['title']}",
+                        )
+                    )
+                steps.append(
+                    run_script(
+                        "factory-role-handoff",
+                        "--project",
+                        str(project_root),
+                        "--from-role",
+                        role["id"],
+                        "--to-role",
+                        next_role["id"],
+                        "--from-tool",
+                        assignment.get("tool", "shared") or "shared",
+                        "--to-tool",
+                        args.next_tool.strip(),
+                        "--owner",
+                        owner,
+                        "--items",
+                        ",".join(item_ids),
+                        "--focus",
+                        next_focus,
+                        "--note",
+                        note,
+                        "--status",
+                        "待接手",
+                        label=f"移交给 {next_role['title']}",
+                    )
+                )
+
+            final_assignment = {
+                "owner": owner,
+                "tool": assignment.get("tool", "shared") or "shared",
+                "items": [] if args.result in {"已完成", "已移交", "已关闭"} else item_ids,
+                "status": args.result,
+                "focus": focus,
+                "note": note,
+                "assigned_at": assignment.get("assigned_at", now_text),
+                "last_sync_at": assignment.get("last_sync_at", ""),
+                "last_sync_result": assignment.get("last_sync_result", ""),
+                "closed_at": now_text,
+                "close_result": args.result,
+            }
+            set_current_role_assignment(config, role["id"], final_assignment)
+            save_project_config(project_root, config)
+
+            steps.append(
+                run_script(
+                    "factory-role-workbench",
+                    "--project",
+                    str(project_root),
+                    "--role",
+                    role["id"],
+                    "--owner",
+                    owner,
+                    "--tool",
+                    final_assignment["tool"],
+                    "--focus",
+                    f"{role['title']}收尾后视图",
+                    label="刷新角色工作台",
+                )
+            )
+            steps.append(
+                run_script(
+                    "factory-multi-agent-board",
+                    "--project",
+                    str(project_root),
+                    "--owner",
+                    owner,
+                    "--focus",
+                    f"{role['title']}收尾后刷新协作看板",
+                    label="刷新多 Agent 看板",
+                )
+            )
+            if args.snapshot:
+                steps.append(
+                    run_script(
+                        "factory-project-snapshot",
+                        "--project",
+                        str(project_root),
+                        "--owner",
+                        owner,
+                        "--note",
+                        note,
+                        label="生成项目快照",
+                    )
+                )
+
+            result = "完成" if all(step["returncode"] == 0 for step in steps) else "失败"
+            config = load_project_config(project_root)
+            config["last_role_closeout_at"] = now_text
+            config["last_role_closeout_role"] = role["id"]
+            config["last_role_closeout_result"] = args.result
+            config.setdefault("role_closeouts", []).append(
+                {
+                    "role": role["id"],
+                    "owner": owner,
+                    "reviewer": reviewer,
+                    "result": args.result,
+                    "item_result": args.item_result.strip(),
+                    "items": item_ids,
+                    "review_result": review_result,
+                    "next_role": args.next_role.strip(),
+                    "note": note,
+                    "closed_at": now_text,
+                }
+            )
+            save_project_config(project_root, config)
+
+            doc_path = project_root / ".factory" / "process" / "role-closeouts.md"
+            latest_lines = [
+                f"- 时间：{now_text}",
+                f"- 角色：{role['title']}",
+                f"- 负责人：{owner}",
+                f"- 复核人：{reviewer}",
+                f"- 收尾结果：{args.result}",
+                f"- 角色复核结果：{review_result}",
+                f"- 结果：{result}",
+                f"- 关联工作项：{'、'.join(item_ids) if item_ids else '无'}",
+                f"- 下一角色：{args.next_role.strip() or '无'}",
+                f"- 总结：{args.summary.strip() or '无'}",
+                f"- 备注：{note}",
+            ]
+            step_lines = []
+            for step in steps:
+                status_text = "成功" if step["returncode"] == 0 else f"失败({step['returncode']})"
+                step_lines.append(f"- {step['label']}：{status_text}")
+                if step["stdout"]:
+                    step_lines.append(f"  输出：{step['stdout']}")
+                if step["stderr"]:
+                    step_lines.append(f"  错误：{step['stderr']}")
+            upsert_section(doc_path, "## 最新收尾", latest_lines, default_title="# 角色收尾记录")
+            upsert_section(
+                doc_path,
+                "## 步骤结果",
+                step_lines or ["- 无"],
+                default_title="# 角色收尾记录",
+            )
+            prepend_history_entry(
+                doc_path,
+                "## 历史收尾记录",
+                f"- {now_text}: `{role['title']}` 收尾完成，结果：{args.result}，负责人：{owner}。",
+                default_title="# 角色收尾记录",
+            )
+
+            write_text(
+                project_root / f".factory/memory/role-closeout.{role['id']}.summary.md",
+                "\n".join(
+                    [
+                        "# 角色收尾摘要",
+                        "",
+                        *latest_lines,
+                        "",
+                        "## 步骤结果",
+                        "",
+                        *(step_lines or ["- 无"]),
+                    ]
+                ),
+            )
+            write_text(
+                project_root / f".factory/role-closeout.{role['id']}.json",
+                json.dumps(
+                    {
+                        "closed_at": now_text,
+                        "role": role["id"],
+                        "owner": owner,
+                        "reviewer": reviewer,
+                        "result": args.result,
+                        "review_result": review_result,
+                        "items": item_ids,
+                        "next_role": args.next_role.strip(),
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                ),
+            )
+            append_log_line(
+                project_root / ".factory" / "process" / "execution-log.md",
+                f"- {datetime.now().strftime('%Y-%m-%d')}: 角色 `{role['title']}` 收尾完成，结果：{args.result}，负责人：{owner}。",
+            )
+    except Exception as exc:
+        print(f"角色收尾失败：{exc}", file=sys.stderr)
+        return 1
+
+    print(f"已生成角色收尾记录：{project_root / '.factory' / 'process' / 'role-closeouts.md'}")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

@@ -1,0 +1,45 @@
+#!/usr/bin/env python3
+
+import argparse
+from pathlib import Path
+import sys
+
+from factory_core import run_script
+
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description="按最新全局配置刷新项目内的 AGENTS.md / GEMINI.md，适配新的 AI 协议层和人类说明层分离。")
+    parser.add_argument("--project", required=True, help="项目根目录。")
+    parser.add_argument("--owner", default="项目协调者", help="刷新负责人。")
+    parser.add_argument("--note", default="", help="补充说明。")
+    return parser.parse_args()
+
+
+def main() -> int:
+    args = parse_args()
+    project_root = Path(args.project).expanduser().resolve()
+
+    try:
+        result = run_script(
+            "factory-project-compress",
+            "--project",
+            str(project_root),
+            "--owner",
+            args.owner.strip(),
+            "--note",
+            args.note.strip() or "refresh-rules",
+            label="刷新项目压缩规则入口",
+        )
+    except Exception as exc:
+        print(f"刷新项目规则文件失败：{exc}", file=sys.stderr)
+        return 1
+
+    if result["stdout"]:
+        print(result["stdout"])
+    if result["stderr"]:
+        print(result["stderr"], file=sys.stderr)
+    return result["returncode"]
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

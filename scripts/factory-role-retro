@@ -1,0 +1,205 @@
+#!/usr/bin/env python3
+
+import argparse
+from datetime import datetime
+from pathlib import Path
+import sys
+
+from factory_core import (
+    append_log_line,
+    current_role_assignment,
+    ensure_role_catalog,
+    load_project_config,
+    project_lock,
+    read_recent_log_lines,
+    read_risks,
+    resolve_role,
+    role_assigned_items,
+    save_project_config,
+    write_text,
+)
+
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description="生成角色级复盘文档和 AI 摘要。")
+    parser.add_argument("--project", required=True, help="项目根目录。")
+    parser.add_argument("--role", required=True, help="角色。")
+    parser.add_argument("--owner", default="项目协调者", help="复盘负责人。")
+    parser.add_argument("--period", default="", help="复盘周期标签。")
+    parser.add_argument("--note", default="", help="补充说明。")
+    parser.add_argument("--top", type=int, default=5, help="展示的重点条目数量。")
+    return parser.parse_args()
+
+
+def latest_entries(history: list[dict], top: int, predicate) -> list[dict]:
+    return [item for item in history if predicate(item)][-top:]
+
+
+def main() -> int:
+    args = parse_args()
+    project_root = Path(args.project).expanduser().resolve()
+    now_text = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+    try:
+        with project_lock(project_root, reason="生成角色复盘"):
+            config = load_project_config(project_root)
+            ensure_role_catalog(config)
+            role = resolve_role(config, args.role.strip())
+            assignment = current_role_assignment(config, role["id"])
+            items = role_assigned_items(project_root, config, role["id"], include_closed=True)
+            open_risks, _ = read_risks(project_root)
+            role_assignments = latest_entries(config.get("role_assignments", []), args.top, lambda item: item.get("role") == role["id"])
+            role_syncs = latest_entries(config.get("role_sync_history", []), args.top, lambda item: item.get("role") == role["id"])
+            role_reviews = latest_entries(config.get("role_reviews", []), args.top, lambda item: item.get("role") == role["id"])
+            role_closeouts = latest_entries(config.get("role_closeouts", []), args.top, lambda item: item.get("role") == role["id"])
+            role_handoffs = latest_entries(
+                config.get("role_handoffs", []),
+                args.top,
+                lambda item: item.get("from_role") == role["id"] or item.get("to_role") == role["id"],
+            )
+            recent_logs = read_recent_log_lines(project_root, max(1, args.top))
+
+            period = args.period.strip() or f"{role['title']} 当前阶段"
+            good_lines = []
+            for entry in reversed(role_syncs):
+                if entry.get("result") == "完成":
+                    good_lines.append(
+                        f"- 同步完成：{entry.get('synced_at', '未知时间')} | 状态：{entry.get('status', '未知')} | 焦点：{entry.get('focus', '无') or '无'}"
+                    )
+            for entry in reversed(role_reviews):
+                if entry.get("result") == "通过":
+                    good_lines.append(
+                        f"- 复核通过：{entry.get('reviewed_at', '未知时间')} | 范围：{entry.get('scope', '未知')}"
+                    )
+            for item in items[: args.top]:
+                if item["status"] in {"已完成", "已关闭"}:
+                    good_lines.append(f"- 已完成工作项：`{item['id']}` {item['title']}")
+            if not good_lines:
+                good_lines = ["- 当前角色还缺少明确的正向沉淀，请先补齐同步记录或完成项。"]
+
+            issue_lines = []
+            for entry in reversed(role_reviews):
+                if entry.get("result") == "未通过":
+                    issue_lines.append(
+                        f"- 复核未通过：{entry.get('reviewed_at', '未知时间')} | 范围：{entry.get('scope', '未知')} | 备注：{entry.get('note', '无') or '无'}"
+                    )
+            blocked_items = [item for item in items if item["status"] == "阻塞"]
+            for item in blocked_items[: args.top]:
+                issue_lines.append(f"- 阻塞工作项：`{item['id']}` {item['title']} | 负责人：{item['owner']}")
+            if open_risks:
+                issue_lines.extend(f"- 开放风险：{line[2:]}" for line in open_risks[: args.top])
+            if not issue_lines:
+                issue_lines = ["- 当前没有新的阻塞项或角色级风险。"]
+
+            action_lines = []
+            if role_reviews and role_reviews[-1].get("result") == "未通过":
+                action_lines.append("- 先根据最近一次角色复核结果补齐文档、工作台或工作项状态。")
+            if blocked_items:
+                action_lines.append("- 优先解除阻塞工作项，再继续推进角色执行。")
+            if role_handoffs and role_handoffs[-1].get("status") == "待接手":
+                action_lines.append("- 跟进最近一次角色交接，确保接手方已确认。")
+            if role_closeouts:
+                action_lines.append("- 对照最近一次角色收尾记录，确认是否还需要补充交接或复核。")
+            if not action_lines:
+                action_lines = ["- 当前角色节奏稳定，继续沿用现有执行方式。"]
+
+            latest_lines = [
+                f"- 复盘时间：{now_text}",
+                f"- 复盘负责人：{args.owner.strip()}",
+                f"- 复盘周期：{period}",
+                f"- 当前阶段：{config.get('stage', '未知')}",
+                f"- 当前负责人：{assignment.get('owner', '未分派') or '未分派'}",
+                f"- 当前工具：{assignment.get('tool', '未分派') or '未分派'}",
+                f"- 当前状态：{assignment.get('status', '未分派') or '未分派'}",
+                f"- 备注：{args.note.strip() or '无'}",
+            ]
+            history_lines = []
+            for entry in reversed(role_assignments):
+                history_lines.append(
+                    f"- 分派：{entry.get('assigned_at', '未知时间')} | 负责人：{entry.get('owner', '未知')} | 状态：{entry.get('status', '未知')}"
+                )
+            for entry in reversed(role_handoffs):
+                history_lines.append(
+                    f"- 交接：{entry.get('handoff_at', '未知时间')} | `{entry.get('from_role', '未知')}` -> `{entry.get('to_role', '未知')}` | 状态：{entry.get('status', '未知')}"
+                )
+            for line in recent_logs[: args.top]:
+                history_lines.append(f"- 最近执行：{line[2:]}")
+            if not history_lines:
+                history_lines = ["- 当前缺少可回顾的角色历史记录。"]
+
+            report_path = project_root / ".factory" / "process" / "role-retrospectives" / f"{role['id']}.md"
+            report = "\n".join(
+                [
+                    f"# {role['title']}复盘",
+                    "",
+                    "## 本次复盘",
+                    "",
+                    *latest_lines,
+                    "",
+                    "## 做得好的地方",
+                    "",
+                    *good_lines,
+                    "",
+                    "## 暴露的问题",
+                    "",
+                    *issue_lines,
+                    "",
+                    "## 后续行动",
+                    "",
+                    *action_lines,
+                    "",
+                    "## 角色历史",
+                    "",
+                    *history_lines,
+                ]
+            ).rstrip() + "\n"
+            write_text(report_path, report)
+            write_text(
+                project_root / f".factory/memory/role-retro.{role['id']}.summary.md",
+                "\n".join(
+                    [
+                        f"# {role['title']}复盘摘要",
+                        "",
+                        *latest_lines,
+                        "",
+                        "## 做得好的地方",
+                        "",
+                        *good_lines,
+                        "",
+                        "## 暴露的问题",
+                        "",
+                        *issue_lines,
+                        "",
+                        "## 后续行动",
+                        "",
+                        *action_lines,
+                    ]
+                ),
+            )
+
+            config["last_role_retro_at"] = now_text
+            config["last_role_retro_role"] = role["id"]
+            config.setdefault("role_retros", []).append(
+                {
+                    "role": role["id"],
+                    "owner": args.owner.strip(),
+                    "period": period,
+                    "note": args.note.strip(),
+                    "created_at": now_text,
+                }
+            )
+            save_project_config(project_root, config)
+            append_log_line(
+                project_root / ".factory" / "process" / "execution-log.md",
+                f"- {datetime.now().strftime('%Y-%m-%d')}: 生成 `{role['title']}` 复盘，负责人：{args.owner.strip()}。",
+            )
+    except Exception as exc:
+        print(f"生成角色复盘失败：{exc}", file=sys.stderr)
+        return 1
+
+    print(f"已生成角色复盘：{report_path}")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

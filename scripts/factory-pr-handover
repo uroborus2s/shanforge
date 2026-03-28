@@ -142,7 +142,7 @@ def main() -> int:
                 ".factory/process/pull-requests.md",
                 ".factory/process/pr-board.md",
                 ".factory/process/pr-check-report.md",
-                "docs/traceability/requirements-matrix.md",
+                "docs/04-project-development/10-traceability/requirements-matrix.md",
                 ".factory/memory/project-index.md",
                 ".factory/memory/current-state.md",
                 ".factory/memory/pr.summary.md",

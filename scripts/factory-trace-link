@@ -6,14 +6,14 @@ from datetime import datetime
 from pathlib import Path
 import sys
 
-from factory_core import append_log_line, parse_list, project_lock, refresh_ai_memory
+from factory_core import append_log_line, canonical_docs_project_path, canonical_docs_reference, parse_list, project_lock, refresh_ai_memory
 
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="维护需求追踪矩阵和 AI 可读追踪图谱。")
     parser.add_argument("--project", required=True, help="项目根目录。")
     parser.add_argument("--source", required=True, help="源项，例如 REQ-001。")
-    parser.add_argument("--targets", required=True, help="目标项，逗号分隔，例如 TASK-001,TC-002,docs/03-solution/api-design.md。")
+    parser.add_argument("--targets", required=True, help="目标项，逗号分隔，例如 TASK-001,TC-002,docs/04-project-development/04-design/api-design.md。")
     parser.add_argument("--relation", default="关联", help="关系类型，例如 实现/验证/影响/依赖。")
     parser.add_argument("--owner", default="待记录", help="维护人。")
     parser.add_argument("--status", default="有效", help="关系状态。")
@@ -175,12 +175,12 @@ def write_summary(path: Path, graph: dict) -> None:
 def main() -> int:
     args = parse_args()
     project_root = Path(args.project).expanduser().resolve()
-    source = args.source.strip()
-    targets = parse_list(args.targets)
+    source = canonical_docs_reference(args.source.strip())
+    targets = [canonical_docs_reference(item) for item in parse_list(args.targets)]
 
     try:
         with project_lock(project_root, reason=f"更新追踪关系 {source}"):
-            trace_path = project_root / "docs" / "traceability" / "requirements-matrix.md"
+            trace_path = canonical_docs_project_path(project_root, "04-project-development/10-traceability/requirements-matrix.md")
             lines = ensure_traceability_doc(trace_path)
             rows, history_lines = parse_existing_rows(lines)
             now_text = datetime.now().strftime("%Y-%m-%d %H:%M:%S")

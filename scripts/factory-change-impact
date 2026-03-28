@@ -84,7 +84,7 @@ def main() -> int:
                 ),
             )
             append_log_line(
-                project_root / "docs" / "09-evolution" / "retrospective.md",
+                project_root / "docs" / "04-project-development" / "09-evolution" / "retrospective.md",
                 (
                     f"- {today}: `{item_id}` 影响分析已更新，状态：{args.status.strip()}，"
                     f"风险：{args.risks.strip() or '无'}。"

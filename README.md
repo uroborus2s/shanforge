@@ -27,10 +27,10 @@
 
 建议先看以下文档：
 
-1. `docs/README.md`
-2. `docs/00-governance/project-charter.md`
-3. `docs/03-solution/solution-overview.md`
-4. `docs/08-handover/user-guide.md`
+1. `docs/01-getting-started/project-overview.md`
+2. `docs/04-project-development/01-governance/project-charter.md`
+3. `docs/04-project-development/04-design/solution-overview.md`
+4. `docs/02-user-guide/user-guide.md`
 
 ### 2. 同步共享 skills
 

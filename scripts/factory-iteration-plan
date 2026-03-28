@@ -177,9 +177,9 @@ def main() -> int:
     project_root = Path(args.project).expanduser().resolve()
     related = parse_list(args.related)
 
-    wbs_path = project_root / "docs" / "04-delivery" / "wbs.md"
-    breakdown_path = project_root / "docs" / "04-delivery" / "task-breakdown.md"
-    plan_path = project_root / "docs" / "04-delivery" / "implementation-plan.md"
+    wbs_path = project_root / "docs" / "04-project-development" / "05-development-process" / "wbs.md"
+    breakdown_path = project_root / "docs" / "04-project-development" / "05-development-process" / "task-breakdown.md"
+    plan_path = project_root / "docs" / "04-project-development" / "05-development-process" / "implementation-plan.md"
 
     try:
         with project_lock(project_root, reason=f"初始化迭代计划 {args.iteration.strip()}"):

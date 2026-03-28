@@ -237,7 +237,7 @@ def main() -> int:
                 f"- {datetime.now().strftime('%Y-%m-%d')}: 更新风险 `{risk_id}`，等级：{args.level}，状态：{args.status.strip()}，责任人：{args.owner.strip()}。",
             )
             append_log_line(
-                project_root / "docs" / "06-release" / "acceptance-checklist.md",
+                project_root / "docs" / "04-project-development" / "07-release-delivery" / "acceptance-checklist.md",
                 f"- {datetime.now().strftime('%Y-%m-%d')}: 风险 `{risk_id}` 状态更新为 `{args.status.strip()}`，责任人：{args.owner.strip()}。",
             )
             refresh_ai_memory(project_root)

@@ -53,11 +53,11 @@ def main() -> int:
                 f"- {today}: 同步 `{args.item.strip()}`，状态：{args.status.strip()}，文档 {len(docs)} 项，测试 {len(tests)} 项，代码 {len(code)} 项。",
             )
             append_log_line(
-                project_root / "docs" / "02-requirements" / "changelog.md",
+                project_root / "docs" / "04-project-development" / "03-requirements" / "changelog.md",
                 f"- {today}: `{args.item.strip()}` 已同步，备注：{args.note.strip() or '无'}。",
             )
             append_log_line(
-                project_root / "docs" / "05-quality" / "test-report.md",
+                project_root / "docs" / "04-project-development" / "06-testing-verification" / "test-report.md",
                 f"- {today}: `{args.item.strip()}` 关联测试同步，测试项：{'、'.join(tests) if tests else '无'}。",
             )
             refresh_ai_memory(project_root)

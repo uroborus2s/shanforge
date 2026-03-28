@@ -454,9 +454,9 @@ def build_structured_analysis_section(req_map: dict[str, dict[str, object]], pro
 def main() -> int:
     args = parse_args()
     project_root = Path(args.project).expanduser().resolve()
-    prd_path = project_root / "docs" / "02-requirements" / "prd.md"
-    analysis_path = project_root / "docs" / "02-requirements" / "requirements-analysis.md"
-    ui_path = project_root / "docs" / "03-solution" / "ux-ui-design.md"
+    prd_path = project_root / "docs" / "04-project-development" / "03-requirements" / "prd.md"
+    analysis_path = project_root / "docs" / "04-project-development" / "03-requirements" / "requirements-analysis.md"
+    ui_path = project_root / "docs" / "04-project-development" / "04-design" / "ux-ui-design.md"
 
     try:
         with project_lock(project_root, reason="升级需求文档结构"):

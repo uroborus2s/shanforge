@@ -14,7 +14,7 @@ import textwrap
 import time
 from contextlib import contextmanager
 from datetime import datetime
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 from typing import Iterable, Sequence
 
 import fcntl
@@ -220,6 +220,40 @@ TECH_PROFILE_PRESETS = {
             "qa-engineer": ["python-uv-project", "tdd-workflow"],
         },
     },
+    "crawler4j-model": {
+        "id": "crawler4j-model",
+        "title": "Crawler4j Model 项目画像",
+        "stack": "python + crawler4j sdk cli + model/module project",
+        "summary": "适用于使用 crawler4j SDK CLI 创建和维护标准 model/模块项目，强调 `module.yaml` 契约、CLI 脚手架、DevLink/ATM 调试和 zip 安装验收。",
+        "projects": ["Crawler4j 标准模块项目", "Crawler4j Core 模块开发与验证"],
+        "modules": ["Python 3.12+", "uv", "crawler4j-sdk CLI", "module.yaml", "TaskScript / TaskFlow", "DevLink / ATM 调试链路"],
+        "rules": [
+            "创建或补齐模块骨架时优先使用 `crawler4j init-model`、`crawler4j new`、`crawler4j add-workflow`、`crawler4j add-ui`，不要先手写脚手架。",
+            "模块运行契约以 `module.yaml` 和模块根 `__init__.py` 为准，不把 wheel 元数据当成 Core 加载依据。",
+            "新增运行时依赖时，同时确认宿主 `crawler4j` 环境可用；不要只改模块项目 `pyproject.toml`。",
+            "调试与验收优先走 DevLink / ATM 调试与 zip 安装 smoke，避免依赖旧版临时调试脚本。",
+            "改动 SDK CLI、模板、模块契约或 Core 集成行为时，同时更新模块开发文档与回归测试。",
+        ],
+        "admin_requirements": [],
+        "commands": [
+            "优先执行 `uvx --from crawler4j-sdk crawler4j init-model <module_name>` 创建模块项目，默认使用 PyPI 最新发布版本；脚本化场景加 `--defaults --no-git --no-install`。",
+            "进入模块项目后优先执行 `uv run crawler4j new <task_name>`、`uv run crawler4j add-workflow <workflow_name>`、`uv run crawler4j add-ui`。",
+            "在 crawler4j Core 源码仓验证本地 CLI 时，优先执行 `uv run python -m crawler4j_sdk.cli.commands --help`。",
+        ],
+        "guides": [
+            "skills/crawler4j-model-project/SKILL.md",
+            "skills/crawler4j-model-project/references/cli-workflow.md",
+            "skills/crawler4j-model-project/references/module-structure.md",
+            "skills/crawler4j-model-project/references/core-integration.md",
+        ],
+        "required_skills": ["crawler4j-model-project", "python-uv-project", "tdd-workflow"],
+        "role_required_skills": {
+            "solution-architect": ["crawler4j-model-project", "python-uv-project"],
+            "backend-engineer": ["crawler4j-model-project", "python-uv-project", "tdd-workflow"],
+            "frontend-engineer": ["crawler4j-model-project"],
+            "qa-engineer": ["crawler4j-model-project", "python-uv-project", "tdd-workflow"],
+        },
+    },
     "stratix-admin": {
         "id": "stratix-admin",
         "title": "Stratix 后端 + 管理后台画像",
@@ -264,64 +298,64 @@ TECH_PROFILE_PRESETS = {
 }
 STAGE_REFERENCE_DOCS = {
     "BRAINSTORM": [
-        "docs/00-governance/project-charter.md",
-        "docs/01-discovery/input.md",
-        "docs/01-discovery/brainstorm-record.md",
+        "docs/04-project-development/01-governance/project-charter.md",
+        "docs/04-project-development/02-discovery/input.md",
+        "docs/04-project-development/02-discovery/brainstorm-record.md",
     ],
     "REQUIREMENTS": [
-        "docs/02-requirements/prd.md",
-        "docs/02-requirements/requirements-analysis.md",
-        "docs/02-requirements/requirements-verification.md",
+        "docs/04-project-development/03-requirements/prd.md",
+        "docs/04-project-development/03-requirements/requirements-analysis.md",
+        "docs/04-project-development/03-requirements/requirements-verification.md",
     ],
     "ANALYSIS": [
-        "docs/02-requirements/requirements-analysis.md",
-        "docs/02-requirements/requirements-verification.md",
-        "docs/traceability/requirements-matrix.md",
+        "docs/04-project-development/03-requirements/requirements-analysis.md",
+        "docs/04-project-development/03-requirements/requirements-verification.md",
+        "docs/04-project-development/10-traceability/requirements-matrix.md",
     ],
     "DESIGN": [
-        "docs/03-solution/system-architecture.md",
-        "docs/03-solution/technical-selection.md",
-        "docs/03-solution/module-boundaries.md",
-        "docs/03-solution/api-design.md",
-        "docs/03-solution/backend-design.md",
-        "docs/03-solution/database-design.md",
-        "docs/03-solution/ux-ui-design.md",
+        "docs/04-project-development/04-design/system-architecture.md",
+        "docs/04-project-development/04-design/technical-selection.md",
+        "docs/04-project-development/04-design/module-boundaries.md",
+        "docs/04-project-development/04-design/api-design.md",
+        "docs/04-project-development/04-design/backend-design.md",
+        "docs/04-project-development/04-design/database-design.md",
+        "docs/04-project-development/04-design/ux-ui-design.md",
     ],
     "PLAN": [
-        "docs/03-solution/technical-selection.md",
-        "docs/03-solution/module-boundaries.md",
-        "docs/04-delivery/wbs.md",
-        "docs/04-delivery/task-breakdown.md",
-        "docs/04-delivery/implementation-plan.md",
+        "docs/04-project-development/04-design/technical-selection.md",
+        "docs/04-project-development/04-design/module-boundaries.md",
+        "docs/04-project-development/05-development-process/wbs.md",
+        "docs/04-project-development/05-development-process/task-breakdown.md",
+        "docs/04-project-development/05-development-process/implementation-plan.md",
     ],
     "IMPLEMENTATION": [
-        "docs/03-solution/technical-selection.md",
-        "docs/03-solution/module-boundaries.md",
+        "docs/04-project-development/04-design/technical-selection.md",
+        "docs/04-project-development/04-design/module-boundaries.md",
         EXECUTION_LOG_RELATIVE,
-        "docs/05-quality/test-plan.md",
+        "docs/04-project-development/06-testing-verification/test-plan.md",
     ],
     "TESTING": [
-        "docs/05-quality/test-plan.md",
-        "docs/05-quality/test-cases.md",
-        "docs/05-quality/test-report.md",
+        "docs/04-project-development/06-testing-verification/test-plan.md",
+        "docs/04-project-development/06-testing-verification/test-cases.md",
+        "docs/04-project-development/06-testing-verification/test-report.md",
     ],
     "ACCEPTANCE": [
-        "docs/06-release/acceptance-checklist.md",
-        "docs/06-release/delivery-package.md",
+        "docs/04-project-development/07-release-delivery/acceptance-checklist.md",
+        "docs/04-project-development/07-release-delivery/delivery-package.md",
         STAGE_CHECK_REPORT_RELATIVE,
         QUALITY_CHECK_REPORT_RELATIVE,
     ],
     "RELEASE": [
-        "docs/06-release/release-notes.md",
-        "docs/06-release/delivery-package.md",
-        "docs/07-operations/deployment-guide.md",
-        "docs/08-handover/user-guide.md",
+        "docs/04-project-development/07-release-delivery/release-notes.md",
+        "docs/04-project-development/07-release-delivery/delivery-package.md",
+        "docs/04-project-development/08-operations-maintenance/deployment-guide.md",
+        "docs/02-user-guide/user-guide.md",
     ],
     "MAINTENANCE": [
-        "docs/07-operations/operations-runbook.md",
-        "docs/08-handover/user-guide.md",
-        "docs/09-evolution/retrospective.md",
-        "docs/traceability/requirements-matrix.md",
+        "docs/04-project-development/08-operations-maintenance/operations-runbook.md",
+        "docs/02-user-guide/user-guide.md",
+        "docs/04-project-development/09-evolution/retrospective.md",
+        "docs/04-project-development/10-traceability/requirements-matrix.md",
     ],
 }
 DEFAULT_ROLE_SPECS = (
@@ -334,7 +368,7 @@ DEFAULT_ROLE_SPECS = (
         "preferred_tools": ["codex", "gemini"],
         "skill_names": ["brainstorming", "document-templates", "doc-coauthoring"],
         "docs": [
-        "docs/03-solution/technical-selection.md",
+        "docs/04-project-development/04-design/technical-selection.md",
         MULTI_AGENT_BOARD_RELATIVE,
         ROLE_HANDOFFS_RELATIVE,
         EXECUTION_LOG_RELATIVE,
@@ -350,13 +384,13 @@ DEFAULT_ROLE_SPECS = (
         "preferred_tools": ["gemini", "codex"],
         "skill_names": ["brainstorming", "requirements-engineering", "document-templates", "doc-coauthoring"],
         "docs": [
-            "docs/00-governance/project-charter.md",
-            "docs/01-discovery/input.md",
-            "docs/01-discovery/brainstorm-record.md",
-            "docs/02-requirements/prd.md",
-            "docs/02-requirements/requirements-analysis.md",
-            "docs/02-requirements/requirements-verification.md",
-            "docs/traceability/requirements-matrix.md",
+            "docs/04-project-development/01-governance/project-charter.md",
+            "docs/04-project-development/02-discovery/input.md",
+            "docs/04-project-development/02-discovery/brainstorm-record.md",
+            "docs/04-project-development/03-requirements/prd.md",
+            "docs/04-project-development/03-requirements/requirements-analysis.md",
+            "docs/04-project-development/03-requirements/requirements-verification.md",
+            "docs/04-project-development/10-traceability/requirements-matrix.md",
         ],
     },
     {
@@ -368,13 +402,13 @@ DEFAULT_ROLE_SPECS = (
         "preferred_tools": ["gemini", "codex"],
         "skill_names": ["api-design", "backend-patterns", "frontend-patterns", "doc-coauthoring"],
         "docs": [
-            "docs/03-solution/technical-selection.md",
-            "docs/03-solution/system-architecture.md",
-            "docs/03-solution/module-boundaries.md",
-            "docs/03-solution/api-design.md",
-            "docs/03-solution/backend-design.md",
-            "docs/03-solution/database-design.md",
-            "docs/traceability/requirements-matrix.md",
+            "docs/04-project-development/04-design/technical-selection.md",
+            "docs/04-project-development/04-design/system-architecture.md",
+            "docs/04-project-development/04-design/module-boundaries.md",
+            "docs/04-project-development/04-design/api-design.md",
+            "docs/04-project-development/04-design/backend-design.md",
+            "docs/04-project-development/04-design/database-design.md",
+            "docs/04-project-development/10-traceability/requirements-matrix.md",
         ],
     },
     {
@@ -386,12 +420,11 @@ DEFAULT_ROLE_SPECS = (
         "preferred_tools": ["gemini", "codex"],
         "skill_names": ["ui-ux-pro-max", "frontend-patterns", "doc-coauthoring"],
         "docs": [
-            "docs/03-solution/technical-selection.md",
-            "docs/03-solution/ux-ui-design.md",
-            "docs/03-solution/assets/README.md",
-            "docs/03-solution/system-architecture.md",
-            "docs/03-solution/module-boundaries.md",
-            "docs/04-delivery/wbs.md",
+            "docs/04-project-development/04-design/technical-selection.md",
+            "docs/04-project-development/04-design/ux-ui-design.md",
+            "docs/04-project-development/04-design/system-architecture.md",
+            "docs/04-project-development/04-design/module-boundaries.md",
+            "docs/04-project-development/05-development-process/wbs.md",
         ],
     },
     {
@@ -403,13 +436,13 @@ DEFAULT_ROLE_SPECS = (
         "preferred_tools": ["codex", "gemini"],
         "skill_names": ["backend-patterns", "api-design", "tdd-workflow"],
         "docs": [
-            "docs/03-solution/technical-selection.md",
-            "docs/03-solution/module-boundaries.md",
-        "docs/03-solution/backend-design.md",
-        "docs/03-solution/api-design.md",
-        "docs/04-delivery/implementation-plan.md",
+            "docs/04-project-development/04-design/technical-selection.md",
+            "docs/04-project-development/04-design/module-boundaries.md",
+        "docs/04-project-development/04-design/backend-design.md",
+        "docs/04-project-development/04-design/api-design.md",
+        "docs/04-project-development/05-development-process/implementation-plan.md",
         EXECUTION_LOG_RELATIVE,
-        "docs/05-quality/test-plan.md",
+        "docs/04-project-development/06-testing-verification/test-plan.md",
         ],
     },
     {
@@ -421,12 +454,12 @@ DEFAULT_ROLE_SPECS = (
         "preferred_tools": ["codex", "gemini"],
         "skill_names": ["frontend-patterns", "ui-ux-pro-max", "tdd-workflow"],
         "docs": [
-            "docs/03-solution/technical-selection.md",
-        "docs/03-solution/ux-ui-design.md",
-        "docs/03-solution/system-architecture.md",
-        "docs/04-delivery/implementation-plan.md",
+            "docs/04-project-development/04-design/technical-selection.md",
+        "docs/04-project-development/04-design/ux-ui-design.md",
+        "docs/04-project-development/04-design/system-architecture.md",
+        "docs/04-project-development/05-development-process/implementation-plan.md",
         EXECUTION_LOG_RELATIVE,
-        "docs/05-quality/test-plan.md",
+        "docs/04-project-development/06-testing-verification/test-plan.md",
         ],
     },
     {
@@ -438,12 +471,12 @@ DEFAULT_ROLE_SPECS = (
         "preferred_tools": ["codex", "gemini"],
         "skill_names": ["tdd-workflow", "webapp-testing", "document-templates"],
         "docs": [
-        "docs/05-quality/test-plan.md",
-        "docs/05-quality/test-cases.md",
-        "docs/05-quality/test-report.md",
+        "docs/04-project-development/06-testing-verification/test-plan.md",
+        "docs/04-project-development/06-testing-verification/test-cases.md",
+        "docs/04-project-development/06-testing-verification/test-report.md",
         STAGE_CHECK_REPORT_RELATIVE,
         QUALITY_CHECK_REPORT_RELATIVE,
-        "docs/traceability/requirements-matrix.md",
+        "docs/04-project-development/10-traceability/requirements-matrix.md",
         ],
     },
     {
@@ -455,11 +488,11 @@ DEFAULT_ROLE_SPECS = (
         "preferred_tools": ["gemini", "codex"],
         "skill_names": ["document-templates", "doc-coauthoring"],
         "docs": [
-            "docs/06-release/delivery-package.md",
-            "docs/06-release/release-notes.md",
-            "docs/07-operations/deployment-guide.md",
-            "docs/08-handover/user-guide.md",
-            "docs/08-handover/admin-guide.md",
+            "docs/04-project-development/07-release-delivery/delivery-package.md",
+            "docs/04-project-development/07-release-delivery/release-notes.md",
+            "docs/04-project-development/08-operations-maintenance/deployment-guide.md",
+            "docs/02-user-guide/user-guide.md",
+            "docs/02-user-guide/admin-guide.md",
         ],
     },
     {
@@ -478,10 +511,2045 @@ DEFAULT_ROLE_SPECS = (
             AGENT_SESSION_RELATIVE,
             DAILY_STATUS_RELATIVE,
             ROLE_HANDOFFS_RELATIVE,
-            "docs/traceability/requirements-matrix.md",
+            "docs/04-project-development/10-traceability/requirements-matrix.md",
         ],
     },
 )
+
+DOCS_STRATEGO_TOP_LEVEL_ORDER = [
+    "01-getting-started",
+    "02-user-guide",
+    "03-developer-guide",
+    "04-project-development",
+]
+DOCS_STRATEGO_DIRECTORY_SPECS = {
+    "01-getting-started": {
+        "title": "入门说明",
+        "root_access": "public",
+        "description": "本目录收纳产品定位、快速开始、阅读路径和文档地图等入门材料。",
+        "order": [
+            "project-overview.md",
+            "quick-start.md",
+            "document-map.md",
+        ],
+    },
+    "02-user-guide": {
+        "title": "用户指南",
+        "root_access": "public",
+        "description": "本目录收纳面向最终用户和协作者的安装、配置、使用和常见问题说明。",
+        "order": [
+            "user-guide.md",
+            "installation.md",
+            "configuration.md",
+            "usage.md",
+            "prompt-templates.md",
+            "faq-troubleshooting.md",
+        ],
+    },
+    "03-developer-guide": {
+        "title": "开发者指南",
+        "root_access": "public",
+        "description": "本目录收纳 module 开发、调试、交付与排错等面向开发者的正式指南内容。",
+        "order": [
+            "01-concepts",
+            "02-quickstart",
+            "03-project-structure",
+            "04-development",
+            "05-debugging",
+            "06-delivery",
+            "07-troubleshooting",
+        ],
+    },
+    "03-developer-guide/01-concepts": {
+        "title": "01 概念与约束",
+        "description": "本目录收纳系统地图、术语和真实约束等开发前必读内容。",
+        "order": [
+            "01-system-map.md",
+            "02-real-constraints.md",
+        ],
+    },
+    "03-developer-guide/02-quickstart": {
+        "title": "02 快速开始",
+        "description": "本目录收纳环境准备和创建首个模块的最小路径。",
+        "order": [
+            "01-environment-setup.md",
+            "02-create-first-module.md",
+        ],
+    },
+    "03-developer-guide/03-project-structure": {
+        "title": "03 项目结构与契约",
+        "description": "本目录收纳目录布局、入口和 `module.yaml` 契约说明。",
+        "order": [
+            "01-layout-and-entrypoints.md",
+            "02-module-manifest.md",
+        ],
+    },
+    "03-developer-guide/04-development": {
+        "title": "04 模块开发",
+        "description": "本目录收纳 TaskScript、Workflow、CLI/UI 配置和 Core 能力说明。",
+        "order": [
+            "01-taskscript.md",
+            "02-workflow.md",
+            "03-cli-and-ui.md",
+            "04-core-capabilities.md",
+        ],
+    },
+    "03-developer-guide/05-debugging": {
+        "title": "05 调试",
+        "description": "本目录收纳 DevLink 与真实调试链路说明。",
+        "order": [
+            "01-devlink-and-debug.md",
+        ],
+    },
+    "03-developer-guide/06-delivery": {
+        "title": "06 交付与验收",
+        "description": "本目录收纳 zip 安装、交付和验收清单。",
+        "order": [
+            "01-zip-installation.md",
+            "02-acceptance-checklist.md",
+        ],
+    },
+    "03-developer-guide/07-troubleshooting": {
+        "title": "07 排错",
+        "description": "本目录收纳常见问题、排错路径和已知坑位。",
+        "order": [
+            "01-common-pitfalls.md",
+        ],
+    },
+    "04-project-development": {
+        "title": "项目开发文档（内）",
+        "root_access": "private",
+        "description": "本目录收纳内部项目治理、需求、设计、过程控制、测试、发布、运维和追踪矩阵等正式开发文档。",
+        "order": [
+            "01-governance",
+            "02-discovery",
+            "03-requirements",
+            "04-design",
+            "05-development-process",
+            "06-testing-verification",
+            "07-release-delivery",
+            "08-operations-maintenance",
+            "09-evolution",
+            "10-traceability",
+        ],
+    },
+    "04-project-development/01-governance": {
+        "title": "项目治理",
+        "description": "本目录收纳项目目标、边界、角色分工和治理约束。",
+        "order": [
+            "project-charter.md",
+            "stakeholders-raci.md",
+            "risk-register.md",
+            "glossary.md",
+            "roadmap.md",
+        ],
+    },
+    "04-project-development/02-discovery": {
+        "title": "调研与决策",
+        "description": "本目录收纳调研输入、现状分析、头脑风暴和问题空间澄清结果。",
+        "order": [
+            "input.md",
+            "brainstorm-record.md",
+            "current-state-analysis.md",
+            "business-flow.md",
+            "scope-outline.md",
+        ],
+    },
+    "04-project-development/03-requirements": {
+        "title": "需求",
+        "description": "本目录收纳需求、需求分析、校验和变更控制文档。",
+        "order": [
+            "prd.md",
+            "requirements-analysis.md",
+            "requirements-verification.md",
+            "changelog.md",
+            "nfr-catalog.md",
+            "acceptance-criteria.md",
+            "change-requests.md",
+        ],
+    },
+    "04-project-development/04-design": {
+        "title": "设计文档",
+        "description": "本目录收纳总体设计、详细设计、UX/UI 设计、接口设计、部署与 CI/CD 设计等方案文档。",
+        "order": [
+            "solution-overview.md",
+            "technical-selection.md",
+            "system-architecture.md",
+            "module-boundaries.md",
+            "api-design.md",
+            "backend-design.md",
+            "database-design.md",
+            "security-design.md",
+            "deployment-architecture.md",
+            "ux-ui-design.md",
+            "historical-project-onboarding-automation.md",
+            "assets",
+            "adr",
+            "contracts",
+            "private-design",
+        ],
+    },
+    "04-project-development/05-development-process": {
+        "title": "开发过程文档",
+        "description": "本目录收纳实施计划、任务拆分、执行节奏和交付组织材料。",
+        "order": [
+            "historical-project-onboarding-checklist.md",
+            "software-development-process.md",
+            "wbs.md",
+            "implementation-plan.md",
+            "task-breakdown.md",
+            "iteration-plan.md",
+            "migration-plan.md",
+            "execution-log.md",
+            "daily-status.md",
+            "risk-register.md",
+            "multi-agent-board.md",
+            "role-assignments.md",
+            "role-handoffs.md",
+            "role-sync.md",
+            "team-sync.md",
+            "chat-bootstrap.md",
+            "pull-requests.md",
+            "pr-board.md",
+            "pr-handovers.md",
+            "remote-prs.md",
+            "role-retrospectives",
+            "team-retro.md",
+            "dev-setup.md",
+        ],
+    },
+    "04-project-development/06-testing-verification": {
+        "title": "测试与验证",
+        "description": "本目录收纳测试策略、测试用例、执行结果和质量结论。",
+        "order": [
+            "test-strategy.md",
+            "test-plan.md",
+            "test-cases.md",
+            "test-data.md",
+            "defect-log.md",
+            "test-report.md",
+            "uat-report.md",
+        ],
+    },
+    "04-project-development/07-release-delivery": {
+        "title": "发布与交付",
+        "description": "本目录收纳验收、发布、交付和回滚相关文档。",
+        "order": [
+            "acceptance-checklist.md",
+            "pr-check-report.md",
+            "stage-check-report.md",
+            "quality-check-report.md",
+            "state-doctor-report.md",
+            "delivery-package.md",
+            "release-checklist.md",
+            "release-notes.md",
+            "rollback-plan.md",
+            "production-readiness-review.md",
+            "role-reviews.md",
+            "role-closeouts.md",
+            "team-closeouts.md",
+        ],
+    },
+    "04-project-development/08-operations-maintenance": {
+        "title": "运维与维护",
+        "description": "本目录收纳部署、运行、监控、故障处理和支持手册。",
+        "order": [
+            "deployment-guide.md",
+            "operations-runbook.md",
+            "monitoring-alerting.md",
+            "incident-playbook.md",
+            "backup-dr.md",
+            "support-handbook.md",
+            "configuration-matrix.md",
+        ],
+    },
+    "04-project-development/09-evolution": {
+        "title": "演进复盘",
+        "description": "本目录收纳复盘、问题模式和后续演进决策。",
+        "order": [
+            "skill-evolution-plan.md",
+            "retrospective.md",
+            "postmortem.md",
+            "deprecation-plan.md",
+            "agent-motivation-autonomy-integration.md",
+        ],
+    },
+    "04-project-development/10-traceability": {
+        "title": "追踪矩阵",
+        "description": "本目录收纳跨阶段的矩阵、索引和覆盖关系。",
+        "order": [
+            "requirements-matrix.md",
+            "interface-matrix.md",
+            "document-index.md",
+        ],
+    },
+}
+DOCS_STRATEGO_DIRECTORY_TITLE_OVERRIDES = {
+    "adr": "架构决策记录",
+    "contracts": "接口契约",
+    "api": "API 契约",
+    "events": "事件契约",
+    "internal": "内部接口",
+    "schemas": "数据 Schema",
+    "private-design": "内部专题",
+    "role-retrospectives": "角色复盘",
+}
+DOCS_PROFILE_TOP_LEVEL_ALIASES = {
+    "01-getting-started": "01-getting-started",
+    "getting-started": "01-getting-started",
+    "getting_started": "01-getting-started",
+    "入门说明": "01-getting-started",
+    "02-user-guide": "02-user-guide",
+    "user-guide": "02-user-guide",
+    "user_guide": "02-user-guide",
+    "用户指南": "02-user-guide",
+    "03-developer-guide": "03-developer-guide",
+    "developer-guide": "03-developer-guide",
+    "developer_guide": "03-developer-guide",
+    "开发者指南": "03-developer-guide",
+    "04-project-development": "04-project-development",
+    "project-development": "04-project-development",
+    "project_development": "04-project-development",
+    "项目开发文档（内）": "04-project-development",
+    "项目开发文档": "04-project-development",
+}
+DOCS_PROFILE_STATES = {"required", "optional", "omit"}
+DOCS_PROFILE_SCAN_SKIP_DIRS = {
+    ".git",
+    ".hg",
+    ".svn",
+    ".idea",
+    ".vscode",
+    "__pycache__",
+    "node_modules",
+    "dist",
+    "build",
+    "coverage",
+    ".venv",
+    "venv",
+    ".mypy_cache",
+    ".pytest_cache",
+}
+DOCS_PROFILE_INTERESTING_FILENAMES = {
+    "readme.md",
+    "readme",
+    "mkdocs.yml",
+    "mkdocs.yaml",
+    "pyproject.toml",
+    "package.json",
+    "module.yaml",
+    "openapi.yaml",
+    "openapi.json",
+    "asyncapi.yaml",
+    "asyncapi.json",
+}
+DOCS_MACHINE_PATH_PATTERN = re.compile(r"/Users/|/absolute/path")
+MARKDOWN_LINK_PATTERN = re.compile(r"(?P<prefix>!?\[[^\]]*\]\()(?P<target>[^)]+)(?P<suffix>\))")
+LEGACY_DOCS_DIRECTORY_MAP = {
+    "00-governance": "04-project-development/01-governance",
+    "01-discovery": "04-project-development/02-discovery",
+    "02-requirements": "04-project-development/03-requirements",
+    "03-solution": "04-project-development/04-design",
+    "04-delivery": "04-project-development/05-development-process",
+    "05-quality": "04-project-development/06-testing-verification",
+    "06-release": "04-project-development/07-release-delivery",
+    "07-operations": "04-project-development/08-operations-maintenance",
+    "08-handover": "02-user-guide",
+    "09-evolution": "04-project-development/09-evolution",
+    "traceability": "04-project-development/10-traceability",
+}
+
+
+def docs_profile_base() -> dict:
+    return {
+        "project_kind": "application",
+        "audiences": ["maintainer"],
+        "surfaces": {
+            "end_user_usage": True,
+            "public_api": False,
+            "sdk": False,
+            "plugin_extensibility": False,
+            "secondary_development": False,
+            "self_hosted": False,
+        },
+        "modules": {
+            "01-getting-started": "required",
+            "02-user-guide": "required",
+            "03-developer-guide": "omit",
+            "04-project-development": "required",
+        },
+        "reasons": {},
+    }
+
+
+def docs_profile_module_key(value: str | None) -> str | None:
+    if not value:
+        return None
+    candidate = value.strip()
+    if candidate in DOCS_PROFILE_TOP_LEVEL_ALIASES:
+        return DOCS_PROFILE_TOP_LEVEL_ALIASES[candidate]
+    return DOCS_PROFILE_TOP_LEVEL_ALIASES.get(normalize_key(candidate))
+
+
+def normalize_docs_profile(raw: dict | None) -> dict:
+    profile = docs_profile_base()
+    if not isinstance(raw, dict):
+        return profile
+
+    project_kind = str(raw.get("project_kind", "")).strip()
+    if project_kind:
+        profile["project_kind"] = project_kind
+
+    audiences = raw.get("audiences", [])
+    if isinstance(audiences, list):
+        profile["audiences"] = unique_preserve(str(item) for item in audiences if str(item).strip()) or ["maintainer"]
+
+    surfaces = raw.get("surfaces", {})
+    if isinstance(surfaces, dict):
+        normalized_surfaces = dict(profile["surfaces"])
+        for key in normalized_surfaces:
+            if key in surfaces:
+                normalized_surfaces[key] = bool(surfaces[key])
+        profile["surfaces"] = normalized_surfaces
+
+    modules = raw.get("modules", {})
+    if isinstance(modules, dict):
+        normalized_modules = dict(profile["modules"])
+        for raw_key, raw_state in modules.items():
+            module_key = docs_profile_module_key(str(raw_key))
+            state = str(raw_state).strip()
+            if not module_key or state not in DOCS_PROFILE_STATES:
+                continue
+            normalized_modules[module_key] = state
+        profile["modules"] = normalized_modules
+
+    reasons = raw.get("reasons", {})
+    if isinstance(reasons, dict):
+        normalized_reasons: dict[str, str] = {}
+        for raw_key, value in reasons.items():
+            module_key = docs_profile_module_key(str(raw_key))
+            if module_key and str(value).strip():
+                normalized_reasons[module_key] = str(value).strip()
+        profile["reasons"] = normalized_reasons
+
+    for field in ["detected_at", "source"]:
+        if str(raw.get(field, "")).strip():
+            profile[field] = str(raw[field]).strip()
+
+    return profile
+
+
+def docs_profile_module_state(docs_profile: dict | None, module_key: str) -> str:
+    profile = normalize_docs_profile(docs_profile)
+    return str(profile.get("modules", {}).get(module_key, "omit"))
+
+
+def docs_profile_module_enabled(docs_profile: dict | None, module_key: str, docs_root: Path | None = None) -> bool:
+    state = docs_profile_module_state(docs_profile, module_key)
+    if state == "required":
+        return True
+    if state == "optional" and docs_root is not None:
+        return (docs_root / module_key).exists()
+    return False
+
+
+def docs_profile_enabled_top_levels(docs_profile: dict | None, docs_root: Path | None = None) -> list[str]:
+    profile = normalize_docs_profile(docs_profile)
+    return [
+        module_key
+        for module_key in DOCS_STRATEGO_TOP_LEVEL_ORDER
+        if docs_profile_module_enabled(profile, module_key, docs_root)
+    ]
+
+
+def docs_profile_required_top_levels(docs_profile: dict | None) -> list[str]:
+    profile = normalize_docs_profile(docs_profile)
+    return [
+        module_key
+        for module_key in DOCS_STRATEGO_TOP_LEVEL_ORDER
+        if docs_profile_module_state(profile, module_key) == "required"
+    ]
+
+
+def docs_relative_path_enabled(relative_path: str, docs_profile: dict | None, docs_root: Path | None = None) -> bool:
+    relative = normalize_posix_relative(relative_path)
+    if relative.startswith("docs/"):
+        relative = relative[5:]
+    top_level = relative.split("/", 1)[0] if relative else ""
+    if top_level not in DOCS_STRATEGO_TOP_LEVEL_ORDER:
+        return True
+    return docs_profile_module_enabled(docs_profile, top_level, docs_root)
+
+
+def filter_relative_doc_paths(paths: Sequence[str], docs_profile: dict | None, docs_root: Path | None = None) -> list[str]:
+    return [item for item in paths if docs_relative_path_enabled(item, docs_profile, docs_root)]
+
+
+def contains_any_keyword(text: str, keywords: Sequence[str]) -> bool:
+    return any(keyword in text for keyword in keywords)
+
+
+def collect_docs_profile_signals(project_root: Path, *, project_name: str = "", idea: str = "", stack: str = "") -> dict:
+    lower_name = project_name.lower()
+    lower_idea = idea.lower()
+    lower_stack = stack.lower()
+    file_names: list[str] = []
+    content_chunks: list[str] = []
+    scanned_files = 0
+
+    for root, dirs, files in os.walk(project_root):
+        dirs[:] = [
+            item
+            for item in dirs
+            if item not in DOCS_PROFILE_SCAN_SKIP_DIRS and not item.startswith(".codex")
+        ]
+        for filename in files:
+            scanned_files += 1
+            if scanned_files > 2000:
+                break
+            path = Path(root) / filename
+            try:
+                relative = path.relative_to(project_root).as_posix()
+            except ValueError:
+                continue
+            lower_relative = relative.lower()
+            file_names.append(lower_relative)
+            if (
+                filename.lower() in DOCS_PROFILE_INTERESTING_FILENAMES
+                or lower_relative.startswith("docs/")
+                or lower_relative.endswith((".md", ".yaml", ".yml", ".toml", ".json"))
+            ):
+                try:
+                    text = path.read_text(encoding="utf-8", errors="ignore")[:4000]
+                except Exception:
+                    text = ""
+                if text:
+                    content_chunks.append(text.lower())
+            if len(content_chunks) >= 40:
+                continue
+        if scanned_files > 2000:
+            break
+
+    signal_text = "\n".join([lower_name, lower_idea, lower_stack, *file_names, *content_chunks])
+    return {
+        "text": signal_text,
+        "files": file_names,
+    }
+
+
+def detect_docs_profile(project_root: Path, *, project_name: str = "", idea: str = "", stack: str = "") -> dict:
+    signals = collect_docs_profile_signals(project_root, project_name=project_name, idea=idea, stack=stack)
+    text = signals["text"]
+    files = signals["files"]
+    docs_root = project_root / "docs"
+    existing_modules = {
+        module_key
+        for module_key in DOCS_STRATEGO_TOP_LEVEL_ORDER
+        if (docs_root / module_key).exists()
+    }
+
+    has_docs_site = contains_any_keyword(
+        text,
+        [
+            "章略·墨衡",
+            "docs-stratego",
+            "mkdocs",
+            "文档站点",
+            "documentation site",
+            "docs site",
+        ],
+    )
+    negative_secondary_dev = contains_any_keyword(
+        text,
+        [
+            "不提供 sdk",
+            "不提供sdk",
+            "不提供插件",
+            "不提供对外 api",
+            "不提供对外api",
+            "不提供公共 api",
+            "不提供公共api",
+            "without sdk",
+            "without plugin",
+            "no public api",
+            "no sdk",
+            "no plugin",
+        ],
+    )
+    has_public_api = any(name.endswith(("openapi.yaml", "openapi.json", "asyncapi.yaml", "asyncapi.json")) for name in files) or (
+        not negative_secondary_dev
+        and contains_any_keyword(text, ["openapi", "asyncapi", "graphql", "public api", "对外接口", "rest api"])
+    )
+    has_plugin = any(part in name for name in files for part in ("plugin", "plugins/", "module.yaml", "extension", "extensions")) or (
+        not negative_secondary_dev
+        and contains_any_keyword(text, ["插件开发", "plugin", "hook", "扩展点", "extension"])
+    )
+    has_sdk = not negative_secondary_dev and contains_any_keyword(
+        text,
+        [" sdk", "sdk ", "client library", "开发包", "framework", "library", "二次开发"],
+    )
+    has_secondary_development = has_public_api or has_plugin or has_sdk or contains_any_keyword(
+        text,
+        ["开发者指南", "developer guide", "集成指南", "integration", "二次开发", "开发者"],
+    )
+    has_end_user_usage = contains_any_keyword(
+        text,
+        [
+            "用户指南",
+            "user guide",
+            "安装",
+            "配置",
+            "使用说明",
+            "usage",
+            "quick start",
+            "cli",
+            "command",
+            "命令",
+        ],
+    ) or any(name.startswith("scripts/") for name in files)
+    has_self_hosted = contains_any_keyword(
+        text,
+        ["docker", "docker-compose", "helm", "kubernetes", "部署", "运维", "self-hosted"],
+    ) or any(
+        name.endswith(("docker-compose.yml", "docker-compose.yaml", "helmfile.yaml", "helmfile.yml"))
+        for name in files
+    )
+
+    if has_docs_site and not has_secondary_development:
+        project_kind = "docs_site"
+    elif has_sdk and not has_end_user_usage:
+        project_kind = "sdk_or_framework"
+    elif contains_any_keyword(text, ["cli", "命令行", "tooling", "脚本工具"]) and not has_secondary_development:
+        project_kind = "cli_tool"
+    else:
+        project_kind = "application"
+
+    profile = docs_profile_base()
+    profile["project_kind"] = project_kind
+    profile["surfaces"] = {
+        "end_user_usage": bool(has_end_user_usage or has_docs_site),
+        "public_api": bool(has_public_api),
+        "sdk": bool(has_sdk),
+        "plugin_extensibility": bool(has_plugin),
+        "secondary_development": bool(has_secondary_development),
+        "self_hosted": bool(has_self_hosted),
+    }
+
+    audiences = ["maintainer"]
+    if has_docs_site:
+        audiences.extend(["reader", "operator"])
+    if has_end_user_usage or has_docs_site:
+        audiences.append("user")
+    if has_secondary_development:
+        audiences.extend(["developer", "integrator"])
+    profile["audiences"] = unique_preserve(audiences)
+
+    if existing_modules:
+        user_guide_state = "required" if "02-user-guide" in existing_modules else "omit"
+        developer_guide_state = "required" if "03-developer-guide" in existing_modules else "omit"
+        getting_started_state = "required" if "01-getting-started" in existing_modules else "omit"
+        project_development_state = "required" if "04-project-development" in existing_modules else "omit"
+    else:
+        user_guide_state = "required" if (has_end_user_usage or has_docs_site or project_kind in {"application", "cli_tool"}) else "omit"
+        developer_guide_state = "required" if (has_secondary_development or project_kind in {"application", "sdk_or_framework"}) else "omit"
+        getting_started_state = "required"
+        project_development_state = "required"
+    profile["modules"] = {
+        "01-getting-started": getting_started_state,
+        "02-user-guide": user_guide_state,
+        "03-developer-guide": developer_guide_state,
+        "04-project-development": project_development_state,
+    }
+    profile["reasons"] = {
+        "01-getting-started": (
+            "检测到现有顶层目录，沿用当前项目已经启用的入门说明模块。"
+            if existing_modules
+            else "任何项目都需要根入口、阅读路径和文档地图。"
+        ),
+        "02-user-guide": (
+            "检测到现有顶层目录，沿用当前项目已经启用的用户指南模块。"
+            if existing_modules
+            else "检测到最终用户、CLI 使用路径或文档站点阅读场景，需要保留用户指南。"
+            if user_guide_state == "required"
+            else "未检测到面向最终用户或操作者的稳定使用面，可省略用户指南。"
+        ),
+        "03-developer-guide": (
+            "检测到现有顶层目录，沿用当前项目已经启用的开发者指南模块。"
+            if existing_modules
+            else "检测到公共 API、SDK、插件扩展点或稳定二次开发面，需要保留开发者指南。"
+            if developer_guide_state == "required"
+            else "未检测到稳定二次开发、SDK、插件或公共集成面，可省略开发者指南。"
+        ),
+        "04-project-development": (
+            "检测到现有顶层目录，沿用当前项目已经启用的内部项目文档模块。"
+            if existing_modules
+            else "软件项目的需求、设计、测试、发布和追踪过程文档统一落在内部模块中。"
+        ),
+    }
+    profile["source"] = "auto-detect"
+    profile["detected_at"] = datetime.utcnow().isoformat() + "Z"
+    return normalize_docs_profile(profile)
+
+
+def resolve_project_docs_profile(project_root: Path, *, project_name: str = "", idea: str = "", stack: str = "") -> dict:
+    config_path = project_config_path(project_root)
+    if config_path.exists():
+        try:
+            config = normalize_project_config(json.loads(config_path.read_text(encoding="utf-8")))
+        except Exception:
+            config = {}
+        raw_profile = config.get("docs_profile")
+        if raw_profile:
+            return normalize_docs_profile(raw_profile)
+        return detect_docs_profile(
+            project_root,
+            project_name=project_name or str(config.get("project_name", "")).strip(),
+            idea=idea or str(config.get("idea", "")).strip(),
+            stack=stack or str(config.get("stack", "")).strip(),
+        )
+    return detect_docs_profile(project_root, project_name=project_name, idea=idea, stack=stack)
+LEGACY_DOCS_FILE_MAP = {
+    "README.md": "01-getting-started/project-overview.md",
+    "08-handover/historical-project-prompt-templates.md": "02-user-guide/prompt-templates.md",
+}
+MODERN_DOCS_BOOTSTRAP_PAGES = {
+    "01-getting-started/project-overview.md": textwrap.dedent(
+        """
+        # 项目概览
+
+        ## 1. 文档用途
+
+        用于说明项目定位、适用范围、目标读者、核心能力和推荐阅读顺序。
+
+        ## 2. 建议填写内容
+
+        - 项目名称、定位和一句话目标
+        - 面向的用户或团队
+        - 当前阶段和主要交付边界
+        - 相关系统、仓库或运行环境
+
+        ## 3. 推荐正文结构
+
+        ### 3.1 项目定位
+
+        说明项目解决什么问题、不解决什么问题，以及与其他系统的边界。
+
+        ### 3.2 主要读者
+
+        列出最终用户、协作者、开发者、运维或管理者各自应该从哪里开始阅读。
+
+        ### 3.3 推荐阅读顺序
+
+        用 3 到 5 条链接给出最常见的阅读路径。
+
+        ## 4. 变更记录
+
+        | 日期 | 变更内容 | 变更人 |
+        |---|---|---|
+        | YYYY-MM-DD | 初始化模板 | 文档管理员 |
+        """
+    ).strip()
+    + "\n",
+    "01-getting-started/quick-start.md": textwrap.dedent(
+        """
+        # 快速开始
+
+        ## 1. 适用对象
+
+        说明首次接触项目的读者应该先完成哪些最小动作。
+
+        ## 2. 最小启动步骤
+
+        1. 获取仓库或部署环境访问权限。
+        2. 阅读入门说明和当前阶段文档。
+        3. 准备本地工具链或运行环境。
+        4. 执行最小验证动作并确认结果。
+
+        ## 3. 常用命令
+
+        用代码块列出最常用的 3 到 8 条命令，并说明用途。
+
+        ## 4. 常见入口
+
+        - 正式文档入口
+        - 核心脚本入口
+        - 对话或自动化入口
+        """
+    ).strip()
+    + "\n",
+    "01-getting-started/document-map.md": textwrap.dedent(
+        """
+        # 文档地图
+
+        ## 1. 四大模块
+
+        逐项说明“入门说明、用户指南、开发者指南、项目开发文档（内）”分别服务谁、解决什么问题。
+
+        ## 2. 阅读建议
+
+        - 第一次接触项目：先看入门说明
+        - 需要使用系统：看用户指南
+        - 需要开发或集成：看开发者指南
+        - 需要参与需求、设计、测试、发布和运维：看项目开发文档（内）
+
+        ## 3. 内部模块说明
+
+        对 `项目开发文档（内）` 下的治理、调研、需求、设计、过程、测试、发布、运维、演进、追踪矩阵给出一句话解释。
+        """
+    ).strip()
+    + "\n",
+    "02-user-guide/user-guide.md": textwrap.dedent(
+        """
+        # 用户指南
+
+        ## 1. 读者范围
+
+        面向最终用户、日常协作者和项目使用者，回答“怎么完成常见任务”。
+
+        ## 2. 建议正文结构
+
+        ### 2.1 产品或系统简介
+
+        用业务语言说明系统能做什么、适合谁、有哪些前提。
+
+        ### 2.2 典型任务
+
+        按任务而不是按菜单组织，例如“创建项目”“处理需求变更”“完成发布前检查”。
+
+        ### 2.3 常见问题
+
+        收纳高频错误、限制条件和处理方式。
+
+        ## 3. 关联文档
+
+        - [安装说明](./installation.md)
+        - [配置说明](./configuration.md)
+        - [使用说明](./usage.md)
+        """
+    ).strip()
+    + "\n",
+    "02-user-guide/installation.md": textwrap.dedent(
+        """
+        # 安装说明
+
+        ## 1. 前置条件
+
+        列出系统版本、依赖工具、权限、网络或账号要求。
+
+        ## 2. 安装步骤
+
+        1. 获取代码、安装包或访问入口。
+        2. 安装依赖和运行时。
+        3. 初始化必要配置。
+        4. 执行安装校验。
+
+        ## 3. 安装校验
+
+        明确“安装成功”的判断标准，例如命令输出、服务状态、页面可访问性或测试通过。
+
+        ## 4. 常见安装失败
+
+        用表格列出问题现象、可能原因和处理方式。
+        """
+    ).strip()
+    + "\n",
+    "02-user-guide/configuration.md": textwrap.dedent(
+        """
+        # 配置说明
+
+        ## 1. 配置范围
+
+        说明哪些配置属于环境级、项目级、用户级，以及哪些配置不能随意改动。
+
+        ## 2. 关键配置项
+
+        建议用表格列出配置名、说明、默认值、是否必填、变更风险和关联文档。
+
+        ## 3. 环境差异
+
+        分别说明本地、测试、预发、生产等环境的差异规则。
+
+        ## 4. 配置变更要求
+
+        指明需要同步更新哪些文档、审批点、发布说明或回滚信息。
+        """
+    ).strip()
+    + "\n",
+    "02-user-guide/usage.md": textwrap.dedent(
+        """
+        # 使用说明
+
+        ## 1. 核心任务清单
+
+        列出用户最常见的 3 到 7 个任务。
+
+        ## 2. 每个任务的标准写法
+
+        - 目标
+        - 前置条件
+        - 操作步骤
+        - 成功判断
+        - 常见异常与处理
+
+        ## 3. 升级与兼容提醒
+
+        如果功能、接口、权限或配置有版本差异，应单独标明。
+        """
+    ).strip()
+    + "\n",
+    "03-developer-guide/01-concepts/01-system-map.md": textwrap.dedent(
+        """
+        # 1.1 系统地图与术语
+
+        ## 1. 系统地图
+
+        概述宿主、模块、CLI、调试链路和交付产物之间的关系。
+
+        ## 2. 关键术语
+
+        列出模块、任务、工作流、DevLink、ATM 等术语和统一口径。
+
+        ## 3. 阅读提示
+
+        初次接手时先统一术语，再进入结构、开发和调试章节。
+        """
+    ).strip()
+    + "\n",
+    "03-developer-guide/01-concepts/02-real-constraints.md": textwrap.dedent(
+        """
+        # 1.2 当前真实约束
+
+        ## 1. 环境与依赖约束
+
+        说明语言版本、宿主能力、外部依赖和不能跳过的运行前提。
+
+        ## 2. 契约约束
+
+        说明 `module.yaml`、入口文件、命令约定和兼容边界。
+
+        ## 3. 交付约束
+
+        说明调试、打包、验收和发布时必须满足的最小要求。
+        """
+    ).strip()
+    + "\n",
+    "03-developer-guide/02-quickstart/01-environment-setup.md": textwrap.dedent(
+        """
+        # 2.1 开发前准备
+
+        ## 1. 工具链准备
+
+        说明本地开发需要的语言版本、工具链、依赖和初始化动作。
+
+        ## 2. 推荐校验
+
+        用命令或步骤说明如何确认环境可用，例如 CLI help、最小 smoke 或单元测试。
+
+        ## 3. 常见问题
+
+        说明高频环境问题、依赖冲突、权限问题和本地恢复方式。
+        """
+    ).strip()
+    + "\n",
+    "03-developer-guide/02-quickstart/02-create-first-module.md": textwrap.dedent(
+        """
+        # 2.2 创建第一个模块
+
+        ## 1. 初始化路径
+
+        说明推荐脚手架命令、目录约定和首次创建后的必要检查。
+
+        ## 2. 最小骨架
+
+        说明任务、工作流、UI 和清单文件的最小可运行组合。
+
+        ## 3. 首次验证
+
+        给出最小运行、调试和打包验收路径。
+        """
+    ).strip()
+    + "\n",
+    "03-developer-guide/03-project-structure/01-layout-and-entrypoints.md": textwrap.dedent(
+        """
+        # 3.1 目录结构与入口
+
+        ## 1. 目录布局
+
+        说明源码、资源、测试、打包和文档目录的职责边界。
+
+        ## 2. 运行入口
+
+        说明宿主加载入口、任务入口和工作流入口的定位方式。
+
+        ## 3. 禁止事项
+
+        说明不允许耦合、绕过清单或直接依赖宿主私有实现的场景。
+        """
+    ).strip()
+    + "\n",
+    "03-developer-guide/03-project-structure/02-module-manifest.md": textwrap.dedent(
+        """
+        # 3.2 `module.yaml` 清单契约
+
+        ## 1. 契约目标
+
+        说明 `module.yaml` 是模块元数据、能力声明和加载约束的事实源。
+
+        ## 2. 必填字段
+
+        说明模块标识、版本、入口、命令、依赖和兼容范围。
+
+        ## 3. 变更要求
+
+        契约字段变化时，同步更新代码、调试说明、验收说明和发布信息。
+        """
+    ).strip()
+    + "\n",
+    "03-developer-guide/04-development/01-taskscript.md": textwrap.dedent(
+        """
+        # 4.1 编写 TaskScript
+
+        ## 1. 适用范围
+
+        说明哪些自动化任务适合用 TaskScript 实现，哪些应抽离为公共能力。
+
+        ## 2. 建议正文结构
+
+        说明输入、执行步骤、错误处理、日志输出和可观测性要求。
+
+        ## 3. 测试要求
+
+        说明最小单测、集成验证和失败回放方式。
+        """
+    ).strip()
+    + "\n",
+    "03-developer-guide/04-development/02-workflow.md": textwrap.dedent(
+        """
+        # 4.2 编写 Workflow
+
+        ## 1. 目标与边界
+
+        说明工作流负责的编排职责，以及与 TaskScript 的分工。
+
+        ## 2. 关键要素
+
+        说明状态流转、节点编排、输入输出契约和异常分支。
+
+        ## 3. 验证方式
+
+        说明最小 happy path、失败分支和回归检查方法。
+        """
+    ).strip()
+    + "\n",
+    "03-developer-guide/04-development/03-cli-and-ui.md": textwrap.dedent(
+        """
+        # 4.3 CLI 命令与 UI 配置
+
+        ## 1. 暴露面设计
+
+        说明命令入口、参数设计、UI 配置和用户可见行为的一致性要求。
+
+        ## 2. 兼容策略
+
+        说明新增命令、参数变更、默认值变化和弃用策略。
+
+        ## 3. 验收建议
+
+        说明 help、最小交互路径和截图或录屏等验证要求。
+        """
+    ).strip()
+    + "\n",
+    "03-developer-guide/04-development/04-core-capabilities.md": textwrap.dedent(
+        """
+        # 4.4 Core 提供的能力清单
+
+        ## 1. 可复用能力
+
+        列出宿主已经提供的运行时、配置、日志、存储和调试能力。
+
+        ## 2. 接入方式
+
+        说明推荐调用方式、依赖边界和禁止复制粘贴实现的场景。
+
+        ## 3. 扩展原则
+
+        缺少能力时先补齐公共能力，再决定是否在模块内局部实现。
+        """
+    ).strip()
+    + "\n",
+    "03-developer-guide/05-debugging/01-devlink-and-debug.md": textwrap.dedent(
+        """
+        # 5.1 DevLink 与真实调试链路
+
+        ## 1. 调试入口
+
+        说明 DevLink、本地联调和真实环境验证的使用顺序。
+
+        ## 2. 证据要求
+
+        说明日志、截图、输出产物和异常定位所需的最小证据。
+
+        ## 3. 常见偏差
+
+        说明开发态与打包态、联调态与正式安装态之间的差异。
+        """
+    ).strip()
+    + "\n",
+    "03-developer-guide/06-delivery/01-zip-installation.md": textwrap.dedent(
+        """
+        # 6.1 zip 打包与正式安装
+
+        ## 1. 打包产物
+
+        说明交付包结构、版本信息、依赖约束和命名规则。
+
+        ## 2. 安装验证
+
+        说明安装后的入口、命令、页面或任务如何确认可用。
+
+        ## 3. 升级与回滚
+
+        说明升级兼容、回滚策略和旧文件清理注意项。
+        """
+    ).strip()
+    + "\n",
+    "03-developer-guide/06-delivery/02-acceptance-checklist.md": textwrap.dedent(
+        """
+        # 6.2 最小验收清单
+
+        ## 1. 功能验收
+
+        列出必须成功的核心流程和关键异常分支。
+
+        ## 2. 文档验收
+
+        列出需要同步完成的用户说明、开发说明和发布说明。
+
+        ## 3. 交付结论
+
+        明确通过条件、阻塞项和遗留风险登记方式。
+        """
+    ).strip()
+    + "\n",
+    "03-developer-guide/07-troubleshooting/01-common-pitfalls.md": textwrap.dedent(
+        """
+        # 7.1 常见问题与坑位
+
+        ## 1. 高发问题
+
+        汇总环境、契约、调试、安装和兼容问题的典型症状。
+
+        ## 2. 排查顺序
+
+        说明先查入口、再查契约、再查依赖和运行时状态的建议路径。
+
+        ## 3. 升级条件
+
+        当问题无法通过模块内修复解决时，明确何时回到 Core 或内部设计文档处理。
+        """
+    ).strip()
+    + "\n",
+    "04-project-development/04-design/backend-design.md": textwrap.dedent(
+        """
+        # 后端设计文档
+
+        ## 1. 文档目标
+
+        说明服务分层、模块职责、任务执行、状态流转和错误处理策略。
+
+        ## 2. 建议正文结构
+
+        ### 2.1 分层设计
+
+        描述控制层、服务层、仓储层、执行器、任务或工作流的职责分工。
+
+        ### 2.2 核心流程
+
+        按关键业务流程说明输入、处理、状态变化和输出。
+
+        ### 2.3 依赖与风险
+
+        说明外部依赖、降级策略、超时重试和可观测性要求。
+        """
+    ).strip()
+    + "\n",
+    "04-project-development/04-design/database-design.md": textwrap.dedent(
+        """
+        # 数据库设计文档
+
+        ## 1. 文档目标
+
+        说明实体、关系、索引、约束、迁移和数据生命周期。
+
+        ## 2. 建议正文结构
+
+        - 核心实体和字段说明
+        - 关系与数据所有权
+        - 索引与性能考虑
+        - 迁移、回填和回滚策略
+        - 数据保留、归档和删除规则
+        """
+    ).strip()
+    + "\n",
+    "04-project-development/04-design/deployment-architecture.md": textwrap.dedent(
+        """
+        # 部署与 CI/CD 设计
+
+        ## 1. 文档目标
+
+        说明环境拓扑、构建发布链路、门禁、回滚和职责边界。
+
+        ## 2. 建议正文结构
+
+        - 环境分层与网络边界
+        - 构建产物与发布步骤
+        - CI/CD 触发条件和检查点
+        - 发布审批、回滚和应急处理
+        - 日志、监控和审计要求
+        """
+    ).strip()
+    + "\n",
+    "04-project-development/04-design/ux-ui-design.md": textwrap.dedent(
+        """
+        # UX/UI 设计文档
+
+        ## 1. 文档目标
+
+        说明用户角色、任务路径、关键页面、组件状态和可生产化界面要求。
+
+        ## 2. 建议正文结构
+
+        - 用户角色与场景
+        - 关键旅程与页面流
+        - 页面状态与交互反馈
+        - 视觉规范、可访问性和响应式要求
+        - 设计稿、原型或静态资源引用
+        """
+    ).strip()
+    + "\n",
+    "04-project-development/05-development-process/software-development-process.md": textwrap.dedent(
+        """
+        # 软件开发流程
+
+        ## 1. 流程目标
+
+        说明需求、设计、开发、测试、发布、运维和复盘在当前项目中的正式推进顺序。
+
+        ## 2. 推荐流程
+
+        1. 调研与问题澄清
+        2. 需求确认与验收标准固化
+        3. 设计和接口约束成文
+        4. 任务拆解与开发实施
+        5. 测试与验证
+        6. 发布与交付
+        7. 运维与维护
+        8. 复盘与演进
+
+        ## 3. 每阶段至少写清楚
+
+        - 输入文档
+        - 输出文档
+        - 准入准出条件
+        - 主要责任人
+        - 变更触发和回写要求
+        """
+    ).strip()
+    + "\n",
+    "04-project-development/06-testing-verification/test-plan.md": textwrap.dedent(
+        """
+        # 测试计划
+
+        ## 1. 文档目标
+
+        说明测试范围、层次、责任、风险重点和准入准出标准。
+
+        ## 2. 建议正文结构
+
+        - 范围与不测范围
+        - 单元、集成、端到端和回归策略
+        - 环境、数据和依赖
+        - 风险重点和优先级
+        - 发布前质量门槛
+        """
+    ).strip()
+    + "\n",
+    "04-project-development/06-testing-verification/test-report.md": textwrap.dedent(
+        """
+        # 测试报告
+
+        ## 1. 文档目标
+
+        汇总已执行测试、失败项、风险残留和是否具备发布条件。
+
+        ## 2. 建议正文结构
+
+        - 测试批次和执行范围
+        - 通过率与失败项
+        - 高风险缺陷和处理状态
+        - 回归结果
+        - 发布建议结论
+        """
+    ).strip()
+    + "\n",
+    "04-project-development/07-release-delivery/release-notes.md": textwrap.dedent(
+        """
+        # 发布说明
+
+        ## 1. 文档目标
+
+        汇总本次发布的新增能力、修复项、影响范围、升级说明和已知问题。
+
+        ## 2. 建议正文结构
+
+        - 发布版本和发布日期
+        - 主要变更
+        - 受影响模块或接口
+        - 升级与兼容提醒
+        - 已知问题和回滚入口
+        """
+    ).strip()
+    + "\n",
+    "04-project-development/08-operations-maintenance/deployment-guide.md": textwrap.dedent(
+        """
+        # 部署手册
+
+        ## 1. 文档目标
+
+        说明环境前提、部署步骤、验证方式和失败回滚方法。
+
+        ## 2. 建议正文结构
+
+        - 前置条件和权限要求
+        - 构建与部署步骤
+        - 部署后验证
+        - 回滚路径
+        - 常见故障排查
+        """
+    ).strip()
+    + "\n",
+    "04-project-development/08-operations-maintenance/operations-runbook.md": textwrap.dedent(
+        """
+        # 运维手册
+
+        ## 1. 文档目标
+
+        说明启停、巡检、监控、异常处理和升级路径。
+
+        ## 2. 建议正文结构
+
+        - 日常巡检项
+        - 监控与告警
+        - 典型故障处理流程
+        - 升级、恢复和应急联系人
+        - 责任边界和升级路径
+        """
+    ).strip()
+    + "\n",
+    "04-project-development/09-evolution/skill-evolution-plan.md": textwrap.dedent(
+        """
+        # Skill 进化方案
+
+        ## 1. 文档目标
+
+        说明 skill 从生成、检查、修复到自进化的阶段目标和验收标准。
+
+        ## 2. 建议正文结构
+
+        - 当前痛点和目标能力
+        - 生成类、检查类、修复类能力拆分
+        - 依赖数据、追踪矩阵和反馈闭环
+        - 验收标准和下一轮里程碑
+        """
+    ).strip()
+    + "\n",
+    "04-project-development/10-traceability/interface-matrix.md": textwrap.dedent(
+        """
+        # 接口追踪矩阵
+
+        ## 1. 文档目标
+
+        把接口与需求、模块、提供方、消费方、版本和测试覆盖关系对应起来。
+
+        ## 2. 建议字段
+
+        | 接口编号 | 类型 | 提供方 | 消费方 | 关联需求 | 契约文件 | 版本策略 | 测试覆盖 | 负责人 |
+        |---|---|---|---|---|---|---|---|---|
+        | API-001 | 外部 REST | 待补充 | 待补充 | REQ-001 | openapi.yaml | 待补充 | TC-001 | 待补充 |
+        """
+    ).strip()
+    + "\n",
+    "04-project-development/10-traceability/document-index.md": textwrap.dedent(
+        """
+        # 文档索引
+
+        ## 1. 文档目标
+
+        集中登记项目正式文档、负责人、状态、主要读者和关联追踪 ID。
+
+        ## 2. 建议字段
+
+        | 文档路径 | 文档类型 | 主要读者 | 负责人 | 状态 | 关联编号 |
+        |---|---|---|---|---|---|
+        | `docs/04-project-development/03-requirements/prd.md` | 需求文档 | 产品、研发、测试 | 待补充 | 草稿 | REQ-* |
+        """
+    ).strip()
+    + "\n",
+}
+
+
+def normalize_posix_relative(value: str) -> str:
+    parts: list[str] = []
+    for part in PurePosixPath(value.replace("\\", "/")).parts:
+        if part in {"", "."}:
+            continue
+        if part == "..":
+            if parts and parts[-1] != "..":
+                parts.pop()
+            else:
+                parts.append(part)
+            continue
+        parts.append(part)
+    return "/".join(parts)
+
+
+def canonical_docs_relative_path(relative_path: str) -> str:
+    relative = normalize_posix_relative(relative_path.strip())
+    if relative.startswith("docs/"):
+        relative = relative[5:]
+    if relative in LEGACY_DOCS_FILE_MAP:
+        return LEGACY_DOCS_FILE_MAP[relative]
+    for old_prefix, new_prefix in LEGACY_DOCS_DIRECTORY_MAP.items():
+        if relative == old_prefix:
+            return new_prefix
+        if relative.startswith(f"{old_prefix}/"):
+            suffix = relative[len(old_prefix) + 1 :]
+            return f"{new_prefix}/{suffix}"
+    return relative
+
+
+def legacy_docs_relative_path(relative_path: str) -> str:
+    relative = normalize_posix_relative(relative_path.strip())
+    reverse_file_map = {new: old for old, new in LEGACY_DOCS_FILE_MAP.items()}
+    if relative in reverse_file_map:
+        return reverse_file_map[relative]
+    reverse_dir_map = {new: old for old, new in LEGACY_DOCS_DIRECTORY_MAP.items()}
+    for new_prefix, old_prefix in reverse_dir_map.items():
+        if relative == new_prefix:
+            return old_prefix
+        if relative.startswith(f"{new_prefix}/"):
+            suffix = relative[len(new_prefix) + 1 :]
+            return f"{old_prefix}/{suffix}"
+    return relative
+
+
+def canonical_docs_reference(value: str) -> str:
+    raw = value.strip().replace("\\", "/")
+    if not raw:
+        return raw
+    candidate = raw[5:] if raw.startswith("docs/") else raw
+    top_level = candidate.split("/", 1)[0]
+    if raw.startswith("docs/") or candidate in LEGACY_DOCS_FILE_MAP or top_level in LEGACY_DOCS_DIRECTORY_MAP or top_level in DOCS_STRATEGO_TOP_LEVEL_ORDER:
+        return f"docs/{canonical_docs_relative_path(candidate)}"
+    return raw
+
+
+def canonical_docs_project_path(project_root: Path, relative_path: str) -> Path:
+    relative = canonical_docs_reference(relative_path)
+    if relative.startswith("docs/"):
+        return project_root / relative
+    return project_root / "docs" / canonical_docs_relative_path(relative)
+
+
+def relative_path_from_doc(current_doc_relative: str, target_relative: str) -> str:
+    current_parts = normalize_posix_relative(current_doc_relative).split("/")
+    target_parts = normalize_posix_relative(target_relative).split("/")
+    current_parent = current_parts[:-1]
+    common = 0
+    max_common = min(len(current_parent), len(target_parts))
+    while common < max_common and current_parent[common] == target_parts[common]:
+        common += 1
+    upward = [".."] * (len(current_parent) - common)
+    downward = target_parts[common:]
+    result = "/".join([*upward, *downward])
+    return result or Path(target_relative).name
+
+
+def rewrite_markdown_doc_links(text: str, *, old_current_relative: str, new_current_relative: str) -> str:
+    old_parent = normalize_posix_relative(str(PurePosixPath(old_current_relative).parent))
+
+    def replace(match: re.Match[str]) -> str:
+        target = match.group("target").strip()
+        if not target or target.startswith("#"):
+            return match.group(0)
+        if any(target.startswith(prefix) for prefix in ("http://", "https://", "mailto:", "tel:", "data:", "file://")):
+            return match.group(0)
+
+        target_path, hash_mark, anchor = target.partition("#")
+        raw_target = target_path.strip()
+        if not raw_target:
+            return match.group(0)
+
+        if raw_target.startswith("docs/"):
+            old_target_relative = normalize_posix_relative(raw_target[5:])
+        else:
+            old_target_relative = normalize_posix_relative(f"{old_parent}/{raw_target}" if old_parent else raw_target)
+            if old_target_relative.startswith(".."):
+                return match.group(0)
+
+        new_target_relative = canonical_docs_relative_path(old_target_relative)
+        if new_target_relative == old_target_relative:
+            return match.group(0)
+
+        rewritten_target = relative_path_from_doc(new_current_relative, new_target_relative)
+        if hash_mark:
+            rewritten_target = f"{rewritten_target}#{anchor}"
+        return f"{match.group('prefix')}{rewritten_target}{match.group('suffix')}"
+
+    return MARKDOWN_LINK_PATTERN.sub(replace, text)
+
+
+def update_publication_policy_for_modern_docs(project_root: Path, docs_profile: dict | None = None) -> None:
+    path = project_root / "docs" / "publication-policy.json"
+    if path.exists():
+        payload = json.loads(path.read_text(encoding="utf-8"))
+    else:
+        payload = {}
+    profile = normalize_docs_profile(docs_profile or resolve_project_docs_profile(project_root))
+    docs_root = project_root / "docs"
+    public_include = [
+        canonical_docs_reference(item)
+        for item in payload.get("public_include", [])
+        if isinstance(item, str)
+    ]
+    private_include = [
+        canonical_docs_reference(item)
+        for item in payload.get("private_include", [])
+        if isinstance(item, str)
+    ]
+    managed_public_patterns = {f"docs/{module_key}/**" for module_key in DOCS_STRATEGO_TOP_LEVEL_ORDER}
+    public_include = [item for item in public_include if item not in managed_public_patterns]
+    if "docs/index.md" not in public_include:
+        public_include.insert(0, "docs/index.md")
+    for module_key in docs_profile_enabled_top_levels(profile, docs_root):
+        if module_key == "04-project-development":
+            continue
+        item = f"docs/{module_key}/**"
+        if item not in public_include:
+            public_include.append(item)
+    if "docs/**" not in private_include:
+        private_include.insert(0, "docs/**")
+    if ".factory/memory/**" not in private_include:
+        private_include.append(".factory/memory/**")
+    write_text(path, json.dumps({"public_include": public_include, "private_include": private_include}, ensure_ascii=False, indent=2))
+
+
+def docs_structure_migration_needed(project_root: Path) -> bool:
+    docs_root = project_root / "docs"
+    if not docs_root.exists():
+        return False
+    legacy_roots = [docs_root / "README.md", *(docs_root / item for item in LEGACY_DOCS_DIRECTORY_MAP)]
+    return any(path.exists() for path in legacy_roots)
+
+
+def migrate_docs_structure(project_root: Path, project_name: str, *, force: bool = False) -> dict[str, list[str]]:
+    docs_root = project_root / "docs"
+    if not docs_root.exists():
+        raise RuntimeError("缺少 `docs/` 目录，无法迁移文档结构。")
+
+    docs_profile = resolve_project_docs_profile(project_root, project_name=project_name)
+
+    for relative_dir in DOCS_STRATEGO_DIRECTORY_SPECS:
+        if not docs_relative_path_enabled(relative_dir, docs_profile, docs_root):
+            continue
+        (docs_root / relative_dir).mkdir(parents=True, exist_ok=True)
+
+    moved: list[str] = []
+    created: list[str] = []
+    updated: list[str] = []
+    removed: list[str] = []
+    markdown_origins: dict[str, str] = {}
+
+    for path in sorted((item for item in docs_root.rglob("*") if item.is_file()), key=lambda item: item.as_posix()):
+        relative = path.relative_to(docs_root).as_posix()
+        if relative == "index.md" or relative.endswith("/index.md"):
+            continue
+        target_relative = canonical_docs_relative_path(relative)
+        if target_relative == relative:
+            if path.suffix.lower() == ".md":
+                markdown_origins.setdefault(relative, relative)
+            continue
+
+        target = docs_root / target_relative
+        if target.exists():
+            same_content = target.is_file() and target.read_bytes() == path.read_bytes()
+            if same_content:
+                path.unlink()
+                removed.append(f"docs/{relative}")
+            elif not force:
+                raise RuntimeError(f"迁移目标已存在且内容不同：docs/{target_relative}。若确认覆盖请加 --force。")
+            else:
+                target.unlink()
+                target.parent.mkdir(parents=True, exist_ok=True)
+                shutil.move(str(path), str(target))
+                updated.append(f"docs/{target_relative}")
+        else:
+            target.parent.mkdir(parents=True, exist_ok=True)
+            shutil.move(str(path), str(target))
+            moved.append(f"docs/{relative} -> docs/{target_relative}")
+
+        if path.suffix.lower() == ".md":
+            markdown_origins[target_relative] = relative
+
+    for path in sorted((item for item in docs_root.rglob("index.md") if item.is_file()), key=lambda item: item.as_posix(), reverse=True):
+        relative = path.relative_to(docs_root).as_posix()
+        if relative == "index.md":
+            continue
+        legacy_relative = legacy_docs_relative_path(relative)
+        if canonical_docs_relative_path(legacy_relative) != legacy_relative and path.exists():
+            path.unlink()
+            removed.append(f"docs/{relative}")
+
+    for relative, content in MODERN_DOCS_BOOTSTRAP_PAGES.items():
+        if not docs_relative_path_enabled(relative, docs_profile, docs_root):
+            continue
+        path = docs_root / relative
+        if path.exists():
+            markdown_origins.setdefault(relative, legacy_docs_relative_path(relative))
+            continue
+        write_text(path, content)
+        created.append(f"docs/{relative}")
+        markdown_origins[relative] = relative
+
+    for path in sorted((item for item in docs_root.rglob("*.md") if item.is_file()), key=lambda item: item.as_posix()):
+        relative = path.relative_to(docs_root).as_posix()
+        if relative == "index.md" or relative.endswith("/index.md"):
+            continue
+        original = markdown_origins.get(relative, legacy_docs_relative_path(relative))
+        current = path.read_text(encoding="utf-8")
+        rewritten = rewrite_markdown_doc_links(current, old_current_relative=original, new_current_relative=relative)
+        if rewritten != current:
+            path.write_text(rewritten, encoding="utf-8")
+            if f"docs/{relative}" not in created:
+                updated.append(f"docs/{relative}")
+
+    for directory in sorted((item for item in docs_root.rglob("*") if item.is_dir()), key=lambda item: len(item.parts), reverse=True):
+        if directory == docs_root:
+            continue
+        if not any(directory.iterdir()):
+            directory.rmdir()
+
+    update_publication_policy_for_modern_docs(project_root, docs_profile)
+    updated.extend(path for path in write_docs_stratego_indexes(project_root, project_name) if path not in created)
+
+    return {
+        "moved": sorted(set(moved)),
+        "created": sorted(set(created)),
+        "updated": sorted(set(updated)),
+        "removed": sorted(set(removed)),
+    }
+
+
+def docs_stratego_directory_spec(relative_dir: str) -> dict | None:
+    return DOCS_STRATEGO_DIRECTORY_SPECS.get(relative_dir)
+
+
+def docs_stratego_top_level_spec(relative_dir: str) -> dict | None:
+    top_level = relative_dir.split("/", 1)[0] if relative_dir else ""
+    return DOCS_STRATEGO_DIRECTORY_SPECS.get(top_level)
+
+
+def strip_markdown_front_matter(markdown_text: str) -> str:
+    if not markdown_text.startswith("---\n"):
+        return markdown_text
+    marker = "\n---\n"
+    end_index = markdown_text.find(marker, 4)
+    if end_index == -1:
+        return markdown_text
+    return markdown_text[end_index + len(marker) :]
+
+
+def markdown_h1_title(path: Path) -> str:
+    body = strip_markdown_front_matter(path.read_text(encoding="utf-8", errors="ignore"))
+    for raw in body.splitlines():
+        line = raw.strip()
+        if line.startswith("# "):
+            return line[2:].strip()
+    stem = path.stem.replace("-", " ").replace("_", " ").strip()
+    return stem or path.name
+
+
+def fallback_directory_title(name: str) -> str:
+    if name in DOCS_STRATEGO_DIRECTORY_TITLE_OVERRIDES:
+        return DOCS_STRATEGO_DIRECTORY_TITLE_OVERRIDES[name]
+    text = name.replace("-", " ").replace("_", " ").strip()
+    return text or name
+
+
+def docs_stratego_directory_title(relative_dir: str, project_name: str) -> str:
+    if not relative_dir:
+        return project_name
+    spec = docs_stratego_directory_spec(relative_dir)
+    if spec:
+        return spec["title"]
+    return fallback_directory_title(Path(relative_dir).name)
+
+
+def docs_stratego_page_access(relative_path: str) -> str:
+    child = Path(relative_path).parts[0] if relative_path else ""
+    spec = DOCS_STRATEGO_DIRECTORY_SPECS.get(child)
+    return str(spec.get("root_access", "public")) if spec else "public"
+
+
+def docs_stratego_child_paths(directory: Path, project_root: Path, docs_profile: dict | None = None) -> list[Path]:
+    children: list[Path] = []
+    docs_root = project_root / "docs"
+    profile = normalize_docs_profile(docs_profile or resolve_project_docs_profile(project_root))
+    for child in directory.iterdir():
+        if child.name.startswith(".") or child.name == "index.md" or child.name == "assets":
+            continue
+        if directory == docs_root and not docs_profile_module_enabled(profile, child.name, docs_root):
+            continue
+        if child.is_dir() or (child.is_file() and child.suffix.lower() == ".md"):
+            children.append(child)
+    return children
+
+
+def docs_stratego_ordered_children(directory: Path, relative_dir: str, project_root: Path, docs_profile: dict | None = None) -> list[Path]:
+    profile = normalize_docs_profile(docs_profile or resolve_project_docs_profile(project_root))
+    docs_root = project_root / "docs"
+    if not relative_dir:
+        preferred = docs_profile_enabled_top_levels(profile, docs_root)
+    else:
+        spec = docs_stratego_directory_spec(relative_dir)
+        preferred = list(spec.get("order", [])) if spec else []
+    order_map = {name: index for index, name in enumerate(preferred)}
+    return sorted(
+        docs_stratego_child_paths(directory, project_root, profile),
+        key=lambda child: (0 if child.name in order_map else 1, order_map.get(child.name, 999), child.name),
+    )
+
+
+def docs_stratego_nav_title(child: Path, docs_root: Path, project_name: str) -> str:
+    if child.is_dir():
+        relative_dir = child.relative_to(docs_root).as_posix()
+        return docs_stratego_directory_title(relative_dir, project_name)
+    return markdown_h1_title(child)
+
+
+def docs_stratego_directory_heading(title: str) -> str:
+    return title if title.endswith("概览") else f"{title}概览"
+
+
+def docs_stratego_recommendation_lines(project_root: Path, project_name: str, relative_dir: str) -> list[str]:
+    docs_root = project_root / "docs"
+    directory = docs_root / relative_dir
+    docs_profile = resolve_project_docs_profile(project_root, project_name=project_name)
+    ordered = [
+        docs_stratego_nav_title(child, docs_root, project_name)
+        for child in docs_stratego_ordered_children(directory, relative_dir, project_root, docs_profile)
+    ]
+    if not ordered:
+        return ["当前目录暂无子页面；后续补充内容时，继续保持仓内相对路径和目录命名一致。"]
+    return [
+        "建议阅读顺序：",
+        "",
+        *[f"{index}. {name}" for index, name in enumerate(ordered, start=1)],
+    ]
+
+
+def docs_stratego_directory_body(project_root: Path, relative_dir: str, title: str, project_name: str) -> list[str]:
+    if not relative_dir:
+        return [
+            f"这是 `{project_name}` 的正式项目文档源。AI 软件工厂在项目仓库内直接维护这些文档，`docs-stratego` 通过 Git 子模块或等价的仓级挂载方式聚合展示，但不反向改写源文档。",
+            "",
+            "## 维护规则",
+            "",
+            "- 只有根 `docs/index.md` 声明全站 `mkdocs.nav`、页面路径和页面权限。",
+            "- 子目录 `index.md` 只作为正文首页和资源权限锚点，不再承担导航声明职责。",
+            "- 页面、图片和附件跟随所属目录维护；资源文件放在当前目录或当前目录的 `assets/` 下。",
+            "- 仓内链接统一使用相对路径，不写机器绝对路径。",
+            "- 新增、删除或移动 Markdown 页面后，同步刷新根 `docs/index.md` 的目录树和子目录概览页。",
+        ]
+    spec = docs_stratego_directory_spec(relative_dir)
+    description = spec["description"] if spec else f"本目录收纳与“{title}”相关的页面和子目录。"
+    return [
+        description,
+        "",
+        *docs_stratego_recommendation_lines(project_root, project_name, relative_dir),
+    ]
+
+
+def docs_stratego_nav_nodes(directory: Path, docs_root: Path, project_name: str, relative_dir: str = "") -> list[dict]:
+    nodes: list[dict] = []
+    docs_profile = resolve_project_docs_profile(docs_root.parent, project_name=project_name)
+    for child in docs_stratego_ordered_children(directory, relative_dir, docs_root.parent, docs_profile):
+        child_relative = child.relative_to(docs_root).as_posix()
+        if child.is_dir():
+            nodes.append(
+                {
+                    "type": "directory",
+                    "title": docs_stratego_nav_title(child, docs_root, project_name),
+                    "children": [
+                        {
+                            "type": "page",
+                            "title": "概览",
+                            "path": f"{child_relative}/index.md",
+                            "access": docs_stratego_page_access(f"{child_relative}/index.md"),
+                        },
+                        *docs_stratego_nav_nodes(child, docs_root, project_name, child_relative),
+                    ],
+                }
+            )
+            continue
+        nodes.append(
+            {
+                "type": "page",
+                "title": docs_stratego_nav_title(child, docs_root, project_name),
+                "path": child_relative,
+                "access": docs_stratego_page_access(child_relative),
+            }
+        )
+    return nodes
+
+
+def append_docs_stratego_nav_lines(lines: list[str], nodes: list[dict], indent: int) -> None:
+    prefix = " " * indent
+    for node in nodes:
+        lines.append(f"{prefix}- title: {node['title']}")
+        if node["type"] == "directory":
+            lines.append(f"{prefix}  children:")
+            append_docs_stratego_nav_lines(lines, node["children"], indent + 4)
+            continue
+        lines.append(f"{prefix}  path: {node['path']}")
+        lines.append(f"{prefix}  access: {node['access']}")
+
+
+def render_docs_stratego_root_index(project_root: Path, project_name: str) -> str:
+    docs_root = project_root / "docs"
+    nav_nodes = docs_stratego_nav_nodes(docs_root, docs_root, project_name)
+    lines = [
+        "---",
+        f"title: {project_name}",
+        "mkdocs:",
+        "  home_access: public",
+        "  nav:",
+    ]
+    append_docs_stratego_nav_lines(lines, nav_nodes, 4)
+    lines.extend(
+        [
+            "---",
+            f"# {project_name}",
+            "",
+            *docs_stratego_directory_body(project_root, "", project_name, project_name),
+        ]
+    )
+    return "\n".join(lines).rstrip() + "\n"
+
+
+def render_docs_stratego_directory_index(project_root: Path, project_name: str, relative_dir: str) -> str:
+    title = docs_stratego_directory_title(relative_dir, project_name)
+    heading = docs_stratego_directory_heading(title)
+    lines = [
+        f"# {heading}",
+        "",
+        *docs_stratego_directory_body(project_root, relative_dir, title, project_name),
+    ]
+    return "\n".join(lines).rstrip() + "\n"
+
+
+def split_markdown_front_matter(text: str) -> tuple[str | None, str]:
+    lines = text.splitlines(keepends=True)
+    if not lines or lines[0].strip() != "---":
+        return None, text
+    for index in range(1, len(lines)):
+        if lines[index].strip() == "---":
+            return "".join(lines[: index + 1]), "".join(lines[index + 1 :])
+    return None, text
+
+
+def extract_docs_nav_access_map(text: str) -> dict[str, str | None]:
+    front_matter, _ = split_markdown_front_matter(text)
+    if not front_matter:
+        return {}
+
+    path_pattern = re.compile(r"^\s*path:\s*(.+?)\s*$")
+    access_pattern = re.compile(r"^\s*access:\s*(.+?)\s*$")
+    nav: dict[str, str | None] = {}
+    pending_path: str | None = None
+    for line in front_matter.splitlines():
+        path_match = path_pattern.match(line)
+        if path_match:
+            pending_path = path_match.group(1).strip()
+            nav.setdefault(pending_path, None)
+            continue
+        access_match = access_pattern.match(line)
+        if access_match and pending_path:
+            nav[pending_path] = access_match.group(1).strip()
+            pending_path = None
+    return nav
+
+
+def merge_docs_stratego_root_index(project_root: Path, project_name: str, existing_text: str | None = None) -> str:
+    generated = render_docs_stratego_root_index(project_root, project_name)
+    generated_front_matter, generated_body = split_markdown_front_matter(generated)
+    if not generated_front_matter or not existing_text:
+        return generated
+
+    _, existing_body = split_markdown_front_matter(existing_text)
+    preserved_body = existing_body.lstrip("\n")
+    if not preserved_body.strip():
+        preserved_body = generated_body.lstrip("\n")
+    return f"{generated_front_matter}\n{preserved_body.rstrip()}\n"
+
+
+def looks_like_generated_directory_index(text: str) -> bool:
+    stripped = text.strip()
+    if not stripped or stripped.startswith("---"):
+        return False
+    if "\n## " in text or "\n### " in text:
+        return False
+    first_nonempty = next((line.strip() for line in text.splitlines() if line.strip()), "")
+    if not first_nonempty.startswith("# "):
+        return False
+    return "本目录收纳" in text and "建议阅读顺序：" in text
+
+
+def should_rewrite_directory_index(path: Path) -> bool:
+    if not path.exists():
+        return True
+    text = path.read_text(encoding="utf-8", errors="ignore")
+    if not text.strip():
+        return True
+    return "mkdocs:" in text or looks_like_generated_directory_index(text)
+
+
+def docs_stratego_directories(project_root: Path, docs_profile: dict | None = None) -> list[str]:
+    docs_root = project_root / "docs"
+    directories: list[str] = []
+    if not docs_root.exists():
+        return directories
+    profile = normalize_docs_profile(docs_profile or resolve_project_docs_profile(project_root))
+    for directory in sorted(docs_root.rglob("*")):
+        if not directory.is_dir():
+            continue
+        relative_dir = directory.relative_to(docs_root)
+        if not relative_dir.parts:
+            continue
+        if "assets" in relative_dir.parts or any(part.startswith(".") for part in relative_dir.parts):
+            continue
+        if not docs_relative_path_enabled(relative_dir.as_posix(), profile, docs_root):
+            continue
+        directories.append(relative_dir.as_posix())
+    return directories
+
+
+def build_docs_stratego_indexes(project_root: Path, project_name: str) -> dict[str, str]:
+    docs_root = project_root / "docs"
+    if not docs_root.exists():
+        return {}
+    docs_profile = resolve_project_docs_profile(project_root, project_name=project_name)
+    outputs = {"docs/index.md": render_docs_stratego_root_index(project_root, project_name)}
+    for relative_dir in docs_stratego_directories(project_root, docs_profile):
+        outputs[f"docs/{relative_dir}/index.md"] = render_docs_stratego_directory_index(project_root, project_name, relative_dir)
+    return outputs
+
+
+def write_docs_stratego_indexes(project_root: Path, project_name: str) -> list[str]:
+    docs_root = project_root / "docs"
+    if not docs_root.exists():
+        return []
+
+    written: list[str] = []
+    docs_profile = resolve_project_docs_profile(project_root, project_name=project_name)
+    root_relative = "docs/index.md"
+    root_path = project_root / root_relative
+    existing_root = root_path.read_text(encoding="utf-8", errors="ignore") if root_path.exists() else None
+    merged_root = merge_docs_stratego_root_index(project_root, project_name, existing_root)
+    if existing_root != merged_root:
+        write_text(root_path, merged_root)
+        written.append(root_relative)
+
+    for relative_dir in docs_stratego_directories(project_root, docs_profile):
+        relative_path = f"docs/{relative_dir}/index.md"
+        path = project_root / relative_path
+        if not should_rewrite_directory_index(path):
+            continue
+        content = render_docs_stratego_directory_index(project_root, project_name, relative_dir)
+        existing = path.read_text(encoding="utf-8", errors="ignore") if path.exists() else None
+        if existing != content:
+            write_text(path, content)
+            written.append(relative_path)
+    return sorted(written)
+
+
+def docs_stratego_source_status(project_root: Path, project_name: str) -> tuple[str, list[str]]:
+    docs_root = project_root / "docs"
+    if not docs_root.exists():
+        return "缺失", ["- 缺少 `docs/` 目录，无法生成 docs-stratego 源文档。"]
+
+    findings: list[str] = []
+    docs_profile = resolve_project_docs_profile(project_root, project_name=project_name)
+    legacy_entries = ["docs/README.md", *(f"docs/{name}" for name in LEGACY_DOCS_DIRECTORY_MAP)]
+    for relative in legacy_entries:
+        if (project_root / relative).exists():
+            findings.append(f"- 检测到旧版 docs 结构入口：`{relative}`；请先执行 `factory-dispatch docs-migrate-structure --project <项目路径>`。")
+    for module_key in docs_profile_required_top_levels(docs_profile):
+        if not (docs_root / module_key).exists():
+            findings.append(f"- docs_profile 要求存在模块：`docs/{module_key}`，但当前目录缺失。")
+    for module_key in DOCS_STRATEGO_TOP_LEVEL_ORDER:
+        if docs_profile_module_state(docs_profile, module_key) == "omit" and (docs_root / module_key).exists():
+            findings.append(f"- docs_profile 将 `docs/{module_key}` 标记为 `omit`，但目录仍存在；请删除目录或调整 docs_profile。")
+    root_index_path = project_root / "docs" / "index.md"
+    if not root_index_path.exists():
+        findings.append("- 缺少 docs-stratego 根入口：`docs/index.md`。")
+    else:
+        root_text = root_index_path.read_text(encoding="utf-8", errors="ignore")
+        front_matter, _ = split_markdown_front_matter(root_text)
+        if not front_matter:
+            findings.append("- `docs/index.md` 缺少根 front matter，无法声明 `mkdocs.nav`。")
+        else:
+            expected_nav = extract_docs_nav_access_map(render_docs_stratego_root_index(project_root, project_name))
+            actual_nav = extract_docs_nav_access_map(root_text)
+            for required_path, required_access in expected_nav.items():
+                actual_access = actual_nav.get(required_path)
+                if actual_access is None:
+                    findings.append(f"- `docs/index.md` 缺少必需导航项：`{required_path}`。")
+                    continue
+                if required_access and actual_access != required_access:
+                    findings.append(
+                        f"- `docs/index.md` 中 `{required_path}` 的访问级别应为 `{required_access}`，当前为 `{actual_access}`。"
+                    )
+
+    for relative_dir in docs_stratego_directories(project_root, docs_profile):
+        relative_path = f"docs/{relative_dir}/index.md"
+        path = project_root / relative_path
+        if not path.exists():
+            findings.append(f"- 缺少 docs-stratego 目录入口：`{relative_path}`。")
+            continue
+        text = path.read_text(encoding="utf-8", errors="ignore")
+        if "mkdocs:" in text:
+            findings.append(f"- `{relative_path}` 不应声明 `mkdocs.nav`；目录导航只允许放在根 `docs/index.md`。")
+        if not re.search(r"(?m)^#\s+\S", text):
+            findings.append(f"- `{relative_path}` 缺少一级标题，无法作为目录概览页。")
+
+    for path in sorted(docs_root.rglob("*.md")):
+        relative = path.relative_to(project_root).as_posix()
+        if "assets" in path.parts:
+            findings.append(f"- `assets/` 目录下不应包含 Markdown：`{relative}`。")
+            continue
+        text = path.read_text(encoding="utf-8", errors="ignore")
+        if DOCS_MACHINE_PATH_PATTERN.search(text):
+            findings.append(f"- `{relative}` 含有机器绝对路径，请改为仓内相对路径。")
+
+    if findings:
+        return "异常", findings
+
+    lines = [
+        "- `docs/` 已提供可供 docs-stratego 聚合的文档入口；根 `docs/index.md` 负责全站目录树和页面权限，各子目录 `index.md` 保持为正文概览页。",
+        "- 当前文档内容未发现明显机器绝对路径污染。",
+    ]
+    return "就绪", lines
 
 
 def normalize_key(value: str) -> str:
@@ -639,7 +2707,7 @@ def role_document_reads(project_root: Path, config: dict, role_query: str | None
         ".factory/project.json",
         "AGENTS.md",
         "GEMINI.md",
-        "docs/03-solution/technical-selection.md",
+        "docs/04-project-development/04-design/technical-selection.md",
     ]
     if include_ai:
         ordered.extend(
@@ -747,7 +2815,7 @@ def role_recommended_commands(project_root: Path, config: dict, role_query: str 
                 dispatch_command(project_root, "prd-bootstrap", "--owner", owner),
                 dispatch_command(project_root, "requirements-verify", "--owner", owner),
                 dispatch_command(project_root, "motivation", "--role", role_id, "--owner", owner, "--focus", focus or "同步需求推进节奏"),
-                dispatch_command(project_root, "doc", "--doc", "docs/02-requirements/prd.md", "--summary", "补充需求细节"),
+                dispatch_command(project_root, "doc", "--doc", "docs/04-project-development/03-requirements/prd.md", "--summary", "补充需求细节"),
                 dispatch_command(project_root, "trace", "--source", "REQ-001", "--targets", "TASK-001,TC-001"),
             ]
         )
@@ -767,9 +2835,9 @@ def role_recommended_commands(project_root: Path, config: dict, role_query: str 
             [
                 dispatch_command(project_root, "assign", "--role", role_id, "--owner", owner),
                 dispatch_command(project_root, "design", "--owner", owner),
-                dispatch_command(project_root, "design-assets", "--title", "关键页面设计图", "--images", "/absolute/path/to/mockup.png", "--owner", owner),
+                dispatch_command(project_root, "design-assets", "--title", "关键页面设计图", "--images", "./docs/04-project-development/04-design/assets/mockup.png", "--owner", owner),
                 dispatch_command(project_root, "motivation", "--role", role_id, "--owner", owner, "--focus", focus or "保持设计协作动能"),
-                dispatch_command(project_root, "doc", "--doc", "docs/03-solution/ux-ui-design.md", "--summary", "补充 UX/UI 设计"),
+                dispatch_command(project_root, "doc", "--doc", "docs/04-project-development/04-design/ux-ui-design.md", "--summary", "补充 UX/UI 设计"),
                 dispatch_command(project_root, "board", "--owner", owner, "--focus", focus or "同步设计协作"),
             ]
         )
@@ -1033,9 +3101,21 @@ def ensure_project(project_root: Path) -> None:
         raise RuntimeError(f"未找到项目配置：{config_path}")
 
 
+def normalize_project_config(config: dict) -> dict:
+    normalized = dict(config)
+    if not normalized.get("stage") and normalized.get("current_stage"):
+        normalized["stage"] = normalized["current_stage"]
+    if not normalized.get("active_mode"):
+        legacy_mode = normalized.get("current_mode") or normalized.get("v1_active_mode")
+        if legacy_mode:
+            normalized["active_mode"] = legacy_mode
+    normalized["docs_profile"] = normalize_docs_profile(normalized.get("docs_profile"))
+    return normalized
+
+
 def load_project_config(project_root: Path) -> dict:
     ensure_project(project_root)
-    return json.loads(project_config_path(project_root).read_text(encoding="utf-8"))
+    return normalize_project_config(json.loads(project_config_path(project_root).read_text(encoding="utf-8")))
 
 
 def save_project_config(project_root: Path, config: dict) -> None:
@@ -1091,6 +3171,11 @@ def normalize_tech_preset(value: str | None) -> str:
         "pythonbackend": "python-backend",
         "pythonservice": "python-backend",
         "fastapi": "python-backend",
+        "crawler4j": "crawler4j-model",
+        "crawler4jmodel": "crawler4j-model",
+        "crawler4jmodule": "crawler4j-model",
+        "crawler4jcoremodel": "crawler4j-model",
+        "crawler4jmodelproject": "crawler4j-model",
         "stratix": "stratix-admin",
         "stratixadmin": "stratix-admin",
         "stratixnodejsbackend": "stratix-admin",
@@ -2352,7 +4437,7 @@ def render_current_state(config: dict, tasks: list[dict], changes: list[dict], b
         ## 下一步建议
 
         - 检查任务人天估算是否真实合理，仅在必要时再细化到 0.5 人天精度
-        - 若进入设计或实施阶段，先确认 `docs/03-solution/technical-selection.md` 已明确框架、模块、后台范围和编码规则
+        - 若进入设计或实施阶段，先确认 `docs/04-project-development/04-design/technical-selection.md` 已明确框架、模块、后台范围和编码规则
         - 若 UX/UI 需要可视化评审，优先登记真实设计交付物而不是只写文字
         - 若工作项进入收尾，确认关联 PR 已完成评审并合并
         - 阶段切换前先更新正式文档，再刷新 `/.factory/memory/` 压缩记忆

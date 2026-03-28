@@ -10,6 +10,7 @@ from factory_core import (
     CLOSED_STATUSES,
     append_log_line,
     collect_items,
+    docs_stratego_source_status,
     file_readiness,
     inspect_project_lock,
     load_project_config,
@@ -152,6 +153,7 @@ def determine_result(
     scope: str,
     rules_state: str,
     doc_state: str,
+    docs_source_state: str,
     memory_state: str,
     lock_info: dict,
     trace_state: str,
@@ -173,6 +175,9 @@ def determine_result(
             issues.append("存在缺失的阶段关键文档。")
         elif doc_state == "占位":
             issues.append("存在仍为占位内容的阶段关键文档。")
+
+    if scope in {"full", "docs", "gate", "delivery"} and docs_source_state != "就绪":
+        issues.append("`docs/` 尚未满足 docs-stratego 源文档标准。")
 
     if scope in {"full", "memory", "delivery"}:
         if memory_state == "缺失":
@@ -212,6 +217,8 @@ def determine_result(
         suggestions.append("刷新 `AGENTS.md` / `GEMINI.md`，并把安装、构建、测试、运行结论迁移到 `.factory/project.json`、`.factory/memory/current-state.md` 和阶段文档。")
     if doc_state in {"缺失", "占位"}:
         suggestions.append("优先补齐当前阶段关键文档，并完成单文件版本更新。")
+    if docs_source_state != "就绪":
+        suggestions.append("执行 `factory-dispatch docs-index-refresh --project <项目路径>` 刷新目录 `index.md`，并清理文档中的机器绝对路径。")
     if memory_state in {"缺失", "滞后"}:
         suggestions.append("执行 `factory-dispatch memory --project <项目路径>` 刷新 AI 记忆。")
     if trace_state in {"缺失", "异常", "空"}:
@@ -239,6 +246,7 @@ def build_report(
     lock_info: dict,
     rules_lines: list[str],
     doc_lines: list[str],
+    docs_source_lines: list[str],
     memory_lines: list[str],
     trace_lines: list[str],
     task_lines: list[str],
@@ -271,6 +279,10 @@ def build_report(
         "## 文档状态",
         "",
         *doc_lines,
+        "",
+        "## docs-stratego 源文档状态",
+        "",
+        *docs_source_lines,
         "",
         "## AI 记忆状态",
         "",
@@ -313,6 +325,10 @@ def main() -> int:
 
         doc_state, doc_lines = doc_status(project_root, stage)
         rules_state, rules_lines = rules_entry_status(project_root)
+        docs_source_state, docs_source_lines = docs_stratego_source_status(
+            project_root,
+            config.get("project_name", project_root.name) or project_root.name,
+        )
         memory_state, memory_lines, _ = ai_memory_status(project_root)
         trace_state, trace_lines, _ = trace_status(project_root)
         if args.scope in {"full", "docs", "gate", "delivery"}:
@@ -323,6 +339,7 @@ def main() -> int:
             args.scope,
             rules_state,
             doc_state,
+            docs_source_state,
             memory_state,
             initial_lock,
             trace_state,
@@ -340,6 +357,7 @@ def main() -> int:
             initial_lock,
             rules_lines,
             doc_lines,
+            docs_source_lines,
             memory_lines,
             trace_lines,
             task_lines,
@@ -362,6 +380,7 @@ def main() -> int:
             "",
             *rules_lines,
             *doc_lines,
+            *docs_source_lines,
             *memory_lines,
             *trace_lines,
             *task_lines,

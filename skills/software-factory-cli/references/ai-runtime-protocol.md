@@ -17,11 +17,11 @@
    - `.factory/memory/project-index.md`
    - 若存在，再读：`.factory/memory/motivation-state.md`、`.factory/memory/autonomy-rules.md`、`.factory/memory/evolution-baseline.md`
 3. 当前阶段必需文档：
-   - `BRAINSTORM`：`docs/00-governance/project-charter.md`、`docs/01-discovery/input.md`、`docs/01-discovery/brainstorm-record.md`
-   - `REQUIREMENTS`：`docs/02-requirements/prd.md`、`docs/02-requirements/requirements-analysis.md`、`docs/02-requirements/requirements-verification.md`
-   - `DESIGN`：`docs/03-solution/technical-selection.md`、`docs/03-solution/system-architecture.md`、`docs/03-solution/module-boundaries.md`、`docs/03-solution/api-design.md`、`docs/03-solution/backend-design.md`、`docs/03-solution/ux-ui-design.md`
-   - `PLAN`：`docs/04-delivery/wbs.md`、`docs/04-delivery/task-breakdown.md`、`docs/04-delivery/implementation-plan.md`
-   - `IMPLEMENTATION`：当前 `TASK-*`、`.factory/process/execution-log.md`、`docs/05-quality/test-plan.md`
+   - `BRAINSTORM`：`docs/04-project-development/01-governance/project-charter.md`、`docs/04-project-development/02-discovery/input.md`、`docs/04-project-development/02-discovery/brainstorm-record.md`
+   - `REQUIREMENTS`：`docs/04-project-development/03-requirements/prd.md`、`docs/04-project-development/03-requirements/requirements-analysis.md`、`docs/04-project-development/03-requirements/requirements-verification.md`
+   - `DESIGN`：`docs/04-project-development/04-design/technical-selection.md`、`docs/04-project-development/04-design/system-architecture.md`、`docs/04-project-development/04-design/module-boundaries.md`、`docs/04-project-development/04-design/api-design.md`、`docs/04-project-development/04-design/backend-design.md`、`docs/04-project-development/04-design/ux-ui-design.md`
+   - `PLAN`：`docs/04-project-development/05-development-process/wbs.md`、`docs/04-project-development/05-development-process/task-breakdown.md`、`docs/04-project-development/05-development-process/implementation-plan.md`
+   - `IMPLEMENTATION`：当前 `TASK-*`、`.factory/process/execution-log.md`、`docs/04-project-development/06-testing-verification/test-plan.md`
 4. 当前技术画像与设计交付物摘要：
    - `.factory/memory/tech-stack.summary.md`
    - `.factory/memory/design-assets.summary.md`
@@ -30,9 +30,9 @@
 
 禁止默认全文加载与当前任务无关的人类长文档，例如：
 
-- `docs/README.md`
-- `docs/08-handover/user-guide.md`
-- `docs/09-evolution/agent-motivation-autonomy-integration.md`
+- `docs/index.md`
+- `docs/02-user-guide/user-guide.md`
+- `docs/04-project-development/09-evolution/agent-motivation-autonomy-integration.md`
 
 这些文件属于人类说明层，不是运行时主协议。
 
@@ -54,7 +54,7 @@
 ### BRAINSTORM
 
 - 目标：澄清创意、范围、约束、技术方向
-- 产物：`docs/00-governance/project-charter.md`、`docs/01-discovery/*`
+- 产物：`docs/04-project-development/01-governance/project-charter.md`、`docs/04-project-development/02-discovery/*`
 - 默认动作：
   - `factory-init`
   - `brainstorming`
@@ -63,9 +63,9 @@
 
 - 目标：形成结构化 REQ/NFR、分析依赖/风险/测试点
 - 产物：
-  - `docs/02-requirements/prd.md`
-  - `docs/02-requirements/requirements-analysis.md`
-  - `docs/02-requirements/requirements-verification.md`
+  - `docs/04-project-development/03-requirements/prd.md`
+  - `docs/04-project-development/03-requirements/requirements-analysis.md`
+  - `docs/04-project-development/03-requirements/requirements-verification.md`
 - 默认动作：
   - 新项目：`factory-prd-bootstrap`
   - 历史项目：`factory-requirements-upgrade`
@@ -75,12 +75,12 @@
 
 - 目标：确定架构、接口、技术选型、UI/UX
 - 产物：
-  - `docs/03-solution/technical-selection.md`
-  - `docs/03-solution/system-architecture.md`
-  - `docs/03-solution/module-boundaries.md`
-  - `docs/03-solution/api-design.md`
-  - `docs/03-solution/backend-design.md`
-  - `docs/03-solution/ux-ui-design.md`
+  - `docs/04-project-development/04-design/technical-selection.md`
+  - `docs/04-project-development/04-design/system-architecture.md`
+  - `docs/04-project-development/04-design/module-boundaries.md`
+  - `docs/04-project-development/04-design/api-design.md`
+  - `docs/04-project-development/04-design/backend-design.md`
+  - `docs/04-project-development/04-design/ux-ui-design.md`
 - 默认动作：
   - `factory-design-bootstrap`
   - `factory-tech-profile`
@@ -90,9 +90,9 @@
 
 - 目标：把设计转成 WBS、任务、实施计划
 - 产物：
-  - `docs/04-delivery/wbs.md`
-  - `docs/04-delivery/task-breakdown.md`
-  - `docs/04-delivery/implementation-plan.md`
+  - `docs/04-project-development/05-development-process/wbs.md`
+  - `docs/04-project-development/05-development-process/task-breakdown.md`
+  - `docs/04-project-development/05-development-process/implementation-plan.md`
   - `TASK-*`
 - 默认动作：
   - `factory-iteration-plan`
@@ -113,13 +113,13 @@
 
 - 目标：检查、交付、快照、复盘
 - 关键文档：
-  - `docs/06-release/acceptance-checklist.md`
+  - `docs/04-project-development/07-release-delivery/acceptance-checklist.md`
   - `.factory/process/stage-check-report.md`
   - `.factory/process/quality-check-report.md`
-  - `docs/06-release/release-notes.md`
-  - `docs/06-release/delivery-package.md`
-  - `docs/07-operations/deployment-guide.md`
-  - `docs/08-handover/user-guide.md`
+  - `docs/04-project-development/07-release-delivery/release-notes.md`
+  - `docs/04-project-development/07-release-delivery/delivery-package.md`
+  - `docs/04-project-development/08-operations-maintenance/deployment-guide.md`
+  - `docs/02-user-guide/user-guide.md`
 - 默认动作：
   - `factory-stage-check`
   - `factory-quality-check`

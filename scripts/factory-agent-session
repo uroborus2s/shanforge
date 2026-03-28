@@ -2,6 +2,7 @@
 
 import argparse
 import json
+import os
 from datetime import datetime
 from pathlib import Path
 import sys
@@ -45,6 +46,10 @@ def relative_strings(project_root: Path, paths: list[Path]) -> list[str]:
     return result
 
 
+def relative_factory_path(project_root: Path, path: Path) -> str:
+    return Path(os.path.relpath(path.resolve(), project_root.resolve())).as_posix()
+
+
 def recommended_reads(project_root: Path, stage: str) -> list[str]:
     fixed = [
         ".factory/memory/runtime-brief.md",
@@ -72,74 +77,75 @@ def recommended_reads(project_root: Path, stage: str) -> list[str]:
 
 
 def recommended_commands(project_root: Path, stage: str, owner: str, focus: str, blocked_count: int) -> list[str]:
-    root = str(project_root)
+    root = "."
+    dispatch_path = relative_factory_path(project_root, Path(__file__).resolve().parent / "factory-dispatch")
     commands = [
-        f'python3 /Users/uroborus/shanforge/scripts/factory-dispatch board --project "{root}" --owner "{owner}" --focus "{focus.strip() or "刷新角色协作视图"}"'
+        f'python3 {dispatch_path} board --project "{root}" --owner "{owner}" --focus "{focus.strip() or "刷新角色协作视图"}"'
     ]
     if stage == "BRAINSTORM":
         commands.append(
-            f'python3 /Users/uroborus/shanforge/scripts/factory-dispatch prd-bootstrap --project "{root}" --owner "{owner}"'
+            f'python3 {dispatch_path} prd-bootstrap --project "{root}" --owner "{owner}"'
         )
     if stage in {"REQUIREMENTS", "ANALYSIS"}:
         commands.append(
-            f'python3 /Users/uroborus/shanforge/scripts/factory-dispatch requirements-verify --project "{root}" --owner "{owner}"'
+            f'python3 {dispatch_path} requirements-verify --project "{root}" --owner "{owner}"'
         )
         commands.append(
-            f'python3 /Users/uroborus/shanforge/scripts/factory-dispatch design --project "{root}" --owner "{owner}"'
+            f'python3 {dispatch_path} design --project "{root}" --owner "{owner}"'
         )
         commands.append(
-            f'python3 /Users/uroborus/shanforge/scripts/factory-dispatch tech --project "{root}" --owner "{owner}"'
+            f'python3 {dispatch_path} tech --project "{root}" --owner "{owner}"'
         )
         commands.append(
-            f'python3 /Users/uroborus/shanforge/scripts/factory-dispatch doc --project "{root}" --doc docs/02-requirements/prd.md --summary "补充需求细节"'
+            f'python3 {dispatch_path} doc --project "{root}" --doc docs/04-project-development/03-requirements/prd.md --summary "补充需求细节"'
         )
     if stage == "DESIGN":
         commands.append(
-            f'python3 /Users/uroborus/shanforge/scripts/factory-dispatch tech --project "{root}" --preset stratix-admin --owner "{owner}"'
+            f'python3 {dispatch_path} tech --project "{root}" --preset stratix-admin --owner "{owner}"'
         )
         commands.append(
-            f'python3 /Users/uroborus/shanforge/scripts/factory-dispatch design-assets --project "{root}" --title "关键页面参考图" --images "/absolute/path/to/mockup.png" --owner "{owner}"'
+            f'python3 {dispatch_path} design-assets --project "{root}" --title "关键页面参考图" --images "./docs/04-project-development/04-design/assets/mockup.png" --owner "{owner}"'
         )
         commands.append(
-            f'python3 /Users/uroborus/shanforge/scripts/factory-dispatch plan --project "{root}" --iteration "迭代 1" --owner "{owner}" --create-items'
+            f'python3 {dispatch_path} plan --project "{root}" --iteration "迭代 1" --owner "{owner}" --create-items'
         )
     if stage in {"PLAN", "IMPLEMENTATION"}:
         commands.append(
-            f'python3 /Users/uroborus/shanforge/scripts/factory-dispatch run --project "{root}" --item TASK-001 --work-block WB-001-01 --status 进行中 --owner "{owner}"'
+            f'python3 {dispatch_path} run --project "{root}" --item TASK-001 --work-block WB-001-01 --status 进行中 --owner "{owner}"'
         )
     if stage in {"TESTING", "ACCEPTANCE"}:
         commands.append(
-            f'python3 /Users/uroborus/shanforge/scripts/factory-dispatch workflow --project "{root}" --workflow pre_gate --owner "{owner}"'
+            f'python3 {dispatch_path} workflow --project "{root}" --workflow pre_gate --owner "{owner}"'
         )
     if stage in {"RELEASE", "MAINTENANCE"}:
         commands.append(
-            f'python3 /Users/uroborus/shanforge/scripts/factory-dispatch release --project "{root}" --owner "{owner}"'
+            f'python3 {dispatch_path} release --project "{root}" --owner "{owner}"'
         )
         commands.append(
-            f'python3 /Users/uroborus/shanforge/scripts/factory-dispatch handover --project "{root}" --owner "{owner}"'
+            f'python3 {dispatch_path} handover --project "{root}" --owner "{owner}"'
         )
     if blocked_count:
         commands.append(
-            f'python3 /Users/uroborus/shanforge/scripts/factory-dispatch risk --project "{root}" --title "处理阻塞项" --owner "{owner}"'
+            f'python3 {dispatch_path} risk --project "{root}" --title "处理阻塞项" --owner "{owner}"'
         )
         commands.append(
-            f'python3 /Users/uroborus/shanforge/scripts/factory-dispatch recovery --project "{root}" --owner "{owner}"'
+            f'python3 {dispatch_path} recovery --project "{root}" --owner "{owner}"'
         )
     commands.append(
-        f'python3 /Users/uroborus/shanforge/scripts/factory-dispatch motivation --project "{root}" --owner "{owner}" --focus "{focus.strip() or "维持当前推进节奏"}"'
+        f'python3 {dispatch_path} motivation --project "{root}" --owner "{owner}" --focus "{focus.strip() or "维持当前推进节奏"}"'
     )
     commands.append(
-        f'python3 /Users/uroborus/shanforge/scripts/factory-dispatch evolution --project "{root}" --owner "{owner}" --note "{focus.strip() or "刷新项目最佳实践"}"'
+        f'python3 {dispatch_path} evolution --project "{root}" --owner "{owner}" --note "{focus.strip() or "刷新项目最佳实践"}"'
     )
     commands.append(
-        f'python3 /Users/uroborus/shanforge/scripts/factory-dispatch memory --project "{root}"'
+        f'python3 {dispatch_path} memory --project "{root}"'
     )
     commands.append(
-        f'python3 /Users/uroborus/shanforge/scripts/factory-dispatch chat --project "{root}" --tool generic --role coordinator --owner "{owner}" --focus "{focus.strip() or "继续当前工作"}"'
+        f'python3 {dispatch_path} chat --project "{root}" --tool generic --role coordinator --owner "{owner}" --focus "{focus.strip() or "继续当前工作"}"'
     )
     if focus.strip():
         commands.append(
-            f'python3 /Users/uroborus/shanforge/scripts/factory-dispatch daily --project "{root}" --owner "{owner}" --focus "{focus.strip()}"'
+            f'python3 {dispatch_path} daily --project "{root}" --owner "{owner}" --focus "{focus.strip()}"'
         )
     deduped = []
     seen = set()

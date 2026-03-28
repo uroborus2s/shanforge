@@ -12,10 +12,15 @@ import textwrap
 
 from factory_core import (
     append_log_line,
+    detect_docs_profile,
+    docs_relative_path_enabled,
+    docs_stratego_directories,
     project_lock,
     refresh_ai_memory,
     save_project_config,
     save_tech_profile_state,
+    update_publication_policy_for_modern_docs,
+    write_docs_stratego_indexes,
     write_text,
     run_script,
 )
@@ -117,6 +122,22 @@ def parse_package_json(path: Path) -> tuple[dict, list[str]]:
         return {}, [f"`package.json` 无法解析：{exc}"]
 
 
+def looks_like_crawler4j_model_project(project_root: Path) -> bool:
+    manifest_path = project_root / "module.yaml"
+    pyproject_path = project_root / "pyproject.toml"
+    if not manifest_path.exists() or not pyproject_path.exists():
+        return False
+    pyproject_text = safe_read(pyproject_path)
+    return "crawler4j-sdk" in pyproject_text or "crawler4j_sdk" in pyproject_text
+
+
+def looks_like_crawler4j_core_repo(project_root: Path) -> bool:
+    return (
+        (project_root / "crawler4j_sdk" / "pyproject.toml").exists()
+        and (project_root / "crawler4j_contracts" / "pyproject.toml").exists()
+    )
+
+
 def discover_markdown_sources(project_root: Path, limit: int = 12) -> list[str]:
     sources: list[str] = []
     for path in sorted(project_root.rglob("*.md")):
@@ -203,6 +224,18 @@ def detect_stack(project_root: Path, stack_override: str) -> dict:
         if (project_root / "uv.lock").exists():
             build_commands.append("uv sync")
         findings.append("检测到 Python 依赖或项目元数据文件。")
+
+    if looks_like_crawler4j_model_project(project_root):
+        preset = "crawler4j-model"
+        stack_parts.append("crawler4j model")
+        runtime_commands.append("uv run crawler4j list")
+        findings.append("检测到 `module.yaml` 与 `crawler4j-sdk` 依赖，按 crawler4j 标准 model/模块项目纳管。")
+
+    if looks_like_crawler4j_core_repo(project_root):
+        preset = "crawler4j-model"
+        stack_parts.append("crawler4j Core/SDK")
+        build_commands.append("uv run python -m crawler4j_sdk.cli.commands --help")
+        findings.append("检测到 `crawler4j_sdk/` 与 `crawler4j_contracts/`，按 crawler4j Core + SDK 仓库纳管，并启用模块开发技能。")
 
     if (project_root / "go.mod").exists():
         stack_parts.append("Go")
@@ -372,7 +405,7 @@ def build_current_state_analysis(project_root: Path, project_name: str, goal: st
         # 当前状态分析
 
         - 项目名称：{project_name}
-        - 仓库路径：`{project_root}`
+        - 仓库路径：`.`
         - 分析时间：{now_date}
         - 当前阶段：历史项目纳管
         - 本次目标：{goal}
@@ -407,7 +440,7 @@ def build_current_state_analysis(project_root: Path, project_name: str, goal: st
         ## 纳管后的默认规则
 
         - 先保持现状可运行，再做缺陷修复和需求变更。
-        - 新需求回写 `docs/02-requirements/` 和 `docs/03-solution/`。
+        - 新需求回写 `docs/04-project-development/03-requirements/` 和 `docs/04-project-development/04-design/`。
         - 变更完成后同步更新 `.factory/memory/current-state.md` 与执行记录。
         """
     ).strip()
@@ -720,14 +753,14 @@ def build_workitems_readme(title: str, body: str) -> str:
 
 def build_traceability_matrix(owner: str, now_text: str) -> str:
     rows = [
-        ("REQ-001", "落点", "docs/01-discovery/current-state-analysis.md", "有效", now_text, owner, "历史项目现状基线"),
-        ("REQ-001", "落点", "docs/02-requirements/prd.md", "有效", now_text, owner, "维护基线需求"),
-        ("REQ-001", "落点", "docs/03-solution/system-architecture.md", "有效", now_text, owner, "当前架构基线"),
-        ("REQ-001", "落点", "docs/03-solution/module-boundaries.md", "有效", now_text, owner, "目录边界基线"),
-        ("REQ-001", "落点", "docs/03-solution/technical-selection.md", "有效", now_text, owner, "技术与工程规则"),
-        ("REQ-001", "落点", "docs/03-solution/api-design.md", "有效", now_text, owner, "入口与接口基线"),
-        ("REQ-002", "落点", "docs/07-operations/operations-runbook.md", "有效", now_text, owner, "缺陷维护与运维线索"),
-        ("REQ-003", "落点", "docs/08-handover/user-guide.md", "有效", now_text, owner, "后续协作说明"),
+        ("REQ-001", "落点", "docs/04-project-development/02-discovery/current-state-analysis.md", "有效", now_text, owner, "历史项目现状基线"),
+        ("REQ-001", "落点", "docs/04-project-development/03-requirements/prd.md", "有效", now_text, owner, "维护基线需求"),
+        ("REQ-001", "落点", "docs/04-project-development/04-design/system-architecture.md", "有效", now_text, owner, "当前架构基线"),
+        ("REQ-001", "落点", "docs/04-project-development/04-design/module-boundaries.md", "有效", now_text, owner, "目录边界基线"),
+        ("REQ-001", "落点", "docs/04-project-development/04-design/technical-selection.md", "有效", now_text, owner, "技术与工程规则"),
+        ("REQ-001", "落点", "docs/04-project-development/04-design/api-design.md", "有效", now_text, owner, "入口与接口基线"),
+        ("REQ-002", "落点", "docs/04-project-development/08-operations-maintenance/operations-runbook.md", "有效", now_text, owner, "缺陷维护与运维线索"),
+        ("REQ-003", "落点", "docs/02-user-guide/user-guide.md", "有效", now_text, owner, "后续协作说明"),
     ]
     lines = [
         "# 需求追踪矩阵",
@@ -754,14 +787,14 @@ def build_traceability_matrix(owner: str, now_text: str) -> str:
 
 def build_traceability_graph(owner: str, now_text: str) -> tuple[dict, str]:
     targets = [
-        "docs/01-discovery/current-state-analysis.md",
-        "docs/02-requirements/prd.md",
-        "docs/03-solution/system-architecture.md",
-        "docs/03-solution/module-boundaries.md",
-        "docs/03-solution/technical-selection.md",
-        "docs/03-solution/api-design.md",
-        "docs/07-operations/operations-runbook.md",
-        "docs/08-handover/user-guide.md",
+        "docs/04-project-development/02-discovery/current-state-analysis.md",
+        "docs/04-project-development/03-requirements/prd.md",
+        "docs/04-project-development/04-design/system-architecture.md",
+        "docs/04-project-development/04-design/module-boundaries.md",
+        "docs/04-project-development/04-design/technical-selection.md",
+        "docs/04-project-development/04-design/api-design.md",
+        "docs/04-project-development/08-operations-maintenance/operations-runbook.md",
+        "docs/02-user-guide/user-guide.md",
     ]
     nodes = [
         {"id": "REQ-001", "type": "REQ"},
@@ -790,7 +823,7 @@ def build_traceability_graph(owner: str, now_text: str) -> tuple[dict, str]:
         {
             "source": "REQ-002",
             "relation": "落点",
-            "target": "docs/07-operations/operations-runbook.md",
+            "target": "docs/04-project-development/08-operations-maintenance/operations-runbook.md",
             "status": "有效",
             "owner": owner,
             "note": "缺陷维护说明",
@@ -801,7 +834,7 @@ def build_traceability_graph(owner: str, now_text: str) -> tuple[dict, str]:
         {
             "source": "REQ-003",
             "relation": "落点",
-            "target": "docs/08-handover/user-guide.md",
+            "target": "docs/02-user-guide/user-guide.md",
             "status": "有效",
             "owner": owner,
             "note": "新增需求协作说明",
@@ -923,6 +956,16 @@ def main() -> int:
     now = datetime.now(timezone.utc)
     now_text = now.astimezone().strftime("%Y-%m-%d %H:%M:%S")
     now_date = now.astimezone().strftime("%Y-%m-%d")
+    onboarding_idea = (
+        "历史项目纳管：以当前代码、配置、现有文档和最近可验证状态为基线，"
+        f"由软件工厂接手后续维护。当前目标：{goal}"
+    )
+    docs_profile = detect_docs_profile(
+        project_root,
+        project_name=project_name,
+        idea=onboarding_idea,
+        stack=scan["stack_label"],
+    )
     created: list[str] = []
     preserved: list[str] = []
     updated: list[str] = []
@@ -931,20 +974,18 @@ def main() -> int:
         (project_root / ".factory").mkdir(parents=True, exist_ok=True)
         with project_lock(project_root, reason="历史项目纳管初始化"):
             for directory in config["project_scaffold"]["directories"]:
+                if not docs_relative_path_enabled(directory, docs_profile, project_root / "docs"):
+                    continue
                 (project_root / directory).mkdir(parents=True, exist_ok=True)
-
-            idea = (
-                "历史项目纳管：以当前代码、配置、现有文档和最近可验证状态为基线，"
-                f"由软件工厂接手后续维护。当前目标：{goal}"
-            )
             project_config = json.loads(
                 build_project_config(
                     project_name=project_name,
-                    idea=idea,
+                    idea=onboarding_idea,
                     stack=scan["stack_label"],
                     owner=args.owner.strip(),
                     target=project_root,
                     config=config,
+                    docs_profile=docs_profile,
                 )
             )
             project_config["stage"] = "MAINTENANCE"
@@ -989,17 +1030,17 @@ def main() -> int:
             )
 
             managed_docs = {
-                "docs/00-governance/project-charter.md": build_project_charter(project_name, args.owner.strip(), goal, now_date, scan),
-                "docs/01-discovery/input.md": build_discovery_input(project_name, goal, scan),
-                "docs/01-discovery/current-state-analysis.md": build_current_state_analysis(project_root, project_name, goal, now_date, scan),
-                "docs/02-requirements/prd.md": build_prd(project_name, goal, scan),
-                "docs/03-solution/system-architecture.md": build_system_architecture(project_name, scan),
-                "docs/03-solution/module-boundaries.md": build_module_boundaries(project_name, scan),
-                "docs/03-solution/technical-selection.md": build_technical_selection(project_name, scan),
-                "docs/03-solution/api-design.md": build_api_design(project_name, scan),
-                "docs/07-operations/operations-runbook.md": build_operations_runbook(project_name, scan),
-                "docs/08-handover/user-guide.md": build_user_guide(project_name, goal),
-                "docs/09-evolution/retrospective.md": build_retrospective(project_name, goal, scan),
+                "docs/04-project-development/01-governance/project-charter.md": build_project_charter(project_name, args.owner.strip(), goal, now_date, scan),
+                "docs/04-project-development/02-discovery/input.md": build_discovery_input(project_name, goal, scan),
+                "docs/04-project-development/02-discovery/current-state-analysis.md": build_current_state_analysis(project_root, project_name, goal, now_date, scan),
+                "docs/04-project-development/03-requirements/prd.md": build_prd(project_name, goal, scan),
+                "docs/04-project-development/04-design/system-architecture.md": build_system_architecture(project_name, scan),
+                "docs/04-project-development/04-design/module-boundaries.md": build_module_boundaries(project_name, scan),
+                "docs/04-project-development/04-design/technical-selection.md": build_technical_selection(project_name, scan),
+                "docs/04-project-development/04-design/api-design.md": build_api_design(project_name, scan),
+                "docs/04-project-development/08-operations-maintenance/operations-runbook.md": build_operations_runbook(project_name, scan),
+                "docs/02-user-guide/user-guide.md": build_user_guide(project_name, goal),
+                "docs/04-project-development/09-evolution/retrospective.md": build_retrospective(project_name, goal, scan),
                 ".factory/process/execution-log.md": build_execution_log(args.owner.strip(), now_date, goal),
                 ".factory/process/daily-status.md": build_daily_status(args.owner.strip(), now_date, goal),
                 ".factory/process/risk-register.md": build_risk_register(),
@@ -1021,6 +1062,8 @@ def main() -> int:
                 ".factory/design-assets.json": "[]",
             }
             for relative, content in managed_docs.items():
+                if not docs_relative_path_enabled(relative, docs_profile, project_root / "docs"):
+                    continue
                 write_managed_file(
                     project_root,
                     relative,
@@ -1030,6 +1073,22 @@ def main() -> int:
                     preserved=preserved,
                     updated=updated,
                 )
+
+            docs_index_paths = sorted(
+                {
+                    "docs/index.md",
+                    *(f"docs/{relative_dir}/index.md" for relative_dir in docs_stratego_directories(project_root, docs_profile)),
+                }
+            )
+            docs_index_existed = {relative: (project_root / relative).exists() for relative in docs_index_paths}
+            update_publication_policy_for_modern_docs(project_root, docs_profile)
+            for relative_path in write_docs_stratego_indexes(project_root, project_name):
+                if relative_path in created or relative_path in updated or relative_path in preserved:
+                    continue
+                if docs_index_existed.get(relative_path):
+                    updated.append(relative_path)
+                else:
+                    created.append(relative_path)
 
             save_tech_profile_state(project_root, tech_profile)
             graph, traceability_summary = build_traceability_graph(args.owner.strip(), now_text)
@@ -1053,7 +1112,7 @@ def main() -> int:
             )
             write_managed_file(
                 project_root,
-                "docs/traceability/requirements-matrix.md",
+                "docs/04-project-development/10-traceability/requirements-matrix.md",
                 build_traceability_matrix(args.owner.strip(), now_text),
                 force=args.force,
                 created=created,

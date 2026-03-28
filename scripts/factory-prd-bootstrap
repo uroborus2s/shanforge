@@ -207,8 +207,8 @@ def main() -> int:
     args = parse_args()
     project_root = Path(args.project).expanduser().resolve()
 
-    prd_path = project_root / "docs" / "02-requirements" / "prd.md"
-    analysis_path = project_root / "docs" / "02-requirements" / "requirements-analysis.md"
+    prd_path = project_root / "docs" / "04-project-development" / "03-requirements" / "prd.md"
+    analysis_path = project_root / "docs" / "04-project-development" / "03-requirements" / "requirements-analysis.md"
     summary_path = project_root / ".factory" / "memory" / "prd.summary.md"
 
     try:

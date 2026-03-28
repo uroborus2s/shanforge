@@ -6,7 +6,7 @@ from datetime import datetime
 from pathlib import Path
 import sys
 
-from factory_core import append_log_line, project_lock, refresh_ai_memory
+from factory_core import append_log_line, canonical_docs_project_path, project_lock, refresh_ai_memory
 
 
 VERSION_PATTERN = re.compile(r"\*\*当前版本：\*\*\s*(v(\d+)\.(\d+))")
@@ -17,7 +17,7 @@ UPDATED_PATTERN = re.compile(r"\*\*最后更新：\*\*\s*(.*)")
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="按单文件版本演化规则更新正式文档。")
     parser.add_argument("--project", required=True, help="项目根目录。")
-    parser.add_argument("--doc", required=True, help="要更新的文档相对路径，例如 docs/02-requirements/prd.md。")
+    parser.add_argument("--doc", required=True, help="要更新的文档相对路径，例如 docs/04-project-development/03-requirements/prd.md。")
     parser.add_argument("--summary", required=True, help="本次变更摘要。")
     parser.add_argument("--related", default="无", help="关联项，例如 REQ-001,CR-003。")
     parser.add_argument("--status", default="", help="文档状态，例如 草稿/评审中/已批准。")
@@ -179,7 +179,7 @@ def update_lines(lines: list[str], summary: str, related: str, status: str, appr
 def main() -> int:
     args = parse_args()
     project_root = Path(args.project).expanduser().resolve()
-    doc_path = (project_root / args.doc).resolve()
+    doc_path = canonical_docs_project_path(project_root, args.doc)
 
     try:
         with project_lock(project_root, reason=f"更新正式文档 {args.doc}"):
@@ -206,9 +206,9 @@ def main() -> int:
                 project_root / ".factory" / "process" / "execution-log.md",
                 f"- {datetime.now().strftime('%Y-%m-%d')}: 更新正式文档 `{relative}`，摘要：{args.summary.strip()}。",
             )
-            if str(relative).startswith("docs/02-requirements/"):
+            if str(relative).startswith("docs/04-project-development/03-requirements/"):
                 append_log_line(
-                    project_root / "docs" / "02-requirements" / "changelog.md",
+                    canonical_docs_project_path(project_root, "04-project-development/03-requirements/changelog.md"),
                     f"- {datetime.now().strftime('%Y-%m-%d')}: 更新 `{relative.name}`，摘要：{args.summary.strip()}，关联：{args.related.strip() or '无'}。",
                 )
             refresh_ai_memory(project_root)

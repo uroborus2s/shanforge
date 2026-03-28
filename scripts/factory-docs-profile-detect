@@ -1,0 +1,92 @@
+#!/usr/bin/env python3
+
+import argparse
+import json
+from pathlib import Path
+import sys
+
+from factory_core import (
+    detect_docs_profile,
+    load_project_config,
+    save_project_config,
+    update_publication_policy_for_modern_docs,
+    write_docs_stratego_indexes,
+)
+
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description="检测项目文档画像（docs_profile），判断需要哪些顶层文档模块。")
+    parser.add_argument("--project", required=True, help="项目根目录。")
+    parser.add_argument("--name", default="", help="项目名称；为空时优先读取项目配置，否则使用目录名。")
+    parser.add_argument("--idea", default="", help="项目创意或补充说明；适合空目录或新项目。")
+    parser.add_argument("--stack", default="", help="技术栈提示；适合空目录或新项目。")
+    parser.add_argument("--write", action="store_true", help="将检测结果写回 `.factory/project.json`。")
+    parser.add_argument("--json", action="store_true", help="仅输出 JSON。")
+    return parser.parse_args()
+
+
+def detect_project_name(project_root: Path, override: str) -> str:
+    if override.strip():
+        return override.strip()
+    config_path = project_root / ".factory" / "project.json"
+    if config_path.exists():
+        try:
+            return str(load_project_config(project_root).get("project_name", project_root.name)).strip() or project_root.name
+        except Exception:
+            pass
+    return project_root.name
+
+
+def main() -> int:
+    args = parse_args()
+    project_root = Path(args.project).expanduser().resolve()
+    if not project_root.exists():
+        print(f"项目目录不存在：{project_root}", file=sys.stderr)
+        return 1
+
+    project_name = detect_project_name(project_root, args.name)
+    profile = detect_docs_profile(
+        project_root,
+        project_name=project_name,
+        idea=args.idea.strip(),
+        stack=args.stack.strip(),
+    )
+
+    if args.write:
+        config_path = project_root / ".factory" / "project.json"
+        if not config_path.exists():
+            print("未找到 `.factory/project.json`；请先初始化项目，或去掉 `--write` 仅查看检测结果。", file=sys.stderr)
+            return 1
+        config = load_project_config(project_root)
+        config["docs_profile"] = profile
+        save_project_config(project_root, config)
+        update_publication_policy_for_modern_docs(project_root, profile)
+        if (project_root / "docs").exists():
+            write_docs_stratego_indexes(project_root, project_name)
+
+    if args.json:
+        print(json.dumps(profile, ensure_ascii=False, indent=2))
+        return 0
+
+    print(f"项目：{project_name}")
+    print(f"project_kind: {profile['project_kind']}")
+    print("modules:")
+    for module_key, state in profile["modules"].items():
+        reason = profile.get("reasons", {}).get(module_key, "")
+        if reason:
+            print(f"- {module_key}: {state} | {reason}")
+        else:
+            print(f"- {module_key}: {state}")
+    print("audiences:")
+    for item in profile.get("audiences", []):
+        print(f"- {item}")
+    print("surfaces:")
+    for key, value in profile.get("surfaces", {}).items():
+        print(f"- {key}: {'true' if value else 'false'}")
+    if args.write:
+        print(f"已写入：{project_root / '.factory' / 'project.json'}")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

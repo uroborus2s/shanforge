@@ -49,17 +49,29 @@ description: "Software project lifecycle document system for D3. Use when Codex 
 
 ```text
 docs/
+  index.md
   00-governance/
+    index.md
   01-discovery/
+    index.md
   02-requirements/
+    index.md
   03-solution/
+    index.md
   04-delivery/
+    index.md
   05-quality/
+    index.md
   06-release/
+    index.md
   07-operations/
+    index.md
   08-handover/
+    index.md
   09-evolution/
+    index.md
   traceability/
+    index.md
 .factory/
   memory/
   process/
@@ -67,6 +79,14 @@ docs/
 ```
 
 阶段编号的目的不是形式化，而是让“下一环节要接什么”一眼可见。
+
+补充约束：
+
+- `docs/index.md` 作为项目总入口页；每个 `docs/` 子目录也必须维护自己的 `index.md`。
+- 只有根 `docs/index.md` 使用 YAML front matter，并在 `mkdocs.home_access` / `mkdocs.nav` 中声明全站目录树、页面路径和页面权限。
+- 子目录 `index.md` 只是正文首页和资源权限锚点，不再声明 `mkdocs.nav`，也不单独维护页面权限。
+- 仓内 Markdown 链接统一使用相对路径，不写机器绝对路径。
+- `docs-stratego` 可以通过 Git 子模块挂载源仓，但不会反向改写源文档。
 
 ### 2. 同时维护“解释文档”和“契约文件”
 
@@ -101,6 +121,18 @@ docs/
 
 对于大多数“非一次性脚本”的软件项目，至少维护以下文档：
 
+- `docs/index.md`
+- `docs/04-project-development/01-governance/index.md`
+- `docs/04-project-development/02-discovery/index.md`
+- `docs/04-project-development/03-requirements/index.md`
+- `docs/04-project-development/04-design/index.md`
+- `docs/04-project-development/05-development-process/index.md`
+- `docs/04-project-development/06-testing-verification/index.md`
+- `docs/04-project-development/07-release-delivery/index.md`
+- `docs/04-project-development/08-operations-maintenance/index.md`
+- `docs/02-user-guide/index.md`
+- `docs/04-project-development/09-evolution/index.md`
+- `docs/04-project-development/10-traceability/index.md`
 - `00-governance/project-charter.md`
 - `01-discovery/input.md`
 - `01-discovery/brainstorm-record.md`
@@ -156,6 +188,7 @@ docs/
 - 所有正式文档都在原文件上持续演进
 - 每次修改追加变更记录，不新建 `xxx-v2.md`
 - 让 Git 负责历史版本，不让目录结构负责版本膨胀
+- 新增、删除或移动页面后，同步刷新根 `docs/index.md` 的目录树，并更新对应子目录 `index.md` 的概览内容
 
 ### 只创建“即将被使用”的文档
 
@@ -194,5 +227,7 @@ docs/
 
 1. 先根据项目类型挑选最小文档包
 2. 按 `references/repository-structure.md` 初始化目录
-3. 用 `assets/templates/` 创建首批真正需要的文档
-4. 再视项目复杂度补齐其他模板
+3. 先创建 `docs/index.md` 和各目录 `index.md`，根入口写清全站目录树、权限和与 `docs-stratego` 的关系，子目录入口写清该目录说明与推荐阅读顺序
+4. 用 `assets/templates/` 创建首批真正需要的文档
+5. 生成或刷新目录索引，确保所有页面都被根 `docs/index.md` 的 `mkdocs.nav` 覆盖，子目录 `index.md` 保持为正文概览页
+6. 再视项目复杂度补齐其他模板

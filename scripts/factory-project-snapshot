@@ -63,7 +63,7 @@ def main() -> int:
                 ".factory/process/risk-register.md",
                 ".factory/process/stage-check-report.md",
                 ".factory/process/quality-check-report.md",
-                "docs/traceability/requirements-matrix.md",
+                "docs/04-project-development/10-traceability/requirements-matrix.md",
                 ".factory/memory/project-index.md",
                 ".factory/memory/current-state.md",
                 ".factory/memory/tasks.summary.md",
@@ -104,7 +104,7 @@ def main() -> int:
 
             line = f"- {today}: 生成项目快照 `{snapshot_id}`，负责人：{args.owner.strip()}，备注：{args.note.strip() or '无'}。"
             append_log_line(project_root / ".factory" / "process" / "execution-log.md", line)
-            append_log_line(project_root / "docs" / "06-release" / "delivery-package.md", line)
+            append_log_line(project_root / "docs" / "04-project-development" / "07-release-delivery" / "delivery-package.md", line)
             refresh_ai_memory(project_root)
     except Exception as exc:
         print(f"生成项目快照失败：{exc}", file=sys.stderr)

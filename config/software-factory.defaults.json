@@ -11,20 +11,22 @@
     "skills/software-factory-cli/references/ai-role-charter.md"
   ],
   "human_workflow_docs": [
-    "docs/README.md",
-    "docs/02-requirements/prd.md",
-    "docs/03-solution/solution-overview.md",
-    "docs/03-solution/system-architecture.md",
-    "docs/08-handover/user-guide.md",
-    "docs/09-evolution/agent-motivation-autonomy-integration.md"
+    "docs/index.md",
+    "docs/01-getting-started/project-overview.md",
+    "docs/02-user-guide/user-guide.md",
+    "docs/03-developer-guide/application-development.md",
+    "docs/04-project-development/03-requirements/prd.md",
+    "docs/04-project-development/04-design/solution-overview.md",
+    "docs/04-project-development/09-evolution/agent-motivation-autonomy-integration.md"
   ],
   "workflow_docs": [
-    "docs/README.md",
-    "docs/02-requirements/prd.md",
-    "docs/03-solution/solution-overview.md",
-    "docs/03-solution/system-architecture.md",
-    "docs/08-handover/user-guide.md",
-    "docs/09-evolution/agent-motivation-autonomy-integration.md"
+    "docs/index.md",
+    "docs/01-getting-started/project-overview.md",
+    "docs/02-user-guide/user-guide.md",
+    "docs/03-developer-guide/application-development.md",
+    "docs/04-project-development/03-requirements/prd.md",
+    "docs/04-project-development/04-design/solution-overview.md",
+    "docs/04-project-development/09-evolution/agent-motivation-autonomy-integration.md"
   ],
   "shared_skills": [
     {
@@ -63,6 +65,11 @@
       "purpose": "在 Python 项目中统一使用 uv 管理 Python 版本、虚拟环境、依赖、锁文件与开发工具，并约束 pyproject、pytest、ruff、mypy 工作流。"
     },
     {
+      "name": "crawler4j-model-project",
+      "path": "skills/crawler4j-model-project/SKILL.md",
+      "purpose": "开发 crawler4j 标准 model/模块项目时，优先使用 crawler4j SDK CLI、module.yaml 契约和 Core 调试链路。"
+    },
+    {
       "name": "frontend-patterns",
       "path": "skills/frontend-patterns/SKILL.md",
       "purpose": "实现 React 组件、状态管理、数据流和可访问的响应式界面模式。"
@@ -97,18 +104,21 @@
   ],
   "project_scaffold": {
     "directories": [
-      "docs/00-governance",
-      "docs/01-discovery",
-      "docs/02-requirements",
-      "docs/03-solution",
-      "docs/03-solution/assets",
-      "docs/04-delivery",
-      "docs/05-quality",
-      "docs/06-release",
-      "docs/07-operations",
-      "docs/08-handover",
-      "docs/09-evolution",
-      "docs/traceability",
+      "docs/01-getting-started",
+      "docs/02-user-guide",
+      "docs/03-developer-guide",
+      "docs/04-project-development",
+      "docs/04-project-development/01-governance",
+      "docs/04-project-development/02-discovery",
+      "docs/04-project-development/03-requirements",
+      "docs/04-project-development/04-design",
+      "docs/04-project-development/04-design/assets",
+      "docs/04-project-development/05-development-process",
+      "docs/04-project-development/06-testing-verification",
+      "docs/04-project-development/07-release-delivery",
+      "docs/04-project-development/08-operations-maintenance",
+      "docs/04-project-development/09-evolution",
+      "docs/04-project-development/10-traceability",
       ".factory",
       ".factory/memory",
       ".factory/memory/graph",

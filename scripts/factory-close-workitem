@@ -149,16 +149,16 @@ def main() -> int:
                 ),
             )
             append_log_line(
-                project_root / "docs" / "05-quality" / "test-report.md",
+                project_root / "docs" / "04-project-development" / "06-testing-verification" / "test-report.md",
                 f"- {today}: `{item_id}` 已关闭，测试项：{'、'.join(tests) if tests else '无'}，结果：{args.result.strip()}。",
             )
             append_log_line(
-                project_root / "docs" / "06-release" / "acceptance-checklist.md",
+                project_root / "docs" / "04-project-development" / "07-release-delivery" / "acceptance-checklist.md",
                 f"- {today}: `{item_id}` 已关闭，结果：{args.result.strip()}，关闭人：{args.owner.strip()}。",
             )
             if item_id.startswith("CR-") or item_id.startswith("BUG-"):
                 append_log_line(
-                    project_root / "docs" / "02-requirements" / "changelog.md",
+                    project_root / "docs" / "04-project-development" / "03-requirements" / "changelog.md",
                     f"- {today}: `{item_id}` 已关闭，结果：{args.result.strip()}，总结：{args.summary.strip() or '无'}。",
                 )
             refresh_ai_memory(project_root)

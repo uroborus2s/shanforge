@@ -2,12 +2,22 @@
 
 import argparse
 import json
+import os
 from datetime import datetime, timezone
 from pathlib import Path
 import sys
 import textwrap
 
-from factory_core import build_default_roles
+from factory_core import (
+    MODERN_DOCS_BOOTSTRAP_PAGES,
+    build_default_roles,
+    detect_docs_profile,
+    docs_relative_path_enabled,
+    filter_relative_doc_paths,
+    normalize_docs_profile,
+    update_publication_policy_for_modern_docs,
+    write_docs_stratego_indexes,
+)
 
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -29,6 +39,10 @@ def write_file(path: Path, content: str, force: bool) -> None:
     path.write_text(content.rstrip() + "\n", encoding="utf-8")
 
 
+def relative_factory_path(target: Path, path: Path) -> str:
+    return Path(os.path.relpath(path.resolve(), target.resolve())).as_posix()
+
+
 def build_project_config(
     project_name: str,
     idea: str,
@@ -36,13 +50,17 @@ def build_project_config(
     owner: str,
     target: Path,
     config: dict,
+    docs_profile=None,
 ) -> str:
+    resolved_docs_profile = normalize_docs_profile(
+        docs_profile or detect_docs_profile(target, project_name=project_name, idea=idea, stack=stack)
+    )
     shared_skills = []
     for item in config["shared_skills"]:
         shared_skills.append(
             {
                 "name": item["name"],
-                "path": str((ROOT / item["path"]).resolve()),
+                "path": relative_factory_path(target, ROOT / item["path"]),
                 "purpose": item["purpose"],
             }
         )
@@ -50,7 +68,7 @@ def build_project_config(
     payload = {
         "version": 1,
         "project_name": project_name,
-        "project_root": str(target.resolve()),
+        "project_root": ".",
         "owner": owner,
         "idea": idea,
         "stack": stack,
@@ -59,12 +77,21 @@ def build_project_config(
         "supported_modes": config["supported_modes"],
         "v1_scope_note": config["v1_scope_note"],
         "stage": "BRAINSTORM",
-        "ai_runtime_docs": [str((ROOT / item).resolve()) for item in config.get("ai_runtime_docs", [])],
+        "ai_runtime_docs": [relative_factory_path(target, ROOT / item) for item in config.get("ai_runtime_docs", [])],
         "human_workflow_docs": [
-            str((ROOT / item).resolve()) for item in config.get("human_workflow_docs", config["workflow_docs"])
+            relative_factory_path(target, ROOT / item)
+            for item in filter_relative_doc_paths(
+                config.get("human_workflow_docs", config["workflow_docs"]),
+                resolved_docs_profile,
+                target / "docs",
+            )
         ],
-        "workflow_docs": [str((ROOT / item).resolve()) for item in config["workflow_docs"]],
+        "workflow_docs": [
+            relative_factory_path(target, ROOT / item)
+            for item in filter_relative_doc_paths(config["workflow_docs"], resolved_docs_profile, target / "docs")
+        ],
         "stage_order": config["stage_order"],
+        "docs_profile": resolved_docs_profile,
         "shared_skills": shared_skills,
         "roles": build_default_roles(shared_skills),
         "technical_profile": {
@@ -98,13 +125,18 @@ def build_project_config(
     return json.dumps(payload, ensure_ascii=False, indent=2)
 
 
+def scaffold_directories_for_docs_profile(directories: list[str], docs_profile: dict, target: Path) -> list[str]:
+    docs_root = target / "docs"
+    return [item for item in directories if docs_relative_path_enabled(item, docs_profile, docs_root)]
+
+
 def build_agents_md(project_name: str, target: Path, config: dict) -> str:
-    ai_doc_paths = [str((ROOT / item).resolve()) for item in config.get("ai_runtime_docs", [])]
+    ai_doc_paths = [relative_factory_path(target, ROOT / item) for item in config.get("ai_runtime_docs", [])]
     skill_lines = [
         "- `{name}`: {purpose} ({path})".format(
             name=item["name"],
             purpose=item["purpose"],
-            path=str((ROOT / item["path"]).resolve()),
+            path=relative_factory_path(target, ROOT / item["path"]),
         )
         for item in config["shared_skills"]
     ]
@@ -115,7 +147,7 @@ def build_agents_md(project_name: str, target: Path, config: dict) -> str:
         "这个项目遵循阶段化的软件工厂工作流。",
         "当前版本只落地 `Codex / Gemini CLI` 直接使用方式。",
         "",
-        f"项目根目录：`{target.resolve()}`",
+        "项目根目录：`.`",
         f"项目名称：`{project_name}`",
         "",
         "AI 运行时协议：",
@@ -127,16 +159,16 @@ def build_agents_md(project_name: str, target: Path, config: dict) -> str:
         "工作规则：",
         "- 默认先读 AI 运行时协议，再读当前项目事实；不要默认全文加载人类长文档。",
         "- `AGENTS.md` / `GEMINI.md` 只保留稳定协作规则、读取顺序和边界；安装结果、测试结论、当前运行状态写入 `.factory/project.json`、`.factory/memory/current-state.md` 和阶段文档。",
-        "- 开始工作前先阅读 `docs/00-governance/project-charter.md` 和 `docs/01-discovery/input.md`。",
+        "- 开始工作前先阅读 `docs/04-project-development/01-governance/project-charter.md` 和 `docs/04-project-development/02-discovery/input.md`。",
         "- 始终保持正式 `docs/` 与隐藏控制面 `/.factory/` 同步。",
         "- 当前 V1 不以 API 平台为执行入口，而是直接在本地 CLI 工具中协作。",
         "- 使用稳定 ID：`REQ-*`、`NFR-*`、`ARCH-*`、`MOD-*`、`API-*`、`DATA-*`、`UI-*`、`TASK-*`、`TC-*`、`CR-*`、`BUG-*`、`REL-*`、`OPS-*`。",
         "- 进入代码开发后，使用 `factory-pr-start / factory-pr-review / factory-pr-merge` 维护 PR 闭环。",
-        "- 进入实现前先确认 `docs/03-solution/technical-selection.md` 已明确技术选型、必装模块、工程规则和后台范围。",
+        "- 进入实现前先确认 `docs/04-project-development/04-design/technical-selection.md` 已明确技术选型、必装模块、工程规则和后台范围。",
         "- 默认额外读取 `/.factory/memory/motivation-state.md`、`/.factory/memory/autonomy-rules.md`、`/.factory/memory/evolution-baseline.md`，维持团队高主动性但不越界。",
         "- 遇到阻塞、空转、证据不足或质量漂移时，优先执行 `factory-recovery-coach`，而不是重复施压。",
         "- 发现单点问题时优先做 `factory-pattern-fix` 模式级扫描，再把有效做法沉淀到 `factory-evolution-baseline`。",
-        "- 若 UX/UI 需要评审或交接，优先用 `factory-design-assets` 把可直观看到的设计交付物写入 `docs/03-solution/ux-ui-design.md`。",
+        "- 若 UX/UI 需要评审或交接，优先用 `factory-design-assets` 把可直观看到的设计交付物写入 `docs/04-project-development/04-design/ux-ui-design.md`。",
         "- 需求阶段不要只停留在大纲；PRD 和需求分析应尽量详细，并在进入设计前执行 `factory-requirements-verify`。",
         "- 如需和远程仓库协作，使用 `factory-pr-remote-open / factory-pr-remote-sync / factory-pr-remote-merge`。",
         "- 不要跳阶段。需求和设计审批必须先于实施。",
@@ -148,11 +180,11 @@ def build_agents_md(project_name: str, target: Path, config: dict) -> str:
 
 
 def build_gemini_md(project_name: str, target: Path, config: dict) -> str:
-    ai_doc_paths = [str((ROOT / item).resolve()) for item in config.get("ai_runtime_docs", [])]
+    ai_doc_paths = [relative_factory_path(target, ROOT / item) for item in config.get("ai_runtime_docs", [])]
     skill_lines = [
         "- `{name}`: {path}".format(
             name=item["name"],
-            path=str((ROOT / item["path"]).resolve()),
+            path=relative_factory_path(target, ROOT / item["path"]),
         )
         for item in config["shared_skills"]
     ]
@@ -163,13 +195,13 @@ def build_gemini_md(project_name: str, target: Path, config: dict) -> str:
         "你正在一个共享的软件工厂工作区中工作。",
         "当前版本只落地 `Codex / Gemini CLI` 直接使用方式。",
         "",
-        f"项目根目录：`{target.resolve()}`",
+        "项目根目录：`.`",
         f"项目名称：`{project_name}`",
         "",
         "优先阅读（运行时）：",
         *[f"- `{item}`" for item in ai_doc_paths],
-        "- `docs/00-governance/project-charter.md`",
-        "- `docs/01-discovery/input.md`",
+        "- `docs/04-project-development/01-governance/project-charter.md`",
+        "- `docs/04-project-development/02-discovery/input.md`",
         "- `.factory/project.json`",
         "",
         "共享 skill 引用：",
@@ -188,7 +220,7 @@ def build_gemini_md(project_name: str, target: Path, config: dict) -> str:
         "- 把 Markdown 文档当成事实来源",
         "- 当前 V1 以本地 CLI 协作为主，不以 API 平台作为执行入口",
         "- 需求和设计未获批准前，不要进入代码实现",
-        "- 进入实现前先读取 `docs/03-solution/technical-selection.md`，确认当前技术栈、模块清单和后台要求",
+        "- 进入实现前先读取 `docs/04-project-development/04-design/technical-selection.md`，确认当前技术栈、模块清单和后台要求",
         "- 默认补读 `/.factory/memory/motivation-state.md`、`/.factory/memory/autonomy-rules.md`、`/.factory/memory/evolution-baseline.md`，维持高主动性但不越界",
         "- 遇到阻塞、空转、证据不足或质量漂移时，优先执行恢复教练，不要重复同一路径",
         "- 发现问题后优先做模式级修复，再把有效做法沉淀到自进化基线",
@@ -231,6 +263,66 @@ def build_placeholder(title: str, body: str) -> str:
     ).strip()
 
 
+def build_docs_index(project_name: str) -> str:
+    return textwrap.dedent(
+        f"""
+        ---
+        title: {project_name}
+        mkdocs:
+          home_access: public
+          nav:
+            - title: 入门说明
+              children:
+                - title: 概览
+                  path: 01-getting-started/index.md
+                  access: public
+            - title: 用户指南
+              children:
+                - title: 概览
+                  path: 02-user-guide/index.md
+                  access: public
+            - title: 开发者指南
+              children:
+                - title: 概览
+                  path: 03-developer-guide/index.md
+                  access: public
+            - title: 项目开发文档（内）
+              children:
+                - title: 概览
+                  path: 04-project-development/index.md
+                  access: private
+        ---
+        # {project_name}
+
+        这是 `{project_name}` 的正式项目文档源。AI 软件工厂在项目仓库内直接维护这些文档，`docs-stratego` 通过 Git 子模块或等价的仓级挂载方式聚合展示，但不反向改写源文档。
+
+        ## 维护规则
+
+        - 只有根 `docs/index.md` 声明全站 `mkdocs.nav`、页面路径和页面权限。
+        - 子目录 `index.md` 只作为正文首页和资源权限锚点，不再承担导航声明职责。
+        - 页面、图片和附件跟随所属目录维护；资源文件放在当前目录或当前目录的 `assets/` 下。
+        - 仓内链接统一使用相对路径，不写机器绝对路径。
+        - 新增、删除或移动 Markdown 页面后，同步刷新根 `docs/index.md` 的目录树和子目录概览页。
+        """
+    ).strip()
+
+
+def build_publication_policy() -> str:
+    payload = {
+        "public_include": [
+            "docs/index.md",
+            "docs/01-getting-started/**",
+            "docs/02-user-guide/**",
+            "docs/03-developer-guide/**",
+        ],
+        "private_include": [
+            "docs/**",
+            ".factory/memory/**",
+        ],
+    }
+    return json.dumps(payload, ensure_ascii=False, indent=2)
+
+
 def build_tech_profile_state(stack: str, owner: str) -> str:
     payload = {
         "preset": "custom",
@@ -256,81 +348,166 @@ def initialize_project(target: Path, project_name: str, idea: str, stack: str, o
         raise RuntimeError(f"目标目录不是空目录：{target}")
 
     ensure_directory(target)
-    for directory in config["project_scaffold"]["directories"]:
+    docs_profile = detect_docs_profile(target, project_name=project_name, idea=idea, stack=stack)
+    for directory in scaffold_directories_for_docs_profile(config["project_scaffold"]["directories"], docs_profile, target):
         ensure_directory(target / directory)
 
     files = {
         "AGENTS.md": build_agents_md(project_name, target, config),
         "GEMINI.md": build_gemini_md(project_name, target, config),
-        ".factory/project.json": build_project_config(project_name, idea, stack, owner, target, config),
-        "docs/00-governance/project-charter.md": build_placeholder(
+        ".factory/project.json": build_project_config(project_name, idea, stack, owner, target, config, docs_profile),
+        "docs/01-getting-started/project-overview.md": build_placeholder(
+            "项目概览",
+            "介绍项目定位、适用场景、核心能力、角色边界和推荐阅读顺序。",
+        ),
+        "docs/01-getting-started/quick-start.md": build_placeholder(
+            "快速开始",
+            "给出首次阅读路径、最小启动步骤、关键命令和常见入口。",
+        ),
+        "docs/01-getting-started/document-map.md": build_placeholder(
+            "文档地图",
+            "说明 4 大文档模块的职责边界、目标读者和推荐阅读方式。",
+        ),
+        "docs/02-user-guide/user-guide.md": build_placeholder(
+            "用户指南",
+            "从用户视角说明系统能做什么、适合谁用以及主要使用场景。",
+        ),
+        "docs/02-user-guide/installation.md": build_placeholder(
+            "安装说明",
+            "说明安装前置条件、安装步骤、依赖环境和安装校验方法。",
+        ),
+        "docs/02-user-guide/configuration.md": build_placeholder(
+            "配置说明",
+            "说明初始化配置、关键配置项、环境差异和常见配置错误。",
+        ),
+        "docs/02-user-guide/usage.md": build_placeholder(
+            "使用说明",
+            "说明主要操作流程、典型任务路径、限制条件和常见问题处理。",
+        ),
+        "docs/03-developer-guide/01-concepts/01-system-map.md": build_placeholder(
+            "1.1 系统地图与术语",
+            "说明宿主、模块、CLI、调试链路和交付产物之间的关系，以及关键术语口径。",
+        ),
+        "docs/03-developer-guide/01-concepts/02-real-constraints.md": build_placeholder(
+            "1.2 当前真实约束",
+            "说明环境、契约、调试和交付中的真实边界，不写理想化假设。",
+        ),
+        "docs/03-developer-guide/02-quickstart/01-environment-setup.md": build_placeholder(
+            "2.1 开发前准备",
+            "说明本地开发工具链、依赖、初始化动作和最小校验方法。",
+        ),
+        "docs/03-developer-guide/02-quickstart/02-create-first-module.md": build_placeholder(
+            "2.2 创建第一个模块",
+            "说明推荐脚手架命令、最小骨架和首次运行验证路径。",
+        ),
+        "docs/03-developer-guide/03-project-structure/01-layout-and-entrypoints.md": build_placeholder(
+            "3.1 目录结构与入口",
+            "说明源码、资源、测试和入口文件的职责边界与定位方式。",
+        ),
+        "docs/03-developer-guide/03-project-structure/02-module-manifest.md": build_placeholder(
+            "3.2 module.yaml 清单契约",
+            "说明模块清单字段、加载约束、兼容边界和变更同步要求。",
+        ),
+        "docs/03-developer-guide/04-development/01-taskscript.md": build_placeholder(
+            "4.1 编写 TaskScript",
+            "说明 TaskScript 的输入输出、错误处理、日志与测试要求。",
+        ),
+        "docs/03-developer-guide/04-development/02-workflow.md": build_placeholder(
+            "4.2 编写 Workflow",
+            "说明 Workflow 的状态流转、节点编排、契约和验证方式。",
+        ),
+        "docs/03-developer-guide/04-development/03-cli-and-ui.md": build_placeholder(
+            "4.3 CLI 命令与 UI 配置",
+            "说明命令入口、参数设计、UI 配置和用户可见行为的一致性要求。",
+        ),
+        "docs/03-developer-guide/04-development/04-core-capabilities.md": build_placeholder(
+            "4.4 Core 提供的能力清单",
+            "说明宿主已有公共能力、接入方式和扩展原则。",
+        ),
+        "docs/03-developer-guide/05-debugging/01-devlink-and-debug.md": build_placeholder(
+            "5.1 DevLink 与真实调试链路",
+            "说明联调入口、证据要求以及开发态与安装态的差异。",
+        ),
+        "docs/03-developer-guide/06-delivery/01-zip-installation.md": build_placeholder(
+            "6.1 zip 打包与正式安装",
+            "说明交付包结构、安装验证、升级和回滚注意事项。",
+        ),
+        "docs/03-developer-guide/06-delivery/02-acceptance-checklist.md": build_placeholder(
+            "6.2 最小验收清单",
+            "说明功能、文档和交付结论的最小验收要求。",
+        ),
+        "docs/03-developer-guide/07-troubleshooting/01-common-pitfalls.md": build_placeholder(
+            "7.1 常见问题与坑位",
+            "说明环境、契约、调试和安装中的高发问题与排查路径。",
+        ),
+        "docs/04-project-development/01-governance/project-charter.md": build_placeholder(
             "项目章程",
             "明确项目目标、范围、成功标准、关键里程碑、风险和负责人。",
         ),
-        "docs/01-discovery/input.md": build_brainstorm_input(project_name, idea, stack, owner),
-        "docs/01-discovery/brainstorm-record.md": build_placeholder(
+        "docs/04-project-development/02-discovery/input.md": build_brainstorm_input(project_name, idea, stack, owner),
+        "docs/04-project-development/02-discovery/brainstorm-record.md": build_placeholder(
             "头脑风暴记录",
             "记录项目背景、已探索方案、最终方向、约束条件和已批准范围。",
         ),
-        "docs/02-requirements/prd.md": build_placeholder(
+        "docs/04-project-development/03-requirements/prd.md": build_placeholder(
             "产品需求文档",
             "定义项目目标、用户角色、REQ 编号、验收标准、NFR、约束条件和排除范围。",
         ),
-        "docs/02-requirements/requirements-analysis.md": build_placeholder(
+        "docs/04-project-development/03-requirements/requirements-analysis.md": build_placeholder(
             "需求分析文档",
             "围绕需求编号分析流程、可行性、优先级、依赖关系、风险和建议。",
         ),
-        "docs/02-requirements/requirements-verification.md": build_placeholder(
+        "docs/04-project-development/03-requirements/requirements-verification.md": build_placeholder(
             "需求一致性校验报告",
             "反复比对 PRD、需求分析、范围和关键字段，识别遗漏需求和字段缺口。",
         ),
-        "docs/02-requirements/changelog.md": build_placeholder(
+        "docs/04-project-development/03-requirements/changelog.md": build_placeholder(
             "需求变更日志",
             "记录需求级别的变化、审批结果和关联的变更请求。",
         ),
-        "docs/03-solution/system-architecture.md": build_placeholder(
+        "docs/04-project-development/04-design/system-architecture.md": build_placeholder(
             "系统架构设计",
             "描述系统组件、职责、数据流、风险和关联的 ARCH 编号。",
         ),
-        "docs/03-solution/module-boundaries.md": build_placeholder(
+        "docs/04-project-development/04-design/module-boundaries.md": build_placeholder(
             "模块边界文档",
             "定义模块职责、数据所有权、允许依赖、禁止耦合和运维责任。",
         ),
-        "docs/03-solution/technical-selection.md": build_placeholder(
+        "docs/04-project-development/04-design/technical-selection.md": build_placeholder(
             "技术选型与工程规则",
             "明确技术栈、框架、必装模块、后台范围、编码规则和进入实施前必须遵守的工程约束。",
         ),
-        "docs/03-solution/api-design.md": build_placeholder(
+        "docs/04-project-development/04-design/api-design.md": build_placeholder(
             "API 设计文档",
             "描述资源、接口、契约、校验规则和关联的 API 编号。",
         ),
-        "docs/03-solution/database-design.md": build_placeholder(
+        "docs/04-project-development/04-design/database-design.md": build_placeholder(
             "数据库设计文档",
             "描述实体、关系、索引、迁移方案和关联的 DB 编号。",
         ),
-        "docs/03-solution/backend-design.md": build_placeholder(
+        "docs/04-project-development/04-design/backend-design.md": build_placeholder(
             "后端设计文档",
             "描述服务层、仓储层、后台任务、校验机制和运维关注点。",
         ),
-        "docs/03-solution/ux-ui-design.md": build_placeholder(
+        "docs/04-project-development/04-design/ux-ui-design.md": build_placeholder(
             "UX/UI 设计文档",
             "描述用户流程、页面、组件、状态、可直观看到的设计交付物和关联的 UI 编号。",
         ),
-        "docs/03-solution/assets/README.md": build_placeholder(
-            "设计交付物目录",
-            "登记可直观看到的线框图、高保真稿、HTML 原型、流程图、竞品参考图、Figma 链接等设计交付物，并同步到 UX/UI 设计文档。",
-        ),
-        "docs/04-delivery/wbs.md": build_placeholder(
+        "docs/04-project-development/05-development-process/wbs.md": build_placeholder(
             "工作分解结构",
             "把已批准工作拆成可交付物、里程碑和依赖分组。",
         ),
-        "docs/04-delivery/task-breakdown.md": build_placeholder(
+        "docs/04-project-development/05-development-process/task-breakdown.md": build_placeholder(
             "任务分解文档",
             "定义 TASK 编号、负责人、依赖关系和实施顺序。",
         ),
-        "docs/04-delivery/implementation-plan.md": build_placeholder(
+        "docs/04-project-development/05-development-process/implementation-plan.md": build_placeholder(
             "实施计划",
             "描述迭代范围、工程策略和测试策略。",
+        ),
+        "docs/04-project-development/05-development-process/software-development-process.md": build_placeholder(
+            "软件开发流程",
+            "说明需求、设计、开发、测试、发布、运维和复盘的正式推进流程与文档落点。",
         ),
         ".factory/process/execution-log.md": build_placeholder(
             "执行日志",
@@ -420,19 +597,19 @@ def initialize_project(target: Path, project_name: str, idea: str, stack: str, o
             "团队复盘",
             "记录团队层面的阶段性复盘、共性问题、亮点和后续动作。",
         ),
-        "docs/05-quality/test-plan.md": build_placeholder(
+        "docs/04-project-development/06-testing-verification/test-plan.md": build_placeholder(
             "测试计划",
             "定义与 REQ 编号关联的单元测试、集成测试和端到端测试覆盖目标。",
         ),
-        "docs/05-quality/test-cases.md": build_placeholder(
+        "docs/04-project-development/06-testing-verification/test-cases.md": build_placeholder(
             "测试用例",
             "列出 TC 编号、前置条件、执行动作、预期结果和关联需求。",
         ),
-        "docs/05-quality/test-report.md": build_placeholder(
+        "docs/04-project-development/06-testing-verification/test-report.md": build_placeholder(
             "测试报告",
             "记录已执行测试、失败项、回归结果、覆盖率和发布准备情况。",
         ),
-        "docs/06-release/acceptance-checklist.md": build_placeholder(
+        "docs/04-project-development/07-release-delivery/acceptance-checklist.md": build_placeholder(
             "验收清单",
             "跟踪验收项、审批结果、阻塞问题和最终签字情况。",
         ),
@@ -452,11 +629,11 @@ def initialize_project(target: Path, project_name: str, idea: str, stack: str, o
             "状态诊断报告",
             "记录项目状态、阻塞、缺失资产和上下文健康度诊断结果。",
         ),
-        "docs/06-release/release-notes.md": build_placeholder(
+        "docs/04-project-development/07-release-delivery/release-notes.md": build_placeholder(
             "发布说明",
             "汇总本次交付的功能、修复项、已知问题和升级说明。",
         ),
-        "docs/06-release/delivery-package.md": build_placeholder(
+        "docs/04-project-development/07-release-delivery/delivery-package.md": build_placeholder(
             "交付文档",
             "说明交付物、代码仓库引用、文档集合和支持交接内容。",
         ),
@@ -472,27 +649,27 @@ def initialize_project(target: Path, project_name: str, idea: str, stack: str, o
             "团队收尾记录",
             "记录团队范围内的统一收尾结果、覆盖角色和后续动作。",
         ),
-        "docs/07-operations/deployment-guide.md": build_placeholder(
+        "docs/04-project-development/08-operations-maintenance/deployment-guide.md": build_placeholder(
             "部署手册",
             "描述环境信息、前置条件、部署步骤、验证方法和回滚方案。",
         ),
-        "docs/07-operations/operations-runbook.md": build_placeholder(
+        "docs/04-project-development/08-operations-maintenance/operations-runbook.md": build_placeholder(
             "运维手册",
             "记录启停、巡检、监控、常见故障处理和升级路径。",
         ),
-        "docs/08-handover/user-guide.md": build_placeholder(
-            "使用手册",
-            "从用户视角说明配置方法、关键流程、限制条件和常见问题处理。",
-        ),
-        "docs/08-handover/admin-guide.md": build_placeholder(
+        "docs/02-user-guide/admin-guide.md": build_placeholder(
             "管理员指南",
             "说明初始化、权限、配置、升级和维护动作。",
         ),
-        "docs/09-evolution/retrospective.md": build_placeholder(
+        "docs/04-project-development/09-evolution/retrospective.md": build_placeholder(
             "项目复盘",
             "总结阶段结果、问题模式、改进建议和后续演进方向。",
         ),
-        "docs/traceability/requirements-matrix.md": build_placeholder(
+        "docs/04-project-development/09-evolution/skill-evolution-plan.md": build_placeholder(
+            "Skill 进化方案",
+            "说明 skill 的生成、检查、修复和自进化方向，以及相关验收标准。",
+        ),
+        "docs/04-project-development/10-traceability/requirements-matrix.md": build_placeholder(
             "需求追踪矩阵",
             "把 REQ、NFR、ARCH、API、UI、TASK、TC、CR 和 BUG 记录关联到一个矩阵中。",
         ),
@@ -605,12 +782,22 @@ def initialize_project(target: Path, project_name: str, idea: str, stack: str, o
         ),
     }
 
+    for relative_path, content in MODERN_DOCS_BOOTSTRAP_PAGES.items():
+        if not docs_relative_path_enabled(relative_path, docs_profile, target / "docs"):
+            continue
+        files[f"docs/{relative_path}"] = content
+
     written = []
     for relative_path, content in files.items():
+        if not docs_relative_path_enabled(relative_path, docs_profile, target / "docs"):
+            continue
         path = target / relative_path
         write_file(path, content, force)
         written.append(str(path))
 
+    update_publication_policy_for_modern_docs(target, docs_profile)
+    written.append(str(target / "docs" / "publication-policy.json"))
+    written.extend(str(target / relative_path) for relative_path in write_docs_stratego_indexes(target, project_name))
     return written
 
 
@@ -650,9 +837,9 @@ def main() -> int:
         target / "AGENTS.md",
         target / "GEMINI.md",
         target / ".factory/project.json",
-        target / "docs/00-governance/project-charter.md",
-        target / "docs/01-discovery/input.md",
-        target / "docs/02-requirements/prd.md",
+        target / "docs/04-project-development/01-governance/project-charter.md",
+        target / "docs/04-project-development/02-discovery/input.md",
+        target / "docs/04-project-development/03-requirements/prd.md",
     ]:
         print(f"- {item}")
     print(f"共创建 {len(written)} 个文件。")

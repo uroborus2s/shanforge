@@ -23,10 +23,10 @@ description: 在本地 Codex 和 Gemini CLI 中，通过共享全局 skills、�
 
 以下文件是当前首选的人类阅读和方案解释层：
 
-- `/Users/uroborus/shanforge/docs/README.md`
-- `/Users/uroborus/shanforge/docs/02-requirements/prd.md`
-- `/Users/uroborus/shanforge/docs/03-solution/system-architecture.md`
-- `/Users/uroborus/shanforge/docs/08-handover/user-guide.md`
+- [docs/index.md](../../docs/index.md)
+- [docs/04-project-development/03-requirements/prd.md](../../docs/04-project-development/03-requirements/prd.md)
+- [docs/04-project-development/04-design/system-architecture.md](../../docs/04-project-development/04-design/system-architecture.md)
+- [docs/02-user-guide/user-guide.md](../../docs/02-user-guide/user-guide.md)
 
 它们不是默认运行时协议。只有在以下情况才读：
 
@@ -78,11 +78,15 @@ description: 在本地 Codex 和 Gemini CLI 中，通过共享全局 skills、�
 - 遇到阻塞、空转、证据不足或质量漂移时，优先执行 `factory-recovery-coach`
 - 发现问题时优先执行 `factory-pattern-fix` 扩大扫描范围
 - 有效做法要沉淀到 `factory-evolution-baseline`，不要只留在单次会话里
+- 对接 `docs-stratego` 时，源项目必须把 `docs/` 作为正式事实源；根 `docs/index.md` 统一维护全站目录树、页面路径和页面权限，各子目录 `index.md` 只保留正文概览
+- `docs-stratego` 可以通过 Git 子模块或其他仓级挂载方式接入项目，但不会反向改写源仓文档
+- 新增、删除或移动 `docs/` 页面后，要同步刷新根 `docs/index.md` 的目录树和对应子目录概览页；可执行 `factory-dispatch docs-index-refresh --project "."`
 
 ## 技术与设计纪律
 
-- 进入实现前必须读取 `docs/03-solution/technical-selection.md` 和 `docs/03-solution/module-boundaries.md`
+- 进入实现前必须读取 `docs/04-project-development/04-design/technical-selection.md` 和 `docs/04-project-development/04-design/module-boundaries.md`
 - 技术画像一旦登记，所有相关角色必须遵守其中的强制技能、模块清单和工程规则
+- 如果技术画像声明了领域技能（例如 `crawler4j-model-project`），进入实施前先激活该技能，再执行通用语言或测试工作流
 - `ux-ui-design.md` 不应只停留在文字
 - 真实设计交付物统一通过 `factory-design-assets` 录入
 

@@ -27,7 +27,7 @@ description: "在进行任何创造性工作（创建功能、构建组件、添
 2. **提出澄清问题** — 每次一个，了解目的/约束条件/成功标准
 3. **提出 2-3 种方案** — 附带权衡分析和你的建议
 4. **展示设计** — 根据复杂性分阶段展示，在每一部分之后获取用户批准
-5. **编写头脑风暴记录** — 保存到 `docs/01-discovery/brainstorm-record.md` 并提交
+5. **编写头脑风暴记录** — 保存到 `docs/04-project-development/02-discovery/brainstorm-record.md` 并提交
 6. **过渡到需求阶段** — 执行 `/requirements` 命令来生成 PRD
 
 ## 流程图 (Process Flow)
@@ -83,7 +83,7 @@ digraph brainstorming {
 - 如果目录已存在则跳过
 
 **编写头脑风暴记录：**
-- 将探索过程和结论写入 `docs/01-discovery/brainstorm-record.md`
+- 将探索过程和结论写入 `docs/04-project-development/02-discovery/brainstorm-record.md`
 - 使用 `document-templates` 技能中的"头脑风暴记录"模板
 - 记录内容包含：项目背景、用户意图、探索过程、方案比较、最终决定、约束条件
 - 将记录提交到 Git

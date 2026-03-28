@@ -8,6 +8,7 @@ import sys
 
 from factory_core import (
     append_log_line,
+    canonical_docs_project_path,
     design_asset_records,
     load_project_config,
     next_sequence_id,
@@ -56,7 +57,7 @@ def render_entry_lines(value: str, *, relative_prefix: str = "") -> list[str]:
     mode = classify_render_mode(value)
     if relative_prefix:
         target = f"{relative_prefix}{Path(value).name}"
-    elif value.startswith("docs/03-solution/assets/"):
+    elif value.startswith("docs/04-project-development/04-design/assets/"):
         target = Path(value).name
     else:
         target = value
@@ -67,39 +68,6 @@ def render_entry_lines(value: str, *, relative_prefix: str = "") -> list[str]:
     if mode in {"pdf", "video", "file"}:
         return [f"- 文件：`{value}`", f"- 打开交付物：[{Path(value).name}]({target})", ""]
     return [f"- 外部链接：[{value}]({value})", ""]
-
-
-def build_assets_doc(records: list[dict]) -> str:
-    lines = [
-        "# 设计交付物目录",
-        "",
-        f"- 最近更新：{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
-        f"- 交付物数：{len(records)}",
-        "",
-    ]
-    if not records:
-        lines.append("暂无设计交付物。")
-        return "\n".join(lines).rstrip() + "\n"
-
-    for record in records:
-        lines.extend(
-            [
-                f"## {record['id']} {record.get('title', '未命名设计交付物')}",
-                "",
-                f"- 类型：{record.get('kind', '设计交付物')}",
-                f"- 关联 UI：{record.get('ui_id', '未绑定') or '未绑定'}",
-                f"- 来源：{record.get('source', '未说明') or '未说明'}",
-                f"- 录入人：{record.get('owner', '未知')}",
-                f"- 录入时间：{record.get('created_at', '未知')}",
-                f"- 说明：{record.get('note', '无') or '无'}",
-                "",
-            ]
-        )
-        for file_path in record.get("files", []):
-            lines.extend(render_entry_lines(file_path))
-        for link in record.get("links", []):
-            lines.extend(render_entry_lines(link))
-    return "\n".join(lines).rstrip() + "\n"
 
 
 def build_ui_doc_asset_section(records: list[dict]) -> list[str]:
@@ -196,7 +164,7 @@ def main() -> int:
             config = load_project_config(project_root)
             records = design_asset_records(config)
             asset_id = next_sequence_id(records, "DA-")
-            asset_root = project_root / "docs" / "03-solution" / "assets"
+            asset_root = canonical_docs_project_path(project_root, "04-project-development/04-design/assets")
             asset_root.mkdir(parents=True, exist_ok=True)
 
             copied_relatives: list[str] = []
@@ -207,7 +175,7 @@ def main() -> int:
                 filename = f"{asset_id}-{index:02d}{suffix}"
                 target = asset_root / filename
                 shutil.copy2(source, target)
-                copied_relatives.append(f"docs/03-solution/assets/{filename}")
+                copied_relatives.append(f"docs/04-project-development/04-design/assets/{filename}")
 
             record = {
                 "id": asset_id,
@@ -226,9 +194,8 @@ def main() -> int:
             save_project_config(project_root, config)
             save_design_asset_state(project_root, records)
 
-            write_text(asset_root / "README.md", build_assets_doc(records))
             replace_or_append_section(
-                project_root / "docs" / "03-solution" / "ux-ui-design.md",
+                canonical_docs_project_path(project_root, "04-project-development/04-design/ux-ui-design.md"),
                 "## 设计交付物",
                 build_ui_doc_asset_section(records),
                 default_title="# UX/UI 设计文档",

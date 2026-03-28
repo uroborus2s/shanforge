@@ -1,0 +1,4 @@
+interface:
+  display_name: "Crawler4j Model Project"
+  short_description: "Build crawler4j model/module projects through the SDK CLI and runtime contract"
+  default_prompt: "Use $crawler4j-model-project when creating, evolving, debugging, or reviewing a crawler4j model/module project. Prefer `crawler4j init-model`, `crawler4j new`, `crawler4j add-workflow`, and `crawler4j add-ui` before manual scaffolding. Treat `module.yaml` plus the module root `__init__.py` as the runtime contract, validate through DevLink or zip-install smoke, and do not assume wheel metadata drives module loading."

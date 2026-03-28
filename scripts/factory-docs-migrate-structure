@@ -1,0 +1,82 @@
+#!/usr/bin/env python3
+
+import argparse
+from datetime import datetime
+from pathlib import Path
+import sys
+
+from factory_core import (
+    EXECUTION_LOG_RELATIVE,
+    append_log_line,
+    docs_structure_migration_needed,
+    load_project_config,
+    migrate_docs_structure,
+    project_lock,
+)
+
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description="把旧版 docs 生命周期目录迁移到 4 大模块单轴结构。")
+    parser.add_argument("--project", required=True, help="项目根目录。")
+    parser.add_argument("--name", default="", help="项目名称；未提供时优先读取 `.factory/project.json`。")
+    parser.add_argument("--owner", default="文档管理员", help="执行人。")
+    parser.add_argument("--force", action="store_true", help="允许在目标文档已存在时覆盖冲突文件。")
+    parser.add_argument("--check", action="store_true", help="只检查是否需要迁移。")
+    return parser.parse_args()
+
+
+def detect_project_name(project_root: Path, override: str) -> str:
+    if override.strip():
+        return override.strip()
+    config_path = project_root / ".factory" / "project.json"
+    if config_path.exists():
+        try:
+            return load_project_config(project_root).get("project_name", project_root.name) or project_root.name
+        except Exception:
+            pass
+    return project_root.name
+
+
+def main() -> int:
+    args = parse_args()
+    project_root = Path(args.project).expanduser().resolve()
+    if not project_root.exists():
+        print(f"项目目录不存在：{project_root}", file=sys.stderr)
+        return 1
+
+    if args.check:
+        needed = docs_structure_migration_needed(project_root)
+        print("需要迁移" if needed else "无需迁移")
+        return 0 if not needed else 1
+
+    project_name = detect_project_name(project_root, args.name)
+    config_path = project_root / ".factory" / "project.json"
+
+    try:
+        if config_path.exists():
+            with project_lock(project_root, reason=f"migrate-docs-structure:{args.owner.strip()}"):
+                result = migrate_docs_structure(project_root, project_name, force=args.force)
+                log_path = project_root / EXECUTION_LOG_RELATIVE
+                if log_path.exists():
+                    append_log_line(
+                        log_path,
+                        f"- {datetime.now().strftime('%Y-%m-%d')}: 完成 docs 结构重构迁移，负责人：{args.owner.strip()}。",
+                    )
+        else:
+            result = migrate_docs_structure(project_root, project_name, force=args.force)
+    except Exception as exc:
+        print(f"docs 结构迁移失败：{exc}", file=sys.stderr)
+        return 1
+
+    print(f"已完成 docs 结构迁移：{project_root / 'docs'}")
+    for key in ["moved", "created", "updated", "removed"]:
+        if not result.get(key):
+            continue
+        print(f"{key}:")
+        for item in result[key]:
+            print(f"- {item}")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

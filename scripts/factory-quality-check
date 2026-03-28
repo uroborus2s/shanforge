@@ -20,50 +20,50 @@ from factory_core import (
 
 STAGE_DOCS = {
     "BRAINSTORM": [
-        "docs/00-governance/project-charter.md",
-        "docs/01-discovery/input.md",
-        "docs/01-discovery/brainstorm-record.md",
+        "docs/04-project-development/01-governance/project-charter.md",
+        "docs/04-project-development/02-discovery/input.md",
+        "docs/04-project-development/02-discovery/brainstorm-record.md",
     ],
     "REQUIREMENTS": [
-        "docs/02-requirements/prd.md",
-        "docs/02-requirements/requirements-analysis.md",
-        "docs/02-requirements/requirements-verification.md",
+        "docs/04-project-development/03-requirements/prd.md",
+        "docs/04-project-development/03-requirements/requirements-analysis.md",
+        "docs/04-project-development/03-requirements/requirements-verification.md",
     ],
     "ANALYSIS": [
-        "docs/02-requirements/requirements-verification.md",
-        "docs/traceability/requirements-matrix.md",
+        "docs/04-project-development/03-requirements/requirements-verification.md",
+        "docs/04-project-development/10-traceability/requirements-matrix.md",
     ],
     "DESIGN": [
-        "docs/03-solution/system-architecture.md",
-        "docs/03-solution/technical-selection.md",
-        "docs/03-solution/module-boundaries.md",
-        "docs/03-solution/api-design.md",
-        "docs/03-solution/backend-design.md",
-        "docs/03-solution/ux-ui-design.md",
+        "docs/04-project-development/04-design/system-architecture.md",
+        "docs/04-project-development/04-design/technical-selection.md",
+        "docs/04-project-development/04-design/module-boundaries.md",
+        "docs/04-project-development/04-design/api-design.md",
+        "docs/04-project-development/04-design/backend-design.md",
+        "docs/04-project-development/04-design/ux-ui-design.md",
     ],
     "PLAN": [
-        "docs/04-delivery/wbs.md",
-        "docs/04-delivery/task-breakdown.md",
-        "docs/04-delivery/implementation-plan.md",
+        "docs/04-project-development/05-development-process/wbs.md",
+        "docs/04-project-development/05-development-process/task-breakdown.md",
+        "docs/04-project-development/05-development-process/implementation-plan.md",
         ".factory/process/execution-log.md",
     ],
     "IMPLEMENTATION": [
         ".factory/process/execution-log.md",
     ],
     "TESTING": [
-        "docs/05-quality/test-plan.md",
-        "docs/05-quality/test-cases.md",
-        "docs/05-quality/test-report.md",
+        "docs/04-project-development/06-testing-verification/test-plan.md",
+        "docs/04-project-development/06-testing-verification/test-cases.md",
+        "docs/04-project-development/06-testing-verification/test-report.md",
     ],
     "ACCEPTANCE": [
-        "docs/06-release/acceptance-checklist.md",
+        "docs/04-project-development/07-release-delivery/acceptance-checklist.md",
         ".factory/process/stage-check-report.md",
         ".factory/process/quality-check-report.md",
     ],
     "RELEASE": [
-        "docs/06-release/release-notes.md",
-        "docs/07-operations/deployment-guide.md",
-        "docs/08-handover/user-guide.md",
+        "docs/04-project-development/07-release-delivery/release-notes.md",
+        "docs/04-project-development/08-operations-maintenance/deployment-guide.md",
+        "docs/02-user-guide/user-guide.md",
     ],
 }
 
@@ -80,24 +80,24 @@ def parse_args() -> argparse.Namespace:
 
 def docs_for_scope(config: dict, scope: str) -> list[str]:
     if scope == "trace":
-        return ["docs/traceability/requirements-matrix.md"]
+        return ["docs/04-project-development/10-traceability/requirements-matrix.md"]
     if scope == "delivery":
         return [
-            "docs/06-release/delivery-package.md",
-            "docs/06-release/release-notes.md",
-            "docs/07-operations/deployment-guide.md",
-            "docs/08-handover/user-guide.md",
+            "docs/04-project-development/07-release-delivery/delivery-package.md",
+            "docs/04-project-development/07-release-delivery/release-notes.md",
+            "docs/04-project-development/08-operations-maintenance/deployment-guide.md",
+            "docs/02-user-guide/user-guide.md",
         ]
     if scope == "docs":
         return [
-            "docs/02-requirements/prd.md",
-            "docs/02-requirements/requirements-analysis.md",
-            "docs/02-requirements/requirements-verification.md",
-            "docs/03-solution/technical-selection.md",
-            "docs/03-solution/system-architecture.md",
-            "docs/03-solution/module-boundaries.md",
-            "docs/03-solution/api-design.md",
-            "docs/05-quality/test-report.md",
+            "docs/04-project-development/03-requirements/prd.md",
+            "docs/04-project-development/03-requirements/requirements-analysis.md",
+            "docs/04-project-development/03-requirements/requirements-verification.md",
+            "docs/04-project-development/04-design/technical-selection.md",
+            "docs/04-project-development/04-design/system-architecture.md",
+            "docs/04-project-development/04-design/module-boundaries.md",
+            "docs/04-project-development/04-design/api-design.md",
+            "docs/04-project-development/06-testing-verification/test-report.md",
         ]
 
     stage = config.get("stage", "BRAINSTORM")
@@ -107,7 +107,7 @@ def docs_for_scope(config: dict, scope: str) -> list[str]:
     docs: list[str] = []
     for stage_name in order[: order.index(stage) + 1]:
         docs.extend(STAGE_DOCS.get(stage_name, []))
-    docs.append("docs/traceability/requirements-matrix.md")
+    docs.append("docs/04-project-development/10-traceability/requirements-matrix.md")
     return list(dict.fromkeys(docs))
 
 
@@ -309,7 +309,7 @@ def main() -> int:
 
             line = f"- {today}: 执行质量检查，范围：{args.scope}，结果：{result}，检查人：{args.owner.strip()}。"
             append_log_line(project_root / ".factory" / "process" / "execution-log.md", line)
-            append_log_line(project_root / "docs" / "06-release" / "acceptance-checklist.md", line)
+            append_log_line(project_root / "docs" / "04-project-development" / "07-release-delivery" / "acceptance-checklist.md", line)
             refresh_ai_memory(project_root)
     except Exception as exc:
         print(f"执行质量检查失败：{exc}", file=sys.stderr)

@@ -6,6 +6,7 @@ from pathlib import Path
 import sys
 from factory_core import (
     append_log_line,
+    canonical_docs_project_path,
     build_tech_profile_from_preset,
     built_in_tech_presets,
     current_tech_profile,
@@ -72,10 +73,11 @@ def merge_profile(existing: dict, incoming: dict, *, replace: bool) -> dict:
         if replace:
             result = normalize_tech_profile_record(preset_payload)
         else:
-            seeded = dict(preset_payload)
-            seeded.update(result)
-            for key in ("projects", "modules", "rules", "admin_requirements", "commands", "guides"):
-                seeded[key] = merged_list(preset_payload.get(key, []), result.get(key, []))
+            seeded = dict(result)
+            for key in ("projects", "modules", "rules", "admin_requirements", "commands", "guides", "required_skills"):
+                seeded[key] = list(preset_payload.get(key, []))
+            preset_role_required = preset_payload.get("role_required_skills", {})
+            seeded["role_required_skills"] = dict(preset_role_required) if isinstance(preset_role_required, dict) else {}
             result = normalize_tech_profile_record(seeded)
             result["title"] = preset_payload.get("title", result.get("title", ""))
             result["stack"] = preset_payload.get("stack", result.get("stack", ""))
@@ -205,7 +207,7 @@ def main() -> int:
             save_project_config(project_root, config)
             save_tech_profile_state(project_root, config["technical_profile"])
 
-            doc_path = project_root / "docs" / "03-solution" / "technical-selection.md"
+            doc_path = canonical_docs_project_path(project_root, "04-project-development/04-design/technical-selection.md")
             write_text(doc_path, build_doc(config["technical_profile"], history))
 
             append_log_line(
@@ -217,7 +219,7 @@ def main() -> int:
         print(f"登记技术画像失败：{exc}", file=sys.stderr)
         return 1
 
-    print(f"已更新技术画像：{project_root / 'docs' / '03-solution' / 'technical-selection.md'}")
+    print(f"已更新技术画像：{canonical_docs_project_path(project_root, '04-project-development/04-design/technical-selection.md')}")
     return 0
 
 

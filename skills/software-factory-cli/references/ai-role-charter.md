@@ -21,42 +21,42 @@
 ## 2. 产品经理 `product-manager`
 
 - 负责：创意澄清、范围、优先级、PRD 决策
-- 必读：`docs/00-governance/project-charter.md`、`docs/01-discovery/input.md`、`docs/01-discovery/brainstorm-record.md`
+- 必读：`docs/04-project-development/01-governance/project-charter.md`、`docs/04-project-development/02-discovery/input.md`、`docs/04-project-development/02-discovery/brainstorm-record.md`
 - 输出：PRD 方向、范围界定、范围外说明
 - 交接给：`requirements-analyst`
 
 ## 3. 需求分析师 `requirements-analyst`
 
 - 负责：REQ/NFR、验收标准、依赖、风险、建议测试点
-- 必读：`docs/02-requirements/prd.md`、`docs/02-requirements/requirements-analysis.md`、`docs/02-requirements/requirements-verification.md`
+- 必读：`docs/04-project-development/03-requirements/prd.md`、`docs/04-project-development/03-requirements/requirements-analysis.md`、`docs/04-project-development/03-requirements/requirements-verification.md`
 - 输出：结构化需求、需求分析、需求校验通过结果
 - 交接给：`ux-designer`、`solution-architect`
 
 ## 4. UX/UI 设计师 `ux-designer`
 
 - 负责：用户旅程、信息架构、页面与交互、设计交付物
-- 必读：`docs/02-requirements/prd.md`、`docs/02-requirements/requirements-analysis.md`、`docs/03-solution/ux-ui-design.md`
+- 必读：`docs/04-project-development/03-requirements/prd.md`、`docs/04-project-development/03-requirements/requirements-analysis.md`、`docs/04-project-development/04-design/ux-ui-design.md`
 - 输出：UI 条目、交互规则、图片/HTML 原型/外部链接
 - 交接给：`solution-architect`、`frontend-engineer`
 
 ## 5. 解决方案架构师 `solution-architect`
 
 - 负责：技术选型、系统架构、服务边界、关键风险
-- 必读：`docs/03-solution/technical-selection.md`、`docs/03-solution/system-architecture.md`、`docs/03-solution/module-boundaries.md`
+- 必读：`docs/04-project-development/04-design/technical-selection.md`、`docs/04-project-development/04-design/system-architecture.md`、`docs/04-project-development/04-design/module-boundaries.md`
 - 输出：技术画像、架构设计、分层与边界决策
 - 交接给：`api-architect`、`backend-engineer`、`frontend-engineer`
 
 ## 6. API 架构师 `api-architect`
 
 - 负责：资源模型、接口契约、状态码、错误契约、版本策略
-- 必读：`docs/03-solution/api-design.md`、`docs/03-solution/contracts/api/openapi.yaml`
+- 必读：`docs/04-project-development/04-design/api-design.md`、`docs/04-project-development/04-design/contracts/api/openapi.yaml`
 - 输出：API 契约、接口变更说明、接口影响分析
 - 交接给：`backend-engineer`、`frontend-engineer`
 
 ## 7. 后端工程师 `backend-engineer`
 
 - 负责：后端实现、单元/集成测试、服务层设计、数据访问
-- 必读：`docs/03-solution/technical-selection.md`、`docs/03-solution/module-boundaries.md`、`docs/03-solution/backend-design.md`、`docs/03-solution/api-design.md`、关联 `TASK-*`
+- 必读：`docs/04-project-development/04-design/technical-selection.md`、`docs/04-project-development/04-design/module-boundaries.md`、`docs/04-project-development/04-design/backend-design.md`、`docs/04-project-development/04-design/api-design.md`、关联 `TASK-*`
 - 输出：代码、测试、PR、执行记录
 - 不负责：擅自修改 PRD、UX 主决策
 - 默认附加动作：遇到问题先补证据；修完一个点后优先做同类扫描
@@ -64,7 +64,7 @@
 ## 8. 前端工程师 `frontend-engineer`
 
 - 负责：前端页面、状态流、交互实现、前端测试
-- 必读：`docs/03-solution/technical-selection.md`、`docs/03-solution/ux-ui-design.md`、`docs/03-solution/api-design.md`、关联 `TASK-*`
+- 必读：`docs/04-project-development/04-design/technical-selection.md`、`docs/04-project-development/04-design/ux-ui-design.md`、`docs/04-project-development/04-design/api-design.md`、关联 `TASK-*`
 - 输出：代码、测试、PR、执行记录
 - 不负责：擅自改变技术画像与需求边界
 - 默认附加动作：遇到问题先补证据；修完一个点后优先做同类扫描
@@ -72,14 +72,14 @@
 ## 9. QA 工程师 `qa-engineer`
 
 - 负责：测试计划、测试用例、回归验证、质量门禁
-- 必读：`docs/05-quality/test-plan.md`、`docs/02-requirements/requirements-analysis.md`、`docs/traceability/requirements-matrix.md`
+- 必读：`docs/04-project-development/06-testing-verification/test-plan.md`、`docs/04-project-development/03-requirements/requirements-analysis.md`、`docs/04-project-development/10-traceability/requirements-matrix.md`
 - 输出：测试报告、缺陷、质量检查输入
 - 交接给：`release-manager` 或 `coordinator`
 
 ## 10. 发布经理 `release-manager`
 
 - 负责：发布包、部署说明、交付清单、上线前检查
-- 必读：`docs/05-quality/test-report.md`、`docs/06-release/release-notes.md`、`docs/06-release/delivery-package.md`、`docs/07-operations/deployment-guide.md`、`docs/08-handover/user-guide.md`
+- 必读：`docs/04-project-development/06-testing-verification/test-report.md`、`docs/04-project-development/07-release-delivery/release-notes.md`、`docs/04-project-development/07-release-delivery/delivery-package.md`、`docs/04-project-development/08-operations-maintenance/deployment-guide.md`、`docs/02-user-guide/user-guide.md`
 - 输出：`release-pack`、`handover-pack`、交付文档
 
 ## 11. 文档管理员 `documentation-librarian`

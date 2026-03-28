@@ -7,7 +7,7 @@ from pathlib import Path
 import sys
 import textwrap
 
-from factory_core import append_log_line, file_readiness, load_project_config, project_lock, refresh_ai_memory, save_project_config, write_text
+from factory_core import append_log_line, canonical_docs_project_path, file_readiness, load_project_config, project_lock, refresh_ai_memory, save_project_config, write_text
 
 
 REQ_PATTERN = re.compile(r"\bREQ-\d{3}\b")
@@ -35,7 +35,7 @@ def ensure_writable(path: Path, force: bool) -> None:
 
 
 def extract_req_ids(project_root: Path) -> list[str]:
-    prd_path = project_root / "docs" / "02-requirements" / "prd.md"
+    prd_path = canonical_docs_project_path(project_root, "04-project-development/03-requirements/prd.md")
     if not prd_path.exists():
         return ["REQ-001", "REQ-002", "REQ-003"]
     content = prd_path.read_text(encoding="utf-8")
@@ -332,13 +332,13 @@ def main() -> int:
     project_root = Path(args.project).expanduser().resolve()
 
     targets = [
-        project_root / "docs" / "03-solution" / "system-architecture.md",
-        project_root / "docs" / "03-solution" / "technical-selection.md",
-        project_root / "docs" / "03-solution" / "module-boundaries.md",
-        project_root / "docs" / "03-solution" / "api-design.md",
-        project_root / "docs" / "03-solution" / "backend-design.md",
-        project_root / "docs" / "03-solution" / "database-design.md",
-        project_root / "docs" / "03-solution" / "ux-ui-design.md",
+        canonical_docs_project_path(project_root, "04-project-development/04-design/system-architecture.md"),
+        canonical_docs_project_path(project_root, "04-project-development/04-design/technical-selection.md"),
+        canonical_docs_project_path(project_root, "04-project-development/04-design/module-boundaries.md"),
+        canonical_docs_project_path(project_root, "04-project-development/04-design/api-design.md"),
+        canonical_docs_project_path(project_root, "04-project-development/04-design/backend-design.md"),
+        canonical_docs_project_path(project_root, "04-project-development/04-design/database-design.md"),
+        canonical_docs_project_path(project_root, "04-project-development/04-design/ux-ui-design.md"),
     ]
 
     try:
@@ -380,7 +380,7 @@ def main() -> int:
         print(f"初始化设计阶段文档失败：{exc}", file=sys.stderr)
         return 1
 
-    print(f"已初始化设计阶段文档：{project_root / 'docs' / '03-solution'}")
+    print(f"已初始化设计阶段文档：{canonical_docs_project_path(project_root, '04-project-development/04-design')}")
     return 0
 
 

@@ -6,24 +6,32 @@
 - 把“架构说明”和“接口契约文件”放在同一阶段目录，方便联查。
 - 把“发布/部署”和“运行/支持”分开，避免上线前文档与长期运维文档混杂。
 - 把“用户指南”和“管理员/实施指南”分开，避免不同读者互相干扰。
+- `docs/index.md` 作为人类入口页，供仓内阅读和 `docs-stratego` 聚合站点共同复用。
+- 根 `docs/index.md` 是唯一的导航清单文件，用 YAML front matter 中的 `mkdocs.home_access` 和 `mkdocs.nav` 声明全站目录树、页面路径和页面权限。
+- `docs/` 下每个文档目录仍保留自己的 `index.md`，但它们只作为正文首页和资源权限锚点，不再声明 `mkdocs.nav`。
+- 仓内链接统一使用相对路径，不写机器绝对路径。
 
 ## 推荐目录
 
 ```text
 docs/
+├── index.md
 ├── 00-governance/
+│   ├── index.md
 │   ├── project-charter.md
 │   ├── stakeholders-raci.md
 │   ├── risk-register.md
 │   ├── glossary.md
 │   └── roadmap.md
 ├── 01-discovery/
+│   ├── index.md
 │   ├── input.md
 │   ├── brainstorm-record.md
 │   ├── current-state-analysis.md
 │   ├── business-flow.md
 │   └── scope-outline.md
 ├── 02-requirements/
+│   ├── index.md
 │   ├── prd.md
 │   ├── requirements-analysis.md
 │   ├── requirements-verification.md
@@ -31,6 +39,7 @@ docs/
 │   ├── acceptance-criteria.md
 │   └── change-requests.md
 ├── 03-solution/
+│   ├── index.md
 │   ├── technical-selection.md
 │   ├── system-architecture.md
 │   ├── module-boundaries.md
@@ -41,20 +50,25 @@ docs/
 │   ├── deployment-architecture.md
 │   ├── ux-ui-design.md
 │   ├── assets/
-│   │   └── README.md
 │   ├── adr/
+│   │   ├── index.md
 │   │   └── ADR-001-<title>.md
 │   └── contracts/
+│       ├── index.md
 │       ├── api/
+│       │   ├── index.md
 │       │   └── openapi.yaml
 │       ├── events/
+│       │   ├── index.md
 │       │   ├── event-overview.md
 │       │   ├── asyncapi.yaml
 │       │   └── schemas/
 │       └── internal/
+│           ├── index.md
 │           ├── interface-catalog.md
 │           └── schemas/
 ├── 04-delivery/
+│   ├── index.md
 │   ├── wbs.md
 │   ├── implementation-plan.md
 │   ├── task-breakdown.md
@@ -74,10 +88,12 @@ docs/
 │   ├── pr-handovers.md
 │   ├── remote-prs.md
 │   ├── role-retrospectives/
+│   │   ├── index.md
 │   │   └── README.md
 │   ├── team-retro.md
 │   └── dev-setup.md
 ├── 05-quality/
+│   ├── index.md
 │   ├── test-strategy.md
 │   ├── test-plan.md
 │   ├── test-cases.md
@@ -86,6 +102,7 @@ docs/
 │   ├── test-report.md
 │   └── uat-report.md
 ├── 06-release/
+│   ├── index.md
 │   ├── acceptance-checklist.md
 │   ├── pr-check-report.md
 │   ├── stage-check-report.md
@@ -100,6 +117,7 @@ docs/
 │   ├── role-closeouts.md
 │   └── team-closeouts.md
 ├── 07-operations/
+│   ├── index.md
 │   ├── deployment-guide.md
 │   ├── operations-runbook.md
 │   ├── monitoring-alerting.md
@@ -108,16 +126,19 @@ docs/
 │   ├── support-handbook.md
 │   └── configuration-matrix.md
 ├── 08-handover/
+│   ├── index.md
 │   ├── user-guide.md
 │   ├── admin-guide.md
 │   ├── training-guide.md
 │   ├── faq-troubleshooting.md
 │   └── handover-memo.md
 ├── 09-evolution/
+│   ├── index.md
 │   ├── retrospective.md
 │   ├── postmortem.md
 │   └── deprecation-plan.md
 ├── traceability/
+│   ├── index.md
 │   ├── requirements-matrix.md
 │   ├── interface-matrix.md
 │   └── document-index.md
@@ -186,6 +207,26 @@ docs/
 
 放跨阶段引用关系。这里不要堆正文，而是放索引、矩阵和覆盖视图。
 
+### `docs/index.md`
+
+放项目文档首页，面向人类读者解释：
+
+- 文档区覆盖哪些阶段
+- 每个分区解决什么问题
+- 与 `docs-stratego` 聚合站点的关系
+- 根目录 `mkdocs.nav` 如何把各级目录和页面按中文名组织出来
+
+### 各目录 `index.md`
+
+每个文档目录都要有自己的 `index.md`，至少包含：
+
+- 一个一级标题 `# 标题`
+- 目录说明
+- 推荐阅读顺序或页面分组提示
+
+这些目录首页只负责承载目录正文，不再声明导航树；实际左侧目录和页面权限全部来自根 `docs/index.md`。
+`assets/` 目录只能放资源文件，不能放 Markdown 页面。
+
 ### `.factory/`
 
 放隐藏的控制面资产。这里统一容纳 AI 压缩记忆、过程文档、工作项、运行状态和协作中间产物，不替代正式文档。
@@ -229,6 +270,18 @@ docs/
 
 初始化文档体系时，先创建以下目录与文件：
 
+- `docs/index.md`
+- `docs/04-project-development/01-governance/index.md`
+- `docs/04-project-development/02-discovery/index.md`
+- `docs/04-project-development/03-requirements/index.md`
+- `docs/04-project-development/04-design/index.md`
+- `docs/04-project-development/05-development-process/index.md`
+- `docs/04-project-development/06-testing-verification/index.md`
+- `docs/04-project-development/07-release-delivery/index.md`
+- `docs/04-project-development/08-operations-maintenance/index.md`
+- `docs/02-user-guide/index.md`
+- `docs/04-project-development/09-evolution/index.md`
+- `docs/04-project-development/10-traceability/index.md`
 - `00-governance/project-charter.md`
 - `01-discovery/input.md`
 - `01-discovery/brainstorm-record.md`

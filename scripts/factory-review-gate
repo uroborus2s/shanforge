@@ -33,7 +33,7 @@ def assert_gate_pr_ready(project_root: Path, gate: str, skip_check: bool) -> Non
     pending = "、".join(record.get("id", "未知 PR") for record in active)
     raise RuntimeError(f"Gate `{gate}` 通过前仍有未合并 PR：{pending}")
 def append_gate_log(project_root: Path, gate: str, result: str, reviewer: str, note: str) -> None:
-    acceptance = project_root / "docs" / "06-release" / "acceptance-checklist.md"
+    acceptance = project_root / "docs" / "04-project-development" / "07-release-delivery" / "acceptance-checklist.md"
     execution = project_root / ".factory" / "process" / "execution-log.md"
     line = f"- {datetime.now().strftime('%Y-%m-%d')}: Gate `{gate}` 评审结果：{result}，评审人：{reviewer}。"
     if note:

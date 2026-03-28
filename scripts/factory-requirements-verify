@@ -87,8 +87,8 @@ def check_section_fields(section: str, fields: list[str]) -> list[str]:
 def main() -> int:
     args = parse_args()
     project_root = Path(args.project).expanduser().resolve()
-    prd_path = project_root / "docs" / "02-requirements" / "prd.md"
-    analysis_path = project_root / "docs" / "02-requirements" / "requirements-analysis.md"
+    prd_path = project_root / "docs" / "04-project-development" / "03-requirements" / "prd.md"
+    analysis_path = project_root / "docs" / "04-project-development" / "03-requirements" / "requirements-analysis.md"
 
     try:
         with project_lock(project_root, reason="执行需求一致性校验"):
@@ -173,7 +173,7 @@ def main() -> int:
                     *suggestion_lines,
                 ]
             ).rstrip() + "\n"
-            write_text(project_root / "docs" / "02-requirements" / "requirements-verification.md", report)
+            write_text(project_root / "docs" / "04-project-development" / "03-requirements" / "requirements-verification.md", report)
             write_text(
                 project_root / ".factory" / "memory" / "requirements-verification.summary.md",
                 "\n".join(

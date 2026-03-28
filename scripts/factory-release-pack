@@ -43,8 +43,8 @@ def build_manifest(release_id: str, owner: str, note: str, copied: list[str]) ->
 
 def append_release_log(project_root: Path, release_id: str, owner: str, note: str) -> None:
     for relative in [
-        "docs/06-release/release-notes.md",
-        "docs/06-release/delivery-package.md",
+        "docs/04-project-development/07-release-delivery/release-notes.md",
+        "docs/04-project-development/07-release-delivery/delivery-package.md",
         ".factory/process/execution-log.md",
     ]:
         path = project_root / relative
@@ -67,10 +67,10 @@ def main() -> int:
 
             copied = []
             for relative in [
-                "docs/06-release/release-notes.md",
-                "docs/06-release/delivery-package.md",
-                "docs/07-operations/deployment-guide.md",
-                "docs/08-handover/user-guide.md",
+                "docs/04-project-development/07-release-delivery/release-notes.md",
+                "docs/04-project-development/07-release-delivery/delivery-package.md",
+                "docs/04-project-development/08-operations-maintenance/deployment-guide.md",
+                "docs/02-user-guide/user-guide.md",
                 ".factory/memory/project-index.md",
                 ".factory/memory/current-state.md",
             ]:

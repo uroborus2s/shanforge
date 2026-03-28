@@ -138,7 +138,7 @@ def main() -> int:
 
             history_line = f"- {now_text}: 完成 `{period}` 复盘，负责人：{args.owner.strip()}。"
             upsert_report(
-                project_root / "docs" / "09-evolution" / "retrospective.md",
+                project_root / "docs" / "04-project-development" / "09-evolution" / "retrospective.md",
                 latest_lines=latest_lines,
                 good_lines=good_lines,
                 issue_lines=issue_lines,

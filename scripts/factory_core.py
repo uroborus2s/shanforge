@@ -841,6 +841,10 @@ DOCS_PROFILE_INTERESTING_FILENAMES = {
 }
 DOCS_MACHINE_PATH_PATTERN = re.compile(r"/Users/|/absolute/path")
 MARKDOWN_LINK_PATTERN = re.compile(r"(?P<prefix>!?\[[^\]]*\]\()(?P<target>[^)]+)(?P<suffix>\))")
+EXPLICIT_HTML_ANCHOR_PATTERN = re.compile(
+    r"<(?:a|span|div)\b[^>]*\bid=(?:\"([^\"]+)\"|'([^']+)')[^>]*>",
+    re.IGNORECASE,
+)
 LEGACY_DOCS_DIRECTORY_MAP = {
     "00-governance": "04-project-development/01-governance",
     "01-discovery": "04-project-development/02-discovery",
@@ -2416,6 +2420,27 @@ def extract_docs_nav_access_map(text: str) -> dict[str, str | None]:
     return nav
 
 
+def extract_explicit_anchor_ids(text: str) -> set[str]:
+    anchors: set[str] = set()
+    for match in EXPLICIT_HTML_ANCHOR_PATTERN.finditer(text):
+        anchor = (match.group(1) or match.group(2) or "").strip()
+        if anchor:
+            anchors.add(anchor)
+    return anchors
+
+
+def extract_self_anchor_targets(text: str) -> set[str]:
+    anchors: set[str] = set()
+    for match in MARKDOWN_LINK_PATTERN.finditer(text):
+        target = match.group("target").strip()
+        if not target.startswith("#"):
+            continue
+        anchor = target[1:].strip()
+        if anchor:
+            anchors.add(anchor)
+    return anchors
+
+
 def merge_docs_stratego_root_index(project_root: Path, project_name: str, existing_text: str | None = None) -> str:
     generated = render_docs_stratego_root_index(project_root, project_name)
     generated_front_matter, generated_body = split_markdown_front_matter(generated)
@@ -2546,6 +2571,9 @@ def docs_stratego_source_status(project_root: Path, project_name: str) -> tuple[
                     findings.append(
                         f"- `docs/index.md` 中 `{required_path}` 的访问级别应为 `{required_access}`，当前为 `{actual_access}`。"
                     )
+            for actual_path in sorted(actual_nav):
+                if not (docs_root / actual_path).exists():
+                    findings.append(f"- `docs/index.md` 中导航项指向不存在的页面：`{actual_path}`。")
 
     for relative_dir in docs_stratego_directories(project_root, docs_profile):
         relative_path = f"docs/{relative_dir}/index.md"
@@ -2567,6 +2595,12 @@ def docs_stratego_source_status(project_root: Path, project_name: str) -> tuple[
         text = path.read_text(encoding="utf-8", errors="ignore")
         if DOCS_MACHINE_PATH_PATTERN.search(text):
             findings.append(f"- `{relative}` 含有机器绝对路径，请改为仓内相对路径。")
+        explicit_anchors = extract_explicit_anchor_ids(text)
+        for anchor in sorted(extract_self_anchor_targets(text)):
+            if anchor not in explicit_anchors:
+                findings.append(
+                    f"- `{relative}` 包含页内锚点链接 `#{anchor}`，但未声明显式锚点；请添加 `<a id=\"{anchor}\"></a>`。"
+                )
 
     if findings:
         return "异常", findings

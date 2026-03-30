@@ -229,6 +229,49 @@ class FactoryRelativePathAndDocsIndexTests(unittest.TestCase):
         self.assertEqual(status_after, "就绪")
         self.assertTrue(any("根 `docs/index.md`" in line or "未发现明显机器绝对路径污染" in line for line in lines_after))
 
+    def test_docs_stratego_source_status_detects_missing_nav_targets_and_explicit_self_anchors(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            project_root = Path(temp_dir)
+            user_guide_dir = project_root / "docs" / "02-user-guide"
+            user_guide_dir.mkdir(parents=True)
+            prompt_path = user_guide_dir / "prompt-templates.md"
+            prompt_path.write_text(
+                "# 提示词速查\n\n[跳转](#3-空目录新项目初始化)\n\n## 3. 空目录新项目初始化\n",
+                encoding="utf-8",
+            )
+            (user_guide_dir / "user-guide.md").write_text("# 使用指南\n", encoding="utf-8")
+
+            self.factory_core.write_docs_stratego_indexes(project_root, "示例项目")
+
+            root_path = project_root / "docs" / "index.md"
+            root_text = root_path.read_text(encoding="utf-8")
+            root_path.write_text(
+                root_text.replace(
+                    "path: 02-user-guide/user-guide.md\n          access: public\n",
+                    "path: 02-user-guide/user-guide.md\n"
+                    "          access: public\n"
+                    "        - title: 缺失页面\n"
+                    "          path: 02-user-guide/missing.md\n"
+                    "          access: public\n",
+                ),
+                encoding="utf-8",
+            )
+
+            status_before, lines_before = self.factory_core.docs_stratego_source_status(project_root, "示例项目")
+
+            prompt_path.write_text(
+                "# 提示词速查\n\n[跳转](#3-空目录新项目初始化)\n\n<a id=\"3-空目录新项目初始化\"></a>\n\n## 3. 空目录新项目初始化\n",
+                encoding="utf-8",
+            )
+            self.factory_core.write_docs_stratego_indexes(project_root, "示例项目")
+            status_after, lines_after = self.factory_core.docs_stratego_source_status(project_root, "示例项目")
+
+        self.assertEqual(status_before, "异常")
+        self.assertTrue(any("导航项指向不存在的页面" in line for line in lines_before))
+        self.assertTrue(any("未声明显式锚点" in line for line in lines_before))
+        self.assertEqual(status_after, "就绪")
+        self.assertTrue(any("根 `docs/index.md`" in line for line in lines_after))
+
     def test_factory_init_creates_section_indexes_for_docs_stratego(self):
         with tempfile.TemporaryDirectory() as temp_dir:
             project_root = Path(temp_dir) / "managed-project"

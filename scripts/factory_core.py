@@ -492,7 +492,6 @@ DEFAULT_ROLE_SPECS = (
             "docs/04-project-development/07-release-delivery/release-notes.md",
             "docs/04-project-development/08-operations-maintenance/deployment-guide.md",
             "docs/02-user-guide/user-guide.md",
-            "docs/02-user-guide/admin-guide.md",
         ],
     },
     {
@@ -536,14 +535,11 @@ DOCS_STRATEGO_DIRECTORY_SPECS = {
     "02-user-guide": {
         "title": "用户指南",
         "root_access": "public",
-        "description": "本目录收纳面向最终用户和协作者的安装、配置、使用和常见问题说明。",
+        "description": "本目录收纳面向最终用户和协作者的使用指南、提示词速查和命令速查。",
         "order": [
             "user-guide.md",
-            "installation.md",
-            "configuration.md",
-            "usage.md",
             "prompt-templates.md",
-            "faq-troubleshooting.md",
+            "command-cheatsheet.md",
         ],
     },
     "03-developer-guide": {
@@ -1300,100 +1296,130 @@ MODERN_DOCS_BOOTSTRAP_PAGES = {
     + "\n",
     "02-user-guide/user-guide.md": textwrap.dedent(
         """
-        # 用户指南
+        # 使用指南
 
-        ## 1. 读者范围
+        ## 1. 这篇文档回答什么
 
-        面向最终用户、日常协作者和项目使用者，回答“怎么完成常见任务”。
+        面向第一次接触项目的软件工厂使用者，说明：
+
+        - 使用前需要什么准备
+        - 如何判断项目类型
+        - 第一轮会话应该怎么开始
+        - AI 做完后要检查什么
 
         ## 2. 建议正文结构
 
-        ### 2.1 产品或系统简介
+        ### 2.1 使用前准备
 
-        用业务语言说明系统能做什么、适合谁、有哪些前提。
+        写清工具、权限、仓库、目录和最小可用性校验。
 
-        ### 2.2 典型任务
+        ### 2.2 项目类型判断
 
-        按任务而不是按菜单组织，例如“创建项目”“处理需求变更”“完成发布前检查”。
+        明确区分：
 
-        ### 2.3 常见问题
+        - 空目录新项目
+        - 历史项目纳管
+        - 已纳入软件工厂的项目
+        - 半初始化项目
 
-        收纳高频错误、限制条件和处理方式。
+        ### 2.3 第一轮会话怎么开始
+
+        说明“先读什么、先做什么、不要做什么”。
+
+        ### 2.4 日常使用节奏
+
+        说明会话开始、中途、结束时的推荐动作。
 
         ## 3. 关联文档
 
-        - [安装说明](./installation.md)
-        - [配置说明](./configuration.md)
-        - [使用说明](./usage.md)
+        - [提示词速查](./prompt-templates.md)
+        - [命令速查](./command-cheatsheet.md)
         """
     ).strip()
     + "\n",
-    "02-user-guide/installation.md": textwrap.dedent(
+    "02-user-guide/prompt-templates.md": textwrap.dedent(
         """
-        # 安装说明
+        # 提示词速查
 
-        ## 1. 前置条件
+        ## 1. 这篇文档回答什么
 
-        列出系统版本、依赖工具、权限、网络或账号要求。
+        面向实际会发 Prompt 给 AI 的使用者，提供：
 
-        ## 2. 安装步骤
+        - 各种项目状态下的直接可复制 Prompt
+        - 每种 Prompt 的使用时机
+        - 每种 Prompt 的预期结果
 
-        1. 获取代码、安装包或访问入口。
-        2. 安装依赖和运行时。
-        3. 初始化必要配置。
-        4. 执行安装校验。
+        ## 2. 建议正文结构
 
-        ## 3. 安装校验
+        ### 2.1 场景总表
 
-        明确“安装成功”的判断标准，例如命令输出、服务状态、页面可访问性或测试通过。
+        用表格列出“场景、推荐第一动作、模板位置、预期结果”。
 
-        ## 4. 常见安装失败
+        ### 2.2 详细模板
 
-        用表格列出问题现象、可能原因和处理方式。
-        """
-    ).strip()
-    + "\n",
-    "02-user-guide/configuration.md": textwrap.dedent(
-        """
-        # 配置说明
+        至少覆盖：
 
-        ## 1. 配置范围
+        - 空目录新项目初始化
+        - 历史项目纳管
+        - 半初始化项目补齐规则入口
+        - 已纳入软件工厂后继续工作
+        - 需求阶段
+        - 设计阶段
+        - OpenAPI 契约生成
+        - 任务拆分
+        - BUG / CR / 发布 / 交接
 
-        说明哪些配置属于环境级、项目级、用户级，以及哪些配置不能随意改动。
+        ## 3. 要求
 
-        ## 2. 关键配置项
+        每个模板都要明确：
 
-        建议用表格列出配置名、说明、默认值、是否必填、变更风险和关联文档。
-
-        ## 3. 环境差异
-
-        分别说明本地、测试、预发、生产等环境的差异规则。
-
-        ## 4. 配置变更要求
-
-        指明需要同步更新哪些文档、审批点、发布说明或回滚信息。
+        - 什么时候用
+        - Prompt 正文
+        - 预期结果
         """
     ).strip()
     + "\n",
-    "02-user-guide/usage.md": textwrap.dedent(
+    "02-user-guide/command-cheatsheet.md": textwrap.dedent(
         """
-        # 使用说明
+        # 命令速查
 
-        ## 1. 核心任务清单
+        ## 1. 这篇文档回答什么
 
-        列出用户最常见的 3 到 7 个任务。
+        面向已经会用自然语言，但需要下钻到命令层的使用者，说明：
 
-        ## 2. 每个任务的标准写法
+        - 每个命令怎么调用
+        - 它解决什么问题
+        - 什么时候使用
+        - 运行后的预期结果
 
-        - 目标
-        - 前置条件
-        - 操作步骤
-        - 成功判断
-        - 常见异常与处理
+        ## 2. 建议正文结构
 
-        ## 3. 升级与兼容提醒
+        ### 2.1 先讲高层入口
 
-        如果功能、接口、权限或配置有版本差异，应单独标明。
+        优先说明：
+
+        - `factory-dispatch`
+        - `factory-command-profiles`
+        - `factory-workflow-runner`
+
+        ### 2.2 再按类别列命令
+
+        推荐分类：
+
+        - 初始化与结构修复
+        - 需求、设计与计划
+        - 工作项与追踪
+        - PR 与发布
+        - 会话入口与诊断
+        - 角色与团队协作
+        - 恢复与自进化
+
+        ## 3. 每个命令至少要写清楚
+
+        - 常见写法
+        - 作用
+        - 什么时候使用
+        - 预期
         """
     ).strip()
     + "\n",

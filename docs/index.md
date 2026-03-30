@@ -22,20 +22,14 @@ mkdocs:
         - title: 概览
           path: 02-user-guide/index.md
           access: public
-        - title: 用户指南
+        - title: 使用指南
           path: 02-user-guide/user-guide.md
           access: public
-        - title: 安装说明
-          path: 02-user-guide/installation.md
-          access: public
-        - title: 配置说明
-          path: 02-user-guide/configuration.md
-          access: public
-        - title: 使用说明
-          path: 02-user-guide/usage.md
-          access: public
-        - title: 历史项目标准提示词模板
+        - title: 提示词速查
           path: 02-user-guide/prompt-templates.md
+          access: public
+        - title: 命令速查
+          path: 02-user-guide/command-cheatsheet.md
           access: public
     - title: 开发者指南
       children:
@@ -200,9 +194,10 @@ mkdocs:
               path: 04-project-development/10-traceability/document-index.md
               access: private
 ---
-# shanforge
 
-这是 `shanforge` 的正式项目文档源。当前仓库已经按 4 大模块完成单轴重构：
+# 山海工枢（shanforge）
+
+这是 `山海工枢（shanforge）` 的正式项目文档源。当前仓库已经按 4 大模块完成单轴重构：
 
 1. 入门说明
 2. 用户指南

@@ -369,20 +369,16 @@ def initialize_project(target: Path, project_name: str, idea: str, stack: str, o
             "说明 4 大文档模块的职责边界、目标读者和推荐阅读方式。",
         ),
         "docs/02-user-guide/user-guide.md": build_placeholder(
-            "用户指南",
-            "从用户视角说明系统能做什么、适合谁用以及主要使用场景。",
+            "使用指南",
+            "说明使用前准备、项目类型判断、第一轮会话怎么开始，以及日常使用节奏。",
         ),
-        "docs/02-user-guide/installation.md": build_placeholder(
-            "安装说明",
-            "说明安装前置条件、安装步骤、依赖环境和安装校验方法。",
+        "docs/02-user-guide/prompt-templates.md": build_placeholder(
+            "提示词速查",
+            "按场景提供可直接复制的 Prompt 模板，并说明每种模板的预期结果。",
         ),
-        "docs/02-user-guide/configuration.md": build_placeholder(
-            "配置说明",
-            "说明初始化配置、关键配置项、环境差异和常见配置错误。",
-        ),
-        "docs/02-user-guide/usage.md": build_placeholder(
-            "使用说明",
-            "说明主要操作流程、典型任务路径、限制条件和常见问题处理。",
+        "docs/02-user-guide/command-cheatsheet.md": build_placeholder(
+            "命令速查",
+            "列出命令的常见写法、作用、适用场景和预期结果。",
         ),
         "docs/03-developer-guide/01-concepts/01-system-map.md": build_placeholder(
             "1.1 系统地图与术语",
@@ -656,10 +652,6 @@ def initialize_project(target: Path, project_name: str, idea: str, stack: str, o
         "docs/04-project-development/08-operations-maintenance/operations-runbook.md": build_placeholder(
             "运维手册",
             "记录启停、巡检、监控、常见故障处理和升级路径。",
-        ),
-        "docs/02-user-guide/admin-guide.md": build_placeholder(
-            "管理员指南",
-            "说明初始化、权限、配置、升级和维护动作。",
         ),
         "docs/04-project-development/09-evolution/retrospective.md": build_placeholder(
             "项目复盘",

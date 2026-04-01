@@ -26,7 +26,6 @@ dist/
 .vscode/
 
 # Local runtime state
-.factory/
 *.log
 tmp/
 

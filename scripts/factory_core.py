@@ -679,6 +679,7 @@ DOCS_STRATEGO_DIRECTORY_SPECS = {
             "deployment-architecture.md",
             "ux-ui-design.md",
             "historical-project-onboarding-automation.md",
+            "source-docs-standard-upgrade-analysis.md",
             "assets",
             "adr",
             "contracts",
@@ -784,12 +785,27 @@ DOCS_STRATEGO_DIRECTORY_TITLE_OVERRIDES = {
     "adr": "架构决策记录",
     "contracts": "接口契约",
     "api": "API 契约",
+    "openapi": "OpenAPI 契约",
     "events": "事件契约",
     "internal": "内部接口",
     "schemas": "数据 Schema",
+    "tools": "工具契约（MCP）",
     "private-design": "内部专题",
     "role-retrospectives": "角色复盘",
 }
+DOCS_STRATEGO_OPENAPI_SUFFIXES = (
+    ".openapi.yaml",
+    ".openapi.yml",
+    ".openapi.json",
+)
+DOCS_STRATEGO_MCP_TOOLS_SUFFIXES = (
+    ".mcp-tools.yaml",
+    ".mcp-tools.yml",
+    ".mcp-tools.json",
+)
+DOCS_STRATEGO_CONTRACT_SUFFIXES = DOCS_STRATEGO_OPENAPI_SUFFIXES + DOCS_STRATEGO_MCP_TOOLS_SUFFIXES
+DOCS_STRATEGO_PAGE_SUFFIXES = (".md", *DOCS_STRATEGO_CONTRACT_SUFFIXES)
+DOCS_STRATEGO_ACCESS_LEVELS = {"public", "private"}
 DOCS_PROFILE_TOP_LEVEL_ALIASES = {
     "01-getting-started": "01-getting-started",
     "getting-started": "01-getting-started",
@@ -835,9 +851,14 @@ DOCS_PROFILE_INTERESTING_FILENAMES = {
     "package.json",
     "module.yaml",
     "openapi.yaml",
+    "openapi.yml",
     "openapi.json",
     "asyncapi.yaml",
+    "asyncapi.yml",
     "asyncapi.json",
+    "mcp-tools.yaml",
+    "mcp-tools.yml",
+    "mcp-tools.json",
 }
 DOCS_MACHINE_PATH_PATTERN = re.compile(r"/Users/|/absolute/path")
 MARKDOWN_LINK_PATTERN = re.compile(r"(?P<prefix>!?\[[^\]]*\]\()(?P<target>[^)]+)(?P<suffix>\))")
@@ -1076,9 +1097,17 @@ def detect_docs_profile(project_root: Path, *, project_name: str = "", idea: str
             "no plugin",
         ],
     )
-    has_public_api = any(name.endswith(("openapi.yaml", "openapi.json", "asyncapi.yaml", "asyncapi.json")) for name in files) or (
+    has_public_api = any(
+        name.endswith(("openapi.yaml", "openapi.yml", "openapi.json", "asyncapi.yaml", "asyncapi.yml", "asyncapi.json"))
+        or name.endswith(DOCS_STRATEGO_OPENAPI_SUFFIXES)
+        for name in files
+    ) or (
         not negative_secondary_dev
         and contains_any_keyword(text, ["openapi", "asyncapi", "graphql", "public api", "对外接口", "rest api"])
+    )
+    has_mcp_tools = any(name.endswith(DOCS_STRATEGO_MCP_TOOLS_SUFFIXES) for name in files) or (
+        not negative_secondary_dev
+        and contains_any_keyword(text, ["mcp tools", "agent tools", "mcp 工具", "工具契约"])
     )
     has_plugin = any(part in name for name in files for part in ("plugin", "plugins/", "module.yaml", "extension", "extensions")) or (
         not negative_secondary_dev
@@ -1088,7 +1117,7 @@ def detect_docs_profile(project_root: Path, *, project_name: str = "", idea: str
         text,
         [" sdk", "sdk ", "client library", "开发包", "framework", "library", "二次开发"],
     )
-    has_secondary_development = has_public_api or has_plugin or has_sdk or contains_any_keyword(
+    has_secondary_development = has_public_api or has_mcp_tools or has_plugin or has_sdk or contains_any_keyword(
         text,
         ["开发者指南", "developer guide", "集成指南", "integration", "二次开发", "开发者"],
     )
@@ -2209,6 +2238,165 @@ def markdown_h1_title(path: Path) -> str:
     return stem or path.name
 
 
+def docs_stratego_trim_scalar(value: str) -> str:
+    text = value.strip()
+    if " #" in text:
+        text = text.split(" #", 1)[0].strip()
+    if len(text) >= 2 and text[0] == text[-1] and text[0] in {"'", '"'}:
+        text = text[1:-1].strip()
+    return text
+
+
+def is_docs_markdown_page(path: Path | str) -> bool:
+    candidate = path.name if isinstance(path, Path) else str(path)
+    return candidate.lower().endswith(".md")
+
+
+def is_docs_openapi_contract(path: Path | str) -> bool:
+    candidate = path.name if isinstance(path, Path) else str(path)
+    return candidate.lower().endswith(DOCS_STRATEGO_OPENAPI_SUFFIXES)
+
+
+def is_docs_mcp_tools_contract(path: Path | str) -> bool:
+    candidate = path.name if isinstance(path, Path) else str(path)
+    return candidate.lower().endswith(DOCS_STRATEGO_MCP_TOOLS_SUFFIXES)
+
+
+def is_docs_contract_file(path: Path | str) -> bool:
+    return is_docs_openapi_contract(path) or is_docs_mcp_tools_contract(path)
+
+
+def is_docs_stratego_page_file(path: Path | str) -> bool:
+    return is_docs_markdown_page(path) or is_docs_contract_file(path)
+
+
+def docs_stratego_display_name_from_file(path: Path) -> str:
+    lower_name = path.name.lower()
+    stem = path.name
+    for suffix in DOCS_STRATEGO_CONTRACT_SUFFIXES:
+        if lower_name.endswith(suffix):
+            stem = path.name[: -len(suffix)]
+            break
+    stem = stem.replace("-", " ").replace("_", " ").strip()
+    return stem or path.name
+
+
+def load_json_document(path: Path) -> dict | list | None:
+    try:
+        return json.loads(path.read_text(encoding="utf-8"))
+    except Exception:
+        return None
+
+
+def parse_openapi_contract_metadata(path: Path) -> dict[str, str]:
+    if path.suffix.lower() == ".json":
+        payload = load_json_document(path)
+        if not isinstance(payload, dict):
+            return {"openapi": "", "title": "", "version": ""}
+        info = payload.get("info")
+        if not isinstance(info, dict):
+            info = {}
+        return {
+            "openapi": str(payload.get("openapi", "")).strip(),
+            "title": str(info.get("title", "")).strip(),
+            "version": str(info.get("version", "")).strip(),
+        }
+
+    text = path.read_text(encoding="utf-8", errors="ignore")
+    openapi = ""
+    title = ""
+    version = ""
+    in_info = False
+    info_indent = -1
+    for raw in text.splitlines():
+        stripped = raw.strip()
+        if not stripped or stripped.startswith("#"):
+            continue
+        indent = len(raw) - len(raw.lstrip(" "))
+        if not openapi:
+            match = re.match(r"^\s*openapi:\s*(.+?)\s*$", raw)
+            if match:
+                openapi = docs_stratego_trim_scalar(match.group(1))
+                continue
+        if re.match(r"^\s*info:\s*$", raw):
+            in_info = True
+            info_indent = indent
+            continue
+        if in_info:
+            if indent <= info_indent and stripped:
+                in_info = False
+            else:
+                if not title:
+                    match = re.match(r"^\s*title:\s*(.+?)\s*$", raw)
+                    if match:
+                        title = docs_stratego_trim_scalar(match.group(1))
+                        continue
+                if not version:
+                    match = re.match(r"^\s*version:\s*(.+?)\s*$", raw)
+                    if match:
+                        version = docs_stratego_trim_scalar(match.group(1))
+                        continue
+        if openapi and title and version:
+            break
+    return {"openapi": openapi, "title": title, "version": version}
+
+
+def openapi_contract_title(path: Path) -> str:
+    metadata = parse_openapi_contract_metadata(path)
+    return metadata["title"] or docs_stratego_display_name_from_file(path)
+
+
+def parse_mcp_tools_contract_metadata(path: Path) -> dict[str, object]:
+    if path.suffix.lower() == ".json":
+        payload = load_json_document(path)
+        if not isinstance(payload, dict):
+            return {"tool_count": 0, "title": "", "valid": False}
+        tools = payload.get("tools")
+        if not isinstance(tools, list):
+            result = payload.get("result")
+            tools = result.get("tools") if isinstance(result, dict) else None
+        if not isinstance(tools, list):
+            return {"tool_count": 0, "title": "", "valid": False}
+        title = ""
+        if len(tools) == 1 and isinstance(tools[0], dict):
+            title = str(tools[0].get("title") or tools[0].get("name") or "").strip()
+        valid = len(tools) > 0 and all(
+            isinstance(tool, dict)
+            and str(tool.get("name", "")).strip()
+            and str(tool.get("description", "")).strip()
+            and "inputSchema" in tool
+            for tool in tools
+        )
+        return {"tool_count": len(tools), "title": title, "valid": valid}
+
+    text = path.read_text(encoding="utf-8", errors="ignore")
+    has_tools = bool(re.search(r"(?m)^\s*tools:\s*$", text))
+    has_nested_tools = bool(re.search(r"(?m)^\s*result:\s*$", text) and re.search(r"(?m)^\s*tools:\s*$", text))
+    tool_count = len(re.findall(r"(?m)^\s*-\s+(?:title|name):\s*", text))
+    inline_title = ""
+    title_match = re.search(r"(?m)^\s*-\s+title:\s*(.+?)\s*$", text)
+    if title_match:
+        inline_title = docs_stratego_trim_scalar(title_match.group(1))
+    if not inline_title:
+        name_match = re.search(r"(?m)^\s*-\s+name:\s*(.+?)\s*$", text)
+        if name_match and tool_count == 1:
+            inline_title = docs_stratego_trim_scalar(name_match.group(1))
+    valid = (
+        (has_tools or has_nested_tools)
+        and tool_count > 0
+        and bool(re.search(r"(?m)^\s*-\s+name:\s*.+$", text))
+        and bool(re.search(r"(?m)^\s+description:\s*.+$", text))
+        and bool(re.search(r"(?m)^\s+inputSchema:\s*$", text))
+    )
+    return {"tool_count": tool_count, "title": inline_title, "valid": valid}
+
+
+def mcp_tools_contract_title(path: Path) -> str:
+    metadata = parse_mcp_tools_contract_metadata(path)
+    title = str(metadata.get("title", "")).strip()
+    return title or docs_stratego_display_name_from_file(path)
+
+
 def fallback_directory_title(name: str) -> str:
     if name in DOCS_STRATEGO_DIRECTORY_TITLE_OVERRIDES:
         return DOCS_STRATEGO_DIRECTORY_TITLE_OVERRIDES[name]
@@ -2225,7 +2413,11 @@ def docs_stratego_directory_title(relative_dir: str, project_name: str) -> str:
     return fallback_directory_title(Path(relative_dir).name)
 
 
-def docs_stratego_page_access(relative_path: str) -> str:
+def docs_stratego_page_access(relative_path: str, existing_page_meta: dict[str, dict[str, str]] | None = None) -> str:
+    if existing_page_meta:
+        access = str(existing_page_meta.get(relative_path, {}).get("access", "")).strip()
+        if access in DOCS_STRATEGO_ACCESS_LEVELS:
+            return access
     child = Path(relative_path).parts[0] if relative_path else ""
     spec = DOCS_STRATEGO_DIRECTORY_SPECS.get(child)
     return str(spec.get("root_access", "public")) if spec else "public"
@@ -2240,7 +2432,7 @@ def docs_stratego_child_paths(directory: Path, project_root: Path, docs_profile:
             continue
         if directory == docs_root and not docs_profile_module_enabled(profile, child.name, docs_root):
             continue
-        if child.is_dir() or (child.is_file() and child.suffix.lower() == ".md"):
+        if child.is_dir() or (child.is_file() and is_docs_stratego_page_file(child)):
             children.append(child)
     return children
 
@@ -2260,11 +2452,27 @@ def docs_stratego_ordered_children(directory: Path, relative_dir: str, project_r
     )
 
 
-def docs_stratego_nav_title(child: Path, docs_root: Path, project_name: str) -> str:
+def docs_stratego_nav_title(
+    child: Path,
+    docs_root: Path,
+    project_name: str,
+    existing_page_meta: dict[str, dict[str, str]] | None = None,
+) -> str:
     if child.is_dir():
         relative_dir = child.relative_to(docs_root).as_posix()
         return docs_stratego_directory_title(relative_dir, project_name)
-    return markdown_h1_title(child)
+    relative_path = child.relative_to(docs_root).as_posix()
+    if existing_page_meta:
+        title = str(existing_page_meta.get(relative_path, {}).get("title", "")).strip()
+        if title:
+            return title
+    if is_docs_markdown_page(child):
+        return markdown_h1_title(child)
+    if is_docs_openapi_contract(child):
+        return openapi_contract_title(child)
+    if is_docs_mcp_tools_contract(child):
+        return mcp_tools_contract_title(child)
+    return docs_stratego_display_name_from_file(child)
 
 
 def docs_stratego_directory_heading(title: str) -> str:
@@ -2293,24 +2501,55 @@ def docs_stratego_directory_body(project_root: Path, relative_dir: str, title: s
         return [
             f"这是 `{project_name}` 的正式项目文档源。AI 软件工厂在项目仓库内直接维护这些文档，`docs-stratego` 通过 Git 子模块或等价的仓级挂载方式聚合展示，但不反向改写源文档。",
             "",
+            "## 适用范围",
+            "",
+            "- 根 `docs/index.md` 的 front matter 是目录树、页面路径和访问级别的唯一事实源。",
+            "- Markdown 页面、OpenAPI 契约和 MCP tools 快照统一作为正式页面资产维护。",
+            "- 契约文件必须放在真实文档目录下，并与所在目录的 `index.md` 配套。",
+            "",
             "## 维护规则",
             "",
             "- 只有根 `docs/index.md` 声明全站 `mkdocs.nav`、页面路径和页面权限。",
             "- 子目录 `index.md` 只作为正文首页和资源权限锚点，不再承担导航声明职责。",
-            "- 页面、图片和附件跟随所属目录维护；资源文件放在当前目录或当前目录的 `assets/` 下。",
+            "- 页面、图片和附件跟随所属目录维护；资源文件放在当前目录或当前目录的 `assets/` 下，`assets/` 不承载 Markdown 页面或契约文件。",
             "- 仓内链接统一使用相对路径，不写机器绝对路径。",
-            "- 新增、删除或移动 Markdown 页面后，同步刷新根 `docs/index.md` 的目录树和子目录概览页。",
+            "- 新增、删除或移动 Markdown 页面或契约文件后，同步刷新根 `docs/index.md` 的目录树；子目录 `index.md` 只保留正文概览。",
+        ]
+    name = Path(relative_dir).name
+    if name == "openapi":
+        return [
+            "本目录收纳当前边界下可独立联调、独立评审和独立渲染的 OpenAPI 契约。",
+            "",
+            "- 面向对象：集成方、研发、测试与技术评审者。",
+            "- 维护规则：每份契约对应一个稳定 API 面，命名统一使用 `*.openapi.yaml|yml|json`。",
+            "- 权限规则：访问级别只看根 `docs/index.md` 对应页面节点的 `access`，目录名不参与权限判断。",
+        ]
+    if name == "tools":
+        return [
+            "本目录收纳当前边界下的 MCP tools 快照，用于静态展示 Agent 可调用工具的输入输出契约。",
+            "",
+            "- 面向对象：Agent 集成方、研发、运维与自动化维护者。",
+            "- 维护规则：每份快照对应一组稳定工具暴露面，命名统一使用 `*.mcp-tools.yaml|yml|json`。",
+            "- 权限规则：访问级别只看根 `docs/index.md` 对应页面节点的 `access`，目录名不参与权限判断。",
         ]
     spec = docs_stratego_directory_spec(relative_dir)
     description = spec["description"] if spec else f"本目录收纳与“{title}”相关的页面和子目录。"
     return [
         description,
         "",
-        *docs_stratego_recommendation_lines(project_root, project_name, relative_dir),
+        "- 本页是该目录的正文首页，用于说明范围、读者和维护边界。",
+        "- 目录树、页面路径和访问级别统一由根 `docs/index.md` 声明，这里不重复维护页面清单。",
+        "- 本目录下的 Markdown 页面、契约文件和资源文件应随内容变更一起演进。",
     ]
 
 
-def docs_stratego_nav_nodes(directory: Path, docs_root: Path, project_name: str, relative_dir: str = "") -> list[dict]:
+def docs_stratego_nav_nodes(
+    directory: Path,
+    docs_root: Path,
+    project_name: str,
+    relative_dir: str = "",
+    existing_page_meta: dict[str, dict[str, str]] | None = None,
+) -> list[dict]:
     nodes: list[dict] = []
     docs_profile = resolve_project_docs_profile(docs_root.parent, project_name=project_name)
     for child in docs_stratego_ordered_children(directory, relative_dir, docs_root.parent, docs_profile):
@@ -2319,15 +2558,16 @@ def docs_stratego_nav_nodes(directory: Path, docs_root: Path, project_name: str,
             nodes.append(
                 {
                     "type": "directory",
-                    "title": docs_stratego_nav_title(child, docs_root, project_name),
+                    "title": docs_stratego_nav_title(child, docs_root, project_name, existing_page_meta),
+                    "relative_dir": child_relative,
                     "children": [
                         {
                             "type": "page",
                             "title": "概览",
                             "path": f"{child_relative}/index.md",
-                            "access": docs_stratego_page_access(f"{child_relative}/index.md"),
+                            "access": docs_stratego_page_access(f"{child_relative}/index.md", existing_page_meta),
                         },
-                        *docs_stratego_nav_nodes(child, docs_root, project_name, child_relative),
+                        *docs_stratego_nav_nodes(child, docs_root, project_name, child_relative, existing_page_meta),
                     ],
                 }
             )
@@ -2335,9 +2575,9 @@ def docs_stratego_nav_nodes(directory: Path, docs_root: Path, project_name: str,
         nodes.append(
             {
                 "type": "page",
-                "title": docs_stratego_nav_title(child, docs_root, project_name),
+                "title": docs_stratego_nav_title(child, docs_root, project_name, existing_page_meta),
                 "path": child_relative,
-                "access": docs_stratego_page_access(child_relative),
+                "access": docs_stratego_page_access(child_relative, existing_page_meta),
             }
         )
     return nodes
@@ -2355,17 +2595,47 @@ def append_docs_stratego_nav_lines(lines: list[str], nodes: list[dict], indent: 
         lines.append(f"{prefix}  access: {node['access']}")
 
 
-def render_docs_stratego_root_index(project_root: Path, project_name: str) -> str:
+def clone_docs_nav_node(node: dict) -> dict:
+    if node.get("type") == "directory":
+        cloned = {
+            "type": "directory",
+            "title": node.get("title", ""),
+            "children": [clone_docs_nav_node(child) for child in node.get("children", [])],
+        }
+        if node.get("relative_dir"):
+            cloned["relative_dir"] = node["relative_dir"]
+        return cloned
+    return {
+        "type": "page",
+        "title": node.get("title", ""),
+        "path": node.get("path", ""),
+        "access": node.get("access", "public"),
+    }
+
+
+def render_docs_stratego_root_index(
+    project_root: Path,
+    project_name: str,
+    existing_page_meta: dict[str, dict[str, str]] | None = None,
+    home_access: str = "public",
+    nav_nodes: list[dict] | None = None,
+) -> str:
     docs_root = project_root / "docs"
-    nav_nodes = docs_stratego_nav_nodes(docs_root, docs_root, project_name)
+    effective_nav_nodes = nav_nodes or docs_stratego_nav_nodes(
+        docs_root,
+        docs_root,
+        project_name,
+        existing_page_meta=existing_page_meta,
+    )
+    effective_home_access = home_access if home_access in DOCS_STRATEGO_ACCESS_LEVELS else "public"
     lines = [
         "---",
         f"title: {project_name}",
         "mkdocs:",
-        "  home_access: public",
+        f"  home_access: {effective_home_access}",
         "  nav:",
     ]
-    append_docs_stratego_nav_lines(lines, nav_nodes, 4)
+    append_docs_stratego_nav_lines(lines, effective_nav_nodes, 4)
     lines.extend(
         [
             "---",
@@ -2398,26 +2668,236 @@ def split_markdown_front_matter(text: str) -> tuple[str | None, str]:
     return None, text
 
 
-def extract_docs_nav_access_map(text: str) -> dict[str, str | None]:
+def extract_docs_nav_lines(text: str) -> tuple[list[str], int] | None:
+    front_matter, _ = split_markdown_front_matter(text)
+    if not front_matter:
+        return None
+    lines = front_matter.splitlines()
+    for index, line in enumerate(lines):
+        if line.strip() != "nav:":
+            continue
+        indent = len(line) - len(line.lstrip(" "))
+        return lines[index + 1 :], indent + 2
+    return None
+
+
+def infer_docs_nav_directory_relative_dir(node: dict) -> str:
+    if node.get("type") != "directory":
+        return ""
+    for child in node.get("children", []):
+        if child.get("type") == "page":
+            path = str(child.get("path", "")).strip()
+            if path.endswith("/index.md"):
+                return PurePosixPath(path).parent.as_posix()
+    return ""
+
+
+def annotate_docs_nav_directory_relative_dirs(nodes: list[dict]) -> None:
+    for node in nodes:
+        if node.get("type") != "directory":
+            continue
+        annotate_docs_nav_directory_relative_dirs(node.get("children", []))
+        relative_dir = infer_docs_nav_directory_relative_dir(node)
+        if relative_dir:
+            node["relative_dir"] = relative_dir
+
+
+def parse_docs_nav_nodes_from_lines(lines: list[str], start_index: int, item_indent: int) -> tuple[list[dict], int]:
+    nodes: list[dict] = []
+    index = start_index
+    while index < len(lines):
+        line = lines[index]
+        stripped = line.strip()
+        if not stripped:
+            index += 1
+            continue
+        indent = len(line) - len(line.lstrip(" "))
+        if indent < item_indent:
+            break
+        if indent != item_indent or not stripped.startswith("- title:"):
+            break
+
+        node: dict = {
+            "title": docs_stratego_trim_scalar(stripped.split(":", 1)[1]),
+        }
+        index += 1
+        while index < len(lines):
+            line = lines[index]
+            stripped = line.strip()
+            if not stripped:
+                index += 1
+                continue
+            indent = len(line) - len(line.lstrip(" "))
+            if indent <= item_indent:
+                break
+            if indent == item_indent + 2 and stripped == "children:":
+                children, next_index = parse_docs_nav_nodes_from_lines(lines, index + 1, item_indent + 4)
+                node["type"] = "directory"
+                node["children"] = children
+                index = next_index
+                continue
+            if indent == item_indent + 2 and stripped.startswith("path:"):
+                node["type"] = "page"
+                node["path"] = docs_stratego_trim_scalar(stripped.split(":", 1)[1])
+                index += 1
+                continue
+            if indent == item_indent + 2 and stripped.startswith("access:"):
+                node["access"] = docs_stratego_trim_scalar(stripped.split(":", 1)[1])
+                index += 1
+                continue
+            index += 1
+        if node.get("type") == "page" and node.get("path"):
+            node.setdefault("access", "public")
+            nodes.append(node)
+            continue
+        if node.get("type") == "directory":
+            node.setdefault("children", [])
+            nodes.append(node)
+    return nodes, index
+
+
+def extract_docs_nav_tree(text: str) -> list[dict] | None:
+    result = extract_docs_nav_lines(text)
+    if not result:
+        return None
+    lines, item_indent = result
+    nodes, _ = parse_docs_nav_nodes_from_lines(lines, 0, item_indent)
+    if not nodes:
+        return None
+    annotate_docs_nav_directory_relative_dirs(nodes)
+    return nodes
+
+
+def extract_docs_home_access(text: str) -> str | None:
+    front_matter, _ = split_markdown_front_matter(text)
+    if not front_matter:
+        return None
+    match = re.search(r"(?m)^\s*home_access:\s*(.+?)\s*$", front_matter)
+    return match.group(1).strip() if match else None
+
+
+def extract_docs_nav_page_meta(text: str) -> dict[str, dict[str, str]]:
+    nav_tree = extract_docs_nav_tree(text)
+    if nav_tree:
+        nav: dict[str, dict[str, str]] = {}
+
+        def collect(nodes: list[dict]) -> None:
+            for node in nodes:
+                if node.get("type") == "page":
+                    path = str(node.get("path", "")).strip()
+                    if not path:
+                        continue
+                    nav[path] = {
+                        "title": str(node.get("title", "")).strip(),
+                        "access": str(node.get("access", "")).strip(),
+                    }
+                    continue
+                collect(node.get("children", []))
+
+        collect(nav_tree)
+        return nav
+
     front_matter, _ = split_markdown_front_matter(text)
     if not front_matter:
         return {}
 
+    title_pattern = re.compile(r"^\s*-\s*title:\s*(.+?)\s*$")
     path_pattern = re.compile(r"^\s*path:\s*(.+?)\s*$")
     access_pattern = re.compile(r"^\s*access:\s*(.+?)\s*$")
-    nav: dict[str, str | None] = {}
+    nav: dict[str, dict[str, str]] = {}
+    current_title = ""
     pending_path: str | None = None
     for line in front_matter.splitlines():
+        title_match = title_pattern.match(line)
+        if title_match:
+            current_title = title_match.group(1).strip()
+            pending_path = None
+            continue
         path_match = path_pattern.match(line)
         if path_match:
             pending_path = path_match.group(1).strip()
-            nav.setdefault(pending_path, None)
+            nav.setdefault(pending_path, {})
+            if current_title:
+                nav[pending_path]["title"] = current_title
             continue
         access_match = access_pattern.match(line)
         if access_match and pending_path:
-            nav[pending_path] = access_match.group(1).strip()
+            nav.setdefault(pending_path, {})
+            nav[pending_path]["access"] = access_match.group(1).strip()
             pending_path = None
     return nav
+
+
+def merge_docs_nav_nodes(existing_nodes: list[dict], generated_nodes: list[dict]) -> list[dict]:
+    generated_pages = {
+        str(node.get("path", "")).strip(): node
+        for node in generated_nodes
+        if node.get("type") == "page" and str(node.get("path", "")).strip()
+    }
+    generated_directories = {
+        str(node.get("relative_dir", "")).strip(): node
+        for node in generated_nodes
+        if node.get("type") == "directory" and str(node.get("relative_dir", "")).strip()
+    }
+    consumed_pages: set[str] = set()
+    consumed_directories: set[str] = set()
+    merged: list[dict] = []
+
+    for existing in existing_nodes:
+        if existing.get("type") == "page":
+            path = str(existing.get("path", "")).strip()
+            generated = generated_pages.get(path)
+            if not generated:
+                continue
+            merged.append(
+                {
+                    "type": "page",
+                    "title": str(existing.get("title", "")).strip() or str(generated.get("title", "")).strip(),
+                    "path": path,
+                    "access": str(existing.get("access", "")).strip() or str(generated.get("access", "public")).strip(),
+                }
+            )
+            consumed_pages.add(path)
+            continue
+
+        if existing.get("type") != "directory":
+            continue
+        relative_dir = str(existing.get("relative_dir", "")).strip()
+        generated = generated_directories.get(relative_dir) if relative_dir else None
+        if not generated:
+            continue
+        merged_children = merge_docs_nav_nodes(existing.get("children", []), generated.get("children", []))
+        if not merged_children:
+            continue
+        merged.append(
+            {
+                "type": "directory",
+                "title": str(existing.get("title", "")).strip() or str(generated.get("title", "")).strip(),
+                "relative_dir": relative_dir,
+                "children": merged_children,
+            }
+        )
+        consumed_directories.add(relative_dir)
+
+    for generated in generated_nodes:
+        if generated.get("type") == "page":
+            path = str(generated.get("path", "")).strip()
+            if path and path not in consumed_pages:
+                merged.append(clone_docs_nav_node(generated))
+            continue
+        if generated.get("type") == "directory":
+            relative_dir = str(generated.get("relative_dir", "")).strip()
+            if relative_dir and relative_dir not in consumed_directories:
+                merged.append(clone_docs_nav_node(generated))
+
+    return merged
+
+
+def extract_docs_nav_access_map(text: str) -> dict[str, str | None]:
+    return {
+        path: meta.get("access")
+        for path, meta in extract_docs_nav_page_meta(text).items()
+    }
 
 
 def extract_explicit_anchor_ids(text: str) -> set[str]:
@@ -2442,9 +2922,32 @@ def extract_self_anchor_targets(text: str) -> set[str]:
 
 
 def merge_docs_stratego_root_index(project_root: Path, project_name: str, existing_text: str | None = None) -> str:
-    generated = render_docs_stratego_root_index(project_root, project_name)
+    if not existing_text:
+        return render_docs_stratego_root_index(project_root, project_name)
+
+    existing_page_meta = extract_docs_nav_page_meta(existing_text)
+    home_access = extract_docs_home_access(existing_text) or "public"
+    existing_nav_tree = extract_docs_nav_tree(existing_text)
+    generated_nav_tree = docs_stratego_nav_nodes(
+        project_root / "docs",
+        project_root / "docs",
+        project_name,
+        existing_page_meta=existing_page_meta,
+    )
+    merged_nav_tree = (
+        merge_docs_nav_nodes(existing_nav_tree, generated_nav_tree)
+        if existing_nav_tree
+        else generated_nav_tree
+    )
+    generated = render_docs_stratego_root_index(
+        project_root,
+        project_name,
+        existing_page_meta=existing_page_meta,
+        home_access=home_access,
+        nav_nodes=merged_nav_tree,
+    )
     generated_front_matter, generated_body = split_markdown_front_matter(generated)
-    if not generated_front_matter or not existing_text:
+    if not generated_front_matter:
         return generated
 
     _, existing_body = split_markdown_front_matter(existing_text)
@@ -2463,7 +2966,11 @@ def looks_like_generated_directory_index(text: str) -> bool:
     first_nonempty = next((line.strip() for line in text.splitlines() if line.strip()), "")
     if not first_nonempty.startswith("# "):
         return False
-    return "本目录收纳" in text and "建议阅读顺序：" in text
+    return (
+        "本目录收纳" in text
+        or "目录树、页面路径和访问级别统一由根 `docs/index.md` 声明" in text
+        or "建议阅读顺序：" in text
+    )
 
 
 def should_rewrite_directory_index(path: Path) -> bool:
@@ -2534,6 +3041,67 @@ def write_docs_stratego_indexes(project_root: Path, project_name: str) -> list[s
     return sorted(written)
 
 
+def upgrade_docs_source_standard(project_root: Path, project_name: str, *, force: bool = False) -> dict[str, object]:
+    docs_root = project_root / "docs"
+    if not docs_root.exists():
+        raise RuntimeError("缺少 `docs/` 目录，无法升级到最新源文档标准。")
+
+    migration_result = {
+        "moved": [],
+        "created": [],
+        "updated": [],
+        "removed": [],
+    }
+    migrated = docs_structure_migration_needed(project_root)
+    if migrated:
+        migration_result = migrate_docs_structure(project_root, project_name, force=force)
+    else:
+        docs_profile = resolve_project_docs_profile(project_root, project_name=project_name)
+        update_publication_policy_for_modern_docs(project_root, docs_profile)
+
+    refreshed = write_docs_stratego_indexes(project_root, project_name)
+    status, lines = docs_stratego_source_status(project_root, project_name)
+    return {
+        "migrated": migrated,
+        "migration": migration_result,
+        "refreshed": refreshed,
+        "status": status,
+        "lines": lines,
+    }
+
+
+def docs_stratego_valid_relative_page_path(relative_path: str) -> bool:
+    raw = relative_path.strip()
+    if not raw or raw.startswith("/"):
+        return False
+    pure_path = PurePosixPath(raw)
+    parts = pure_path.parts
+    if any(part == ".." for part in parts):
+        return False
+    if "assets" in parts:
+        return False
+    return is_docs_stratego_page_file(raw)
+
+
+def docs_stratego_contract_validation_errors(path: Path) -> list[str]:
+    if is_docs_openapi_contract(path):
+        metadata = parse_openapi_contract_metadata(path)
+        errors: list[str] = []
+        if not metadata["openapi"]:
+            errors.append("缺少 `openapi` 版本声明")
+        if not metadata["title"]:
+            errors.append("缺少 `info.title`")
+        if not metadata["version"]:
+            errors.append("缺少 `info.version`")
+        return errors
+    if is_docs_mcp_tools_contract(path):
+        metadata = parse_mcp_tools_contract_metadata(path)
+        if metadata.get("valid"):
+            return []
+        return ["缺少非空 `tools` 列表，或工具条目未声明 `name` / `description` / `inputSchema`"]
+    return []
+
+
 def docs_stratego_source_status(project_root: Path, project_name: str) -> tuple[str, list[str]]:
     docs_root = project_root / "docs"
     if not docs_root.exists():
@@ -2560,20 +3128,29 @@ def docs_stratego_source_status(project_root: Path, project_name: str) -> tuple[
         if not front_matter:
             findings.append("- `docs/index.md` 缺少根 front matter，无法声明 `mkdocs.nav`。")
         else:
-            expected_nav = extract_docs_nav_access_map(render_docs_stratego_root_index(project_root, project_name))
-            actual_nav = extract_docs_nav_access_map(root_text)
-            for required_path, required_access in expected_nav.items():
-                actual_access = actual_nav.get(required_path)
-                if actual_access is None:
+            home_access = extract_docs_home_access(root_text)
+            if home_access not in DOCS_STRATEGO_ACCESS_LEVELS:
+                findings.append("- `docs/index.md` 的 `mkdocs.home_access` 只能是 `public` 或 `private`。")
+            expected_nav = set(extract_docs_nav_page_meta(render_docs_stratego_root_index(project_root, project_name)))
+            actual_nav = extract_docs_nav_page_meta(root_text)
+            for required_path in sorted(expected_nav):
+                if required_path not in actual_nav:
                     findings.append(f"- `docs/index.md` 缺少必需导航项：`{required_path}`。")
-                    continue
-                if required_access and actual_access != required_access:
+            for actual_path, meta in sorted(actual_nav.items()):
+                if not docs_stratego_valid_relative_page_path(actual_path):
                     findings.append(
-                        f"- `docs/index.md` 中 `{required_path}` 的访问级别应为 `{required_access}`，当前为 `{actual_access}`。"
+                        f"- `docs/index.md` 中 `{actual_path}` 不是合法页面路径；仅允许 `*.md`、`*.openapi.*`、`*.mcp-tools.*`，且不能使用 `../` 或 `assets/`。"
                     )
-            for actual_path in sorted(actual_nav):
-                if not (docs_root / actual_path).exists():
+                    continue
+                access = str(meta.get("access", "")).strip()
+                if access not in DOCS_STRATEGO_ACCESS_LEVELS:
+                    findings.append(f"- `docs/index.md` 中 `{actual_path}` 的访问级别只能是 `public` 或 `private`。")
+                page_path = docs_root / actual_path
+                if not page_path.exists():
                     findings.append(f"- `docs/index.md` 中导航项指向不存在的页面：`{actual_path}`。")
+                    continue
+                for error in docs_stratego_contract_validation_errors(page_path):
+                    findings.append(f"- `{actual_path}` 不满足契约最小要求：{error}。")
 
     for relative_dir in docs_stratego_directories(project_root, docs_profile):
         relative_path = f"docs/{relative_dir}/index.md"
@@ -2587,26 +3164,36 @@ def docs_stratego_source_status(project_root: Path, project_name: str) -> tuple[
         if not re.search(r"(?m)^#\s+\S", text):
             findings.append(f"- `{relative_path}` 缺少一级标题，无法作为目录概览页。")
 
-    for path in sorted(docs_root.rglob("*.md")):
+    for path in sorted(docs_root.rglob("*")):
+        if not path.is_file():
+            continue
         relative = path.relative_to(project_root).as_posix()
-        if "assets" in path.parts:
-            findings.append(f"- `assets/` 目录下不应包含 Markdown：`{relative}`。")
+        if "assets" in path.parts and is_docs_stratego_page_file(path):
+            findings.append(f"- `assets/` 目录下不应包含 Markdown 页面或契约文件：`{relative}`。")
+            continue
+        if not is_docs_stratego_page_file(path):
             continue
         text = path.read_text(encoding="utf-8", errors="ignore")
+        if is_docs_markdown_page(path) and not re.search(r"(?m)^#\s+\S", strip_markdown_front_matter(text)):
+            findings.append(f"- `{relative}` 缺少一级标题，无法作为正式 Markdown 页面。")
         if DOCS_MACHINE_PATH_PATTERN.search(text):
             findings.append(f"- `{relative}` 含有机器绝对路径，请改为仓内相对路径。")
-        explicit_anchors = extract_explicit_anchor_ids(text)
-        for anchor in sorted(extract_self_anchor_targets(text)):
-            if anchor not in explicit_anchors:
-                findings.append(
-                    f"- `{relative}` 包含页内锚点链接 `#{anchor}`，但未声明显式锚点；请添加 `<a id=\"{anchor}\"></a>`。"
-                )
+        if is_docs_markdown_page(path):
+            explicit_anchors = extract_explicit_anchor_ids(text)
+            for anchor in sorted(extract_self_anchor_targets(text)):
+                if anchor not in explicit_anchors:
+                    findings.append(
+                        f"- `{relative}` 包含页内锚点链接 `#{anchor}`，但未声明显式锚点；请添加 `<a id=\"{anchor}\"></a>`。"
+                    )
+        for error in docs_stratego_contract_validation_errors(path):
+            findings.append(f"- `{relative}` 不满足契约最小要求：{error}。")
 
+    findings = list(dict.fromkeys(findings))
     if findings:
         return "异常", findings
 
     lines = [
-        "- `docs/` 已提供可供 docs-stratego 聚合的文档入口；根 `docs/index.md` 负责全站目录树和页面权限，各子目录 `index.md` 保持为正文概览页。",
+        "- `docs/` 已提供可供 docs-stratego 聚合的文档入口；根 `docs/index.md` 负责全站目录树、页面权限和契约渲染入口，各子目录 `index.md` 保持为正文概览页。",
         "- 当前文档内容未发现明显机器绝对路径污染。",
     ]
     return "就绪", lines

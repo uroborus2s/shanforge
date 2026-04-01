@@ -12,6 +12,8 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 FACTORY_PROJECT_COMPRESS = REPO_ROOT / "scripts" / "factory-project-compress"
 FACTORY_INIT = REPO_ROOT / "scripts" / "factory-init"
 FACTORY_AGENT_SESSION = REPO_ROOT / "scripts" / "factory-agent-session"
+FACTORY_DISPATCH = REPO_ROOT / "scripts" / "factory-dispatch"
+FACTORY_DOCS_STANDARD_UPGRADE_BATCH = REPO_ROOT / "scripts" / "factory-docs-standard-upgrade-batch"
 LEGACY_ROOT = str(Path("/") / "Users" / "uroborus" / "shanforge")
 EXAMPLE_PROJECT = Path("/tmp/example-project")
 
@@ -34,6 +36,8 @@ class FactoryRelativePathAndDocsIndexTests(unittest.TestCase):
         cls.project_compress = load_script_module("factory_project_compress", FACTORY_PROJECT_COMPRESS)
         cls.factory_init = load_script_module("factory_init", FACTORY_INIT)
         cls.agent_session = load_script_module("factory_agent_session", FACTORY_AGENT_SESSION)
+        cls.dispatch = load_script_module("factory_dispatch", FACTORY_DISPATCH)
+        cls.docs_upgrade_batch = load_script_module("factory_docs_standard_upgrade_batch", FACTORY_DOCS_STANDARD_UPGRADE_BATCH)
         cls.factory_core = sys.modules["factory_core"]
         cls.example_project_resolved = EXAMPLE_PROJECT.resolve()
         cls.expected_runtime_protocol = Path(
@@ -114,6 +118,11 @@ class FactoryRelativePathAndDocsIndexTests(unittest.TestCase):
         self.assertIn('--project "."', command_blob)
         self.assertNotIn("python3 /Users/", command_blob)
         self.assertNotIn(LEGACY_ROOT, command_blob)
+
+    def test_dispatch_resolves_docs_standard_upgrade_alias(self):
+        self.assertEqual(self.dispatch.resolve_action("docs-upgrade"), "docs-standard-upgrade")
+        self.assertEqual(self.dispatch.resolve_action("upgrade-docs-standard"), "docs-standard-upgrade")
+        self.assertEqual(self.dispatch.resolve_action("docs-upgrade-batch"), "docs-standard-upgrade-batch")
 
     def test_load_project_config_normalizes_legacy_current_stage(self):
         with tempfile.TemporaryDirectory() as temp_dir:
@@ -200,15 +209,15 @@ class FactoryRelativePathAndDocsIndexTests(unittest.TestCase):
         self.assertIn("access: public", root_index)
         self.assertIn("access: private", root_index)
         self.assertTrue(requirements_index.startswith("# 需求概览\n"))
-        self.assertIn("建议阅读顺序", requirements_index)
-        self.assertIn("1. 产品需求文档", requirements_index)
+        self.assertIn("目录树、页面路径和访问级别统一由根 `docs/index.md` 声明", requirements_index)
+        self.assertNotIn("建议阅读顺序", requirements_index)
         self.assertNotIn("mkdocs:", requirements_index)
         self.assertNotIn("default_access:", requirements_index)
         self.assertTrue(solution_index.startswith("# 设计文档概览\n"))
-        self.assertIn("1. 系统架构设计", solution_index)
-        self.assertIn("2. 内部专题", solution_index)
+        self.assertIn("目录树、页面路径和访问级别统一由根 `docs/index.md` 声明", solution_index)
+        self.assertNotIn("建议阅读顺序", solution_index)
         self.assertTrue(private_design_index.startswith("# 内部专题概览\n"))
-        self.assertIn("1. 内部方案总览", private_design_index)
+        self.assertIn("本页是该目录的正文首页", private_design_index)
         self.assertNotIn("/Users/", root_index)
 
     def test_docs_stratego_source_status_detects_missing_indexes_and_absolute_paths(self):
@@ -301,13 +310,11 @@ class FactoryRelativePathAndDocsIndexTests(unittest.TestCase):
         self.assertIn("path: 01-getting-started/index.md", root_index)
         self.assertIn("path: 04-project-development/index.md", root_index)
         self.assertTrue(governance_index.startswith("# 项目治理概览\n"))
-        self.assertIn("1. 项目章程", governance_index)
+        self.assertIn("本页是该目录的正文首页", governance_index)
         self.assertNotIn("mkdocs:", governance_index)
         self.assertTrue(solution_index.startswith("# 设计文档概览\n"))
-        self.assertIn("技术选型与工程规则", solution_index)
-        self.assertIn("01 概念与约束", developer_index)
-        self.assertIn("02 快速开始", developer_index)
-        self.assertIn("03 项目结构与契约", developer_index)
+        self.assertIn("本页是该目录的正文首页", solution_index)
+        self.assertIn("module 开发、调试、交付与排错", developer_index)
         self.assertEqual(status, "就绪")
         self.assertTrue(any("根 `docs/index.md`" in line for line in lines))
 
@@ -431,6 +438,77 @@ class FactoryRelativePathAndDocsIndexTests(unittest.TestCase):
             "# 自定义开发者指南\n\n这里是人工维护的目录概览，不应被刷新动作覆盖。\n",
         )
 
+    def test_write_docs_stratego_indexes_preserves_manual_nav_grouping_and_order(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            project_root = Path(temp_dir)
+            developer_dir = project_root / "docs" / "03-developer-guide"
+            user_dir = project_root / "docs" / "02-user-guide"
+            getting_started_dir = project_root / "docs" / "01-getting-started"
+            project_dev_dir = project_root / "docs" / "04-project-development"
+            developer_dir.mkdir(parents=True)
+            user_dir.mkdir(parents=True)
+            getting_started_dir.mkdir(parents=True)
+            project_dev_dir.mkdir(parents=True)
+            (developer_dir / "index.md").write_text("# 开发者指南\n", encoding="utf-8")
+            (developer_dir / "application-development.md").write_text("# 应用开发\n", encoding="utf-8")
+            (developer_dir / "function-reference.md").write_text("# 函数说明\n", encoding="utf-8")
+            (developer_dir / "plugin-development.md").write_text("# 插件开发\n", encoding="utf-8")
+            (user_dir / "index.md").write_text("# 用户指南\n", encoding="utf-8")
+            (user_dir / "user-guide.md").write_text("# 使用指南\n", encoding="utf-8")
+            (getting_started_dir / "index.md").write_text("# 入门说明\n", encoding="utf-8")
+            (getting_started_dir / "quick-start.md").write_text("# 快速开始\n", encoding="utf-8")
+            (project_dev_dir / "index.md").write_text("# 项目开发文档\n", encoding="utf-8")
+
+            custom_root = """---
+title: 示例项目
+mkdocs:
+  home_access: public
+  nav:
+    - title: 二次开发中心
+      children:
+        - title: 概览
+          path: 03-developer-guide/index.md
+          access: public
+        - title: 函数先看
+          path: 03-developer-guide/function-reference.md
+          access: public
+        - title: 应用开发
+          path: 03-developer-guide/application-development.md
+          access: public
+    - title: 用户入口
+      children:
+        - title: 概览
+          path: 02-user-guide/index.md
+          access: public
+        - title: 使用指南
+          path: 02-user-guide/user-guide.md
+          access: public
+---
+# 自定义首页
+
+这里保留人工维护的导航分组顺序。
+"""
+            (project_root / "docs" / "index.md").write_text(custom_root, encoding="utf-8")
+
+            self.factory_core.write_docs_stratego_indexes(project_root, "示例项目")
+            refreshed_root = (project_root / "docs" / "index.md").read_text(encoding="utf-8")
+
+        self.assertIn("title: 二次开发中心", refreshed_root)
+        self.assertIn("title: 用户入口", refreshed_root)
+        self.assertIn("title: 函数先看", refreshed_root)
+        self.assertIn("path: 03-developer-guide/plugin-development.md", refreshed_root)
+        self.assertLess(refreshed_root.index("title: 二次开发中心"), refreshed_root.index("title: 用户入口"))
+        self.assertLess(
+            refreshed_root.index("path: 03-developer-guide/function-reference.md"),
+            refreshed_root.index("path: 03-developer-guide/application-development.md"),
+        )
+        self.assertLess(
+            refreshed_root.index("path: 03-developer-guide/application-development.md"),
+            refreshed_root.index("path: 03-developer-guide/plugin-development.md"),
+        )
+        self.assertIn("title: 入门说明", refreshed_root)
+        self.assertIn("title: 项目开发文档（内）", refreshed_root)
+
     def test_write_docs_stratego_indexes_refreshes_generated_directory_indexes_without_mkdocs(self):
         with tempfile.TemporaryDirectory() as temp_dir:
             project_root = Path(temp_dir)
@@ -456,7 +534,127 @@ class FactoryRelativePathAndDocsIndexTests(unittest.TestCase):
         self.assertIn("docs/03-developer-guide/01-concepts/index.md", written)
         self.assertTrue(refreshed_index.startswith("# 01 概念与约束概览\n"))
         self.assertIn("系统地图、术语和真实约束", refreshed_index)
-        self.assertIn("1. 1.1 系统地图与术语", refreshed_index)
+        self.assertIn("本页是该目录的正文首页", refreshed_index)
+        self.assertNotIn("建议阅读顺序", refreshed_index)
+
+    def test_docs_stratego_indexes_include_contract_files_and_preserve_access_overrides(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            project_root = Path(temp_dir)
+            openapi_dir = project_root / "docs" / "04-project-development" / "04-design" / "subsystems" / "gateway" / "openapi"
+            tools_dir = project_root / "docs" / "03-developer-guide" / "tools"
+            openapi_dir.mkdir(parents=True)
+            tools_dir.mkdir(parents=True)
+            (openapi_dir / "index.md").write_text("# Gateway OpenAPI 概览\n", encoding="utf-8")
+            (tools_dir / "index.md").write_text("# 工具契约概览\n", encoding="utf-8")
+            (openapi_dir / "app.openapi.yaml").write_text(
+                "openapi: 3.1.0\ninfo:\n  title: App API\n  version: 1.0.0\npaths: {}\n",
+                encoding="utf-8",
+            )
+            (tools_dir / "public-agent.mcp-tools.json").write_text(
+                json.dumps(
+                    {
+                        "tools": [
+                            {
+                                "name": "build_site",
+                                "title": "Public Agent Tools",
+                                "description": "Build docs site.",
+                                "inputSchema": {"type": "object"},
+                            }
+                        ]
+                    },
+                    ensure_ascii=False,
+                ),
+                encoding="utf-8",
+            )
+
+            self.factory_core.write_docs_stratego_indexes(project_root, "示例项目")
+
+            root_path = project_root / "docs" / "index.md"
+            root_text = root_path.read_text(encoding="utf-8")
+            root_text = root_text.replace("home_access: public", "home_access: private")
+            root_text = root_text.replace("title: App API", "title: 外部 App API")
+            root_text = root_text.replace(
+                "path: 04-project-development/04-design/subsystems/gateway/openapi/app.openapi.yaml\n"
+                "                          access: private",
+                "path: 04-project-development/04-design/subsystems/gateway/openapi/app.openapi.yaml\n"
+                "                          access: public",
+            )
+            root_path.write_text(root_text, encoding="utf-8")
+
+            self.factory_core.write_docs_stratego_indexes(project_root, "示例项目")
+            refreshed_root = root_path.read_text(encoding="utf-8")
+
+        self.assertIn("home_access: private", refreshed_root)
+        self.assertIn("path: 04-project-development/04-design/subsystems/gateway/openapi/app.openapi.yaml", refreshed_root)
+        self.assertIn("title: 外部 App API", refreshed_root)
+        self.assertIn("access: public", refreshed_root)
+        self.assertIn("path: 03-developer-guide/tools/public-agent.mcp-tools.json", refreshed_root)
+        self.assertIn("title: Public Agent Tools", refreshed_root)
+
+    def test_docs_stratego_source_status_rejects_invalid_contract_pages_and_assets_contracts(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            project_root = Path(temp_dir)
+            openapi_dir = project_root / "docs" / "03-developer-guide" / "openapi"
+            assets_dir = project_root / "docs" / "03-developer-guide" / "assets"
+            openapi_dir.mkdir(parents=True)
+            assets_dir.mkdir(parents=True)
+            (openapi_dir / "index.md").write_text("# OpenAPI 概览\n", encoding="utf-8")
+            (openapi_dir / "broken.openapi.yaml").write_text(
+                "openapi: 3.1.0\ninfo:\n  title: Broken API\npaths: {}\n",
+                encoding="utf-8",
+            )
+            (assets_dir / "hidden.mcp-tools.yaml").write_text(
+                "tools:\n  - name: hidden\n    description: hidden tool\n    inputSchema:\n      type: object\n",
+                encoding="utf-8",
+            )
+
+            self.factory_core.write_docs_stratego_indexes(project_root, "示例项目")
+            status, lines = self.factory_core.docs_stratego_source_status(project_root, "示例项目")
+
+        self.assertEqual(status, "异常")
+        self.assertTrue(any("broken.openapi.yaml" in line and "info.version" in line for line in lines))
+        self.assertTrue(any("assets/" in line and "契约文件" in line for line in lines))
+
+    def test_upgrade_docs_source_standard_migrates_legacy_project_and_returns_ready(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            project_root = Path(temp_dir)
+            (project_root / "docs" / "02-requirements").mkdir(parents=True)
+            (project_root / "docs" / "08-handover").mkdir(parents=True)
+            (project_root / "docs" / "README.md").write_text("# 旧入口\n", encoding="utf-8")
+            (project_root / "docs" / "02-requirements" / "prd.md").write_text("# 产品需求文档\n", encoding="utf-8")
+            (project_root / "docs" / "08-handover" / "user-guide.md").write_text("# 用户指南\n", encoding="utf-8")
+
+            result = self.factory_core.upgrade_docs_source_standard(project_root, "示例项目")
+
+            root_index = (project_root / "docs" / "index.md").read_text(encoding="utf-8")
+            policy_text = (project_root / "docs" / "publication-policy.json").read_text(encoding="utf-8")
+
+        self.assertTrue(result["migrated"])
+        self.assertEqual(result["status"], "就绪")
+        self.assertIn("path: 04-project-development/03-requirements/prd.md", root_index)
+        self.assertIn("docs/index.md", policy_text)
+
+    def test_discover_upgrade_candidate_projects_finds_managed_projects_only(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            managed_a = root / "proj-a"
+            managed_b = root / "group" / "proj-b"
+            unmanaged = root / "proj-c"
+            skipped = root / "node_modules" / "proj-d"
+
+            for project in [managed_a, managed_b]:
+                (project / ".factory").mkdir(parents=True)
+                (project / "docs").mkdir(parents=True)
+                (project / ".factory" / "project.json").write_text('{"project_name":"demo"}', encoding="utf-8")
+
+            (unmanaged / "docs").mkdir(parents=True)
+            (skipped / ".factory").mkdir(parents=True)
+            (skipped / "docs").mkdir(parents=True)
+            (skipped / ".factory" / "project.json").write_text('{"project_name":"skip"}', encoding="utf-8")
+
+            discovered = self.docs_upgrade_batch.discover_upgrade_candidate_projects([root], max_depth=3)
+
+        self.assertEqual(discovered, sorted([managed_a.resolve(), managed_b.resolve()]))
 
     def test_migrate_docs_structure_upgrades_legacy_layout_and_rewrites_links(self):
         with tempfile.TemporaryDirectory() as temp_dir:

@@ -39,8 +39,8 @@ mkdocs:
         - title: 应用开发
           path: 03-developer-guide/application-development.md
           access: public
-        - title: 插件开发
-          path: 03-developer-guide/plugin-development.md
+        - title: 开发环境
+          path: 03-developer-guide/development-setup.md
           access: public
         - title: 函数说明
           path: 03-developer-guide/function-reference.md
@@ -48,8 +48,8 @@ mkdocs:
         - title: 接口说明
           path: 03-developer-guide/interface-reference.md
           access: public
-        - title: 开发环境
-          path: 03-developer-guide/development-setup.md
+        - title: 插件开发
+          path: 03-developer-guide/plugin-development.md
           access: public
     - title: 项目开发文档（内）
       children:
@@ -127,6 +127,9 @@ mkdocs:
             - title: 历史项目纳管自动化入口设计
               path: 04-project-development/04-design/historical-project-onboarding-automation.md
               access: private
+            - title: 源文档标准升级分析
+              path: 04-project-development/04-design/source-docs-standard-upgrade-analysis.md
+              access: private
         - title: 开发过程文档
           children:
             - title: 概览
@@ -137,6 +140,9 @@ mkdocs:
               access: private
             - title: 软件开发流程
               path: 04-project-development/05-development-process/software-development-process.md
+              access: private
+            - title: 实施计划
+              path: 04-project-development/05-development-process/implementation-plan.md
               access: private
         - title: 测试与验证
           children:
@@ -179,6 +185,9 @@ mkdocs:
             - title: Agent 高主动性与自进化集成方案
               path: 04-project-development/09-evolution/agent-motivation-autonomy-integration.md
               access: private
+            - title: 纳管复盘与后续演进
+              path: 04-project-development/09-evolution/retrospective.md
+              access: private
         - title: 追踪矩阵
           children:
             - title: 概览
@@ -197,26 +206,18 @@ mkdocs:
 
 # 山海工枢（shanforge）
 
-这是 `山海工枢（shanforge）` 的正式项目文档源。当前仓库已经按 4 大模块完成单轴重构：
+这是 `山海工枢（shanforge）` 的正式项目文档源。当前仓库已经按 4 大模块完成单轴重构，其中 `项目开发文档（内）` 承载治理、需求、设计、测试、发布、运维和追踪矩阵等过程性文档；对外阅读入口和开发者稳定说明不再与内部过程文档混写。
 
-1. 入门说明
-2. 用户指南
-3. 开发者指南
-4. 项目开发文档（内）
+## 适用范围
 
-其中，只有 `项目开发文档（内）` 继续承载软件开发流程、设计、测试、发布、运维和追踪矩阵等过程性文档；对外阅读入口和开发者稳定说明不再与内部过程文档混写。
+- 根 `docs/index.md` 的 front matter 是目录树、页面路径和访问级别的唯一事实源。
+- Markdown 页面、OpenAPI 契约和 MCP tools 快照统一作为正式页面资产维护。
+- 契约文件必须放在真实文档目录下，并与所在目录的 `index.md` 配套。
 
 ## 维护规则
 
 - 只有根 `docs/index.md` 声明全站 `mkdocs.nav`、页面路径和页面权限。
 - 子目录 `index.md` 只作为正文首页和资源权限锚点，不再承担导航声明职责。
-- 页面、图片和附件跟随所属目录维护；资源文件放在当前目录或当前目录的 `assets/` 下。
+- 页面、图片和附件跟随所属目录维护；资源文件放在当前目录或当前目录的 `assets/` 下，`assets/` 不承载 Markdown 页面或契约文件。
 - 仓内链接统一使用相对路径，不写机器绝对路径。
-- 新增、删除或移动 Markdown 页面后，同步刷新根 `docs/index.md` 的目录树和子目录概览页。
-
-## 推荐进入方式
-
-- 第一次接触本项目：先看 [入门说明](./01-getting-started/index.md)
-- 需要实际使用：看 [用户指南](./02-user-guide/index.md)
-- 需要开发或集成：看 [开发者指南](./03-developer-guide/index.md)
-- 需要理解正式项目过程和内部事实：看 [项目开发文档（内）](./04-project-development/index.md)
+- 新增、删除或移动 Markdown 页面或契约文件后，同步刷新根 `docs/index.md` 的目录树；子目录 `index.md` 只保留正文概览。

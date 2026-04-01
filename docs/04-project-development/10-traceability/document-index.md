@@ -13,7 +13,9 @@
 | `docs/03-developer-guide/interface-reference.md` | 开发者指南 | 开发者、集成方 | 仓库维护者 | 已发布 | API-* |
 | `docs/04-project-development/03-requirements/prd.md` | 需求文档 | 产品、研发、测试 | 仓库维护者 | 已确认基线 | REQ-* |
 | `docs/04-project-development/04-design/solution-overview.md` | 总体设计 | 架构、维护者 | 仓库维护者 | 已确认基线 | MOD-* |
+| `docs/04-project-development/04-design/source-docs-standard-upgrade-analysis.md` | 升级分析 | 架构、文档维护者、脚本维护者 | 仓库维护者 | 已发布 | TASK-006 ~ TASK-010 |
 | `docs/04-project-development/05-development-process/software-development-process.md` | 过程文档 | 项目协调者、维护者 | 仓库维护者 | 已发布 | PROC-* |
+| `docs/04-project-development/05-development-process/implementation-plan.md` | 实施计划 | 项目协调者、文档维护者、QA | 仓库维护者 | 已发布 | TASK-* |
 | `docs/04-project-development/06-testing-verification/test-plan.md` | 测试文档 | 测试、维护者 | 仓库维护者 | 已发布 | TC-* |
 | `docs/04-project-development/07-release-delivery/release-notes.md` | 发布文档 | 维护者、使用者 | 仓库维护者 | 已发布 | REL-* |
 | `docs/04-project-development/08-operations-maintenance/deployment-guide.md` | 运维文档 | 维护者、发布负责人 | 仓库维护者 | 已发布 | OPS-* |

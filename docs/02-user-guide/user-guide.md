@@ -290,6 +290,41 @@ python3 scripts/factory-agent-session --help
 - 不要把它当空目录重建
 - 不要重写整套现有文档
 
+### 8.5 已纳管项目按新规范刷新 docs
+
+标准顺序：
+
+1. 先确认项目已经被山海工枢接管，也就是已有 `AGENTS.md`、`GEMINI.md`、`.factory/project.json` 和 `docs/`
+2. 先执行 `factory-docs-standard-upgrade --check`
+3. 再执行 `factory-docs-standard-upgrade`
+4. 升级完成后执行 `factory-state-doctor --scope docs`
+5. 人工复核根 `docs/index.md`、相关目录 `index.md`、`access` 例外和契约页纳入情况
+
+推荐开场：
+
+```text
+这个项目已经纳入软件工厂。
+请不要重写整套 docs，先按最新山海工枢源文档标准刷新 `docs/`，并在完成后告诉我最终是否为 `就绪`。
+```
+
+这类场景对应的可复制模板，直接看 [提示词速查](./prompt-templates.md#19-已纳管项目升级-docs-到最新源文档标准)。
+
+### 8.6 统一通知多个项目负责人刷新 docs
+
+标准顺序：
+
+1. 先用 `factory-docs-standard-upgrade-batch --check` 扫描一个工作区
+2. 区分“已接管可直接升级”和“未接管需先纳管”的项目
+3. 为每个项目负责人生成统一通知，要求他们在各自仓库执行单项目升级
+4. 收齐反馈后，再决定是否需要集中复核导航和契约页
+
+不要做的事：
+
+- 不要在平台仓库里直接替每个业务项目手工改 docs
+- 不要跳过 `--check` 就批量升级
+
+如果你需要直接转发的自然语言通知模板，看 [提示词速查](./prompt-templates.md#20-批量扫描并通知项目负责人刷新-docs)。
+
 ## 9. 日常使用的推荐节奏
 
 ### 会话开始时
@@ -364,6 +399,15 @@ python3 scripts/factory-agent-session --help
 - 当前阶段是否明确
 - 当前真实状态是否被写清楚
 - 后续应该从 `BUG`、`CR`、`TASK` 哪一种开始
+
+### 如果你刚刷新了 docs 标准
+
+检查：
+
+- `factory-docs-standard-upgrade` 最终是否为 `就绪`
+- 根 `docs/index.md` 和相关目录 `index.md` 是否已经刷新
+- `openapi` / `tools` 契约页是否正确纳入导航
+- 是否还有需要人工复核的导航顺序、标题或 `access` 例外
 
 ### 如果你刚推进了需求或设计
 

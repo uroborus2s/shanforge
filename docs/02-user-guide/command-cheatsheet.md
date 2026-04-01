@@ -53,6 +53,8 @@ python3 scripts/<command> --project /path/to/project --owner "<name>" --note "<n
 | `factory-docs-profile-detect` | `python3 scripts/factory-docs-profile-detect --project <path>` | 检测文档画像 | 你不确定项目需要哪些顶层文档模块 | 输出或写回 `docs_profile` 判断结果 |
 | `factory-docs-migrate-structure` | `python3 scripts/factory-docs-migrate-structure --project <path> --owner <name>` | 迁移旧版 docs 结构 | 项目 docs 仍是旧目录布局 | 调整 docs 目录到新结构 |
 | `factory-docs-index-refresh` | `python3 scripts/factory-docs-index-refresh --project <path> --owner <name>` | 刷新 docs 索引 | 新增、删除、移动页面后 | 更新 `docs/index.md` 和相关概览页 |
+| `factory-docs-standard-upgrade` | `python3 scripts/factory-docs-standard-upgrade --project <path> --owner <name>` | 升级 docs 到最新源文档标准 | 你要把一个项目的 docs 一次性迁到最新规范 | 按需迁移旧结构、刷新索引并做最终校验 |
+| `factory-docs-standard-upgrade-batch` | `python3 scripts/factory-docs-standard-upgrade-batch --root <dir> --owner <name>` | 批量升级多个项目 docs | 你要扫描一个目录下的多个山海工枢项目并统一升级 | 逐个项目执行检查或升级并输出汇总 |
 
 ## 4. 需求、设计与计划
 

@@ -2,7 +2,7 @@
 
 **项目名称：** 山海工枢 / shanforge  
 **负责人：** 仓库维护者  
-**最后更新：** 2026-03-27  
+**最后更新：** 2026-04-01  
 
 ## 1. 需求到设计/实施/测试映射
 
@@ -34,6 +34,8 @@
 | `API-004` | 项目状态层 | 被管理项目、脚本、模型 | `.factory/project.json` | 状态结构有效性 | 项目协调者 |
 | `API-005` | 正式文档层 | 人类读者、维护者 | `docs/*` | 文档是否可发现和可追踪 | 文档维护者 |
 | `API-006` | `factory-historical-project-onboarding` / `factory-dispatch historical-project-onboarding` | 维护者、项目协调者 | `historical-project-onboarding-automation.md`, `scripts/factory-historical-project-onboarding`, `scripts/factory-dispatch` | 命令是否可在非空历史仓库中补齐最小骨架并生成 session/doctor | 脚本维护者 |
+| `API-008` | `factory-docs-standard-upgrade` / `factory-dispatch docs-standard-upgrade` | 维护者、项目协调者 | `scripts/factory-docs-standard-upgrade`, `scripts/factory_core.py`, `scripts/factory-dispatch` | 升级后是否直接达到 docs 源文档 `就绪` 状态 | 脚本维护者 |
+| `API-009` | `factory-docs-standard-upgrade-batch` / `factory-dispatch docs-standard-upgrade-batch` | 平台维护者、项目协调者 | `scripts/factory-docs-standard-upgrade-batch`, `scripts/factory_core.py`, `scripts/factory-dispatch` | 批量扫描与升级汇总是否准确 | 脚本维护者 |
 
 ## 4. 未闭环项
 
@@ -42,6 +44,7 @@
 | `GAP-001` | 尚未补齐管理员指南 | 交接/管理文档 | 仓库维护者 | 后续阶段 |
 | `GAP-002` | 发布与运维文档已建立，但仍缺少环境级实参和管理员专属操作细节 | 发布/运维细化文档 | 仓库维护者 | 后续阶段 |
 | `GAP-003` | 尚未建立文档入口一致性自动检查 | 自动化保障 | 脚本维护者 | 后续阶段 |
+| `GAP-004` | 完全脱离真实目录锚点的手工包装分组仍需人工复核 | 导航高级兼容 | 脚本维护者 | 后续阶段 |
 
 ## 5. 变更记录
 
@@ -54,3 +57,6 @@
 | 2026-03-26 | 更新 API-006 和 REQ-007 状态为历史项目纳管 MVP 已实现 | Codex |
 | 2026-03-27 | 将项目名称统一更新为“山海工枢 / shanforge”并同步引用路径 | Codex |
 | 2026-03-28 | 将 4 大模块单轴文档结构和最新模板同步到需求追踪矩阵 | Codex |
+| 2026-04-01 | 增加《源文档标准》升级任务和剩余导航合并缺口记录 | Codex |
+| 2026-04-01 | 将导航合并能力和 docs 一键升级入口同步到追踪矩阵 | Codex |
+| 2026-04-01 | 将 docs 批量升级入口同步到追踪矩阵 | Codex |

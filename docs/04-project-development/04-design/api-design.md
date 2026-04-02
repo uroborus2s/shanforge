@@ -27,6 +27,7 @@
 | `API-014` | `factory-dispatch intent-resolver` | CLI Command | `REQ-003`, `REQ-006` | 最小自然语言意图解析入口，把目标映射到已注册动作和风险策略 |
 | `API-015` | `factory-dispatch intent-eval` | CLI Command | `REQ-003`, `REQ-005`, `REQ-006` | 基于固定样本集回放评估意图解析能力，统计命中率并暴露失败样本 |
 | `API-016` | `factory-dispatch intent-approval` | CLI Command | `REQ-003`, `REQ-005`, `REQ-006` | 查看或处理意图审批票据，并在批准后执行冻结计划 |
+| `API-017` | `config/reply-policy.json` | File Contract | `REQ-003`, `REQ-005`, `REQ-006` | 对话摘要、审批票据触发条件和 skill 正式变更批准边界的运行时契约 |
 
 ## 2. 设计原则
 
@@ -214,6 +215,7 @@
   - 已支持识别 `command-profiles` / `workflow-runner` 的具体子目标，并可通过 `--execute-safe` 自动执行 `L0/L1` 主推荐动作。
   - 已支持对子目标应用风险覆盖；工作流型 profile 在解析时会提升到 `L2` 审批边界。
   - 已支持通过 `--request-approval` 为 `L2/L3` 主推荐动作创建冻结审批票据。
+  - 已支持输出 `approval_guidance` 和固定 `reply_summary`，用于当前对话回复和后续审批衔接。
   - 当前解析器仍以关键词和项目事实规则为主，尚未接入学习型排序和 UI / 远程审批入口。
 
 ### `API-015` 意图回放评估入口
@@ -231,6 +233,7 @@
   - MVP 已实现，入口为 `scripts/factory-intent-eval`。
   - 默认样本集位于 `config/evals/intent-resolver-cases.json`。
   - 当前已覆盖 `empty`、`historical`、`managed` 三类项目夹具，以及 `action/profile/workflow/safe_execute/approval_request` 五类断言。
+  - 已输出固定 `reply_summary`，便于在日常开发回复中给出简短评估结论。
 
 ### `API-016` 意图审批票据入口
 
@@ -250,6 +253,22 @@
   - `factory-dispatch intent-approval` 和别名 `intent-approve` 已接入。
   - 审批票据统一写入 `.factory/process/intent-approvals.json` 与对应视图。
   - 票据已冻结建议 ownership 角色和写入集合；批准执行前会再次校验负责人与显式写集冲突，未通过则阻断执行。
+  - 已输出固定 `reply_summary`，便于在对话中摘要展示票据状态和 ownership 校验结果。
+
+### `API-017` 对话摘要与审批回报契约
+
+- 请求：运行时在输出 `intent` 评估、审批和高层解析结果时读取对话摘要契约。
+- 响应：返回固定的 `reply_summary` 字段，以及 `intent-resolver` 的 `approval_guidance`。
+- 校验规则：
+  - 必须明确哪些动作需要对话摘要。
+  - 必须明确哪些风险/审批模式需要进入票据链路。
+  - 正式 `skill` 变更必须声明候选目录、评估要求和审批要求。
+- 错误处理：
+  - 契约缺失或损坏时，应回退到最保守的摘要与审批策略。
+- 当前状态：
+  - MVP 已实现，契约文件为 `config/reply-policy.json`。
+  - 当前已覆盖 `intent-resolver`、`intent-eval`、`intent-approval` 3 类运行时入口。
+  - 当前已把 skill 正式变更固定为“候选优先、评估先行、显式批准后晋升”的治理边界。
 
 ## 4. 契约文件
 

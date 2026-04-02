@@ -139,6 +139,9 @@ mkdocs:
             - title: Skill 进化机制设计
               path: 04-project-development/04-design/skill-evolution-mechanism.md
               access: private
+            - title: 评估摘要与审批回报契约
+              path: 04-project-development/04-design/evaluation-summary-and-approval-reporting.md
+              access: private
         - title: 开发过程文档
           children:
             - title: 概览

@@ -39,6 +39,7 @@
 | `API-014` | `factory-intent-resolver` / `factory-dispatch intent-resolver` | 使用者、维护者 | `scripts/factory-intent-resolver`, `scripts/factory-dispatch`, `config/action-registry.json`, `config/autonomy-policy.json` | 自然语言是否稳定映射到已注册动作和风险策略 | 脚本维护者 |
 | `API-015` | `factory-intent-eval` / `factory-dispatch intent-eval` | 平台维护者、QA | `scripts/factory-intent-eval`, `config/evals/intent-resolver-cases.json` | 意图回放命中率和失败样本是否稳定可见 | 脚本维护者 |
 | `API-016` | `factory-intent-approval` / `factory-dispatch intent-approval` | 使用者、维护者、审批协作者 | `scripts/factory-intent-approval`, `scripts/factory-intent-resolver`, `.factory/process/intent-approvals.json` | `L2/L3` 意图是否能通过冻结票据完成显式批准后继续执行 | 脚本维护者 |
+| `API-017` | `config/reply-policy.json` + `factory_core.build_reply_summary` | 使用者、维护者、技能维护者 | `config/reply-policy.json`, `scripts/factory_core.py` | 日常回复是否稳定返回摘要，skill 正式变更是否始终先走候选/评估/批准 | 脚本维护者 |
 
 ## 4. 未闭环项
 
@@ -49,7 +50,7 @@
 | `GAP-003` | 尚未建立文档入口一致性自动检查 | 自动化保障 | 脚本维护者 | 后续阶段 |
 | `GAP-004` | 完全脱离真实目录锚点的手工包装分组仍需人工复核 | 导航高级兼容 | 脚本维护者 | 后续阶段 |
 | `GAP-005` | 动作注册表和自治策略契约已建立，但多数 legacy 动作仍未迁入统一注册表 | 动作治理层 | 脚本维护者 | 后续阶段 |
-| `GAP-006` | 尚未建立完整 skill 进化回放评估与晋升流水线；当前仅补齐了 `intent` 的固定样本回放 | 技能治理 | 平台维护者 | 后续阶段 |
+| `GAP-006` | 已固定 skill 正式变更必须先走候选/评估/批准的治理边界，但仍未建立完整的候选生成器、专用审批命令和正式晋升流水线 | 技能治理 | 平台维护者 | 后续阶段 |
 | `GAP-007` | 已建立多前台能力画像与查询入口，但前台适配层尚未接入工作流编排和自动降级运行时 | 前台适配层 | 平台维护者 | 后续阶段 |
 | `GAP-008` | 已具备显式写集声明、分派时默认阻断冲突写集，以及看板中的 ownership/冲突摘要；但仍未覆盖真实子代理提交阶段的隐式写集探测、自动串行化与恢复协议 | 多代理协作治理 | 平台维护者 | 后续阶段 |
 | `GAP-009` | 已提供最小意图解析入口、`profile/workflow` 子目标选择、`--execute-safe` 自动执行、固定样本回放和最小审批票据 hook，但当前仍是规则型关键词匹配，尚未接入基于回放的排序优化、更细粒度语义理解以及 UI/远程审批入口 | 意图治理层 | 平台维护者 | 后续阶段 |
@@ -74,3 +75,4 @@
 | 2026-04-02 | 增加 `API-015` 意图回放评估入口，并把 `GAP-006` / `GAP-009` 更新为“已有固定样本回放”后的剩余缺口 | Codex |
 | 2026-04-02 | 增加 `API-016` 意图审批票据入口，并将 `GAP-009` 更新为“已有最小审批 hook”后的剩余缺口 | Codex |
 | 2026-04-02 | 更新 `GAP-008` 为“显式写集冲突已可阻断，剩余缺口在隐式写集探测和恢复协议” | Codex |
+| 2026-04-02 | 增加 `API-017` 对话摘要与 skill 变更批准边界契约，并将 `GAP-006` 收敛到候选生成与晋升流水线缺口 | Codex |

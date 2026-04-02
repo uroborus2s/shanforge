@@ -24,6 +24,7 @@
 | `API-014` | CLI 命令接口 | `factory-intent-resolver` | 使用者、维护者、后续动作治理层 | `REQ-003`, `REQ-006` | `scripts/factory-intent-resolver`, `scripts/factory-dispatch`, `config/action-registry.json`, `config/autonomy-policy.json` | MVP 已实现；支持规则型意图解析、`profile/workflow` 子目标选择和 `--execute-safe` 自动执行 `L0/L1` 主推荐动作 | `unittest` + 人工走查 | 仓库维护者 |
 | `API-015` | CLI 命令接口 | `factory-intent-eval` | 平台维护者、QA、技能维护者 | `REQ-003`, `REQ-005`, `REQ-006` | `scripts/factory-intent-eval`, `config/evals/intent-resolver-cases.json` | MVP 已实现；固定样本集优先，后续扩展更多自然语言变体和排序评估 | `unittest` + 人工走查 | 仓库维护者 |
 | `API-016` | CLI 命令接口 | `factory-intent-approval` | 使用者、维护者、审批协作者 | `REQ-003`, `REQ-005`, `REQ-006` | `scripts/factory-intent-approval`, `scripts/factory-intent-resolver`, `.factory/process/intent-approvals.json` | MVP 已实现；本地冻结票据已绑定建议 ownership 与显式写集，批准前会再次做冲突校验，后续可接 UI/远程审批 | `unittest` + 人工走查 | 仓库维护者 |
+| `API-017` | 内部文件契约 | `config/reply-policy.json` | `factory-intent-resolver`、`factory-intent-eval`、`factory-intent-approval`、后续 skill 治理链路 | `REQ-003`, `REQ-005`, `REQ-006` | `config/reply-policy.json`, `scripts/factory_core.py` | MVP 已实现；固定对话摘要字段、审批票据触发条件和 skill 正式变更批准边界 | `unittest` + 人工走查 | 仓库维护者 |
 
 ## 3. 维护规则
 

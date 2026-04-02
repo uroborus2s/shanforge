@@ -9,9 +9,11 @@ from pathlib import Path
 from factory_core import (
     EXECUTION_LOG_RELATIVE,
     append_log_line,
+    build_reply_summary,
     effective_action_policy,
     factory_workspace_root,
     intent_control_root,
+    action_reply_contract,
     load_action_registry,
     load_intent_approval_records,
     load_project_config,
@@ -544,28 +546,34 @@ def build_execution_plan(result: dict, *, owner: str, note: str, focus: str, str
 def request_primary_approval(result: dict, *, owner: str, note: str, focus: str, strict: bool) -> dict:
     primary = result.get("primary")
     if not primary:
-        return {
+        payload = {
             "status": "blocked",
             "summary": "没有可申请审批的主推荐动作。",
             "next_actions": ["补充更明确的目标语义后重试。"],
             "artifacts": [],
         }
+        payload["reply_summary"] = build_reply_summary("intent-resolver", {"approval_request": payload, **result})
+        return payload
     if primary.get("blocked"):
-        return {
+        payload = {
             "status": "blocked",
             "summary": "主推荐动作当前存在阻塞条件，无法创建审批票据。",
             "next_actions": primary["blocked"],
             "artifacts": [],
         }
+        payload["reply_summary"] = build_reply_summary("intent-resolver", {"approval_request": payload, **result})
+        return payload
 
     policy = primary.get("policy", {})
     if policy.get("approval") == "auto" and policy.get("execution") == "auto":
-        return {
+        payload = {
             "status": "not_required",
             "summary": f"主推荐动作 `{primary['action']}` 已属于 auto 策略，不需要审批票据。",
             "next_actions": ["如需直接执行，请改用 `--execute-safe`。"],
             "artifacts": [],
         }
+        payload["reply_summary"] = build_reply_summary("intent-resolver", {"approval_request": payload, **result})
+        return payload
 
     plan = build_execution_plan(result, owner=owner, note=note, focus=focus, strict=strict)
     ownership = infer_approval_ownership(result, owner)
@@ -607,7 +615,7 @@ def request_primary_approval(result: dict, *, owner: str, note: str, focus: str,
         intent_control_root() / EXECUTION_LOG_RELATIVE,
         f"- {datetime.now().strftime('%Y-%m-%d')}: 创建 intent 审批票据 `{ticket_id}`，动作 `{action_id}`，项目 `{result['project']['path']}`。",
     )
-    return {
+    payload = {
         "status": "pending_approval",
         "summary": f"已为 `{action_id}` 创建审批票据 `{ticket_id}`。",
         "artifacts": [
@@ -623,33 +631,41 @@ def request_primary_approval(result: dict, *, owner: str, note: str, focus: str,
         "plan": plan,
         "record": record,
     }
+    payload["reply_summary"] = build_reply_summary("intent-resolver", {"approval_request": payload, **result})
+    return payload
 
 
 def execute_primary_safe(result: dict, *, owner: str, note: str, focus: str, strict: bool) -> dict:
     primary = result.get("primary")
     if not primary:
-        return {
+        payload = {
             "status": "blocked",
             "summary": "没有可执行的主推荐动作。",
             "next_actions": ["补充更明确的目标语义后重试。"],
             "artifacts": [],
         }
+        payload["reply_summary"] = build_reply_summary("intent-resolver", {"execution": payload, **result})
+        return payload
     if primary.get("blocked"):
-        return {
+        payload = {
             "status": "blocked",
             "summary": "主推荐动作当前存在阻塞条件，未执行。",
             "next_actions": primary["blocked"],
             "artifacts": [],
         }
+        payload["reply_summary"] = build_reply_summary("intent-resolver", {"execution": payload, **result})
+        return payload
 
     policy = primary.get("policy", {})
     if policy.get("approval") != "auto" or policy.get("execution") != "auto":
-        return {
+        payload = {
             "status": "policy_denied",
             "summary": f"主推荐动作 `{primary['action']}` 的默认策略不是 auto，停止在审批边界。",
             "next_actions": [command_hint(primary["action"], Path(result["project"]["path"]), result["intent"], primary)],
             "artifacts": [],
         }
+        payload["reply_summary"] = build_reply_summary("intent-resolver", {"execution": payload, **result})
+        return payload
 
     plan = build_execution_plan(result, owner=owner, note=note, focus=focus, strict=strict)
     step = run_script(plan["script_name"], *plan["arguments"], label=plan["label"])
@@ -664,7 +680,7 @@ def execute_primary_safe(result: dict, *, owner: str, note: str, focus: str, str
         status = "error"
         summary = f"`{primary['action']}` 执行失败，返回码 {step['returncode']}。"
 
-    return {
+    payload = {
         "status": status,
         "summary": summary,
         "artifacts": artifacts,
@@ -672,6 +688,39 @@ def execute_primary_safe(result: dict, *, owner: str, note: str, focus: str, str
         "next_actions": next_actions,
         "step": step,
         "plan": plan,
+    }
+    payload["reply_summary"] = build_reply_summary("intent-resolver", {"execution": payload, **result})
+    return payload
+
+
+def approval_guidance(result: dict) -> dict:
+    primary = result.get("primary") or {}
+    policy = primary.get("policy") or {}
+    contract = action_reply_contract("intent-resolver")
+    approval_contract = contract.get("approval_ticket", {}) if isinstance(contract, dict) else {}
+    risk_levels = {str(item).strip() for item in approval_contract.get("risk_levels", []) if str(item).strip()}
+    approval_modes = {str(item).strip() for item in approval_contract.get("approval_modes", []) if str(item).strip()}
+    execution_modes = {str(item).strip() for item in approval_contract.get("execution_modes", []) if str(item).strip()}
+    risk_level = str(policy.get("risk_level", "")).strip()
+    approval_mode = str(policy.get("approval", "")).strip()
+    execution_mode = str(policy.get("execution", "")).strip()
+    ticket_required = bool(primary) and (
+        risk_level in risk_levels or approval_mode in approval_modes or execution_mode in execution_modes
+    )
+    next_actions = []
+    if ticket_required:
+        project_path = Path(result["project"]["path"])
+        next_actions.append(
+            f"运行 `python3 {factory_workspace_root() / 'scripts' / 'factory-dispatch'} intent \"{result['intent']}\" --project \"{project_path}\" --tool {result['frontend']['id']} --request-approval --owner \"<owner>\"` 生成审批票据。"
+        )
+    return {
+        "ticket_required": ticket_required,
+        "reason": (
+            f"主推荐动作 `{primary.get('action', '')}` 处于 `{risk_level or 'L3'}` 风险级别，需通过审批票据推进。"
+            if ticket_required
+            else "主推荐动作当前不需要审批票据。"
+        ),
+        "next_actions": next_actions,
     }
 
 
@@ -714,7 +763,7 @@ def resolve_intent(intent_text: str, project_root: Path, tool: str = "generic", 
     for item in blocked:
         item.setdefault("command_hint", command_hint(item["action"], project_root, intent_text, item))
 
-    return {
+    payload = {
         "intent": intent_text.strip(),
         "project": facts,
         "frontend": {
@@ -725,6 +774,9 @@ def resolve_intent(intent_text: str, project_root: Path, tool: str = "generic", 
         "candidates": ordered[: max(1, top)],
         "blocked_candidates": blocked,
     }
+    payload["approval_guidance"] = approval_guidance(payload)
+    payload["reply_summary"] = build_reply_summary("intent-resolver", payload)
+    return payload
 
 
 def render_markdown(result: dict) -> str:
@@ -775,6 +827,19 @@ def render_markdown(result: dict) -> str:
         "",
         *candidate_lines,
     ]
+    guidance = result.get("approval_guidance") or {}
+    if guidance:
+        lines.extend(
+            [
+                "",
+                "## 审批指引",
+                "",
+                f"- 是否需要票据：`{'yes' if guidance.get('ticket_required') else 'no'}`",
+                f"- 说明：{guidance.get('reason', '无')}",
+            ]
+        )
+        for item in guidance.get("next_actions", []):
+            lines.append(f"- 下一步：{item}")
     execution = result.get("execution")
     if execution:
         lines.extend(
@@ -821,6 +886,17 @@ def render_markdown(result: dict) -> str:
             lines.extend(["- 下一步："] + [f"  - {item}" for item in next_actions])
     if blocked_lines:
         lines.extend(["", "## 已排除动作", "", *blocked_lines])
+    reply_summary = result.get("reply_summary") or {}
+    items = reply_summary.get("items") or []
+    if items:
+        lines.extend(["", "## 对话摘要", ""])
+        for item in items:
+            value = item.get("value")
+            if isinstance(value, list):
+                rendered = "；".join(str(part) for part in value)
+            else:
+                rendered = str(value)
+            lines.append(f"- {item.get('label', item.get('path', ''))}：{rendered}")
     return "\n".join(lines).rstrip() + "\n"
 
 
@@ -849,6 +925,7 @@ def main() -> int:
                 focus=args.focus.strip(),
                 strict=args.strict,
             )
+        result["reply_summary"] = build_reply_summary("intent-resolver", result)
     except Exception as exc:
         print(f"意图解析失败：{exc}", file=sys.stderr)
         return 1

@@ -32,6 +32,7 @@
 - `factory-intent-eval` 与 `config/evals/intent-resolver-cases.json`
 - `factory-intent-approval` 与控制面审批队列视图
 - 审批票据已可冻结建议 ownership 角色与写入集合，并在批准执行前再次校验显式写集冲突
+- `config/reply-policy.json` 已固定 `reply_summary`、`approval_guidance` 和 skill 正式变更批准边界
 
 当前仍未落地的部分：
 
@@ -271,3 +272,4 @@ flowchart LR
 | 2026-04-02 | 增加最小审批票据 hook，支持 `--request-approval`、`factory-intent-approval` 和冻结执行计划 | Codex |
 | 2026-04-02 | 为审批票据增加冻结 ownership 和批准前显式写集冲突校验 | Codex |
 | 2026-04-02 | 为 `command-profiles` 增加子目标风险覆盖，并将工作流型 profile 纳入审批与回放验证 | Codex |
+| 2026-04-02 | 增加 `reply-policy.json`，把对话摘要字段、审批票据触发条件和 skill 正式变更批准边界固定为运行时契约 | Codex |

@@ -25,7 +25,9 @@
 
 - intent 固定样本回放：`7/7` 通过，命中率 `100.00%`
 - 审批治理：`intent` 已支持审批票据申请、批准/拒绝执行，以及 workflow 型 profile 的风险提升
+- 回复治理：`intent-resolver`、`intent-eval`、`intent-approval` 已输出固定 `reply_summary`，`intent-resolver` 已输出 `approval_guidance`
 - 多代理治理：角色分派已支持 `--write-targets`，并默认阻断与现有分派的显式写集冲突
+- skill 治理：已固定正式 `SKILL.md` 变更必须先走候选、评估和批准；尚未落地候选生成器与正式晋升流水线
 - 当前剩余缺口：尚未覆盖真实子代理提交阶段的隐式写集探测、自动串行化与恢复协议
 
 ## 下一步建议

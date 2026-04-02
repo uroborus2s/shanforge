@@ -460,6 +460,9 @@ class FactoryRelativePathAndDocsIndexTests(unittest.TestCase):
         self.assertEqual(summary["failed"], 0)
         self.assertEqual(summary["passed"], summary["total"])
         self.assertEqual(summary["status"], "success")
+        self.assertEqual(summary["reply_summary"]["action"], "intent-eval")
+        labels = {item["label"] for item in summary["reply_summary"]["items"]}
+        self.assertIn("命中率", labels)
 
     def test_intent_eval_reports_mismatch_for_wrong_expectation(self):
         broken_case = {
@@ -474,6 +477,58 @@ class FactoryRelativePathAndDocsIndexTests(unittest.TestCase):
 
         self.assertFalse(result["passed"])
         self.assertTrue(any("expected action" in item for item in result["mismatches"]))
+
+    def test_factory_core_loads_reply_policy_and_skill_change_governance(self):
+        policy = self.factory_core.load_reply_policy()
+        skill_changes = self.factory_core.skill_change_governance()
+
+        self.assertIn("intent-resolver", policy["actions"])
+        self.assertTrue(skill_changes["require_candidate_first"])
+        self.assertTrue(skill_changes["require_approval_ticket"])
+
+    def test_intent_resolver_provides_approval_guidance_for_l2_actions(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            project_root = Path(temp_dir) / "managed-project"
+            self.factory_init.initialize_project(
+                target=project_root,
+                project_name="managed-project",
+                idea="ship docs",
+                stack="python",
+                owner="tester",
+                force=False,
+            )
+
+            result = self.intent_resolver.resolve_intent("今天收尾并生成会话入口", project_root, tool="codex")
+
+        self.assertEqual(result["primary"]["action"], "command-profiles")
+        self.assertTrue(result["approval_guidance"]["ticket_required"])
+        self.assertIn("--request-approval", result["approval_guidance"]["next_actions"][0])
+        labels = {item["label"] for item in result["reply_summary"]["items"]}
+        self.assertIn("主推荐动作", labels)
+
+    def test_intent_approval_payload_contains_reply_summary(self):
+        with tempfile.TemporaryDirectory() as temp_dir, tempfile.TemporaryDirectory() as control_dir:
+            project_root = Path(temp_dir)
+            self.set_intent_approval_root(Path(control_dir))
+
+            result = self.intent_resolver.resolve_intent("初始化这个空目录项目", project_root, tool="codex")
+            approval = self.intent_resolver.request_primary_approval(
+                result,
+                owner="tester",
+                note="create managed project",
+                focus="bootstrap",
+                strict=False,
+            )
+            execution = self.intent_approval.decide_ticket(
+                approval["ticket"],
+                decision="approve",
+                owner="approver",
+                note="looks good",
+            )
+
+        self.assertEqual(execution["reply_summary"]["action"], "intent-approval")
+        labels = {item["label"] for item in execution["reply_summary"]["items"]}
+        self.assertIn("ownership 校验", labels)
 
     def test_multi_agent_board_marks_high_risk_recommended_commands(self):
         with tempfile.TemporaryDirectory() as temp_dir:

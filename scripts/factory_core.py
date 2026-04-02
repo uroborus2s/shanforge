@@ -2310,6 +2310,10 @@ def autonomy_policy_path() -> Path:
     return factory_workspace_root() / "config" / "autonomy-policy.json"
 
 
+def reply_policy_path() -> Path:
+    return factory_workspace_root() / "config" / "reply-policy.json"
+
+
 def intent_approval_state_path() -> Path:
     return intent_control_root() / FACTORY_PROCESS_RELATIVE / "intent-approvals.json"
 
@@ -2379,6 +2383,67 @@ def load_autonomy_policy() -> dict:
     if not isinstance(default_unregistered, dict):
         raise RuntimeError("autonomy-policy.json 的 `default_unregistered` 必须是对象。")
     return payload
+
+
+@lru_cache(maxsize=1)
+def load_reply_policy() -> dict:
+    payload = load_json_config(reply_policy_path())
+    actions = payload.get("actions", {})
+    skill_changes = payload.get("skill_changes", {})
+    if not isinstance(actions, dict):
+        raise RuntimeError("reply-policy.json 的 `actions` 必须是对象。")
+    if not isinstance(skill_changes, dict):
+        raise RuntimeError("reply-policy.json 的 `skill_changes` 必须是对象。")
+    return payload
+
+
+def nested_value(payload: dict, dotted_path: str, default: object = "") -> object:
+    current: object = payload
+    for part in str(dotted_path or "").split("."):
+        key = part.strip()
+        if not key:
+            continue
+        if not isinstance(current, dict):
+            return default
+        current = current.get(key, default)
+        if current is default:
+            return default
+    return current
+
+
+def action_reply_contract(action_id: str) -> dict:
+    contract = load_reply_policy().get("actions", {}).get(str(action_id or "").strip(), {})
+    return dict(contract) if isinstance(contract, dict) else {}
+
+
+def build_reply_summary(action_id: str, payload: dict, *, extra: dict | None = None) -> dict:
+    contract = action_reply_contract(action_id)
+    items = []
+    for raw in contract.get("fields", []):
+        if not isinstance(raw, dict):
+            continue
+        path = str(raw.get("path", "")).strip()
+        label = str(raw.get("label", path)).strip() or path
+        if not path:
+            continue
+        value = nested_value(payload, path, "")
+        if value in ("", None, [], {}):
+            continue
+        items.append({"label": label, "path": path, "value": value})
+    summary = {
+        "action": str(action_id or "").strip(),
+        "required": bool(contract.get("required", False)),
+        "mode": str(contract.get("mode", "manager_brief")).strip() or "manager_brief",
+        "items": items,
+    }
+    if extra:
+        summary.update(extra)
+    return summary
+
+
+def skill_change_governance() -> dict:
+    contract = load_reply_policy().get("skill_changes", {})
+    return dict(contract) if isinstance(contract, dict) else {}
 
 
 def action_policy(action_id: str) -> dict:

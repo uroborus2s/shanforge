@@ -42,9 +42,9 @@ python3 scripts/<command> --project /path/to/project --owner "<name>" --note "<n
 | `factory-command-profiles` | `python3 scripts/factory-command-profiles <profile> --project <path>` | 运行高层命令画像 | 你想一键启动“需求 kickoff”“设计 kickoff”“发布前收尾”等标准组合动作 | 串行跑一组标准命令，并生成摘要 |
 | `factory-workflow-runner` | `python3 scripts/factory-workflow-runner --project <path> --workflow <name>` | 运行高层工作流 | 你要做 `pre_gate`、`daily_close`、`release_ready`、`handover_ready` | 执行一组收尾/检查/发布相关动作 |
 | `factory-frontend-capabilities` | `python3 scripts/factory-frontend-capabilities --tool codex|gemini|opencode` | 查看前台能力画像 | 你想确认某个前台是否支持子代理、MCP、审批 hook 或降级策略 | 输出前台能力、规则入口和降级说明 |
-| `factory-intent-resolver` | `python3 scripts/factory-intent-resolver <自然语言目标> --project <path> --tool codex|gemini|opencode [--execute-safe|--request-approval]` | 解析自然语言目标 | 你只知道目标，不知道该选哪个高层动作 | 返回主推荐动作、候选动作、风险和建议命令；加 `--execute-safe` 时自动执行 `L0/L1` 主推荐动作；加 `--request-approval` 时为 `L2/L3` 生成审批票据 |
-| `factory-intent-approval` | `python3 scripts/factory-intent-approval [<ticket>] [--list|--approve|--reject]` | 查看或处理意图审批票据 | 你已经拿到 `L2/L3` 动作的审批票据，需要显式批准或拒绝 | 列出票据，或在批准后先校验冻结 ownership 与写集冲突，再执行冻结计划并写回票据状态 |
-| `factory-intent-eval` | `python3 scripts/factory-intent-eval [--strict]` | 回放评估意图解析能力 | 你想知道自然语言到动作的命中率是否退化 | 输出命中率、失败样本和下一步建议，并写出评估报告 |
+| `factory-intent-resolver` | `python3 scripts/factory-intent-resolver <自然语言目标> --project <path> --tool codex|gemini|opencode [--execute-safe|--request-approval]` | 解析自然语言目标 | 你只知道目标，不知道该选哪个高层动作 | 返回主推荐动作、候选动作、风险和建议命令；同时输出 `approval_guidance` 与固定 `reply_summary`；加 `--execute-safe` 时自动执行 `L0/L1` 主推荐动作；加 `--request-approval` 时为 `L2/L3` 生成审批票据 |
+| `factory-intent-approval` | `python3 scripts/factory-intent-approval [<ticket>] [--list|--approve|--reject]` | 查看或处理意图审批票据 | 你已经拿到 `L2/L3` 动作的审批票据，需要显式批准或拒绝 | 列出票据，或在批准后先校验冻结 ownership 与写集冲突，再执行冻结计划并写回票据状态；同时输出固定 `reply_summary` |
+| `factory-intent-eval` | `python3 scripts/factory-intent-eval [--strict]` | 回放评估意图解析能力 | 你想知道自然语言到动作的命中率是否退化 | 输出命中率、失败样本和下一步建议，并写出评估报告；同时输出固定 `reply_summary` |
 
 补充说明：
 
@@ -196,6 +196,7 @@ python3 scripts/factory-intent-approval IA-<ticket> --approve --owner "<name>"
 - 显式加 `--execute-safe` 后，只会自动执行主推荐动作中默认策略为 `auto` 的项。
 - 显式加 `--request-approval` 后，会为 `L2/L3` 主推荐动作写出冻结审批票据，并附带建议 ownership 角色和写入集合。
 - 如果主推荐动作是 `L2/L3` 且没有请求审批，会停在审批边界，不会继续执行。
+- 当前输出会附带 `approval_guidance`，明确告诉你是否必须走票据审批。
 - 当前已能识别 `command-profiles` 和 `workflow-runner` 的具体子目标；其中工作流型 profile 会自动提升到审批边界。
 
 ## 11. 按目标反推该用哪个命令

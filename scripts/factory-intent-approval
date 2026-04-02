@@ -10,6 +10,7 @@ from factory_core import (
     EXECUTION_LOG_RELATIVE,
     assignment_write_targets,
     append_log_line,
+    build_reply_summary,
     current_role_assignment,
     intent_control_root,
     load_intent_approval_records,
@@ -70,13 +71,15 @@ def list_payload() -> dict:
     records = ordered_records(load_intent_approval_records())
     pending = [record_summary(item) for item in records if item.get("status") == "pending"]
     recent = [record_summary(item) for item in records if item.get("status") != "pending"][:10]
-    return {
+    payload = {
         "status": "success",
         "summary": f"当前共有 {len(records)} 张 intent 审批票据，其中待审批 {len(pending)} 张。",
         "pending": pending,
         "recent": recent,
         "total": len(records),
     }
+    payload["reply_summary"] = build_reply_summary("intent-approval", payload)
+    return payload
 
 
 def find_record(records: list[dict], ticket: str) -> tuple[int, dict]:
@@ -89,12 +92,14 @@ def find_record(records: list[dict], ticket: str) -> tuple[int, dict]:
 def inspect_ticket(ticket: str) -> dict:
     records = load_intent_approval_records()
     _, record = find_record(records, ticket)
-    return {
+    payload = {
         "status": "success",
         "summary": f"已读取审批票据 `{ticket}`。",
         "ticket": ticket,
         "record": record,
     }
+    payload["reply_summary"] = build_reply_summary("intent-approval", payload)
+    return payload
 
 
 def decision_log_line(ticket: str, action: str, decision: str, owner: str, status: str) -> str:
@@ -193,12 +198,14 @@ def decide_ticket(ticket: str, *, decision: str, owner: str, note: str) -> dict:
     index, record = find_record(records, ticket)
     status = str(record.get("status", ""))
     if status != "pending":
-        return {
+        payload = {
             "status": "already_processed",
             "summary": f"票据 `{ticket}` 已处理，当前状态 `{status}`。",
             "ticket": ticket,
             "record": record,
         }
+        payload["reply_summary"] = build_reply_summary("intent-approval", payload)
+        return payload
 
     now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     updated = dict(record)
@@ -260,7 +267,7 @@ def decide_ticket(ticket: str, *, decision: str, owner: str, note: str) -> dict:
         intent_control_root() / EXECUTION_LOG_RELATIVE,
         decision_log_line(ticket, str(updated.get("action", "")), decision, owner, str(updated.get("status", ""))),
     )
-    return {
+    payload = {
         "status": updated["status"],
         "summary": summary,
         "ticket": ticket,
@@ -269,6 +276,8 @@ def decide_ticket(ticket: str, *, decision: str, owner: str, note: str) -> dict:
         "artifacts": list(updated.get("artifacts", [])),
         "next_actions": next_actions,
     }
+    payload["reply_summary"] = build_reply_summary("intent-approval", payload)
+    return payload
 
 
 def render_markdown(payload: dict) -> str:
@@ -302,6 +311,11 @@ def render_markdown(payload: dict) -> str:
                 )
         else:
             lines.append("- 当前还没有已处理票据。")
+        items = (payload.get("reply_summary") or {}).get("items") or []
+        if items:
+            lines.extend(["", "## 对话摘要", ""])
+            for item in items:
+                lines.append(f"- {item.get('label', item.get('path', ''))}：{item.get('value')}")
         return "\n".join(lines).rstrip() + "\n"
 
     record = payload.get("record") or {}
@@ -342,6 +356,11 @@ def render_markdown(payload: dict) -> str:
     if next_actions:
         lines.extend(["", "## 下一步", ""])
         lines.extend(f"- {item}" for item in next_actions)
+    items = (payload.get("reply_summary") or {}).get("items") or []
+    if items:
+        lines.extend(["", "## 对话摘要", ""])
+        for item in items:
+            lines.append(f"- {item.get('label', item.get('path', ''))}：{item.get('value')}")
     return "\n".join(lines).rstrip() + "\n"
 
 

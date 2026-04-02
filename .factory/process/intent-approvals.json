@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updated_at": "2026-04-02 17:49:24",
+  "updated_at": "2026-04-02 18:26:58",
   "records": [
     {
       "id": "IA-20260402174647-commandprofi-8b80cf",
@@ -102,6 +102,116 @@
           "daily-close",
           "--project",
           "/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmptbjv5imo/managed-project",
+          "--owner",
+          "tester",
+          "--note",
+          "close day",
+          "--focus",
+          "handover"
+        ],
+        "label": "按意图执行命令画像 daily-close"
+      }
+    },
+    {
+      "id": "IA-20260402182349-commandprofi-550ba8",
+      "status": "pending",
+      "created_at": "2026-04-02 18:23:49",
+      "updated_at": "2026-04-02 18:23:49",
+      "requested_by": "tester",
+      "intent": "今天收尾并生成会话入口",
+      "project_path": "/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmpmzbvyn76/managed-project",
+      "project_kind": "managed",
+      "frontend_id": "codex",
+      "action": "command-profiles",
+      "risk_level": "L2",
+      "approval": "summary_confirm",
+      "execution": "requires_confirmation",
+      "reasons": [
+        "检测到 `daily-close` 子目标语义。",
+        "该 profile 会附带生成会话入口。"
+      ],
+      "artifacts": [
+        "命令画像执行输出"
+      ],
+      "command_hint": "python3 /Users/uroborus/AiProject/shanforge/scripts/factory-dispatch command-profiles daily-close --project \"/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmpmzbvyn76/managed-project\" --owner \"<owner>\" --focus \"今天收尾并生成会话入口\"",
+      "note": "close day",
+      "focus": "handover",
+      "strict": false,
+      "selected_profile": "daily-close",
+      "selected_workflow": "",
+      "ownership": {
+        "role_id": "release-manager",
+        "role_title": "发布经理",
+        "execution_owner": "tester",
+        "write_targets": [
+          ".factory",
+          "docs"
+        ],
+        "source": "inferred"
+      },
+      "ownership_conflicts": [],
+      "plan": {
+        "action": "command-profiles",
+        "script_name": "factory-command-profiles",
+        "arguments": [
+          "daily-close",
+          "--project",
+          "/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmpmzbvyn76/managed-project",
+          "--owner",
+          "tester",
+          "--note",
+          "close day",
+          "--focus",
+          "handover"
+        ],
+        "label": "按意图执行命令画像 daily-close"
+      }
+    },
+    {
+      "id": "IA-20260402182658-commandprofi-d88ef5",
+      "status": "pending",
+      "created_at": "2026-04-02 18:26:58",
+      "updated_at": "2026-04-02 18:26:58",
+      "requested_by": "tester",
+      "intent": "今天收尾并生成会话入口",
+      "project_path": "/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmpmraffi1b/managed-project",
+      "project_kind": "managed",
+      "frontend_id": "codex",
+      "action": "command-profiles",
+      "risk_level": "L2",
+      "approval": "summary_confirm",
+      "execution": "requires_confirmation",
+      "reasons": [
+        "检测到 `daily-close` 子目标语义。",
+        "该 profile 会附带生成会话入口。"
+      ],
+      "artifacts": [
+        "命令画像执行输出"
+      ],
+      "command_hint": "python3 /Users/uroborus/AiProject/shanforge/scripts/factory-dispatch command-profiles daily-close --project \"/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmpmraffi1b/managed-project\" --owner \"<owner>\" --focus \"今天收尾并生成会话入口\"",
+      "note": "close day",
+      "focus": "handover",
+      "strict": false,
+      "selected_profile": "daily-close",
+      "selected_workflow": "",
+      "ownership": {
+        "role_id": "release-manager",
+        "role_title": "发布经理",
+        "execution_owner": "tester",
+        "write_targets": [
+          ".factory",
+          "docs"
+        ],
+        "source": "inferred"
+      },
+      "ownership_conflicts": [],
+      "plan": {
+        "action": "command-profiles",
+        "script_name": "factory-command-profiles",
+        "arguments": [
+          "daily-close",
+          "--project",
+          "/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmpmraffi1b/managed-project",
           "--owner",
           "tester",
           "--note",

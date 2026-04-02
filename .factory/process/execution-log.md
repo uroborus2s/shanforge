@@ -31,3 +31,9 @@
 - 2026-04-02: 创建 intent 审批票据 `IA-20260402174647-commandprofi-8b80cf`，动作 `command-profiles`，项目 `/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmptul4ih4l/managed-project`。
 - 2026-04-02: 执行 intent 回放评估，结果：7/7 通过，命中率 100.00%。
 - 2026-04-02: 创建 intent 审批票据 `IA-20260402174924-commandprofi-5dc869`，动作 `command-profiles`，项目 `/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmptbjv5imo/managed-project`。
+- 2026-04-02: 创建 intent 审批票据 `IA-20260402182349-commandprofi-550ba8`，动作 `command-profiles`，项目 `/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmpmzbvyn76/managed-project`。
+- 2026-04-02: 落地 `reply-policy.json` 与 `reply_summary/approval_guidance` 运行时契约，并将 skill 正式变更边界固定为候选、评估、批准后晋升。
+- 2026-04-02: 执行 intent 回放评估，结果：7/7 通过，命中率 100.00%。
+- 2026-04-02: 创建 intent 审批票据 `IA-20260402182658-commandprofi-d88ef5`，动作 `command-profiles`，项目 `/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmpmraffi1b/managed-project`。
+- 2026-04-02: 升级 docs 到最新源文档标准，负责人：Codex。
+- 2026-04-02: 升级 docs 到最新源文档标准，负责人：Codex。

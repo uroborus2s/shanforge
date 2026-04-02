@@ -1,0 +1,65 @@
+{
+  "version": 1,
+  "actions": {
+    "intent-resolver": {
+      "required": true,
+      "mode": "manager_brief",
+      "fields": [
+        {"label": "输入", "path": "intent"},
+        {"label": "项目", "path": "project.path"},
+        {"label": "主推荐动作", "path": "primary.action"},
+        {"label": "风险级别", "path": "primary.policy.risk_level"},
+        {"label": "审批策略", "path": "primary.policy.approval"},
+        {"label": "命令画像", "path": "primary.selected_profile"},
+        {"label": "工作流", "path": "primary.selected_workflow"},
+        {"label": "安全执行状态", "path": "execution.status"},
+        {"label": "审批票据状态", "path": "approval_request.status"},
+        {"label": "审批票据", "path": "approval_request.ticket"}
+      ],
+      "approval_ticket": {
+        "risk_levels": ["L2", "L3"],
+        "approval_modes": ["summary_confirm", "explicit_confirm"],
+        "execution_modes": ["blocked_until_approved"]
+      }
+    },
+    "intent-approval": {
+      "required": true,
+      "mode": "manager_brief",
+      "fields": [
+        {"label": "状态", "path": "status"},
+        {"label": "摘要", "path": "summary"},
+        {"label": "票据", "path": "ticket"},
+        {"label": "动作", "path": "record.action"},
+        {"label": "风险级别", "path": "record.risk_level"},
+        {"label": "审批策略", "path": "record.approval"},
+        {"label": "ownership 角色", "path": "record.ownership.role_title"},
+        {"label": "ownership 校验", "path": "record.ownership_check.status"}
+      ]
+    },
+    "intent-eval": {
+      "required": true,
+      "mode": "eval_brief",
+      "fields": [
+        {"label": "状态", "path": "status"},
+        {"label": "总样本", "path": "total"},
+        {"label": "通过", "path": "passed"},
+        {"label": "失败", "path": "failed"},
+        {"label": "命中率", "path": "accuracy"},
+        {"label": "摘要", "path": "summary"}
+      ]
+    }
+  },
+  "skill_changes": {
+    "candidate_root": "skills-drafts",
+    "official_skill_paths": ["skills/*/SKILL.md"],
+    "require_candidate_first": true,
+    "require_eval": true,
+    "require_approval_ticket": true,
+    "required_artifacts": [
+      "candidate_skill",
+      "eval_report",
+      "approval_record",
+      "change_summary"
+    ]
+  }
+}

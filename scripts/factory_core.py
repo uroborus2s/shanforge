@@ -12,8 +12,10 @@ import subprocess
 import sys
 import textwrap
 import time
+import uuid
 from contextlib import contextmanager
 from datetime import datetime
+from functools import lru_cache
 from pathlib import Path, PurePosixPath
 from typing import Iterable, Sequence
 
@@ -24,6 +26,7 @@ FACTORY_DIR_RELATIVE = ".factory"
 FACTORY_MEMORY_RELATIVE = f"{FACTORY_DIR_RELATIVE}/memory"
 FACTORY_PROCESS_RELATIVE = f"{FACTORY_DIR_RELATIVE}/process"
 FACTORY_WORKITEMS_RELATIVE = f"{FACTORY_DIR_RELATIVE}/workitems"
+INTENT_APPROVAL_ROOT_ENV = "SHANFORGE_INTENT_APPROVAL_ROOT"
 
 
 def memory_file(*parts: str) -> str:
@@ -2288,6 +2291,345 @@ def load_json_document(path: Path) -> dict | list | None:
         return None
 
 
+def factory_workspace_root() -> Path:
+    return Path(__file__).resolve().parent.parent
+
+
+def intent_control_root() -> Path:
+    override = os.environ.get(INTENT_APPROVAL_ROOT_ENV, "").strip()
+    if override:
+        return Path(override).expanduser().resolve()
+    return factory_workspace_root()
+
+
+def action_registry_path() -> Path:
+    return factory_workspace_root() / "config" / "action-registry.json"
+
+
+def autonomy_policy_path() -> Path:
+    return factory_workspace_root() / "config" / "autonomy-policy.json"
+
+
+def intent_approval_state_path() -> Path:
+    return intent_control_root() / FACTORY_PROCESS_RELATIVE / "intent-approvals.json"
+
+
+def intent_approval_report_path() -> Path:
+    return intent_control_root() / FACTORY_PROCESS_RELATIVE / "intent-approvals.md"
+
+
+def intent_approval_summary_path() -> Path:
+    return intent_control_root() / FACTORY_MEMORY_RELATIVE / "intent-approvals.summary.md"
+
+
+def frontend_profiles_dir() -> Path:
+    return factory_workspace_root() / "config" / "frontends"
+
+
+@lru_cache(maxsize=4)
+def load_json_config(path: str | Path) -> dict:
+    payload = load_json_document(Path(path))
+    if not isinstance(payload, dict):
+        raise RuntimeError(f"配置文件不是有效对象：{path}")
+    return payload
+
+
+@lru_cache(maxsize=1)
+def load_action_registry() -> dict[str, dict]:
+    payload = load_json_config(action_registry_path())
+    actions = payload.get("actions", {})
+    if not isinstance(actions, dict):
+        raise RuntimeError("action-registry.json 的 `actions` 必须是对象。")
+
+    normalized: dict[str, dict] = {}
+    for action_id, raw in actions.items():
+        if not isinstance(raw, dict):
+            raise RuntimeError(f"动作 `{action_id}` 的定义必须是对象。")
+        script_name = str(raw.get("script_name", "")).strip()
+        description = str(raw.get("description", "")).strip()
+        risk_level = str(raw.get("risk_level", "")).strip() or "L3"
+        aliases = [str(alias).strip() for alias in raw.get("aliases", []) if str(alias).strip()]
+        if not script_name or not description:
+            raise RuntimeError(f"动作 `{action_id}` 缺少 `script_name` 或 `description`。")
+        normalized[str(action_id).strip()] = {
+            "id": str(action_id).strip(),
+            "script_name": script_name,
+            "description": description,
+            "aliases": aliases,
+            "risk_level": risk_level,
+            "purpose": str(raw.get("purpose", "")).strip(),
+            "preconditions": list(raw.get("preconditions", [])),
+            "frontend_requirements": list(raw.get("frontend_requirements", [])),
+            "artifacts": list(raw.get("artifacts", [])),
+            "success_criteria": list(raw.get("success_criteria", [])),
+            "verification": list(raw.get("verification", [])),
+            "recovery_hints": list(raw.get("recovery_hints", [])),
+            "subtargets": dict(raw.get("subtargets", {})) if isinstance(raw.get("subtargets"), dict) else {},
+        }
+    return normalized
+
+
+@lru_cache(maxsize=1)
+def load_autonomy_policy() -> dict:
+    payload = load_json_config(autonomy_policy_path())
+    risk_levels = payload.get("risk_levels", {})
+    default_unregistered = payload.get("default_unregistered", {})
+    if not isinstance(risk_levels, dict):
+        raise RuntimeError("autonomy-policy.json 的 `risk_levels` 必须是对象。")
+    if not isinstance(default_unregistered, dict):
+        raise RuntimeError("autonomy-policy.json 的 `default_unregistered` 必须是对象。")
+    return payload
+
+
+def action_policy(action_id: str) -> dict:
+    policy = load_autonomy_policy()
+    default_policy = dict(policy.get("default_unregistered", {}))
+    registry = load_action_registry()
+    spec = registry.get(action_id)
+    if spec is None:
+        result = dict(default_policy)
+        result.setdefault("risk_level", "L3")
+        result["registered"] = False
+        return result
+
+    risk_level = str(spec.get("risk_level", "")).strip() or str(default_policy.get("risk_level", "")).strip() or "L3"
+    risk_policy = policy.get("risk_levels", {}).get(risk_level, {})
+    if not isinstance(risk_policy, dict):
+        raise RuntimeError(f"自治策略中风险等级 `{risk_level}` 不是对象。")
+
+    result = dict(default_policy)
+    result.update(risk_policy)
+    result["risk_level"] = risk_level
+    result["registered"] = True
+    return result
+
+
+def resolve_registered_action(raw: str) -> str:
+    action = str(raw or "").strip()
+    if not action:
+        return ""
+    registry = load_action_registry()
+    if action in registry:
+        return action
+    for action_id, spec in registry.items():
+        if action in spec.get("aliases", []):
+            return action_id
+    return ""
+
+
+def effective_action_policy(action_id: str, *, selected_profile: str = "", selected_workflow: str = "") -> dict:
+    policy = action_policy(action_id)
+    registry = load_action_registry()
+    spec = registry.get(action_id)
+    if spec is None:
+        return policy
+
+    subtargets = spec.get("subtargets", {})
+    if not isinstance(subtargets, dict):
+        return policy
+    selected = str(selected_profile or selected_workflow or "").strip()
+    if not selected:
+        return policy
+
+    override = subtargets.get(selected, {})
+    if not isinstance(override, dict):
+        return policy
+    override_risk = str(override.get("risk_level", "")).strip()
+    if not override_risk:
+        return policy
+
+    risk_policy = load_autonomy_policy().get("risk_levels", {}).get(override_risk, {})
+    if not isinstance(risk_policy, dict):
+        return policy
+
+    merged = dict(policy)
+    merged.update(risk_policy)
+    merged["risk_level"] = override_risk
+    merged["registered"] = True
+    return merged
+
+
+def load_intent_approval_records() -> list[dict]:
+    payload = load_json_document(intent_approval_state_path())
+    if not isinstance(payload, dict):
+        return []
+    records = payload.get("records", [])
+    if not isinstance(records, list):
+        return []
+    return [dict(item) for item in records if isinstance(item, dict)]
+
+
+def save_intent_approval_records(records: Sequence[dict]) -> None:
+    payload = {
+        "version": 1,
+        "updated_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        "records": list(records),
+    }
+    write_text(intent_approval_state_path(), json.dumps(payload, ensure_ascii=False, indent=2))
+
+
+def new_intent_approval_id(action_id: str) -> str:
+    stamp = datetime.now().strftime("%Y%m%d%H%M%S")
+    short = uuid.uuid4().hex[:6]
+    action_key = normalize_key(action_id or "intent")[:12] or "intent"
+    return f"IA-{stamp}-{action_key}-{short}"
+
+
+def render_intent_approval_report(records: Sequence[dict]) -> str:
+    ordered = sorted(records, key=lambda item: str(item.get("created_at", "")), reverse=True)
+    pending = [item for item in ordered if item.get("status") == "pending"]
+    recent = [item for item in ordered if item.get("status") != "pending"][:10]
+    lines = [
+        "# Intent 审批记录",
+        "",
+        f"- 更新时间：{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
+        f"- 待审批票据：{len(pending)}",
+        f"- 全部票据：{len(ordered)}",
+        "",
+        "## 待审批",
+        "",
+    ]
+    if pending:
+        for item in pending:
+            ownership = item.get("ownership") or {}
+            conflicts = item.get("ownership_conflicts") or []
+            lines.extend(
+                [
+                    f"- `{item.get('id', '')}` | 动作：`{item.get('action', '')}` | 审批：`{item.get('approval', '')}` | 项目：`{item.get('project_path', '')}`",
+                    f"  - 意图：{item.get('intent', '')}",
+                    f"  - 理由：{'；'.join(item.get('reasons', [])) or '无'}",
+                    f"  - ownership：`{ownership.get('role_title', ownership.get('role_id', '未声明'))}` | 写集：`{', '.join(ownership.get('write_targets', [])) or '无'}` | 冲突：{len(conflicts)}",
+                ]
+            )
+    else:
+        lines.append("- 当前没有待审批票据。")
+    lines.extend(["", "## 最近已处理", ""])
+    if recent:
+        for item in recent:
+            lines.append(
+                f"- `{item.get('id', '')}` | 状态：`{item.get('status', '')}` | 动作：`{item.get('action', '')}` | 审批人：{item.get('decision_owner', '无') or '无'}"
+            )
+    else:
+        lines.append("- 当前还没有已处理票据。")
+    return "\n".join(lines).rstrip() + "\n"
+
+
+def write_intent_approval_views(records: Sequence[dict]) -> None:
+    pending = [item for item in records if item.get("status") == "pending"]
+    write_text(intent_approval_report_path(), render_intent_approval_report(records))
+    write_text(
+        intent_approval_summary_path(),
+        "\n".join(
+            [
+                "# Intent 审批摘要",
+                "",
+                f"- 时间：{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
+                f"- 待审批：{len(pending)}",
+                f"- 全部票据：{len(records)}",
+            ]
+        ),
+    )
+
+
+def default_frontend_profile() -> dict:
+    return {
+        "id": "generic",
+        "label": "通用 CLI 模型",
+        "aliases": [],
+        "status": "fallback",
+        "family": "cli",
+        "primary_rule_files": ["AGENTS.md", "GEMINI.md"],
+        "capabilities": {
+            "file_read": True,
+            "file_write": True,
+            "command_exec": True,
+            "tool_call": False,
+            "context_compaction": False,
+            "subagent": False,
+            "mcp": False,
+            "stream_observation": False,
+            "approval_hook": False,
+        },
+        "fallbacks": {
+            "subagent": "退化为单代理串行执行。",
+            "mcp": "退化为本地文件和脚本路径。",
+            "context_compaction": "依赖最小上下文包和压缩记忆。",
+        },
+        "bootstrap_prompts": [
+            "读取 AGENTS.md、GEMINI.md、.factory/project.json 和 .factory/memory/agent-session.md，以{role_title}身份{current_focus}。",
+            "先确认当前阶段、角色职责和推荐动作，再开始执行。"
+        ],
+    }
+
+
+def load_frontend_profiles() -> dict[str, dict]:
+    profiles: dict[str, dict] = {}
+    config_dir = frontend_profiles_dir()
+    if not config_dir.exists():
+        return profiles
+    for path in sorted(config_dir.glob("*.json")):
+        payload = load_json_document(path)
+        if not isinstance(payload, dict):
+            raise RuntimeError(f"前台画像文件无效：{path}")
+        frontend_id = str(payload.get("id", "")).strip()
+        label = str(payload.get("label", "")).strip()
+        if not frontend_id or not label:
+            raise RuntimeError(f"前台画像缺少 `id` 或 `label`：{path}")
+        capabilities = payload.get("capabilities", {})
+        if not isinstance(capabilities, dict):
+            raise RuntimeError(f"前台画像的 `capabilities` 必须是对象：{path}")
+        profile = dict(payload)
+        profile["id"] = frontend_id
+        profile["label"] = label
+        profile["aliases"] = [str(alias).strip() for alias in payload.get("aliases", []) if str(alias).strip()]
+        profile["primary_rule_files"] = [
+            str(item).strip() for item in payload.get("primary_rule_files", []) if str(item).strip()
+        ] or ["AGENTS.md", "GEMINI.md"]
+        profile["bootstrap_prompts"] = [
+            str(item).strip() for item in payload.get("bootstrap_prompts", []) if str(item).strip()
+        ]
+        profile["fallbacks"] = dict(payload.get("fallbacks", {}))
+        profile["path"] = str(path)
+        profiles[frontend_id] = profile
+    return profiles
+
+
+def resolve_frontend_profile(query: str, default_id: str = "generic") -> dict:
+    profiles = load_frontend_profiles()
+    normalized = normalize_key(query or default_id)
+    if normalized in {"", "generic"}:
+        return default_frontend_profile()
+
+    for profile in profiles.values():
+        candidates = [profile.get("id", ""), profile.get("label", ""), *profile.get("aliases", [])]
+        if normalized in {normalize_key(candidate) for candidate in candidates if candidate}:
+            return profile
+
+    if default_id in profiles:
+        return profiles[default_id]
+    return default_frontend_profile()
+
+
+def frontend_prompt_examples(tool: str, role_title: str, focus: str) -> list[str]:
+    current_focus = focus or "继续当前项目阶段工作"
+    profile = resolve_frontend_profile(tool, default_id="generic")
+    prompts = []
+    for template in profile.get("bootstrap_prompts", []):
+        try:
+            prompts.append(template.format(role_title=role_title, current_focus=current_focus))
+        except Exception:
+            prompts.append(template)
+    if prompts:
+        return prompts
+    fallback = []
+    for template in default_frontend_profile()["bootstrap_prompts"]:
+        try:
+            fallback.append(template.format(role_title=role_title, current_focus=current_focus))
+        except Exception:
+            fallback.append(template)
+    return fallback
+
+
 def parse_openapi_contract_metadata(path: Path) -> dict[str, str]:
     if path.suffix.lower() == ".json":
         payload = load_json_document(path)
@@ -3304,6 +3646,7 @@ def ensure_role_assignment_state(config: dict) -> dict[str, dict]:
                     "status": entry.get("status", ""),
                     "focus": entry.get("focus", ""),
                     "note": entry.get("note", ""),
+                    "write_targets": list(entry.get("write_targets", [])),
                     "assigned_at": entry.get("assigned_at", ""),
                 }
     config["current_role_assignments"] = assignments
@@ -3336,6 +3679,134 @@ def set_current_role_assignment(config: dict, role_query: str | None, payload: d
     assignments[role["id"]] = payload
     config["current_role_assignments"] = assignments
     return assignments[role["id"]]
+
+
+def normalize_write_targets(project_root: Path, raw_targets: str | Sequence[str] | None) -> list[str]:
+    if isinstance(raw_targets, str):
+        source = parse_list(raw_targets)
+    else:
+        source = [str(item).strip() for item in (raw_targets or []) if str(item).strip()]
+    normalized: list[str] = []
+    seen = set()
+    project_root = project_root.expanduser().resolve()
+    for item in source:
+        text = str(item).strip().replace("\\", "/")
+        if not text:
+            continue
+        if text in {"*", ".", "./"}:
+            candidate = "."
+        else:
+            try:
+                path = Path(text).expanduser()
+                if path.is_absolute():
+                    candidate = Path(os.path.relpath(path.resolve(), project_root)).as_posix()
+                else:
+                    candidate = PurePosixPath(text).as_posix()
+            except Exception:
+                candidate = PurePosixPath(text).as_posix()
+            candidate = candidate.strip("/")
+            if not candidate or candidate == ".":
+                candidate = "."
+        if candidate in seen:
+            continue
+        seen.add(candidate)
+        normalized.append(candidate)
+    return normalized
+
+
+def assignment_write_targets(project_root: Path, assignment: dict | None) -> list[str]:
+    if not assignment:
+        return []
+    return normalize_write_targets(project_root, assignment.get("write_targets", []))
+
+
+def write_targets_overlap(left: str, right: str) -> bool:
+    left_target = (left or "").strip().strip("/")
+    right_target = (right or "").strip().strip("/")
+    if not left_target or not right_target:
+        return False
+    if left_target in {".", "*"} or right_target in {".", "*"}:
+        return True
+    left_parts = PurePosixPath(left_target).parts
+    right_parts = PurePosixPath(right_target).parts
+    if left_parts == right_parts:
+        return True
+    if len(left_parts) < len(right_parts):
+        return right_parts[: len(left_parts)] == left_parts
+    return left_parts[: len(right_parts)] == right_parts
+
+
+def role_assignment_conflicts(
+    project_root: Path,
+    config: dict,
+    *,
+    include_completed: bool = False,
+    candidate_role_id: str = "",
+    candidate_assignment: dict | None = None,
+) -> list[dict]:
+    ensure_role_catalog(config)
+    assignments = ensure_role_assignment_state(config)
+    stage_roles = {
+        role.get("id", ""): role
+        for role in active_roles_for_stage(config, config.get("stage", ""))
+    }
+    records: list[dict] = []
+    for role_id, payload in assignments.items():
+        if not isinstance(payload, dict):
+            continue
+        if not include_completed and payload.get("status") == "已完成":
+            continue
+        if not assignment_write_targets(project_root, payload):
+            continue
+        records.append(
+            {
+                "role_id": role_id,
+                "role_title": stage_roles.get(role_id, resolve_role(config, role_id)).get("title", role_id),
+                "assignment": payload,
+                "write_targets": assignment_write_targets(project_root, payload),
+            }
+        )
+    if candidate_role_id and candidate_assignment:
+        records = [item for item in records if item["role_id"] != candidate_role_id]
+        if include_completed or candidate_assignment.get("status") != "已完成":
+            candidate_targets = assignment_write_targets(project_root, candidate_assignment)
+            if candidate_targets:
+                candidate_role = resolve_role(config, candidate_role_id)
+                records.append(
+                    {
+                        "role_id": candidate_role_id,
+                        "role_title": candidate_role.get("title", candidate_role_id),
+                        "assignment": candidate_assignment,
+                        "write_targets": candidate_targets,
+                    }
+                )
+
+    conflicts: list[dict] = []
+    for index, left in enumerate(records):
+        for right in records[index + 1 :]:
+            overlaps: list[tuple[str, str]] = []
+            for left_target in left["write_targets"]:
+                for right_target in right["write_targets"]:
+                    if write_targets_overlap(left_target, right_target):
+                        overlaps.append((left_target, right_target))
+            if not overlaps:
+                continue
+            conflicts.append(
+                {
+                    "roles": [left["role_id"], right["role_id"]],
+                    "role_titles": [left["role_title"], right["role_title"]],
+                    "owners": [
+                        left["assignment"].get("owner", "") or left["role_title"],
+                        right["assignment"].get("owner", "") or right["role_title"],
+                    ],
+                    "targets": [
+                        sorted({item[0] for item in overlaps}),
+                        sorted({item[1] for item in overlaps}),
+                    ],
+                    "overlaps": [f"{item[0]} <-> {item[1]}" for item in overlaps],
+                }
+            )
+    return conflicts
 
 
 def role_workbench_relative(role_query: str | None, config: dict) -> str:
@@ -3430,7 +3901,15 @@ def dispatch_command(project_root: Path, action: str, *extra_args: str) -> str:
     return " ".join(shlex.quote(token) for token in tokens)
 
 
-def role_recommended_commands(project_root: Path, config: dict, role_query: str | None, owner: str, focus: str = "") -> list[str]:
+def role_recommended_commands(
+    project_root: Path,
+    config: dict,
+    role_query: str | None,
+    owner: str,
+    focus: str = "",
+    *,
+    limit: int | None = 8,
+) -> list[str]:
     role = resolve_role(config, role_query)
     role_id = role.get("id", "coordinator")
     stage = config.get("stage", "未知")
@@ -3547,7 +4026,9 @@ def role_recommended_commands(project_root: Path, config: dict, role_query: str 
             continue
         seen.add(item)
         deduped.append(item)
-    return deduped[:8]
+    if limit is None:
+        return deduped
+    return deduped[: max(1, limit)]
 
 
 def format_item_brief(item: dict) -> str:

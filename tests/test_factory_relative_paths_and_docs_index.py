@@ -1,9 +1,11 @@
 import importlib.util
+import io
 import json
 import os
 import sys
 import tempfile
 import unittest
+from contextlib import redirect_stderr
 from importlib.machinery import SourceFileLoader
 from pathlib import Path
 
@@ -13,6 +15,13 @@ FACTORY_PROJECT_COMPRESS = REPO_ROOT / "scripts" / "factory-project-compress"
 FACTORY_INIT = REPO_ROOT / "scripts" / "factory-init"
 FACTORY_AGENT_SESSION = REPO_ROOT / "scripts" / "factory-agent-session"
 FACTORY_DISPATCH = REPO_ROOT / "scripts" / "factory-dispatch"
+FACTORY_CHAT_BOOTSTRAP = REPO_ROOT / "scripts" / "factory-chat-bootstrap"
+FACTORY_FRONTEND_CAPABILITIES = REPO_ROOT / "scripts" / "factory-frontend-capabilities"
+FACTORY_INTENT_RESOLVER = REPO_ROOT / "scripts" / "factory-intent-resolver"
+FACTORY_INTENT_APPROVAL = REPO_ROOT / "scripts" / "factory-intent-approval"
+FACTORY_INTENT_EVAL = REPO_ROOT / "scripts" / "factory-intent-eval"
+FACTORY_MULTI_AGENT_BOARD = REPO_ROOT / "scripts" / "factory-multi-agent-board"
+FACTORY_ROLE_ASSIGN = REPO_ROOT / "scripts" / "factory-role-assign"
 FACTORY_DOCS_STANDARD_UPGRADE_BATCH = REPO_ROOT / "scripts" / "factory-docs-standard-upgrade-batch"
 LEGACY_ROOT = str(Path("/") / "Users" / "uroborus" / "shanforge")
 EXAMPLE_PROJECT = Path("/tmp/example-project")
@@ -37,6 +46,13 @@ class FactoryRelativePathAndDocsIndexTests(unittest.TestCase):
         cls.factory_init = load_script_module("factory_init", FACTORY_INIT)
         cls.agent_session = load_script_module("factory_agent_session", FACTORY_AGENT_SESSION)
         cls.dispatch = load_script_module("factory_dispatch", FACTORY_DISPATCH)
+        cls.chat_bootstrap = load_script_module("factory_chat_bootstrap", FACTORY_CHAT_BOOTSTRAP)
+        cls.frontend_capabilities = load_script_module("factory_frontend_capabilities", FACTORY_FRONTEND_CAPABILITIES)
+        cls.intent_resolver = load_script_module("factory_intent_resolver", FACTORY_INTENT_RESOLVER)
+        cls.intent_approval = load_script_module("factory_intent_approval", FACTORY_INTENT_APPROVAL)
+        cls.intent_eval = load_script_module("factory_intent_eval", FACTORY_INTENT_EVAL)
+        cls.multi_agent_board = load_script_module("factory_multi_agent_board", FACTORY_MULTI_AGENT_BOARD)
+        cls.role_assign = load_script_module("factory_role_assign", FACTORY_ROLE_ASSIGN)
         cls.docs_upgrade_batch = load_script_module("factory_docs_standard_upgrade_batch", FACTORY_DOCS_STANDARD_UPGRADE_BATCH)
         cls.factory_core = sys.modules["factory_core"]
         cls.example_project_resolved = EXAMPLE_PROJECT.resolve()
@@ -61,6 +77,19 @@ class FactoryRelativePathAndDocsIndexTests(unittest.TestCase):
         cls.expected_brainstorm_skill = Path(
             os.path.relpath(REPO_ROOT / "skills" / "brainstorming" / "SKILL.md", cls.example_project_resolved)
         ).as_posix()
+
+    def set_intent_approval_root(self, root: Path) -> None:
+        env_key = self.factory_core.INTENT_APPROVAL_ROOT_ENV
+        previous = os.environ.get(env_key)
+        os.environ[env_key] = str(root)
+
+        def restore() -> None:
+            if previous is None:
+                os.environ.pop(env_key, None)
+            else:
+                os.environ[env_key] = previous
+
+        self.addCleanup(restore)
 
     def test_project_compress_agents_md_uses_relative_workspace_paths(self):
         output = self.project_compress.build_agents_md(
@@ -123,6 +152,575 @@ class FactoryRelativePathAndDocsIndexTests(unittest.TestCase):
         self.assertEqual(self.dispatch.resolve_action("docs-upgrade"), "docs-standard-upgrade")
         self.assertEqual(self.dispatch.resolve_action("upgrade-docs-standard"), "docs-standard-upgrade")
         self.assertEqual(self.dispatch.resolve_action("docs-upgrade-batch"), "docs-standard-upgrade-batch")
+        self.assertEqual(self.dispatch.resolve_action("frontend"), "frontend-capabilities")
+        self.assertEqual(self.dispatch.resolve_action("intent"), "intent-resolver")
+        self.assertEqual(self.dispatch.resolve_action("intent-replay"), "intent-eval")
+        self.assertEqual(self.dispatch.resolve_action("intent-approve"), "intent-approval")
+
+    def test_dispatch_does_not_consume_subcommand_list_flag(self):
+        previous_argv = sys.argv[:]
+        try:
+            sys.argv = [str(FACTORY_DISPATCH), "intent-approval", "--list"]
+            args, passthrough = self.dispatch.parse_args()
+        finally:
+            sys.argv = previous_argv
+
+        self.assertEqual(args.action, "intent-approval")
+        self.assertFalse(args.list_actions)
+        self.assertEqual(passthrough, ["--list"])
+
+    def test_dispatch_loads_registered_action_specs(self):
+        registry = self.dispatch.load_action_registry()
+
+        self.assertIn("state-doctor", registry)
+        self.assertIn("docs-standard-upgrade", registry)
+        self.assertEqual(registry["state-doctor"]["risk_level"], "L0")
+        self.assertEqual(registry["docs-standard-upgrade"]["risk_level"], "L1")
+
+    def test_dispatch_action_policy_uses_registry_and_safe_default(self):
+        policy = self.dispatch.action_policy("docs-standard-upgrade")
+        default_policy = self.dispatch.action_policy("non-existent-action")
+
+        self.assertEqual(policy["risk_level"], "L1")
+        self.assertEqual(policy["approval"], "auto")
+        self.assertEqual(default_policy["risk_level"], "L3")
+        self.assertEqual(default_policy["approval"], "explicit_confirm")
+
+    def test_intent_resolver_recommends_init_for_empty_project(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            result = self.intent_resolver.resolve_intent("初始化这个空目录项目", Path(temp_dir), tool="codex")
+
+        self.assertEqual(result["primary"]["action"], "init")
+        self.assertEqual(result["primary"]["policy"]["risk_level"], "L2")
+
+    def test_intent_resolver_recommends_onboarding_for_unmanaged_project(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            project_root = Path(temp_dir)
+            (project_root / "README.md").write_text("# Legacy Project\n", encoding="utf-8")
+
+            result = self.intent_resolver.resolve_intent("先接管这个历史项目", project_root, tool="codex")
+
+        self.assertEqual(result["primary"]["action"], "historical-project-onboarding")
+        self.assertFalse(result["primary"]["blocked"])
+
+    def test_intent_resolver_prefers_docs_upgrade_for_managed_project(self):
+        result = self.intent_resolver.resolve_intent("把 docs 刷新到最新规范并重建目录", REPO_ROOT, tool="opencode")
+
+        self.assertEqual(result["primary"]["action"], "docs-standard-upgrade")
+        self.assertEqual(result["frontend"]["id"], "opencode")
+
+    def test_intent_resolver_uses_state_doctor_for_generic_next_step(self):
+        result = self.intent_resolver.resolve_intent("继续下一步", REPO_ROOT, tool="gemini")
+
+        self.assertEqual(result["primary"]["action"], "state-doctor")
+        self.assertEqual(result["primary"]["policy"]["approval"], "auto")
+
+    def test_intent_resolver_selects_command_profile_for_design_kickoff_intent(self):
+        result = self.intent_resolver.resolve_intent("开始设计阶段并生成会话入口", REPO_ROOT, tool="codex")
+
+        self.assertEqual(result["primary"]["action"], "command-profiles")
+        self.assertEqual(result["primary"]["selected_profile"], "design-kickoff")
+
+    def test_intent_resolver_escalates_workflow_backed_profile_policy(self):
+        result = self.intent_resolver.resolve_intent("今天收尾并生成会话入口", REPO_ROOT, tool="codex")
+
+        self.assertEqual(result["primary"]["action"], "command-profiles")
+        self.assertEqual(result["primary"]["selected_profile"], "daily-close")
+        self.assertEqual(result["primary"]["policy"]["risk_level"], "L2")
+        self.assertEqual(result["primary"]["policy"]["approval"], "summary_confirm")
+
+    def test_intent_resolver_selects_workflow_runner_for_explicit_workflow_intent(self):
+        result = self.intent_resolver.resolve_intent("执行 daily close workflow", REPO_ROOT, tool="codex")
+
+        self.assertEqual(result["primary"]["action"], "workflow-runner")
+        self.assertEqual(result["primary"]["selected_workflow"], "daily_close")
+
+    def test_intent_resolver_builds_execution_plan_for_profile(self):
+        result = self.intent_resolver.resolve_intent("开始设计阶段并生成会话入口", REPO_ROOT, tool="codex")
+        plan = self.intent_resolver.build_execution_plan(
+            result,
+            owner="tester",
+            note="kickoff",
+            focus="继续设计",
+            strict=True,
+        )
+
+        self.assertEqual(plan["script_name"], "factory-command-profiles")
+        self.assertEqual(plan["arguments"][0], "design-kickoff")
+        self.assertIn("--strict", plan["arguments"])
+
+    def test_intent_resolver_safe_execution_blocks_non_auto_policy(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            project_root = Path(temp_dir)
+            (project_root / "README.md").write_text("# Legacy Project\n", encoding="utf-8")
+
+            result = self.intent_resolver.resolve_intent("接管这个历史项目", project_root, tool="codex")
+            execution = self.intent_resolver.execute_primary_safe(
+                result,
+                owner="tester",
+                note="",
+                focus="",
+                strict=False,
+            )
+
+        self.assertEqual(result["primary"]["action"], "historical-project-onboarding")
+        self.assertEqual(execution["status"], "policy_denied")
+
+    def test_intent_resolver_request_approval_for_workflow_backed_profile(self):
+        with tempfile.TemporaryDirectory() as control_dir:
+            self.set_intent_approval_root(Path(control_dir))
+            result = self.intent_resolver.resolve_intent("今天收尾并生成会话入口", REPO_ROOT, tool="codex")
+            approval = self.intent_resolver.request_primary_approval(
+                result,
+                owner="tester",
+                note="close day",
+                focus="handover",
+                strict=False,
+            )
+
+        self.assertEqual(approval["status"], "pending_approval")
+        self.assertEqual(approval["plan"]["script_name"], "factory-command-profiles")
+        self.assertEqual(approval["plan"]["arguments"][0], "daily-close")
+        self.assertEqual(approval["record"]["ownership"]["role_id"], "release-manager")
+        self.assertIn(".factory", approval["record"]["ownership"]["write_targets"])
+        self.assertIn("docs", approval["record"]["ownership"]["write_targets"])
+
+    def test_intent_resolver_request_approval_creates_ticket_for_init(self):
+        with tempfile.TemporaryDirectory() as temp_dir, tempfile.TemporaryDirectory() as control_dir:
+            project_root = Path(temp_dir)
+            self.set_intent_approval_root(Path(control_dir))
+
+            result = self.intent_resolver.resolve_intent("初始化这个空目录项目", project_root, tool="codex")
+            approval = self.intent_resolver.request_primary_approval(
+                result,
+                owner="tester",
+                note="create managed project",
+                focus="bootstrap",
+                strict=False,
+            )
+
+            state_path = Path(control_dir) / ".factory" / "process" / "intent-approvals.json"
+            payload = json.loads(state_path.read_text(encoding="utf-8"))
+
+        self.assertEqual(approval["status"], "pending_approval")
+        self.assertTrue(approval["ticket"].startswith("IA-"))
+        self.assertEqual(payload["records"][0]["action"], "init")
+        self.assertEqual(payload["records"][0]["status"], "pending")
+
+    def test_intent_approval_can_approve_and_execute_init_ticket(self):
+        with tempfile.TemporaryDirectory() as temp_dir, tempfile.TemporaryDirectory() as control_dir:
+            project_root = Path(temp_dir)
+            self.set_intent_approval_root(Path(control_dir))
+
+            result = self.intent_resolver.resolve_intent("初始化这个空目录项目", project_root, tool="codex")
+            approval = self.intent_resolver.request_primary_approval(
+                result,
+                owner="tester",
+                note="create managed project",
+                focus="bootstrap",
+                strict=False,
+            )
+            execution = self.intent_approval.decide_ticket(
+                approval["ticket"],
+                decision="approve",
+                owner="approver",
+                note="looks good",
+            )
+            project_config_exists = (project_root / ".factory" / "project.json").exists()
+            payload = json.loads(
+                (Path(control_dir) / ".factory" / "process" / "intent-approvals.json").read_text(encoding="utf-8")
+            )
+
+        self.assertEqual(execution["status"], "executed")
+        self.assertTrue(project_config_exists)
+        self.assertEqual(payload["records"][0]["status"], "executed")
+        self.assertEqual(payload["records"][0]["decision_owner"], "approver")
+
+    def test_intent_approval_can_reject_ticket(self):
+        with tempfile.TemporaryDirectory() as temp_dir, tempfile.TemporaryDirectory() as control_dir:
+            project_root = Path(temp_dir)
+            self.set_intent_approval_root(Path(control_dir))
+
+            result = self.intent_resolver.resolve_intent("初始化这个空目录项目", project_root, tool="codex")
+            approval = self.intent_resolver.request_primary_approval(
+                result,
+                owner="tester",
+                note="create managed project",
+                focus="bootstrap",
+                strict=False,
+            )
+            rejection = self.intent_approval.decide_ticket(
+                approval["ticket"],
+                decision="reject",
+                owner="approver",
+                note="wait for more context",
+            )
+            project_config_exists = (project_root / ".factory" / "project.json").exists()
+            payload = json.loads(
+                (Path(control_dir) / ".factory" / "process" / "intent-approvals.json").read_text(encoding="utf-8")
+            )
+
+        self.assertEqual(rejection["status"], "rejected")
+        self.assertFalse(project_config_exists)
+        self.assertEqual(payload["records"][0]["status"], "rejected")
+        self.assertEqual(payload["records"][0]["decision_note"], "wait for more context")
+
+    def test_intent_approval_blocks_ticket_when_frozen_ownership_conflicts(self):
+        with tempfile.TemporaryDirectory() as temp_dir, tempfile.TemporaryDirectory() as control_dir:
+            project_root = Path(temp_dir) / "managed-project"
+            self.factory_init.initialize_project(
+                target=project_root,
+                project_name="managed-project",
+                idea="ship docs",
+                stack="python",
+                owner="tester",
+                force=False,
+            )
+            config = self.factory_core.load_project_config(project_root)
+            self.factory_core.ensure_role_catalog(config)
+            self.factory_core.set_current_role_assignment(
+                config,
+                "coordinator",
+                {
+                    "owner": "planner",
+                    "tool": "codex",
+                    "items": [],
+                    "status": "进行中",
+                    "focus": "plan",
+                    "note": "",
+                    "write_targets": [".factory"],
+                    "assigned_at": "2026-04-02 10:00:00",
+                },
+            )
+            self.factory_core.save_project_config(project_root, config)
+            self.set_intent_approval_root(Path(control_dir))
+
+            result = self.intent_resolver.resolve_intent("今天收尾并生成会话入口", project_root, tool="codex")
+            approval = self.intent_resolver.request_primary_approval(
+                result,
+                owner="tester",
+                note="close day",
+                focus="handover",
+                strict=False,
+            )
+            execution = self.intent_approval.decide_ticket(
+                approval["ticket"],
+                decision="approve",
+                owner="approver",
+                note="check ownership",
+            )
+
+        self.assertEqual(execution["status"], "blocked_conflict")
+        self.assertIn("写集冲突", execution["summary"])
+        self.assertEqual(execution["record"]["ownership_check"]["status"], "blocked_conflict")
+        self.assertIsNone(execution["step"])
+
+    def test_intent_approval_guard_binds_frozen_ownership_to_role_assignment(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            project_root = Path(temp_dir) / "managed-project"
+            self.factory_init.initialize_project(
+                target=project_root,
+                project_name="managed-project",
+                idea="ship docs",
+                stack="python",
+                owner="tester",
+                force=False,
+            )
+            result = self.intent_resolver.resolve_intent("今天收尾并生成会话入口", project_root, tool="codex")
+            approval = self.intent_resolver.request_primary_approval(
+                result,
+                owner="tester",
+                note="close day",
+                focus="handover",
+                strict=False,
+            )
+
+            guard = self.intent_approval.enforce_ownership_guard(approval["record"])
+            config = self.factory_core.load_project_config(project_root)
+            assignment = self.factory_core.current_role_assignment(config, "release-manager")
+
+        self.assertEqual(guard["status"], "ready")
+        self.assertEqual(assignment["owner"], "tester")
+        self.assertIn(".factory", assignment["write_targets"])
+        self.assertIn("docs", assignment["write_targets"])
+
+    def test_intent_eval_loads_default_cases(self):
+        cases = self.intent_eval.load_cases(self.intent_eval.DEFAULT_CASES_PATH)
+
+        self.assertGreaterEqual(len(cases), 7)
+        ids = {case["id"] for case in cases}
+        self.assertIn("intent-managed-next-step", ids)
+        self.assertIn("intent-managed-daily-workflow", ids)
+        self.assertIn("intent-managed-daily-profile", ids)
+
+    def test_intent_eval_evaluates_cases_with_full_pass(self):
+        cases = self.intent_eval.load_cases(self.intent_eval.DEFAULT_CASES_PATH)
+        summary = self.intent_eval.evaluate_cases(cases)
+
+        self.assertEqual(summary["failed"], 0)
+        self.assertEqual(summary["passed"], summary["total"])
+        self.assertEqual(summary["status"], "success")
+
+    def test_intent_eval_reports_mismatch_for_wrong_expectation(self):
+        broken_case = {
+            "id": "broken",
+            "intent": "继续下一步",
+            "fixture": "managed_project",
+            "tool": "codex",
+            "expected": {"action": "docs-standard-upgrade"},
+        }
+
+        result = self.intent_eval.evaluate_case(broken_case)
+
+        self.assertFalse(result["passed"])
+        self.assertTrue(any("expected action" in item for item in result["mismatches"]))
+
+    def test_multi_agent_board_marks_high_risk_recommended_commands(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            project_root = Path(temp_dir) / "managed-project"
+            self.factory_init.initialize_project(
+                target=project_root,
+                project_name="managed-project",
+                idea="ship docs",
+                stack="python",
+                owner="tester",
+                force=False,
+            )
+            config = self.factory_core.load_project_config(project_root)
+            self.factory_core.ensure_role_catalog(config)
+            active_roles = self.factory_core.active_roles_for_stage(config, config.get("stage", ""))
+            grouped = self.factory_core.group_items_by_role(config, [])
+
+            summary = self.multi_agent_board.summary_markdown(
+                config,
+                "审批治理",
+                [],
+                [],
+                active_roles,
+                grouped,
+                project_root,
+                "tester",
+                3,
+            )
+
+        self.assertIn("## 审批与边界", summary)
+        self.assertIn("command-profiles/pre-gate", summary)
+        self.assertIn("summary_confirm", summary)
+        self.assertIn("当前项目暂无待审批票据", summary)
+
+    def test_multi_agent_board_shows_pending_approval_records_for_project(self):
+        with tempfile.TemporaryDirectory() as temp_dir, tempfile.TemporaryDirectory() as control_dir:
+            project_root = Path(temp_dir) / "managed-project"
+            self.factory_init.initialize_project(
+                target=project_root,
+                project_name="managed-project",
+                idea="ship docs",
+                stack="python",
+                owner="tester",
+                force=False,
+            )
+            self.set_intent_approval_root(Path(control_dir))
+            result = self.intent_resolver.resolve_intent("今天收尾并生成会话入口", project_root, tool="codex")
+            approval = self.intent_resolver.request_primary_approval(
+                result,
+                owner="tester",
+                note="close day",
+                focus="handover",
+                strict=False,
+            )
+
+            pending = self.multi_agent_board.pending_approval_records(project_root)
+
+        self.assertEqual(len(pending), 1)
+        self.assertEqual(pending[0]["id"], approval["ticket"])
+        self.assertEqual(pending[0]["action"], "command-profiles")
+
+    def test_factory_core_detects_role_assignment_write_target_conflicts(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            project_root = Path(temp_dir) / "managed-project"
+            self.factory_init.initialize_project(
+                target=project_root,
+                project_name="managed-project",
+                idea="ship docs",
+                stack="python",
+                owner="tester",
+                force=False,
+            )
+            config = self.factory_core.load_project_config(project_root)
+            self.factory_core.ensure_role_catalog(config)
+            self.factory_core.set_current_role_assignment(
+                config,
+                "coordinator",
+                {
+                    "owner": "planner",
+                    "tool": "codex",
+                    "items": [],
+                    "status": "进行中",
+                    "focus": "plan",
+                    "note": "",
+                    "write_targets": ["scripts"],
+                    "assigned_at": "2026-04-02 10:00:00",
+                },
+            )
+            self.factory_core.set_current_role_assignment(
+                config,
+                "release-manager",
+                {
+                    "owner": "releaser",
+                    "tool": "gemini",
+                    "items": [],
+                    "status": "进行中",
+                    "focus": "release",
+                    "note": "",
+                    "write_targets": ["scripts/factory-dispatch"],
+                    "assigned_at": "2026-04-02 10:01:00",
+                },
+            )
+
+            conflicts = self.factory_core.role_assignment_conflicts(project_root, config)
+
+        self.assertEqual(len(conflicts), 1)
+        self.assertEqual(conflicts[0]["roles"], ["coordinator", "release-manager"])
+        self.assertIn("scripts <-> scripts/factory-dispatch", conflicts[0]["overlaps"])
+
+    def test_role_assign_blocks_conflicting_write_targets(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            project_root = Path(temp_dir) / "managed-project"
+            self.factory_init.initialize_project(
+                target=project_root,
+                project_name="managed-project",
+                idea="ship docs",
+                stack="python",
+                owner="tester",
+                force=False,
+            )
+
+            original_argv = sys.argv[:]
+            try:
+                sys.argv = [
+                    str(FACTORY_ROLE_ASSIGN),
+                    "--project",
+                    str(project_root),
+                    "--role",
+                    "coordinator",
+                    "--owner",
+                    "planner",
+                    "--write-targets",
+                    "scripts",
+                ]
+                self.assertEqual(self.role_assign.main(), 0)
+
+                stderr = io.StringIO()
+                sys.argv = [
+                    str(FACTORY_ROLE_ASSIGN),
+                    "--project",
+                    str(project_root),
+                    "--role",
+                    "release-manager",
+                    "--owner",
+                    "releaser",
+                    "--write-targets",
+                    "scripts/factory-dispatch",
+                ]
+                with redirect_stderr(stderr):
+                    exit_code = self.role_assign.main()
+            finally:
+                sys.argv = original_argv
+
+            config = self.factory_core.load_project_config(project_root)
+            assignments = self.factory_core.ensure_role_assignment_state(config)
+
+        self.assertEqual(exit_code, 1)
+        self.assertIn("检测到写集冲突", stderr.getvalue())
+        self.assertNotIn("release-manager", assignments)
+
+    def test_multi_agent_board_reports_write_target_conflicts_and_blocks_parallel(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            project_root = Path(temp_dir) / "managed-project"
+            self.factory_init.initialize_project(
+                target=project_root,
+                project_name="managed-project",
+                idea="ship docs",
+                stack="python",
+                owner="tester",
+                force=False,
+            )
+            config = self.factory_core.load_project_config(project_root)
+            self.factory_core.ensure_role_catalog(config)
+            self.factory_core.set_current_role_assignment(
+                config,
+                "coordinator",
+                {
+                    "owner": "planner",
+                    "tool": "codex",
+                    "items": [],
+                    "status": "进行中",
+                    "focus": "plan",
+                    "note": "",
+                    "write_targets": ["scripts"],
+                    "assigned_at": "2026-04-02 10:00:00",
+                },
+            )
+            self.factory_core.set_current_role_assignment(
+                config,
+                "release-manager",
+                {
+                    "owner": "releaser",
+                    "tool": "gemini",
+                    "items": [],
+                    "status": "进行中",
+                    "focus": "release",
+                    "note": "",
+                    "write_targets": ["scripts/factory-dispatch"],
+                    "assigned_at": "2026-04-02 10:01:00",
+                },
+            )
+            self.factory_core.save_project_config(project_root, config)
+            grouped = self.factory_core.group_items_by_role(config, [])
+            active_roles = self.factory_core.active_roles_for_stage(config, config.get("stage", ""))
+
+            summary = self.multi_agent_board.summary_markdown(
+                config,
+                "冲突阻断",
+                [],
+                [],
+                active_roles,
+                grouped,
+                project_root,
+                "tester",
+                4,
+            )
+
+        self.assertIn("## Ownership 与冲突", summary)
+        self.assertIn("写集冲突：1", summary)
+        self.assertIn("`项目协调者` <-> `发布经理`", summary)
+        self.assertIn("scripts <-> scripts/factory-dispatch", summary)
+
+    def test_frontend_profiles_support_opencode_and_aliases(self):
+        profiles = self.factory_core.load_frontend_profiles()
+        opencode = self.factory_core.resolve_frontend_profile("open-code")
+
+        self.assertIn("codex", profiles)
+        self.assertIn("gemini", profiles)
+        self.assertIn("opencode", profiles)
+        self.assertEqual(opencode["id"], "opencode")
+        self.assertTrue(opencode["capabilities"]["command_exec"])
+
+    def test_chat_bootstrap_uses_frontend_profile_for_opencode(self):
+        profile = self.factory_core.resolve_frontend_profile("opencode")
+
+        self.assertEqual(self.chat_bootstrap.tool_label(profile), "OpenCode")
+        self.assertEqual(self.chat_bootstrap.primary_rule_file(profile), "AGENTS.md 与 GEMINI.md")
+        prompts = self.chat_bootstrap.example_prompts("架构负责人", "opencode", "继续设计")
+        self.assertTrue(any("继续设计" in line for line in prompts))
+
+    def test_frontend_capabilities_lists_registered_frontends(self):
+        payload = self.frontend_capabilities.list_payload()
+
+        ids = {item["id"] for item in payload}
+        self.assertIn("codex", ids)
+        self.assertIn("gemini", ids)
+        self.assertIn("opencode", ids)
 
     def test_load_project_config_normalizes_legacy_current_stage(self):
         with tempfile.TemporaryDirectory() as temp_dir:

@@ -1,0 +1,211 @@
+{
+  "version": 1,
+  "updated_at": "2026-04-02",
+  "actions": {
+    "init": {
+      "script_name": "factory-init",
+      "description": "初始化软件工厂项目骨架",
+      "aliases": [],
+      "risk_level": "L2",
+      "purpose": "在空目录或新项目目录中建立软件工厂最小治理骨架。",
+      "preconditions": ["目标目录存在", "目标目录适合初始化"],
+      "frontend_requirements": ["file_read", "file_write", "command_exec"],
+      "artifacts": ["AGENTS.md", "GEMINI.md", ".factory/project.json", "docs/"],
+      "success_criteria": ["项目骨架生成成功", "阶段初始化为 BRAINSTORM"],
+      "verification": ["核心骨架文件存在", "命令返回码为 0"],
+      "recovery_hints": ["若目录已包含既有项目内容，改走 historical-project-onboarding"]
+    },
+    "agent-session": {
+      "script_name": "factory-agent-session",
+      "description": "生成给模型会话读取的入口",
+      "aliases": ["session"],
+      "risk_level": "L0",
+      "purpose": "为当前项目会话生成最小上下文包和推荐动作。",
+      "preconditions": ["项目路径可解析", "项目已纳入软件工厂或至少具备基本 docs 入口"],
+      "frontend_requirements": ["file_read", "command_exec"],
+      "artifacts": [".factory/memory/agent-session.md"],
+      "success_criteria": ["生成最新会话入口", "推荐阅读和下一步动作可供当前协作者使用"],
+      "verification": ["输出文件存在", "命令返回码为 0"],
+      "recovery_hints": ["若项目未纳管，先改走 historical-project-onboarding"]
+    },
+    "state-doctor": {
+      "script_name": "factory-state-doctor",
+      "description": "诊断项目状态",
+      "aliases": ["doctor"],
+      "risk_level": "L0",
+      "purpose": "检查项目状态、缺口、阶段一致性和推荐下一步动作。",
+      "preconditions": ["项目路径可解析"],
+      "frontend_requirements": ["file_read", "command_exec"],
+      "artifacts": [".factory/process/state-doctor-report.md"],
+      "success_criteria": ["生成状态诊断结果", "返回缺口和推荐动作"],
+      "verification": ["输出文件存在或标准输出包含诊断结果", "命令返回码为 0"],
+      "recovery_hints": ["若缺少软件工厂骨架，先执行 historical-project-onboarding"]
+    },
+    "historical-project-onboarding": {
+      "script_name": "factory-historical-project-onboarding",
+      "description": "纳管非软件工厂历史项目",
+      "aliases": ["legacy-onboard", "historical-onboard"],
+      "risk_level": "L2",
+      "purpose": "为已有代码仓库建立当前真实状态基线并补齐软件工厂最小骨架。",
+      "preconditions": ["目标目录非空", "目标项目尚未被山海工枢接管"],
+      "frontend_requirements": ["file_read", "file_write", "command_exec"],
+      "artifacts": [
+        "AGENTS.md",
+        "GEMINI.md",
+        ".factory/project.json",
+        ".factory/process/historical-project-onboarding-report.md"
+      ],
+      "success_criteria": ["项目建立最小治理骨架", "生成首轮 session 与 state doctor"],
+      "verification": ["核心文件存在", "命令返回码为 0"],
+      "recovery_hints": ["若项目已纳管，改走 session 或 state-doctor"]
+    },
+    "docs-standard-upgrade": {
+      "script_name": "factory-docs-standard-upgrade",
+      "description": "升级项目 docs 到最新源文档标准",
+      "aliases": ["docs-upgrade", "upgrade-docs-standard"],
+      "risk_level": "L1",
+      "purpose": "按需迁移 docs 结构、刷新根导航和目录首页并做最终校验。",
+      "preconditions": ["目标项目存在 docs/"],
+      "frontend_requirements": ["file_read", "file_write", "command_exec"],
+      "artifacts": ["docs/index.md", "相关目录 index.md"],
+      "success_criteria": ["docs 状态达到就绪或明确给出缺口"],
+      "verification": ["命令返回码为 0", "输出包含最终状态"],
+      "recovery_hints": ["若遇到结构冲突，先执行 --check 并人工复核冲突文件"]
+    },
+    "docs-standard-upgrade-batch": {
+      "script_name": "factory-docs-standard-upgrade-batch",
+      "description": "批量升级多个项目的 docs 源文档标准",
+      "aliases": ["docs-upgrade-batch", "upgrade-docs-standard-batch"],
+      "risk_level": "L2",
+      "purpose": "扫描多个项目并逐个执行 docs 标准检查或升级。",
+      "preconditions": ["至少提供一个 --root 或 --project"],
+      "frontend_requirements": ["file_read", "file_write", "command_exec"],
+      "artifacts": ["批量升级汇总输出"],
+      "success_criteria": ["返回逐项目结果汇总", "失败项目明确暴露在结果中"],
+      "verification": ["命令返回码符合结果状态", "输出包含项目汇总"],
+      "recovery_hints": ["先用 --check 缩小影响范围，再执行正式升级"]
+    },
+    "project-rules-refresh": {
+      "script_name": "factory-project-rules-refresh",
+      "description": "刷新项目规则文件",
+      "aliases": ["refresh-rules"],
+      "risk_level": "L1",
+      "purpose": "在已存在软件工厂骨架的项目中刷新 AGENTS.md 和 GEMINI.md。",
+      "preconditions": ["项目已具备 docs/ 或 .factory/"],
+      "frontend_requirements": ["file_read", "file_write", "command_exec"],
+      "artifacts": ["AGENTS.md", "GEMINI.md"],
+      "success_criteria": ["规则入口文件与当前基线一致"],
+      "verification": ["命令返回码为 0", "目标文件存在"],
+      "recovery_hints": ["若项目未纳管，先执行 historical-project-onboarding"]
+    },
+    "multi-agent-board": {
+      "script_name": "factory-multi-agent-board",
+      "description": "生成多 agent 协作看板",
+      "aliases": ["board"],
+      "risk_level": "L1",
+      "purpose": "把当前项目协作状态整理成多代理视图和分工板。",
+      "preconditions": ["项目已纳入软件工厂"],
+      "frontend_requirements": ["file_read", "file_write", "command_exec"],
+      "artifacts": [".factory/process/multi-agent-board.md"],
+      "success_criteria": ["生成多代理协作看板", "包含活跃任务、角色和风险"],
+      "verification": ["输出文件存在", "命令返回码为 0"],
+      "recovery_hints": ["若项目未纳管，先执行 session 或 historical-project-onboarding"]
+    },
+    "frontend-capabilities": {
+      "script_name": "factory-frontend-capabilities",
+      "description": "查看前台能力画像",
+      "aliases": ["frontend", "frontends"],
+      "risk_level": "L0",
+      "purpose": "查看当前已登记前台的能力画像、主规则入口和降级策略。",
+      "preconditions": ["shanforge 仓库存在 config/frontends/*.json"],
+      "frontend_requirements": ["file_read", "command_exec"],
+      "artifacts": ["命令输出"],
+      "success_criteria": ["返回前台能力画像或已登记前台列表"],
+      "verification": ["命令返回码为 0"],
+      "recovery_hints": ["若画像缺失，先补 config/frontends/*.json"]
+    },
+    "intent-resolver": {
+      "script_name": "factory-intent-resolver",
+      "description": "把自然语言目标解析成已注册动作",
+      "aliases": ["intent"],
+      "risk_level": "L0",
+      "purpose": "根据自然语言、项目事实和前台能力，给出最匹配的已注册动作和风险判定。",
+      "preconditions": ["目标项目路径可解析"],
+      "frontend_requirements": ["file_read", "command_exec"],
+      "artifacts": ["命令输出"],
+      "success_criteria": ["返回主推荐动作", "返回候选动作和风险策略"],
+      "verification": ["命令返回码为 0"],
+      "recovery_hints": ["若意图模糊，先使用 state-doctor 或补充更明确的目标语义"]
+    },
+    "intent-eval": {
+      "script_name": "factory-intent-eval",
+      "description": "回放评估自然语言到动作解析能力",
+      "aliases": ["intent-regression", "intent-replay"],
+      "risk_level": "L0",
+      "purpose": "基于固定样本集回放自然语言意图解析结果，统计命中率并暴露失败样本。",
+      "preconditions": ["评估样本文件存在且可解析"],
+      "frontend_requirements": ["file_read", "command_exec"],
+      "artifacts": [".factory/process/intent-eval-report.md", ".factory/memory/intent-eval.summary.md"],
+      "success_criteria": ["输出回放通过率", "失败样本可定位"],
+      "verification": ["命令返回码为 0", "评估报告文件存在"],
+      "recovery_hints": ["若样本文件损坏，先修复 config/evals/intent-resolver-cases.json"]
+    },
+    "intent-approval": {
+      "script_name": "factory-intent-approval",
+      "description": "查看或处理 intent 审批票据",
+      "aliases": ["intent-approve"],
+      "risk_level": "L1",
+      "purpose": "查看审批队列，并在显式批准后执行已经冻结的意图执行计划。",
+      "preconditions": ["审批票据存在或至少需要查看当前票据列表"],
+      "frontend_requirements": ["file_read", "file_write", "command_exec"],
+      "artifacts": [
+        ".factory/process/intent-approvals.json",
+        ".factory/process/intent-approvals.md",
+        ".factory/memory/intent-approvals.summary.md"
+      ],
+      "success_criteria": ["票据列表可读", "批准或拒绝结果被写回票据状态"],
+      "verification": ["命令返回码为 0", "审批视图文件存在"],
+      "recovery_hints": ["若票据不存在，先重新执行 intent-resolver --request-approval 生成新票据"]
+    },
+    "workflow-runner": {
+      "script_name": "factory-workflow-runner",
+      "description": "运行高层工作流",
+      "aliases": ["workflow"],
+      "risk_level": "L2",
+      "purpose": "按预定义工作流执行多个高层动作。",
+      "preconditions": ["项目已纳入软件工厂", "提供 workflow 名称"],
+      "frontend_requirements": ["file_read", "file_write", "command_exec"],
+      "artifacts": ["工作流执行日志和相关输出文件"],
+      "success_criteria": ["工作流按顺序执行并返回收口结果"],
+      "verification": ["命令返回码为 0", "工作流输出包含完成摘要"],
+      "recovery_hints": ["先使用 state-doctor 明确当前缺口，再重试工作流"]
+    },
+    "command-profiles": {
+      "script_name": "factory-command-profiles",
+      "description": "执行高层命令画像",
+      "aliases": ["profile", "profiles"],
+      "risk_level": "L1",
+      "purpose": "按预置组合动作生成某类高层命令序列。",
+      "preconditions": ["项目已纳入软件工厂"],
+      "frontend_requirements": ["file_read", "command_exec"],
+      "artifacts": ["命令画像执行输出"],
+      "success_criteria": ["返回指定画像的执行结果或建议动作"],
+      "verification": ["命令返回码为 0"],
+      "recovery_hints": ["若画像缺少前置条件，先使用 session 或 state-doctor 补上下文"],
+      "subtargets": {
+        "pre-gate": {
+          "risk_level": "L2"
+        },
+        "daily-close": {
+          "risk_level": "L2"
+        },
+        "release-ready": {
+          "risk_level": "L2"
+        },
+        "handover-ready": {
+          "risk_level": "L2"
+        }
+      }
+    }
+  }
+}

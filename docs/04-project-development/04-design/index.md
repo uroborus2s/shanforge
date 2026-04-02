@@ -11,13 +11,16 @@
 1. [总体方案与协作总览](./solution-overview.md)
 2. [技术选型与工程规则](./technical-selection.md)
 3. [系统架构设计](./system-architecture.md)
-4. [模块边界文档](./module-boundaries.md)
-5. [API 设计文档](./api-design.md)
-6. [后端设计文档](./backend-design.md)
-7. [数据库设计文档](./database-design.md)
-8. [部署与 CI/CD 设计](./deployment-architecture.md)
-9. [UX/UI 设计文档](./ux-ui-design.md)
-10. [历史项目纳管自动化入口设计](./historical-project-onboarding-automation.md)
+4. [动作注册与分级自治策略设计](./action-registry-and-autonomy-policy.md)
+5. [多前台适配与多代理协作设计](./frontend-adapters-and-multi-agent-coordination.md)
+6. [Skill 进化机制设计](./skill-evolution-mechanism.md)
+7. [模块边界文档](./module-boundaries.md)
+8. [API 设计文档](./api-design.md)
+9. [后端设计文档](./backend-design.md)
+10. [数据库设计文档](./database-design.md)
+11. [部署与 CI/CD 设计](./deployment-architecture.md)
+12. [UX/UI 设计文档](./ux-ui-design.md)
+13. [历史项目纳管自动化入口设计](./historical-project-onboarding-automation.md)
 
 ## 3. 使用规则
 

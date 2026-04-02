@@ -3,10 +3,10 @@
 import argparse
 import sys
 
-from factory_core import run_script
+from factory_core import action_policy, load_action_registry, run_script
 
 
-ACTIONS = {
+LEGACY_ACTIONS = {
     "init": ("factory-init", "初始化项目"),
     "historical-project-onboarding": ("factory-historical-project-onboarding", "纳管非软件工厂历史项目"),
     "prd-bootstrap": ("factory-prd-bootstrap", "初始化需求阶段文档"),
@@ -52,6 +52,9 @@ ACTIONS = {
     "role-workbench": ("factory-role-workbench", "生成角色执行工作台"),
     "role-sync": ("factory-role-sync", "同步角色执行状态"),
     "multi-agent-board": ("factory-multi-agent-board", "生成多 agent 协作看板"),
+    "frontend-capabilities": ("factory-frontend-capabilities", "查看前台能力画像"),
+    "intent-resolver": ("factory-intent-resolver", "把自然语言目标解析成已注册动作"),
+    "intent-eval": ("factory-intent-eval", "回放评估自然语言到动作解析能力"),
     "chat-bootstrap": ("factory-chat-bootstrap", "生成角色化对话启动入口"),
     "role-review": ("factory-role-review", "复核角色执行状态"),
     "role-closeout": ("factory-role-closeout", "执行角色收尾"),
@@ -74,7 +77,7 @@ ACTIONS = {
     "command-profiles": ("factory-command-profiles", "执行高层命令画像"),
 }
 
-ALIASES = {
+LEGACY_ALIASES = {
     "legacy-onboard": "historical-project-onboarding",
     "historical-onboard": "historical-project-onboarding",
     "prd": "prd-bootstrap",
@@ -132,6 +135,11 @@ ALIASES = {
     "workbench": "role-workbench",
     "sync-role": "role-sync",
     "board": "multi-agent-board",
+    "frontend": "frontend-capabilities",
+    "frontends": "frontend-capabilities",
+    "intent": "intent-resolver",
+    "intent-regression": "intent-eval",
+    "intent-replay": "intent-eval",
     "chat": "chat-bootstrap",
     "review-role": "role-review",
     "close-role": "role-closeout",
@@ -158,9 +166,36 @@ ALIASES = {
 }
 
 
+def action_metadata(action_id: str) -> dict:
+    registry = load_action_registry()
+    if action_id in registry:
+        return dict(registry[action_id], registered=True)
+    if action_id in LEGACY_ACTIONS:
+        script_name, description = LEGACY_ACTIONS[action_id]
+        aliases = [alias for alias, target in LEGACY_ALIASES.items() if target == action_id]
+        return {
+            "id": action_id,
+            "script_name": script_name,
+            "description": description,
+            "aliases": aliases,
+            "risk_level": "",
+            "registered": False,
+        }
+    raise RuntimeError(f"未知动作：{action_id}")
+
+
+def all_action_ids() -> list[str]:
+    ordered = list(LEGACY_ACTIONS.keys())
+    for action_id in load_action_registry().keys():
+        if action_id not in LEGACY_ACTIONS:
+            ordered.append(action_id)
+    return ordered
+
+
 def parse_args() -> tuple[argparse.Namespace, list[str]]:
     parser = argparse.ArgumentParser(
-        description="软件工厂单入口调度器。把统一动作分派给对应的 factory-* 命令。"
+        description="软件工厂单入口调度器。把统一动作分派给对应的 factory-* 命令。",
+        allow_abbrev=False,
     )
     parser.add_argument("action", nargs="?", help="动作名称，例如 prd-bootstrap、workflow-runner、auto-sync。")
     parser.add_argument("--list-actions", action="store_true", help="列出可用动作。")
@@ -169,19 +204,32 @@ def parse_args() -> tuple[argparse.Namespace, list[str]]:
 
 def resolve_action(raw: str) -> str:
     action = raw.strip()
-    if action in ACTIONS:
+    registry = load_action_registry()
+    if action in registry:
         return action
-    if action in ALIASES:
-        return ALIASES[action]
+    for action_id, spec in registry.items():
+        if action in spec.get("aliases", []):
+            return action_id
+    if action in LEGACY_ACTIONS:
+        return action
+    if action in LEGACY_ALIASES:
+        return LEGACY_ALIASES[action]
     raise RuntimeError(f"未知动作：{raw}")
 
 
 def print_actions() -> None:
     print("可用动作：")
-    for name, (_, description) in ACTIONS.items():
-        aliases = [alias for alias, target in ALIASES.items() if target == name]
+    for name in all_action_ids():
+        metadata = action_metadata(name)
+        policy = action_policy(name)
+        description = metadata["description"]
+        aliases = metadata.get("aliases", [])
         alias_text = f" | 别名：{', '.join(aliases)}" if aliases else ""
-        print(f"- {name}: {description}{alias_text}")
+        if metadata.get("registered"):
+            policy_text = f" [{policy.get('risk_level', 'L3')} | {policy.get('approval', 'explicit_confirm')}]"
+        else:
+            policy_text = " [未登记]"
+        print(f"- {name}{policy_text}: {description}{alias_text}")
 
 
 def main() -> int:
@@ -193,8 +241,8 @@ def main() -> int:
 
     try:
         action = resolve_action(args.action)
-        script_name, description = ACTIONS[action]
-        result = run_script(script_name, *passthrough, label=description)
+        metadata = action_metadata(action)
+        result = run_script(metadata["script_name"], *passthrough, label=metadata["description"])
     except Exception as exc:
         print(f"分派失败：{exc}", file=sys.stderr)
         return 1

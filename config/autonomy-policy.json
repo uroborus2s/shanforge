@@ -1,0 +1,32 @@
+{
+  "version": 1,
+  "updated_at": "2026-04-02",
+  "default_unregistered": {
+    "risk_level": "L3",
+    "approval": "explicit_confirm",
+    "execution": "blocked_until_approved",
+    "summary": "未注册动作默认采用保守策略，不进入自动执行路径。"
+  },
+  "risk_levels": {
+    "L0": {
+      "approval": "auto",
+      "execution": "auto",
+      "summary": "只读或纯诊断动作，可自动执行。"
+    },
+    "L1": {
+      "approval": "auto",
+      "execution": "auto",
+      "summary": "低风险写动作，可自动执行，但必须保留证据和产物。"
+    },
+    "L2": {
+      "approval": "summary_confirm",
+      "execution": "requires_confirmation",
+      "summary": "中风险动作执行前先给出摘要并确认。"
+    },
+    "L3": {
+      "approval": "explicit_confirm",
+      "execution": "blocked_until_approved",
+      "summary": "高风险动作必须显式批准，且应优先走低自由度执行路径。"
+    }
+  }
+}

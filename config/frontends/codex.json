@@ -1,0 +1,27 @@
+{
+  "id": "codex",
+  "label": "Codex",
+  "aliases": ["codex-cli"],
+  "status": "supported",
+  "family": "cli",
+  "primary_rule_files": ["AGENTS.md"],
+  "capabilities": {
+    "file_read": true,
+    "file_write": true,
+    "command_exec": true,
+    "tool_call": true,
+    "context_compaction": true,
+    "subagent": true,
+    "mcp": true,
+    "stream_observation": true,
+    "approval_hook": true
+  },
+  "fallbacks": {
+    "subagent": "若宿主会话未开放子代理，则退化为主代理串行执行。",
+    "mcp": "若当前会话未开放 MCP，则退化到本地文件和脚本路径。"
+  },
+  "bootstrap_prompts": [
+    "读取 AGENTS.md、.factory/project.json 和 .factory/memory/agent-session.md，以{role_title}身份{current_focus}。",
+    "先检查当前相关工作项和推荐命令，再直接推进{role_title}负责的动作。"
+  ]
+}

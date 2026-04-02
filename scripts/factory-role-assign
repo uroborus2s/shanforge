@@ -15,10 +15,12 @@ from factory_core import (
     ensure_role_catalog,
     format_item_brief,
     load_project_config,
+    normalize_write_targets,
     parse_list,
     prepend_history_entry,
     project_lock,
     resolve_role,
+    role_assignment_conflicts,
     role_assigned_items,
     role_document_reads,
     role_recommended_commands,
@@ -38,6 +40,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--items", default="", help="要分派的工作项 ID，逗号分隔。")
     parser.add_argument("--focus", default="", help="当前执行焦点。")
     parser.add_argument("--note", default="", help="补充说明。")
+    parser.add_argument("--write-targets", default="", help="该角色声明会写入的文件或目录，逗号分隔，相对项目根目录。")
     parser.add_argument(
         "--status",
         default="待执行",
@@ -46,6 +49,7 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument("--set-active", action="store_true", help="同时把该角色写为当前活跃角色。")
     parser.add_argument("--sync-item-owner", action="store_true", help="把所选工作项中的负责人同步为 --owner。")
+    parser.add_argument("--allow-conflict", action="store_true", help="允许本次分派覆盖已有写集冲突。")
     parser.add_argument("--top", type=int, default=5, help="未显式传入工作项时，默认选择的条目数量。")
     return parser.parse_args()
 
@@ -105,6 +109,10 @@ def main() -> int:
             note = args.note.strip()
             now_text = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             item_ids = [item["id"] for item in items]
+            write_targets = normalize_write_targets(
+                project_root,
+                args.write_targets.strip() or current_assignment.get("write_targets", []),
+            )
 
             if args.sync_item_owner and args.owner.strip():
                 for item in items:
@@ -117,8 +125,24 @@ def main() -> int:
                 "status": args.status,
                 "focus": focus,
                 "note": note,
+                "write_targets": write_targets,
                 "assigned_at": now_text,
             }
+            conflicts = role_assignment_conflicts(
+                project_root,
+                config,
+                candidate_role_id=role["id"],
+                candidate_assignment=assignment_payload,
+            )
+            if conflicts and not args.allow_conflict:
+                details = []
+                for item in conflicts[:3]:
+                    details.append(
+                        f"{item['role_titles'][0]} <-> {item['role_titles'][1]} ({'; '.join(item['overlaps'][:3])})"
+                    )
+                raise RuntimeError(
+                    "检测到写集冲突，已阻断分派：" + "；".join(details) + "。若确需覆盖，请显式传入 --allow-conflict。"
+                )
             set_current_role_assignment(config, role["id"], assignment_payload)
             config["last_role_assign_at"] = now_text
             config["last_role_assign_role"] = role["id"]
@@ -135,6 +159,7 @@ def main() -> int:
                     "status": args.status,
                     "focus": focus,
                     "note": note,
+                    "write_targets": write_targets,
                     "assigned_at": now_text,
                 }
             )
@@ -143,6 +168,7 @@ def main() -> int:
             reads = role_document_reads(project_root, config, role["id"])[:8]
             commands = role_recommended_commands(project_root, config, role["id"], owner, focus)[:6]
             item_lines = [format_item_brief(item) for item in items] or ["- 当前未绑定工作项。"]
+            write_target_lines = [f"- `{item}`" for item in write_targets] or ["- 当前未声明写入集合。"]
             doc_path = project_root / ".factory" / "process" / "role-assignments.md"
             upsert_section(
                 doc_path,
@@ -154,6 +180,7 @@ def main() -> int:
                     f"- 工具：{tool}",
                     f"- 状态：{args.status}",
                     f"- 焦点：{focus}",
+                    f"- 写入集合：{', '.join(write_targets) if write_targets else '无'}",
                     f"- 备注：{note or '无'}",
                 ],
                 default_title="# 角色分派记录",
@@ -162,6 +189,12 @@ def main() -> int:
                 doc_path,
                 "## 当前分派工作项",
                 item_lines,
+                default_title="# 角色分派记录",
+            )
+            upsert_section(
+                doc_path,
+                "## 当前写入集合",
+                write_target_lines,
                 default_title="# 角色分派记录",
             )
             upsert_section(
@@ -195,10 +228,15 @@ def main() -> int:
                         f"- 工具：{tool}",
                         f"- 状态：{args.status}",
                         f"- 焦点：{focus}",
+                        f"- 写入集合：{', '.join(write_targets) if write_targets else '无'}",
                         "",
                         "## 工作项",
                         "",
                         *item_lines,
+                        "",
+                        "## 写入集合",
+                        "",
+                        *write_target_lines,
                     ]
                 ),
             )
@@ -213,6 +251,7 @@ def main() -> int:
                         "status": args.status,
                         "focus": focus,
                         "note": note,
+                        "write_targets": write_targets,
                         "items": item_ids,
                     },
                     ensure_ascii=False,

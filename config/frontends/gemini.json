@@ -1,0 +1,28 @@
+{
+  "id": "gemini",
+  "label": "Gemini CLI",
+  "aliases": ["gemini-cli", "gemini"],
+  "status": "supported",
+  "family": "cli",
+  "primary_rule_files": ["GEMINI.md"],
+  "capabilities": {
+    "file_read": true,
+    "file_write": true,
+    "command_exec": true,
+    "tool_call": true,
+    "context_compaction": true,
+    "subagent": false,
+    "mcp": false,
+    "stream_observation": false,
+    "approval_hook": false
+  },
+  "fallbacks": {
+    "subagent": "退化为单代理串行执行。",
+    "mcp": "退化为本地文件、脚本和 shell 路径。",
+    "approval_hook": "高风险动作停在建议状态，由用户显式确认。"
+  },
+  "bootstrap_prompts": [
+    "读取 GEMINI.md、.factory/project.json 和 .factory/memory/agent-session.md，以{role_title}身份{current_focus}。",
+    "先补齐分析与文档，再给出本角色下一步最合适的命令。"
+  ]
+}

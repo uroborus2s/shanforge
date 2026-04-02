@@ -1,0 +1,93 @@
+#!/usr/bin/env python3
+
+import argparse
+import json
+import sys
+
+from factory_core import load_frontend_profiles, resolve_frontend_profile
+
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description="查看已登记前台工具的能力画像和降级策略。")
+    parser.add_argument("--tool", default="", help="前台 ID 或别名，例如 codex、gemini-cli、opencode。")
+    parser.add_argument("--list", action="store_true", help="列出所有已登记前台。")
+    parser.add_argument("--json", action="store_true", help="以 JSON 输出。")
+    return parser.parse_args()
+
+
+def list_payload() -> list[dict]:
+    profiles = load_frontend_profiles()
+    return [
+        {
+            "id": profile["id"],
+            "label": profile["label"],
+            "status": profile.get("status", ""),
+            "aliases": profile.get("aliases", []),
+        }
+        for profile in profiles.values()
+    ]
+
+
+def render_profile(profile: dict) -> str:
+    capability_lines = []
+    for name, enabled in sorted(profile.get("capabilities", {}).items()):
+        capability_lines.append(f"- `{name}`: {'支持' if enabled else '不支持'}")
+    fallback_lines = [
+        f"- `{name}`: {text}" for name, text in sorted(profile.get("fallbacks", {}).items()) if str(text).strip()
+    ] or ["- 无"]
+
+    lines = [
+        f"# {profile.get('label', profile.get('id', '未知前台'))} 能力画像",
+        "",
+        f"- ID：`{profile.get('id', '')}`",
+        f"- 状态：{profile.get('status', 'unknown')}",
+        f"- 家族：{profile.get('family', 'unknown')}",
+        f"- 别名：{', '.join(profile.get('aliases', [])) or '无'}",
+        f"- 优先规则文件：{', '.join(profile.get('primary_rule_files', [])) or '无'}",
+        "",
+        "## 能力",
+        "",
+        *capability_lines,
+        "",
+        "## 降级策略",
+        "",
+        *fallback_lines,
+    ]
+    return "\n".join(lines).rstrip() + "\n"
+
+
+def main() -> int:
+    args = parse_args()
+    profiles = load_frontend_profiles()
+
+    if args.list or not args.tool:
+        payload = list_payload()
+        if args.json:
+            print(json.dumps(payload, ensure_ascii=False, indent=2))
+            return 0
+        print("已登记前台：")
+        for item in payload:
+            aliases = f" | 别名：{', '.join(item['aliases'])}" if item["aliases"] else ""
+            print(f"- {item['id']} ({item['label']}) | 状态：{item['status']}{aliases}")
+        return 0
+
+    try:
+        profile = resolve_frontend_profile(args.tool.strip(), default_id="generic")
+    except Exception as exc:
+        print(f"读取前台画像失败：{exc}", file=sys.stderr)
+        return 1
+
+    if profile.get("id") == "generic" and args.tool.strip():
+        print(f"未找到已登记前台：{args.tool.strip()}", file=sys.stderr)
+        return 1
+
+    if args.json:
+        print(json.dumps(profile, ensure_ascii=False, indent=2))
+        return 0
+
+    print(render_profile(profile))
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

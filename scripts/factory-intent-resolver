@@ -1,0 +1,865 @@
+#!/usr/bin/env python3
+
+import argparse
+from datetime import datetime
+import json
+import sys
+from pathlib import Path
+
+from factory_core import (
+    EXECUTION_LOG_RELATIVE,
+    append_log_line,
+    effective_action_policy,
+    factory_workspace_root,
+    intent_control_root,
+    load_action_registry,
+    load_intent_approval_records,
+    load_project_config,
+    new_intent_approval_id,
+    normalize_key,
+    normalize_write_targets,
+    resolve_frontend_profile,
+    role_assignment_conflicts,
+    run_script,
+    save_intent_approval_records,
+    write_intent_approval_views,
+)
+
+
+DIAGNOSTIC_KEYWORDS = ["诊断", "检查", "状态", "体检", "doctor", "health", "下一步", "继续下一步", "我该做什么"]
+DOCS_KEYWORDS = ["docs", "文档", "目录", "索引", "规范", "刷新", "升级", "重建目录", "source doc"]
+BATCH_KEYWORDS = ["批量", "多个项目", "批处理", "workspace", "一批", "batch"]
+NEW_PROJECT_KEYWORDS = ["初始化", "新项目", "空目录", "开始项目", "脚手架", "搭骨架", "bootstrap", "init"]
+ONBOARDING_KEYWORDS = ["接管", "纳管", "历史项目", "已有项目", "existing project", "onboard"]
+SESSION_KEYWORDS = ["session", "会话", "上下文", "启动入口", "接手", "先读什么", "阅读顺序"]
+RULE_KEYWORDS = ["规则", "agents", "gemini", "协作规则", "刷新规则"]
+FRONTEND_KEYWORDS = ["前台", "宿主", "能力", "codex", "gemini", "opencode", "工具能力", "frontend"]
+MULTI_AGENT_KEYWORDS = ["多代理", "多 agent", "协作看板", "分工", "board", "并行协作"]
+WORKFLOW_KEYWORDS = ["工作流", "workflow", "流程执行", "一键流程"]
+PROFILE_KEYWORDS = ["命令画像", "画像", "profile", "profiles", "推荐命令序列"]
+SESSION_OUTPUT_KEYWORDS = ["会话入口", "生成会话", "session", "接手入口"]
+
+PROFILE_SELECTORS = {
+    "requirements-kickoff": ["开始需求", "进入需求阶段", "初始化需求", "需求 kickoff", "requirements kickoff"],
+    "design-kickoff": ["开始设计", "进入设计阶段", "初始化设计", "设计 kickoff", "design kickoff"],
+    "iteration-kickoff": ["开始迭代", "迭代 kickoff", "iteration kickoff", "拆任务", "迭代计划"],
+    "pre-gate": ["gate 前检查", "pre gate", "过 gate", "阶段放行前"],
+    "daily-close": ["日终收尾", "daily close", "今天收尾", "收尾今天"],
+    "release-ready": ["发布准备", "发布前收尾", "release ready", "交付前收尾"],
+    "handover-ready": ["交接准备", "handover ready", "准备交接", "换人接手"],
+}
+
+WORKFLOW_SELECTORS = {
+    "pre_gate": ["pre gate", "pre_gate", "gate 工作流", "gate workflow"],
+    "daily_close": ["daily close workflow", "daily_close", "日终收尾工作流"],
+    "release_ready": ["release ready workflow", "release_ready", "发布准备工作流"],
+    "handover_ready": ["handover ready workflow", "handover_ready", "交接准备工作流"],
+}
+
+ROLE_TITLES = {
+    "coordinator": "项目协调者",
+    "requirements-analyst": "需求分析师",
+    "solution-architect": "架构设计师",
+    "release-manager": "发布经理",
+    "memory-manager": "文档与记忆管理员",
+}
+ACTION_OWNERSHIP_ROLES = {
+    "init": "coordinator",
+    "historical-project-onboarding": "coordinator",
+    "docs-standard-upgrade-batch": "coordinator",
+    "workflow-runner": "release-manager",
+}
+PROFILE_OWNERSHIP_ROLES = {
+    "requirements-kickoff": "requirements-analyst",
+    "design-kickoff": "solution-architect",
+    "iteration-kickoff": "coordinator",
+    "pre-gate": "release-manager",
+    "daily-close": "release-manager",
+    "release-ready": "release-manager",
+    "handover-ready": "release-manager",
+}
+WORKFLOW_OWNERSHIP_ROLES = {
+    "pre_gate": "release-manager",
+    "daily_close": "release-manager",
+    "release_ready": "release-manager",
+    "handover_ready": "release-manager",
+}
+ACTION_OWNERSHIP_TARGETS = {
+    "init": ["AGENTS.md", "GEMINI.md", ".factory", "docs"],
+    "historical-project-onboarding": ["AGENTS.md", "GEMINI.md", ".factory", "docs"],
+    "docs-standard-upgrade-batch": ["."],
+    "workflow-runner": [".factory", "docs"],
+}
+PROFILE_OWNERSHIP_TARGETS = {
+    "requirements-kickoff": [".factory", "docs/04-project-development/03-requirements"],
+    "design-kickoff": [".factory", "docs/04-project-development/04-design"],
+    "iteration-kickoff": [".factory", ".factory/workitems", "docs/04-project-development/05-development-process"],
+    "pre-gate": [".factory", "docs"],
+    "daily-close": [".factory", "docs"],
+    "release-ready": [".factory", "docs"],
+    "handover-ready": [".factory", "docs"],
+}
+WORKFLOW_OWNERSHIP_TARGETS = {
+    "pre_gate": [".factory", "docs"],
+    "daily_close": [".factory", "docs"],
+    "release_ready": [".factory", "docs"],
+    "handover_ready": [".factory", "docs"],
+}
+
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description="把自然语言目标解析成已注册动作和风险判定。")
+    parser.add_argument("intent", nargs="+", help="自然语言目标，例如：继续下一步、刷新 docs 到最新规范。")
+    parser.add_argument("--project", default=".", help="目标项目路径，默认为当前目录。")
+    parser.add_argument("--tool", default="generic", help="当前前台工具，例如 codex、gemini、opencode。")
+    parser.add_argument("--owner", default="意图协调者", help="执行负责人；仅在 --execute-safe 时使用。")
+    parser.add_argument("--note", default="", help="补充说明；仅在 --execute-safe 时使用。")
+    parser.add_argument("--focus", default="", help="会话或画像焦点；仅在 --execute-safe 时使用。")
+    parser.add_argument("--strict", action="store_true", help="在支持的底层命令中透传严格模式。")
+    parser.add_argument("--execute-safe", action="store_true", help="若主推荐动作属于 auto 策略，则直接执行。")
+    parser.add_argument("--request-approval", action="store_true", help="若主推荐动作需要确认，则生成审批票据。")
+    parser.add_argument("--top", type=int, default=3, help="输出候选动作数量。")
+    parser.add_argument("--json", action="store_true", help="以 JSON 输出。")
+    return parser.parse_args()
+
+
+def visible_entry_names(project_root: Path) -> list[str]:
+    ignored = {".git", ".DS_Store", ".factory"}
+    names = []
+    for path in sorted(project_root.iterdir()):
+        if path.name in ignored:
+            continue
+        if path.name.startswith(".") and path.name != "docs":
+            continue
+        names.append(path.name)
+    return names
+
+
+def inspect_project(project_root: Path) -> dict:
+    if not project_root.exists():
+        raise RuntimeError(f"目标项目不存在：{project_root}")
+    if not project_root.is_dir():
+        raise RuntimeError(f"目标路径不是目录：{project_root}")
+
+    managed = (project_root / ".factory" / "project.json").exists()
+    docs_exists = (project_root / "docs").is_dir()
+    entries = visible_entry_names(project_root)
+    project_kind = "empty" if not entries else "historical"
+    stage = ""
+    project_name = project_root.name
+    if managed:
+        config = load_project_config(project_root)
+        stage = str(config.get("stage", "")).strip()
+        project_name = str(config.get("project_name", "")).strip() or project_name
+        project_kind = "managed"
+
+    return {
+        "path": str(project_root),
+        "project_name": project_name,
+        "managed": managed,
+        "docs_exists": docs_exists,
+        "stage": stage,
+        "project_kind": project_kind,
+        "visible_entries": entries[:12],
+    }
+
+
+def contains_keyword(intent_text: str, intent_key: str, keywords: list[str]) -> bool:
+    lowered = intent_text.lower()
+    return any(keyword.lower() in lowered or normalize_key(keyword) in intent_key for keyword in keywords)
+
+
+def missing_frontend_capabilities(action_spec: dict, frontend_profile: dict) -> list[str]:
+    capabilities = frontend_profile.get("capabilities", {})
+    missing = []
+    for requirement in action_spec.get("frontend_requirements", []):
+        if not capabilities.get(str(requirement), False):
+            missing.append(str(requirement))
+    return missing
+
+
+def detect_named_selector(intent_text: str, intent_key: str, selectors: dict[str, list[str]]) -> tuple[str, str] | None:
+    for name, keywords in selectors.items():
+        if contains_keyword(intent_text, intent_key, keywords):
+            return name, f"检测到 `{name}` 子目标语义。"
+    return None
+
+
+def evaluate_action(action_spec: dict, intent_text: str, intent_key: str, facts: dict, frontend_profile: dict) -> dict:
+    action_id = action_spec["id"]
+    score = 0
+    reasons: list[str] = []
+    blocked: list[str] = []
+    selected_profile = ""
+    selected_workflow = ""
+
+    if action_id == "init":
+        if contains_keyword(intent_text, intent_key, NEW_PROJECT_KEYWORDS):
+            score += 12
+            reasons.append("检测到新项目或初始化语义。")
+        if facts["project_kind"] == "empty":
+            score += 8
+            reasons.append("目标目录接近空目录。")
+        else:
+            blocked.append("目录非空，当前不适合直接初始化。")
+    elif action_id == "historical-project-onboarding":
+        if contains_keyword(intent_text, intent_key, ONBOARDING_KEYWORDS):
+            score += 12
+            reasons.append("检测到接管或历史项目纳管语义。")
+        if facts["project_kind"] == "historical":
+            score += 8
+            reasons.append("目标项目尚未纳管且目录非空。")
+        if facts["managed"]:
+            blocked.append("项目已被山海工枢接管。")
+        if facts["project_kind"] == "empty":
+            blocked.append("空目录应优先初始化，而不是历史项目纳管。")
+    elif action_id == "docs-standard-upgrade":
+        docs_hit = contains_keyword(intent_text, intent_key, DOCS_KEYWORDS)
+        if docs_hit:
+            score += 10
+            reasons.append("检测到 docs 刷新或规范升级语义。")
+        if facts["docs_exists"]:
+            if docs_hit:
+                score += 4
+                reasons.append("目标项目已存在 docs/。")
+        else:
+            blocked.append("目标项目不存在 docs/。")
+        if contains_keyword(intent_text, intent_key, BATCH_KEYWORDS):
+            score -= 2
+    elif action_id == "docs-standard-upgrade-batch":
+        if contains_keyword(intent_text, intent_key, DOCS_KEYWORDS):
+            score += 4
+        if contains_keyword(intent_text, intent_key, BATCH_KEYWORDS):
+            score += 12
+            reasons.append("检测到批量刷新多个项目 docs 的语义。")
+    elif action_id == "state-doctor":
+        if contains_keyword(intent_text, intent_key, DIAGNOSTIC_KEYWORDS):
+            score += 10
+            reasons.append("检测到诊断、检查或下一步建议语义。")
+        if not any(
+            contains_keyword(intent_text, intent_key, keywords)
+            for keywords in (
+                DOCS_KEYWORDS,
+                ONBOARDING_KEYWORDS,
+                NEW_PROJECT_KEYWORDS,
+                SESSION_KEYWORDS,
+                RULE_KEYWORDS,
+                FRONTEND_KEYWORDS,
+                MULTI_AGENT_KEYWORDS,
+                WORKFLOW_KEYWORDS,
+                PROFILE_KEYWORDS,
+            )
+        ):
+            score += 4
+            reasons.append("没有出现更强的专项语义，适合作为默认诊断入口。")
+    elif action_id == "agent-session":
+        if contains_keyword(intent_text, intent_key, SESSION_KEYWORDS):
+            score += 12
+            reasons.append("检测到会话启动或上下文整理语义。")
+        if not facts["managed"] and not facts["docs_exists"]:
+            blocked.append("项目未纳管且缺少 docs 入口，先走纳管或初始化更稳妥。")
+    elif action_id == "project-rules-refresh":
+        if contains_keyword(intent_text, intent_key, RULE_KEYWORDS):
+            score += 12
+            reasons.append("检测到规则文件刷新语义。")
+        if not facts["managed"] and not facts["docs_exists"]:
+            blocked.append("项目既未纳管也缺少 docs/，规则刷新边界不明确。")
+    elif action_id == "frontend-capabilities":
+        if contains_keyword(intent_text, intent_key, FRONTEND_KEYWORDS):
+            score += 12
+            reasons.append("检测到前台能力画像查询语义。")
+    elif action_id == "multi-agent-board":
+        if contains_keyword(intent_text, intent_key, MULTI_AGENT_KEYWORDS):
+            score += 12
+            reasons.append("检测到多代理协作和分工看板语义。")
+        if not facts["managed"]:
+            blocked.append("多代理协作看板要求项目已纳入软件工厂。")
+    elif action_id == "workflow-runner":
+        selected = detect_named_selector(intent_text, intent_key, WORKFLOW_SELECTORS)
+        if selected:
+            selected_workflow = selected[0]
+            score += 14
+            reasons.append(selected[1])
+        elif contains_keyword(intent_text, intent_key, WORKFLOW_KEYWORDS):
+            score += 4
+            reasons.append("检测到高层工作流语义，但还没有识别出具体 workflow 名称。")
+            blocked.append("缺少明确 workflow 名称，无法直接执行 workflow-runner。")
+        if not facts["managed"]:
+            blocked.append("高层工作流要求项目已纳入软件工厂。")
+    elif action_id == "command-profiles":
+        selected = detect_named_selector(intent_text, intent_key, PROFILE_SELECTORS)
+        if selected:
+            selected_profile = selected[0]
+            score += 14
+            reasons.append(selected[1])
+            if contains_keyword(intent_text, intent_key, SESSION_OUTPUT_KEYWORDS):
+                score += 2
+                reasons.append("该 profile 会附带生成会话入口。")
+            if contains_keyword(intent_text, intent_key, WORKFLOW_KEYWORDS):
+                score -= 4
+                reasons.append("输入显式提到 workflow，优先让 workflow-runner 处理。")
+        elif contains_keyword(intent_text, intent_key, PROFILE_KEYWORDS):
+            score += 4
+            reasons.append("检测到命令画像语义，但还没有识别出具体 profile 名称。")
+            blocked.append("缺少明确 profile 名称，无法直接执行 command-profiles。")
+        if not facts["managed"]:
+            blocked.append("命令画像依赖软件工厂项目状态。")
+
+    if contains_keyword(intent_text, intent_key, DIAGNOSTIC_KEYWORDS):
+        if facts["project_kind"] == "empty" and action_id == "init":
+            score += 4
+        elif facts["project_kind"] == "historical" and action_id == "historical-project-onboarding":
+            score += 4
+        elif facts["managed"] and action_id == "state-doctor":
+            score += 4
+
+    missing = missing_frontend_capabilities(action_spec, frontend_profile)
+    if missing:
+        blocked.append("当前前台缺少能力：" + ", ".join(missing))
+
+    policy = effective_action_policy(
+        action_spec["id"],
+        selected_profile=selected_profile,
+        selected_workflow=selected_workflow,
+    )
+
+    return {
+        "action": action_id,
+        "description": action_spec["description"],
+        "score": score,
+        "reasons": reasons,
+        "blocked": blocked,
+        "frontend_supported": not missing,
+        "policy": policy,
+        "selected_profile": selected_profile,
+        "selected_workflow": selected_workflow,
+    }
+
+
+def fallback_action(facts: dict) -> tuple[str, str]:
+    if facts["project_kind"] == "empty":
+        return "init", "目标目录接近空目录，默认推荐初始化项目。"
+    if facts["project_kind"] == "historical":
+        return "historical-project-onboarding", "目标目录非空但未纳管，默认推荐历史项目接管。"
+    return "state-doctor", "项目已纳管或已有明确骨架，默认先做状态诊断。"
+
+
+def command_hint(action_id: str, project_root: Path, intent_text: str, candidate: dict | None = None) -> str:
+    dispatch = factory_workspace_root() / "scripts" / "factory-dispatch"
+    if action_id == "docs-standard-upgrade":
+        return f"python3 {dispatch} {action_id} --project \"{project_root}\""
+    if action_id == "docs-standard-upgrade-batch":
+        return f"python3 {dispatch} {action_id} --root \"{project_root}\" --check"
+    if action_id == "historical-project-onboarding":
+        goal = intent_text.strip() or "纳入软件工厂治理"
+        return f"python3 {dispatch} {action_id} --project \"{project_root}\" --owner \"<owner>\" --goal \"{goal}\""
+    if action_id == "init":
+        return f"python3 {dispatch} {action_id} --path \"{project_root}\" --name \"{project_root.name}\" --idea \"{intent_text.strip()}\""
+    if action_id == "state-doctor":
+        return f"python3 {dispatch} {action_id} --project \"{project_root}\" --owner \"<owner>\" --scope full"
+    if action_id == "agent-session":
+        return f"python3 {dispatch} {action_id} --project \"{project_root}\" --owner \"<owner>\" --focus \"{intent_text.strip()}\""
+    if action_id == "frontend-capabilities":
+        return f"python3 {dispatch} {action_id} --list"
+    if action_id == "command-profiles" and candidate and candidate.get("selected_profile"):
+        return (
+            f"python3 {dispatch} {action_id} {candidate['selected_profile']} --project \"{project_root}\" "
+            f"--owner \"<owner>\" --focus \"{intent_text.strip()}\""
+        )
+    if action_id == "workflow-runner" and candidate and candidate.get("selected_workflow"):
+        return (
+            f"python3 {dispatch} {action_id} --project \"{project_root}\" --workflow {candidate['selected_workflow']} "
+            f"--owner \"<owner>\" --focus \"{intent_text.strip()}\""
+        )
+    return f"python3 {dispatch} {action_id} --project \"{project_root}\""
+
+
+def derive_doctor_scope(intent_text: str, intent_key: str) -> str:
+    if contains_keyword(intent_text, intent_key, ["gate", "pre gate", "阶段放行"]):
+        return "gate"
+    if contains_keyword(intent_text, intent_key, ["发布", "交付", "release", "delivery"]):
+        return "delivery"
+    if contains_keyword(intent_text, intent_key, ["docs", "文档", "目录", "索引", "规范"]):
+        return "docs"
+    return "full"
+
+
+def infer_approval_ownership(result: dict, owner: str) -> dict:
+    primary = result.get("primary") or {}
+    action_id = str(primary.get("action", "")).strip()
+    selected_profile = str(primary.get("selected_profile", "")).strip()
+    selected_workflow = str(primary.get("selected_workflow", "")).strip()
+    role_id = (
+        PROFILE_OWNERSHIP_ROLES.get(selected_profile)
+        or WORKFLOW_OWNERSHIP_ROLES.get(selected_workflow)
+        or ACTION_OWNERSHIP_ROLES.get(action_id)
+        or "coordinator"
+    )
+    write_targets = (
+        PROFILE_OWNERSHIP_TARGETS.get(selected_profile)
+        or WORKFLOW_OWNERSHIP_TARGETS.get(selected_workflow)
+        or ACTION_OWNERSHIP_TARGETS.get(action_id)
+        or []
+    )
+    project_root = Path(result["project"]["path"])
+    return {
+        "role_id": role_id,
+        "role_title": ROLE_TITLES.get(role_id, role_id),
+        "execution_owner": owner,
+        "write_targets": normalize_write_targets(project_root, write_targets),
+        "source": "inferred",
+    }
+
+
+def snapshot_ownership_conflicts(result: dict, ownership: dict) -> list[dict]:
+    facts = result.get("project", {})
+    if not facts.get("managed"):
+        return []
+    write_targets = list(ownership.get("write_targets", []))
+    role_id = str(ownership.get("role_id", "")).strip()
+    if not role_id or not write_targets:
+        return []
+    project_root = Path(facts["path"])
+    config = load_project_config(project_root)
+    candidate_assignment = {
+        "owner": ownership.get("execution_owner", ""),
+        "tool": result.get("frontend", {}).get("id", "generic"),
+        "items": [],
+        "status": "进行中",
+        "focus": result.get("intent", ""),
+        "note": "intent approval ownership snapshot",
+        "write_targets": write_targets,
+    }
+    return role_assignment_conflicts(
+        project_root,
+        config,
+        candidate_role_id=role_id,
+        candidate_assignment=candidate_assignment,
+    )
+
+
+def build_execution_plan(result: dict, *, owner: str, note: str, focus: str, strict: bool) -> dict:
+    candidate = result.get("primary") or {}
+    action_id = candidate.get("action", "")
+    project = result["project"]
+    project_root = Path(project["path"])
+    project_name = project.get("project_name", project_root.name) or project_root.name
+    intent_text = result.get("intent", "")
+    intent_key = normalize_key(intent_text)
+    note_text = note.strip() or intent_text
+    focus_text = focus.strip() or intent_text
+
+    plan = {
+        "action": action_id,
+        "script_name": "",
+        "arguments": [],
+        "label": "",
+    }
+
+    if action_id == "state-doctor":
+        plan.update(
+            script_name="factory-state-doctor",
+            arguments=["--project", str(project_root), "--owner", owner, "--scope", derive_doctor_scope(intent_text, intent_key), "--note", note_text],
+            label="按意图执行状态诊断",
+        )
+    elif action_id == "init":
+        plan.update(
+            script_name="factory-init",
+            arguments=["--path", str(project_root), "--name", project_name, "--idea", note_text, "--stack", "auto", "--owner", owner],
+            label="按意图初始化项目骨架",
+        )
+    elif action_id == "historical-project-onboarding":
+        plan.update(
+            script_name="factory-historical-project-onboarding",
+            arguments=["--project", str(project_root), "--owner", owner, "--goal", note_text, "--name", project_name, "--stack", "auto"],
+            label="按意图接管历史项目",
+        )
+    elif action_id == "agent-session":
+        plan.update(
+            script_name="factory-agent-session",
+            arguments=["--project", str(project_root), "--owner", owner, "--focus", focus_text],
+            label="按意图生成会话入口",
+        )
+    elif action_id == "docs-standard-upgrade":
+        plan.update(
+            script_name="factory-docs-standard-upgrade",
+            arguments=["--project", str(project_root), "--name", project_name, "--owner", owner],
+            label="按意图升级 docs 标准",
+        )
+    elif action_id == "docs-standard-upgrade-batch":
+        plan.update(
+            script_name="factory-docs-standard-upgrade-batch",
+            arguments=["--root", str(project_root), "--max-depth", "2"],
+            label="按意图批量升级 docs 标准",
+        )
+    elif action_id == "project-rules-refresh":
+        plan.update(
+            script_name="factory-project-rules-refresh",
+            arguments=["--project", str(project_root), "--owner", owner, "--note", note_text],
+            label="按意图刷新项目规则",
+        )
+    elif action_id == "frontend-capabilities":
+        requested_tool = result.get("frontend", {}).get("id", "generic")
+        plan.update(
+            script_name="factory-frontend-capabilities",
+            arguments=["--tool", requested_tool],
+            label="按意图查询前台能力画像",
+        )
+    elif action_id == "multi-agent-board":
+        plan.update(
+            script_name="factory-multi-agent-board",
+            arguments=["--project", str(project_root), "--owner", owner, "--focus", focus_text],
+            label="按意图生成多代理协作看板",
+        )
+    elif action_id == "command-profiles":
+        selected_profile = candidate.get("selected_profile", "").strip()
+        if not selected_profile:
+            raise RuntimeError("命令画像缺少具体 profile，无法自动执行。")
+        arguments = [selected_profile, "--project", str(project_root), "--owner", owner, "--note", note_text, "--focus", focus_text]
+        if strict:
+            arguments.append("--strict")
+        plan.update(
+            script_name="factory-command-profiles",
+            arguments=arguments,
+            label=f"按意图执行命令画像 {selected_profile}",
+        )
+    elif action_id == "workflow-runner":
+        selected_workflow = candidate.get("selected_workflow", "").strip()
+        if not selected_workflow:
+            raise RuntimeError("工作流入口缺少具体 workflow，无法自动执行。")
+        arguments = ["--project", str(project_root), "--workflow", selected_workflow, "--owner", owner, "--note", note_text, "--focus", focus_text]
+        if strict:
+            arguments.append("--strict")
+        plan.update(
+            script_name="factory-workflow-runner",
+            arguments=arguments,
+            label=f"按意图执行工作流 {selected_workflow}",
+        )
+    else:
+        raise RuntimeError(f"当前动作 `{action_id}` 还没有接入安全自动执行。")
+
+    return plan
+
+
+def request_primary_approval(result: dict, *, owner: str, note: str, focus: str, strict: bool) -> dict:
+    primary = result.get("primary")
+    if not primary:
+        return {
+            "status": "blocked",
+            "summary": "没有可申请审批的主推荐动作。",
+            "next_actions": ["补充更明确的目标语义后重试。"],
+            "artifacts": [],
+        }
+    if primary.get("blocked"):
+        return {
+            "status": "blocked",
+            "summary": "主推荐动作当前存在阻塞条件，无法创建审批票据。",
+            "next_actions": primary["blocked"],
+            "artifacts": [],
+        }
+
+    policy = primary.get("policy", {})
+    if policy.get("approval") == "auto" and policy.get("execution") == "auto":
+        return {
+            "status": "not_required",
+            "summary": f"主推荐动作 `{primary['action']}` 已属于 auto 策略，不需要审批票据。",
+            "next_actions": ["如需直接执行，请改用 `--execute-safe`。"],
+            "artifacts": [],
+        }
+
+    plan = build_execution_plan(result, owner=owner, note=note, focus=focus, strict=strict)
+    ownership = infer_approval_ownership(result, owner)
+    ownership_conflicts = snapshot_ownership_conflicts(result, ownership)
+    action_id = primary["action"]
+    now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    ticket_id = new_intent_approval_id(action_id)
+    record = {
+        "id": ticket_id,
+        "status": "pending",
+        "created_at": now,
+        "updated_at": now,
+        "requested_by": owner,
+        "intent": result.get("intent", ""),
+        "project_path": result["project"]["path"],
+        "project_kind": result["project"]["project_kind"],
+        "frontend_id": result.get("frontend", {}).get("id", "generic"),
+        "action": action_id,
+        "risk_level": policy.get("risk_level", "L3"),
+        "approval": policy.get("approval", "explicit_confirm"),
+        "execution": policy.get("execution", "blocked_until_approved"),
+        "reasons": list(primary.get("reasons", [])),
+        "artifacts": list(load_action_registry().get(action_id, {}).get("artifacts", [])),
+        "command_hint": primary.get("command_hint", ""),
+        "note": note.strip(),
+        "focus": focus.strip(),
+        "strict": strict,
+        "selected_profile": primary.get("selected_profile", ""),
+        "selected_workflow": primary.get("selected_workflow", ""),
+        "ownership": ownership,
+        "ownership_conflicts": ownership_conflicts,
+        "plan": plan,
+    }
+    records = load_intent_approval_records()
+    records.append(record)
+    save_intent_approval_records(records)
+    write_intent_approval_views(records)
+    append_log_line(
+        intent_control_root() / EXECUTION_LOG_RELATIVE,
+        f"- {datetime.now().strftime('%Y-%m-%d')}: 创建 intent 审批票据 `{ticket_id}`，动作 `{action_id}`，项目 `{result['project']['path']}`。",
+    )
+    return {
+        "status": "pending_approval",
+        "summary": f"已为 `{action_id}` 创建审批票据 `{ticket_id}`。",
+        "artifacts": [
+            ".factory/process/intent-approvals.json",
+            ".factory/process/intent-approvals.md",
+            ".factory/memory/intent-approvals.summary.md",
+        ],
+        "next_actions": ([
+            f"运行 `python3 {factory_workspace_root() / 'scripts' / 'factory-dispatch'} intent-approval {ticket_id} --approve --owner \"<owner>\"` 执行审批。",
+            f"或运行 `python3 {factory_workspace_root() / 'scripts' / 'factory-dispatch'} intent-approval {ticket_id} --reject --owner \"<owner>\"` 拒绝票据。",
+        ] + ([f"当前票据冻结的 ownership 与现有角色分派存在 {len(ownership_conflicts)} 组写集冲突，批准前需先消除冲突。"] if ownership_conflicts else [])),
+        "ticket": ticket_id,
+        "plan": plan,
+        "record": record,
+    }
+
+
+def execute_primary_safe(result: dict, *, owner: str, note: str, focus: str, strict: bool) -> dict:
+    primary = result.get("primary")
+    if not primary:
+        return {
+            "status": "blocked",
+            "summary": "没有可执行的主推荐动作。",
+            "next_actions": ["补充更明确的目标语义后重试。"],
+            "artifacts": [],
+        }
+    if primary.get("blocked"):
+        return {
+            "status": "blocked",
+            "summary": "主推荐动作当前存在阻塞条件，未执行。",
+            "next_actions": primary["blocked"],
+            "artifacts": [],
+        }
+
+    policy = primary.get("policy", {})
+    if policy.get("approval") != "auto" or policy.get("execution") != "auto":
+        return {
+            "status": "policy_denied",
+            "summary": f"主推荐动作 `{primary['action']}` 的默认策略不是 auto，停止在审批边界。",
+            "next_actions": [command_hint(primary["action"], Path(result["project"]["path"]), result["intent"], primary)],
+            "artifacts": [],
+        }
+
+    plan = build_execution_plan(result, owner=owner, note=note, focus=focus, strict=strict)
+    step = run_script(plan["script_name"], *plan["arguments"], label=plan["label"])
+    artifacts = list(load_action_registry().get(primary["action"], {}).get("artifacts", []))
+    next_actions = []
+    if step["returncode"] == 0:
+        next_actions.append("如需继续自动推进，可基于本轮结果再次调用 intent-resolver。")
+        status = "success"
+        summary = f"已按安全策略执行 `{primary['action']}`。"
+    else:
+        next_actions.append("先查看 stderr 和相关产物，再决定是否改为手工入口或补充上下文。")
+        status = "error"
+        summary = f"`{primary['action']}` 执行失败，返回码 {step['returncode']}。"
+
+    return {
+        "status": status,
+        "summary": summary,
+        "artifacts": artifacts,
+        "verification": [f"returncode={step['returncode']}"] + ([step["stdout"]] if step["stdout"] else []),
+        "next_actions": next_actions,
+        "step": step,
+        "plan": plan,
+    }
+
+
+def resolve_intent(intent_text: str, project_root: Path, tool: str = "generic", top: int = 3) -> dict:
+    facts = inspect_project(project_root)
+    frontend_profile = resolve_frontend_profile(tool.strip(), default_id="generic")
+    registry = load_action_registry()
+    intent_key = normalize_key(intent_text)
+
+    candidates = [
+        evaluate_action(spec, intent_text, intent_key, facts, frontend_profile)
+        for action_id, spec in registry.items()
+        if action_id != "intent-resolver"
+    ]
+
+    if not any(item["score"] > 0 for item in candidates):
+        fallback_id, fallback_reason = fallback_action(facts)
+        for item in candidates:
+            if item["action"] == fallback_id:
+                item["score"] += 10
+                item["reasons"].append(fallback_reason)
+                break
+
+    ordered = sorted(
+        candidates,
+        key=lambda item: (
+            1 if item["blocked"] else 0,
+            -item["score"],
+            item["action"],
+        ),
+    )
+
+    primary = next((item for item in ordered if not item["blocked"]), ordered[0] if ordered else None)
+    if primary is not None:
+        primary["command_hint"] = command_hint(primary["action"], project_root, intent_text, primary)
+    for item in ordered[: max(1, top)]:
+        item.setdefault("command_hint", command_hint(item["action"], project_root, intent_text, item))
+
+    blocked = [item for item in ordered if item["blocked"] and item["score"] > 0][:2]
+    for item in blocked:
+        item.setdefault("command_hint", command_hint(item["action"], project_root, intent_text, item))
+
+    return {
+        "intent": intent_text.strip(),
+        "project": facts,
+        "frontend": {
+            "id": frontend_profile.get("id", "generic"),
+            "label": frontend_profile.get("label", "通用 CLI 模型"),
+        },
+        "primary": primary,
+        "candidates": ordered[: max(1, top)],
+        "blocked_candidates": blocked,
+    }
+
+
+def render_markdown(result: dict) -> str:
+    facts = result["project"]
+    primary = result["primary"]
+    candidate_lines = []
+    for item in result["candidates"]:
+        policy = item["policy"]
+        reasons = "；".join(item["reasons"]) or "未提供额外理由。"
+        blocked = f" | 阻塞：{'；'.join(item['blocked'])}" if item["blocked"] else ""
+        subtarget = ""
+        if item.get("selected_profile"):
+            subtarget = f" | profile：`{item['selected_profile']}`"
+        if item.get("selected_workflow"):
+            subtarget = f" | workflow：`{item['selected_workflow']}`"
+        candidate_lines.append(
+            f"- `{item['action']}` [{policy.get('risk_level', 'L3')} | {policy.get('approval', 'explicit_confirm')}]"
+            f"：{item['description']} | 评分：{item['score']} | 理由：{reasons}{subtarget}{blocked}"
+        )
+
+    blocked_lines = []
+    for item in result["blocked_candidates"]:
+        blocked_lines.append(
+            f"- `{item['action']}`：{'；'.join(item['blocked'])}"
+        )
+
+    lines = [
+        "# 意图解析结果",
+        "",
+        f"- 输入：{result['intent']}",
+        f"- 项目：`{facts['path']}`",
+        f"- 项目类型：`{facts['project_kind']}`",
+        f"- 当前阶段：`{facts['stage'] or '未知'}`",
+        f"- docs 入口：{'有' if facts['docs_exists'] else '无'}",
+        f"- 前台：`{result['frontend']['id']}` ({result['frontend']['label']})",
+        "",
+        "## 主推荐动作",
+        "",
+        f"- 动作：`{primary['action']}`",
+        f"- 风险：`{primary['policy'].get('risk_level', 'L3')}`",
+        f"- 审批：`{primary['policy'].get('approval', 'explicit_confirm')}`",
+        *([f"- 子目标：`{primary['selected_profile']}`"] if primary.get("selected_profile") else []),
+        *([f"- 子目标：`{primary['selected_workflow']}`"] if primary.get("selected_workflow") else []),
+        f"- 理由：{'；'.join(primary['reasons']) or '未提供额外理由。'}",
+        f"- 建议命令：`{primary['command_hint']}`",
+        "",
+        "## 候选动作",
+        "",
+        *candidate_lines,
+    ]
+    execution = result.get("execution")
+    if execution:
+        lines.extend(
+            [
+                "",
+                "## 安全执行",
+                "",
+                f"- 状态：`{execution.get('status', 'unknown')}`",
+                f"- 摘要：{execution.get('summary', '无')}",
+            ]
+        )
+        plan = execution.get("plan") or {}
+        if plan.get("script_name"):
+            lines.append(
+                f"- 执行入口：`{plan['script_name']} {' '.join(plan.get('arguments', []))}`"
+            )
+        step = execution.get("step") or {}
+        if step:
+            lines.append(f"- 返回码：`{step.get('returncode', 'unknown')}`")
+        artifacts = execution.get("artifacts") or []
+        if artifacts:
+            lines.extend(["- 产物："] + [f"  - `{item}`" for item in artifacts])
+        next_actions = execution.get("next_actions") or []
+        if next_actions:
+            lines.extend(["- 下一步："] + [f"  - {item}" for item in next_actions])
+    approval_request = result.get("approval_request")
+    if approval_request:
+        lines.extend(
+            [
+                "",
+                "## 审批票据",
+                "",
+                f"- 状态：`{approval_request.get('status', 'unknown')}`",
+                f"- 摘要：{approval_request.get('summary', '无')}",
+            ]
+        )
+        if approval_request.get("ticket"):
+            lines.append(f"- 票据：`{approval_request['ticket']}`")
+        plan = approval_request.get("plan") or {}
+        if plan.get("script_name"):
+            lines.append(f"- 待执行入口：`{plan['script_name']} {' '.join(plan.get('arguments', []))}`")
+        next_actions = approval_request.get("next_actions") or []
+        if next_actions:
+            lines.extend(["- 下一步："] + [f"  - {item}" for item in next_actions])
+    if blocked_lines:
+        lines.extend(["", "## 已排除动作", "", *blocked_lines])
+    return "\n".join(lines).rstrip() + "\n"
+
+
+def main() -> int:
+    args = parse_args()
+    project_root = Path(args.project).expanduser().resolve()
+    intent_text = " ".join(args.intent).strip()
+
+    try:
+        if args.execute_safe and args.request_approval:
+            raise RuntimeError("`--execute-safe` 与 `--request-approval` 不能同时使用。")
+        result = resolve_intent(intent_text, project_root, tool=args.tool, top=args.top)
+        if args.execute_safe:
+            result["execution"] = execute_primary_safe(
+                result,
+                owner=args.owner.strip(),
+                note=args.note.strip(),
+                focus=args.focus.strip(),
+                strict=args.strict,
+            )
+        if args.request_approval:
+            result["approval_request"] = request_primary_approval(
+                result,
+                owner=args.owner.strip(),
+                note=args.note.strip(),
+                focus=args.focus.strip(),
+                strict=args.strict,
+            )
+    except Exception as exc:
+        print(f"意图解析失败：{exc}", file=sys.stderr)
+        return 1
+
+    if args.json:
+        print(json.dumps(result, ensure_ascii=False, indent=2))
+        return 0
+
+    print(render_markdown(result))
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

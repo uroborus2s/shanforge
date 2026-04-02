@@ -1,0 +1,377 @@
+#!/usr/bin/env python3
+
+import argparse
+from datetime import datetime
+import json
+from pathlib import Path
+import sys
+
+from factory_core import (
+    EXECUTION_LOG_RELATIVE,
+    assignment_write_targets,
+    append_log_line,
+    current_role_assignment,
+    intent_control_root,
+    load_intent_approval_records,
+    load_project_config,
+    normalize_write_targets,
+    role_assignment_conflicts,
+    run_script,
+    save_intent_approval_records,
+    save_project_config,
+    set_current_role_assignment,
+    write_intent_approval_views,
+    write_targets_overlap,
+)
+
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description="查看或处理 intent 审批票据。")
+    parser.add_argument("ticket", nargs="?", help="审批票据 ID。")
+    parser.add_argument("--list", action="store_true", help="列出当前审批票据。")
+    parser.add_argument("--approve", action="store_true", help="批准指定票据并执行其待执行计划。")
+    parser.add_argument("--reject", action="store_true", help="拒绝指定票据。")
+    parser.add_argument("--owner", default="审批人", help="当前审批人。")
+    parser.add_argument("--note", default="", help="审批备注。")
+    parser.add_argument("--json", action="store_true", help="以 JSON 输出。")
+    return parser.parse_args()
+
+
+def compact_text(value: str, limit: int = 240) -> str:
+    text = str(value or "").strip()
+    if len(text) <= limit:
+        return text
+    return text[: limit - 3].rstrip() + "..."
+
+
+def record_summary(record: dict) -> dict:
+    ownership = record.get("ownership") or {}
+    ownership_check = record.get("ownership_check") or {}
+    return {
+        "id": record.get("id", ""),
+        "status": record.get("status", ""),
+        "action": record.get("action", ""),
+        "project_path": record.get("project_path", ""),
+        "risk_level": record.get("risk_level", ""),
+        "approval": record.get("approval", ""),
+        "created_at": record.get("created_at", ""),
+        "updated_at": record.get("updated_at", ""),
+        "decision_owner": record.get("decision_owner", ""),
+        "ownership_role": ownership.get("role_title", ""),
+        "ownership_check": ownership_check.get("status", ""),
+    }
+
+
+def ordered_records(records: list[dict]) -> list[dict]:
+    return sorted(records, key=lambda item: str(item.get("created_at", "")), reverse=True)
+
+
+def list_payload() -> dict:
+    records = ordered_records(load_intent_approval_records())
+    pending = [record_summary(item) for item in records if item.get("status") == "pending"]
+    recent = [record_summary(item) for item in records if item.get("status") != "pending"][:10]
+    return {
+        "status": "success",
+        "summary": f"当前共有 {len(records)} 张 intent 审批票据，其中待审批 {len(pending)} 张。",
+        "pending": pending,
+        "recent": recent,
+        "total": len(records),
+    }
+
+
+def find_record(records: list[dict], ticket: str) -> tuple[int, dict]:
+    for index, record in enumerate(records):
+        if record.get("id") == ticket:
+            return index, record
+    raise RuntimeError(f"未找到审批票据：{ticket}")
+
+
+def inspect_ticket(ticket: str) -> dict:
+    records = load_intent_approval_records()
+    _, record = find_record(records, ticket)
+    return {
+        "status": "success",
+        "summary": f"已读取审批票据 `{ticket}`。",
+        "ticket": ticket,
+        "record": record,
+    }
+
+
+def decision_log_line(ticket: str, action: str, decision: str, owner: str, status: str) -> str:
+    return (
+        f"- {datetime.now().strftime('%Y-%m-%d')}: intent 审批票据 `{ticket}` 执行 `{decision}`，"
+        f"动作 `{action}`，审批人 `{owner}`，结果 `{status}`。"
+    )
+
+
+def frozen_ownership(record: dict) -> dict:
+    ownership = dict(record.get("ownership") or {})
+    project_path = Path(str(record.get("project_path", "."))).expanduser().resolve()
+    ownership["write_targets"] = normalize_write_targets(project_path, ownership.get("write_targets", []))
+    ownership.setdefault("role_id", "")
+    ownership.setdefault("role_title", ownership.get("role_id", ""))
+    ownership.setdefault("execution_owner", "")
+    return ownership
+
+
+def enforce_ownership_guard(record: dict) -> dict:
+    ownership = frozen_ownership(record)
+    role_id = str(ownership.get("role_id", "")).strip()
+    project_root = Path(str(record.get("project_path", "."))).expanduser().resolve()
+    write_targets = list(ownership.get("write_targets", []))
+    if not role_id or not write_targets:
+        return {
+            "status": "skipped",
+            "summary": "票据未声明 ownership 写集，跳过 ownership 绑定。",
+            "ownership": ownership,
+            "conflicts": [],
+        }
+    if not (project_root / ".factory" / "project.json").exists():
+        return {
+            "status": "skipped",
+            "summary": "目标项目尚未纳管，暂不执行 ownership 冲突校验。",
+            "ownership": ownership,
+            "conflicts": [],
+        }
+
+    config = load_project_config(project_root)
+    current = current_role_assignment(config, role_id)
+    current_targets = assignment_write_targets(project_root, current)
+    current_owner = str(current.get("owner", "")).strip()
+    execution_owner = str(ownership.get("execution_owner", "")).strip()
+    if current_owner and execution_owner and current_owner != execution_owner:
+        if not current_targets or any(
+            write_targets_overlap(left, right)
+            for left in current_targets
+            for right in write_targets
+        ):
+            return {
+                "status": "blocked_owner_mismatch",
+                "summary": f"角色 `{ownership.get('role_title', role_id)}` 当前负责人为 `{current_owner}`，与票据冻结执行人 `{execution_owner}` 不一致。",
+                "ownership": ownership,
+                "conflicts": [],
+            }
+
+    candidate_assignment = {
+        "owner": execution_owner,
+        "tool": str(record.get("frontend_id", "")).strip() or "shared",
+        "items": list(current.get("items", [])),
+        "status": "进行中",
+        "focus": str(record.get("focus", "")).strip(),
+        "note": str(record.get("note", "")).strip(),
+        "write_targets": write_targets,
+    }
+    conflicts = role_assignment_conflicts(
+        project_root,
+        config,
+        candidate_role_id=role_id,
+        candidate_assignment=candidate_assignment,
+    )
+    if conflicts:
+        return {
+            "status": "blocked_conflict",
+            "summary": f"票据冻结的 ownership 与当前角色分派存在 {len(conflicts)} 组写集冲突。",
+            "ownership": ownership,
+            "conflicts": conflicts,
+        }
+
+    bound_assignment = dict(current) if current else {}
+    bound_assignment.update(candidate_assignment)
+    bound_assignment["assigned_at"] = str(current.get("assigned_at", "")).strip() or datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    set_current_role_assignment(config, role_id, bound_assignment)
+    save_project_config(project_root, config)
+    return {
+        "status": "ready",
+        "summary": f"已绑定票据 ownership 到角色 `{ownership.get('role_title', role_id)}`。",
+        "ownership": ownership,
+        "conflicts": [],
+    }
+
+
+def decide_ticket(ticket: str, *, decision: str, owner: str, note: str) -> dict:
+    records = load_intent_approval_records()
+    index, record = find_record(records, ticket)
+    status = str(record.get("status", ""))
+    if status != "pending":
+        return {
+            "status": "already_processed",
+            "summary": f"票据 `{ticket}` 已处理，当前状态 `{status}`。",
+            "ticket": ticket,
+            "record": record,
+        }
+
+    now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    updated = dict(record)
+    updated["decision"] = decision
+    updated["decision_owner"] = owner
+    updated["decision_note"] = note.strip()
+    updated["decided_at"] = now
+    updated["updated_at"] = now
+
+    step = None
+    if decision == "reject":
+        updated["status"] = "rejected"
+        summary = f"已拒绝审批票据 `{ticket}`。"
+        next_actions = ["如需继续推进，请调整意图或补充上下文后重新申请审批。"]
+    else:
+        ownership_check = enforce_ownership_guard(updated)
+        updated["ownership_check"] = {
+            "status": ownership_check.get("status", "unknown"),
+            "summary": ownership_check.get("summary", ""),
+            "ownership": ownership_check.get("ownership", {}),
+            "conflicts": ownership_check.get("conflicts", []),
+        }
+        if ownership_check.get("status") not in {"ready", "skipped"}:
+            updated["status"] = ownership_check.get("status", "blocked_conflict")
+            summary = ownership_check.get("summary", f"票据 `{ticket}` 因 ownership 校验未通过而阻断。")
+            next_actions = [
+                "先解决角色 ownership 冲突或负责人不一致，再重新批准票据。",
+                "如需放弃当前计划，可拒绝票据并重新申请。",
+            ]
+        else:
+            plan = updated.get("plan") or {}
+            script_name = str(plan.get("script_name", "")).strip()
+            if not script_name:
+                raise RuntimeError(f"票据 `{ticket}` 缺少可执行计划。")
+            step = run_script(script_name, *plan.get("arguments", []), label=plan.get("label", "执行审批票据"))
+            updated["step"] = {
+                "label": step.get("label", ""),
+                "command": step.get("command", ""),
+                "returncode": step.get("returncode", 1),
+                "stdout": compact_text(step.get("stdout", "")),
+                "stderr": compact_text(step.get("stderr", "")),
+            }
+            updated["status"] = "executed" if step.get("returncode", 1) == 0 else "failed"
+            summary = (
+                f"已批准并执行票据 `{ticket}`。"
+                if updated["status"] == "executed"
+                else f"票据 `{ticket}` 已批准，但执行失败。"
+            )
+            next_actions = (
+                ["如需继续推进，可基于当前产物再次调用 intent-resolver。"]
+                if updated["status"] == "executed"
+                else ["先查看执行计划返回信息，再决定是否修正上下文或重新申请审批。"]
+            )
+
+    records[index] = updated
+    save_intent_approval_records(records)
+    write_intent_approval_views(records)
+    append_log_line(
+        intent_control_root() / EXECUTION_LOG_RELATIVE,
+        decision_log_line(ticket, str(updated.get("action", "")), decision, owner, str(updated.get("status", ""))),
+    )
+    return {
+        "status": updated["status"],
+        "summary": summary,
+        "ticket": ticket,
+        "record": updated,
+        "step": step,
+        "artifacts": list(updated.get("artifacts", [])),
+        "next_actions": next_actions,
+    }
+
+
+def render_markdown(payload: dict) -> str:
+    status = payload.get("status", "unknown")
+    if "pending" in payload and "recent" in payload:
+        lines = [
+            "# Intent 审批票据",
+            "",
+            f"- 状态：`{status}`",
+            f"- 摘要：{payload.get('summary', '无')}",
+            "",
+            "## 待审批",
+            "",
+        ]
+        pending = payload.get("pending", [])
+        if pending:
+            for item in pending:
+                ownership = f" | ownership：`{item['ownership_role']}`" if item.get('ownership_role') else ""
+                guard = f" | 绑定：`{item['ownership_check']}`" if item.get('ownership_check') else ""
+                lines.append(
+                    f"- `{item['id']}` | 动作：`{item['action']}` | 风险：`{item['risk_level']}` | 项目：`{item['project_path']}`{ownership}{guard}"
+                )
+        else:
+            lines.append("- 当前没有待审批票据。")
+        lines.extend(["", "## 最近已处理", ""])
+        recent = payload.get("recent", [])
+        if recent:
+            for item in recent:
+                lines.append(
+                    f"- `{item['id']}` | 状态：`{item['status']}` | 动作：`{item['action']}` | 审批人：{item['decision_owner'] or '无'}"
+                )
+        else:
+            lines.append("- 当前还没有已处理票据。")
+        return "\n".join(lines).rstrip() + "\n"
+
+    record = payload.get("record") or {}
+    lines = [
+        "# Intent 审批票据",
+        "",
+        f"- 状态：`{status}`",
+        f"- 摘要：{payload.get('summary', '无')}",
+        f"- 票据：`{payload.get('ticket', record.get('id', ''))}`",
+        f"- 动作：`{record.get('action', '')}`",
+        f"- 项目：`{record.get('project_path', '')}`",
+        f"- 风险：`{record.get('risk_level', '')}`",
+        f"- 审批策略：`{record.get('approval', '')}`",
+    ]
+    if record.get("intent"):
+        lines.append(f"- 原始意图：{record.get('intent', '')}")
+    if record.get("reasons"):
+        lines.append(f"- 理由：{'；'.join(record.get('reasons', []))}")
+    ownership = record.get("ownership") or {}
+    if ownership:
+        lines.append(
+            f"- ownership：`{ownership.get('role_title', ownership.get('role_id', ''))}` | 写集：`{', '.join(ownership.get('write_targets', [])) or '无'}` | 执行人：`{ownership.get('execution_owner', '') or '未声明'}`"
+        )
+    ownership_check = record.get("ownership_check") or {}
+    if ownership_check:
+        lines.append(f"- ownership 校验：`{ownership_check.get('status', '')}` | {ownership_check.get('summary', '')}")
+    plan = record.get("plan") or {}
+    if plan.get("script_name"):
+        lines.append(f"- 计划：`{plan['script_name']} {' '.join(plan.get('arguments', []))}`")
+    step = payload.get("step") or record.get("step") or {}
+    if step:
+        lines.append(f"- 返回码：`{step.get('returncode', 'unknown')}`")
+        if step.get("stdout"):
+            lines.append(f"- stdout：`{step['stdout']}`")
+        if step.get("stderr"):
+            lines.append(f"- stderr：`{step['stderr']}`")
+    next_actions = payload.get("next_actions") or []
+    if next_actions:
+        lines.extend(["", "## 下一步", ""])
+        lines.extend(f"- {item}" for item in next_actions)
+    return "\n".join(lines).rstrip() + "\n"
+
+
+def main() -> int:
+    args = parse_args()
+    try:
+        if args.approve and args.reject:
+            raise RuntimeError("`--approve` 与 `--reject` 不能同时使用。")
+
+        if args.list or (not args.ticket and not args.approve and not args.reject):
+            payload = list_payload()
+        elif not args.ticket:
+            raise RuntimeError("批准或拒绝审批票据时必须提供 ticket。")
+        elif args.approve:
+            payload = decide_ticket(args.ticket, decision="approve", owner=args.owner.strip(), note=args.note)
+        elif args.reject:
+            payload = decide_ticket(args.ticket, decision="reject", owner=args.owner.strip(), note=args.note)
+        else:
+            payload = inspect_ticket(args.ticket)
+    except Exception as exc:
+        print(f"intent 审批失败：{exc}", file=sys.stderr)
+        return 1
+
+    if args.json:
+        print(json.dumps(payload, ensure_ascii=False, indent=2))
+        return 0
+
+    print(render_markdown(payload))
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

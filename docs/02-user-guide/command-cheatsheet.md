@@ -41,6 +41,14 @@ python3 scripts/<command> --project /path/to/project --owner "<name>" --note "<n
 | `factory-dispatch` | `python3 scripts/factory-dispatch <action> ...` | 统一动作分派入口 | 你知道要做什么，但不想记具体脚本名 | 把动作转发给对应 `factory-*` 命令 |
 | `factory-command-profiles` | `python3 scripts/factory-command-profiles <profile> --project <path>` | 运行高层命令画像 | 你想一键启动“需求 kickoff”“设计 kickoff”“发布前收尾”等标准组合动作 | 串行跑一组标准命令，并生成摘要 |
 | `factory-workflow-runner` | `python3 scripts/factory-workflow-runner --project <path> --workflow <name>` | 运行高层工作流 | 你要做 `pre_gate`、`daily_close`、`release_ready`、`handover_ready` | 执行一组收尾/检查/发布相关动作 |
+| `factory-frontend-capabilities` | `python3 scripts/factory-frontend-capabilities --tool codex|gemini|opencode` | 查看前台能力画像 | 你想确认某个前台是否支持子代理、MCP、审批 hook 或降级策略 | 输出前台能力、规则入口和降级说明 |
+| `factory-intent-resolver` | `python3 scripts/factory-intent-resolver <自然语言目标> --project <path> --tool codex|gemini|opencode [--execute-safe|--request-approval]` | 解析自然语言目标 | 你只知道目标，不知道该选哪个高层动作 | 返回主推荐动作、候选动作、风险和建议命令；加 `--execute-safe` 时自动执行 `L0/L1` 主推荐动作；加 `--request-approval` 时为 `L2/L3` 生成审批票据 |
+| `factory-intent-approval` | `python3 scripts/factory-intent-approval [<ticket>] [--list|--approve|--reject]` | 查看或处理意图审批票据 | 你已经拿到 `L2/L3` 动作的审批票据，需要显式批准或拒绝 | 列出票据，或在批准后先校验冻结 ownership 与写集冲突，再执行冻结计划并写回票据状态 |
+| `factory-intent-eval` | `python3 scripts/factory-intent-eval [--strict]` | 回放评估意图解析能力 | 你想知道自然语言到动作的命中率是否退化 | 输出命中率、失败样本和下一步建议，并写出评估报告 |
+
+补充说明：
+
+- 执行 `python3 scripts/factory-dispatch --list-actions` 可以查看当前已登记动作、别名、风险级别和默认策略。
 
 ## 3. 项目初始化与结构修复
 
@@ -106,7 +114,9 @@ python3 scripts/<command> --project /path/to/project --owner "<name>" --note "<n
 | 命令 | 常见写法 | 作用 | 什么时候使用 | 预期 |
 |---|---|---|---|---|
 | `factory-agent-session` | `python3 scripts/factory-agent-session --project <path> --owner <name> --focus "<focus>"` | 生成会话入口 | 重新进入项目上下文、开始新一轮会话前 | 生成当前会话应该先读什么、先做什么 |
-| `factory-chat-bootstrap` | `python3 scripts/factory-chat-bootstrap --project <path> --tool codex|gemini --role <role>` | 生成角色化对话入口 | 想让不同角色或不同工具快速接手 | 生成角色化启动入口文档 |
+| `factory-chat-bootstrap` | `python3 scripts/factory-chat-bootstrap --project <path> --tool codex|gemini|opencode --role <role>` | 生成角色化对话入口 | 想让不同角色或不同工具快速接手 | 生成角色化启动入口文档 |
+| `factory-intent-resolver` | `python3 scripts/factory-intent-resolver 继续下一步 --project <path> --tool codex|gemini|opencode [--execute-safe|--request-approval]` | 解析自然语言到高层动作 | 只知道目标，不确定该用 `doctor`、`docs-upgrade` 还是 `onboarding` | 输出主推荐动作、候选动作和风险策略；如主推荐动作为 `L0/L1`，可用 `--execute-safe` 直接执行；如为 `L2/L3`，可用 `--request-approval` 生成票据 |
+| `factory-intent-approval` | `python3 scripts/factory-intent-approval <ticket> --approve --owner <name>` | 查看或处理审批票据 | `intent-resolver` 已经为高风险动作生成票据 | 批准后先校验冻结 ownership，再执行计划；拒绝后把状态写回控制面 |
 | `factory-state-doctor` | `python3 scripts/factory-state-doctor --project <path> --owner <name>` | 诊断项目状态 | 不确定当前缺什么、卡在哪里、规则是否健康 | 输出诊断结果与建议动作 |
 | `factory-refresh-memory` | `python3 scripts/factory-refresh-memory --project <path>` | 刷新 AI 记忆 | 做完一轮变更后，想同步记忆层 | 更新 `.factory/memory/` 摘要与快照 |
 | `factory-daily-status` | `python3 scripts/factory-daily-status --project <path> --owner <name> --focus "<focus>"` | 生成每日报告 | 日终收尾或阶段汇报 | 更新日报并同步文档与 `.factory` |
@@ -119,14 +129,14 @@ python3 scripts/<command> --project /path/to/project --owner "<name>" --note "<n
 
 | 命令 | 常见写法 | 作用 | 什么时候使用 | 预期 |
 |---|---|---|---|---|
-| `factory-role-assign` | `python3 scripts/factory-role-assign --project <path> --role <role> --owner <name>` | 分派角色责任 | 需要明确某个角色当前负责什么 | 记录角色、工具和工作项分配 |
+| `factory-role-assign` | `python3 scripts/factory-role-assign --project <path> --role <role> --owner <name> [--write-targets docs/,scripts/]` | 分派角色责任 | 需要明确某个角色当前负责什么，以及它会写哪些文件/目录 | 记录角色、工具、工作项和写入集合；默认阻断与其他角色分派的显式写集冲突 |
 | `factory-role-workbench` | `python3 scripts/factory-role-workbench --project <path> --role <role>` | 生成角色工作台 | 某个角色需要集中看自己的上下文和动作 | 生成角色执行工作台 |
 | `factory-role-sync` | `python3 scripts/factory-role-sync --project <path> --role <role>` | 同步角色状态 | 某个角色完成一轮动作后 | 刷新角色视图和状态 |
 | `factory-role-review` | `python3 scripts/factory-role-review --project <path> --role <role>` | 复核角色状态 | 想看某个角色当前执行得对不对 | 输出角色复核结果 |
 | `factory-role-handoff` | `python3 scripts/factory-role-handoff --project <path> --from <role> --to <role>` | 记录角色交接 | 一个角色把工作交给另一个角色 | 生成角色交接记录 |
 | `factory-role-closeout` | `python3 scripts/factory-role-closeout --project <path> --role <role>` | 执行角色收尾 | 某个角色一轮工作结束 | 完成角色收尾与状态更新 |
 | `factory-role-retro` | `python3 scripts/factory-role-retro --project <path> --role <role>` | 生成角色复盘 | 想复盘某个角色执行质量 | 生成角色复盘文档 |
-| `factory-multi-agent-board` | `python3 scripts/factory-multi-agent-board --project <path>` | 生成多 Agent 看板 | 多角色或多 Agent 并行协作时 | 生成协作看板 |
+| `factory-multi-agent-board` | `python3 scripts/factory-multi-agent-board --project <path>` | 生成多 Agent 看板 | 多角色或多 Agent 并行协作时 | 生成协作看板，并提示待审批票据、高风险推荐动作、未分派工作项、角色写入集合和写集冲突 |
 | `factory-team-sync` | `python3 scripts/factory-team-sync --project <path> --owner <name>` | 团队级同步 | 需要批量刷新多个角色状态 | 输出团队同步记录 |
 | `factory-team-closeout` | `python3 scripts/factory-team-closeout --project <path> --owner <name>` | 团队级收尾 | 一轮团队工作结束 | 输出团队收尾记录 |
 | `factory-team-retro` | `python3 scripts/factory-team-retro --project <path> --owner <name>` | 团队级复盘 | 一轮协作或阶段结束后 | 输出团队级复盘 |
@@ -139,6 +149,7 @@ python3 scripts/<command> --project /path/to/project --owner "<name>" --note "<n
 | `factory-recovery-coach` | `python3 scripts/factory-recovery-coach --project <path> --item <id>` | 给出恢复教练方案 | 工作项受阻、空转、质量漂移时 | 生成恢复方案和建议动作 |
 | `factory-pattern-fix` | `python3 scripts/factory-pattern-fix --project <path> --item <id>` | 把单点问题扩展为模式级修复 | 你怀疑类似问题不止一个地方 | 生成模式级扫描与修复报告 |
 | `factory-evolution-baseline` | `python3 scripts/factory-evolution-baseline --project <path> --owner <name>` | 沉淀有效做法到基线 | 一轮实践后形成稳定方法 | 刷新项目自进化基线 |
+| `factory-intent-eval` | `python3 scripts/factory-intent-eval [--strict]` | 回放评估意图解析能力 | 修改了 `intent` 规则、自治策略或前台适配后 | 产出命中率、失败样本和固定报告 |
 
 ## 10. 高层画像与工作流
 
@@ -152,9 +163,9 @@ python3 scripts/<command> --project /path/to/project --owner "<name>" --note "<n
 | `design-kickoff` | 初始化设计阶段并登记技术画像 | 需求已确认，准备进设计 | 设计骨架、技术画像和会话入口一起生成 |
 | `iteration-kickoff` | 初始化迭代计划并可选创建任务 | 设计完成，准备进实施计划 | 计划、任务和会话入口一起生成 |
 | `pre-gate` | 执行 Gate 前检查组合 | 阶段收口前 | 阶段检查、质量检查和诊断结果 |
-| `daily-close` | 执行日终收尾组合 | 每天收尾时 | 日报、记忆刷新、快照 |
-| `release-ready` | 执行发布前组合动作 | 发布准备阶段 | 检查、发布包、交接包、快照 |
-| `handover-ready` | 执行交接前组合动作 | 换人或换 Agent 前 | 交接材料、诊断、快照 |
+| `daily-close` | 执行日终收尾组合 | 每天收尾时 | 日报、记忆刷新、快照；经 `intent` 解析时按 `L2` 审批处理 |
+| `release-ready` | 执行发布前组合动作 | 发布准备阶段 | 检查、发布包、交接包、快照；经 `intent` 解析时按 `L2` 审批处理 |
+| `handover-ready` | 执行交接前组合动作 | 换人或换 Agent 前 | 交接材料、诊断、快照；经 `intent` 解析时按 `L2` 审批处理 |
 
 ### `factory-workflow-runner`
 
@@ -167,6 +178,26 @@ python3 scripts/<command> --project /path/to/project --owner "<name>" --note "<n
 | `release_ready` | 跑发布前检查、日报、发布包、交接包、快照 | 发布前 | 形成完整发布准备包 |
 | `handover_ready` | 生成日报、交接包、快照 | 交接前 | 形成接手材料 |
 
+### `factory-intent-resolver`
+
+常见写法：
+
+```bash
+python3 scripts/factory-intent-resolver 继续下一步 --project <path>
+python3 scripts/factory-intent-resolver 开始设计阶段并生成会话入口 --project <path> --execute-safe --owner "<name>"
+python3 scripts/factory-intent-resolver 执行 daily close workflow --project <path>
+python3 scripts/factory-intent-resolver 接管这个历史项目 --project <path> --request-approval --owner "<name>"
+python3 scripts/factory-intent-approval IA-<ticket> --approve --owner "<name>"
+```
+
+使用规则：
+
+- 默认只解析，不执行。
+- 显式加 `--execute-safe` 后，只会自动执行主推荐动作中默认策略为 `auto` 的项。
+- 显式加 `--request-approval` 后，会为 `L2/L3` 主推荐动作写出冻结审批票据，并附带建议 ownership 角色和写入集合。
+- 如果主推荐动作是 `L2/L3` 且没有请求审批，会停在审批边界，不会继续执行。
+- 当前已能识别 `command-profiles` 和 `workflow-runner` 的具体子目标；其中工作流型 profile 会自动提升到审批边界。
+
 ## 11. 按目标反推该用哪个命令
 
 | 你的目标 | 优先命令 |
@@ -174,6 +205,7 @@ python3 scripts/<command> --project /path/to/project --owner "<name>" --note "<n
 | 不想记底层命令 | `factory-dispatch` |
 | 想一键启动某个标准阶段 | `factory-command-profiles` |
 | 想一键跑一组收尾工作流 | `factory-workflow-runner` |
+| 只会说目标，不知道该选哪个动作 | `factory-intent-resolver` |
 | 不知道当前缺什么 | `factory-agent-session` + `factory-state-doctor` |
 | 新建空目录项目 | `factory-init` |
 | 接手老项目 | `factory-historical-project-onboarding` |
@@ -192,6 +224,9 @@ python3 scripts/<command> --project /path/to/project --owner "<name>" --note "<n
 - 在历史项目上直接跑 `factory-init`
 - 只跑实现命令，不同步文档和记忆
 - 明明只是不确定下一步，却跳过 `factory-state-doctor`
+- 明明只会描述目标，却不先用 `factory-intent-resolver`
+- 对 `L2/L3` 动作误以为 `--execute-safe` 会强行执行
+- 为 `L2/L3` 动作申请审批后，却不通过 `factory-intent-approval` 处理冻结票据
 - 想做高层动作，却直接从底层命令开始拼
 
 如果你已经知道场景，但不知道该怎么写自然语言，让 AI 自己选这些命令，回看 [提示词速查](./prompt-templates.md)。

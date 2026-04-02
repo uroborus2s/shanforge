@@ -8,6 +8,7 @@ import sys
 
 from factory_core import (
     append_log_line,
+    assignment_write_targets,
     current_role_assignment,
     ensure_role_catalog,
     file_readiness,
@@ -18,6 +19,7 @@ from factory_core import (
     read_recent_log_lines,
     read_risks,
     resolve_role,
+    role_assignment_conflicts,
     role_assigned_items,
     role_document_reads,
     role_workbench_relative,
@@ -43,7 +45,15 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
-def determine_result(scope: str, assignment: dict, items: list[dict], doc_states: list[tuple[str, str, str]], workbench_ready: tuple[str, str], open_risks: list[str]) -> tuple[str, list[str], list[str]]:
+def determine_result(
+    scope: str,
+    assignment: dict,
+    items: list[dict],
+    doc_states: list[tuple[str, str, str]],
+    workbench_ready: tuple[str, str],
+    open_risks: list[str],
+    ownership_conflicts: list[dict],
+) -> tuple[str, list[str], list[str]]:
     issues: list[str] = []
     warnings: list[str] = []
 
@@ -59,6 +69,8 @@ def determine_result(scope: str, assignment: dict, items: list[dict], doc_states
     if scope in {"execution", "full", "delivery"}:
         if blocked_items:
             issues.append(f"存在 {len(blocked_items)} 个阻塞工作项。")
+        if ownership_conflicts:
+            issues.append(f"当前角色存在 {len(ownership_conflicts)} 组写集冲突。")
         elif pending_items:
             warnings.append(f"存在 {len(pending_items)} 个尚未启动的工作项。")
         elif not active_items and items:
@@ -109,6 +121,10 @@ def main() -> int:
             workbench_ready = file_readiness(project_root / workbench_relative)
             open_risks, _ = read_risks(project_root)
             recent_logs = read_recent_log_lines(project_root, 5)
+            all_conflicts = role_assignment_conflicts(project_root, config)
+            ownership_conflicts = [
+                item for item in all_conflicts if role["id"] in item.get("roles", [])
+            ]
             result, issues, warnings = determine_result(
                 args.scope,
                 assignment,
@@ -116,12 +132,15 @@ def main() -> int:
                 doc_states,
                 workbench_ready,
                 open_risks,
+                ownership_conflicts,
             )
             suggestions = []
             if not assignment:
                 suggestions.append("先执行 `factory-dispatch assign --role <角色>` 建立显式分派。")
             if workbench_ready[0] != "就绪":
                 suggestions.append("先执行 `factory-dispatch workbench --role <角色>` 生成最新执行工作台。")
+            if ownership_conflicts:
+                suggestions.append("先调整角色写入集合，消除与其他角色的冲突，再继续并行推进。")
             if any(status in {"缺失", "占位"} for _, status, _ in doc_states):
                 suggestions.append("补齐本角色相关正式文档，并完成单文件版本演化。")
             if any(item["status"] == "阻塞" for item in items):
@@ -133,6 +152,12 @@ def main() -> int:
 
             item_lines = [format_item_brief(item) for item in items[:8]] or ["- 当前无明确工作项。"]
             doc_lines = [f"- `{relative}`：{status}，{reason}" for relative, status, reason in doc_states] or ["- 无"]
+            write_targets = assignment_write_targets(project_root, assignment)
+            write_target_lines = [f"- `{item}`" for item in write_targets] or ["- 当前未声明写入集合。"]
+            conflict_lines = [
+                f"- `{item['role_titles'][0]}` <-> `{item['role_titles'][1]}` | 重叠：{', '.join(item['overlaps'][:3])}"
+                for item in ownership_conflicts
+            ] or ["- 无"]
             issue_lines = [f"- {item}" for item in issues] or ["- 无"]
             warning_lines = [f"- {item}" for item in warnings] or ["- 无"]
             suggestion_lines = [f"- {item}" for item in suggestions]
@@ -156,10 +181,17 @@ def main() -> int:
                     f"- 当前工具：{assignment.get('tool', '未分配') or '未分配'}",
                     f"- 当前状态：{assignment.get('status', '未分派') or '未分派'}",
                     f"- 当前焦点：{assignment.get('focus', '无') or '无'}",
+                    f"- 当前写入集合：{', '.join(write_targets) if write_targets else '无'}",
                     "",
                     "## 相关工作项",
                     "",
                     *item_lines,
+                    "",
+                    "## Ownership 与冲突",
+                    "",
+                    *write_target_lines,
+                    "",
+                    *conflict_lines,
                     "",
                     "## 文档与工作台状态",
                     "",

@@ -5,7 +5,7 @@
 **主要读者：** 前后端 | 测试 | 集成方 | 运维  
 **上游输入：** PRD | 技术选型 | 系统架构 | 模块边界  
 **下游输出：** 接口实现 | 测试用例 | 契约文件  
-**最后更新：** 2026-04-01  
+**最后更新：** 2026-04-02  
 
 ## 1. 接口目录
 
@@ -20,6 +20,13 @@
 | `API-007` | `scripts/sync-codex-skills` | CLI Command | `REQ-003` | 把仓库内 `skills/` 增量同步到 `~/.codex/skills` 与 `~/.gemini/skills` |
 | `API-008` | `factory-dispatch docs-standard-upgrade` | CLI Command | `REQ-001`, `REQ-002`, `REQ-006` | 一键把项目 docs 升级到最新源文档标准 |
 | `API-009` | `factory-dispatch docs-standard-upgrade-batch` | CLI Command | `REQ-001`, `REQ-002`, `REQ-006` | 批量扫描并升级多个山海工枢项目的 docs |
+| `API-010` | `config/action-registry.json` | File Contract | `REQ-003`, `REQ-005`, `REQ-006` | 已实现的动作注册表契约，定义首批高层动作的 ID、风险、前置条件和验证规则 |
+| `API-011` | `config/autonomy-policy.json` | File Contract | `REQ-003`, `REQ-005`, `REQ-006` | 已实现的自治策略契约，定义 `L0` ~ `L3` 风险级别和默认审批边界 |
+| `API-012` | `config/frontends/*.json` | File Contract | `REQ-003`, `REQ-005` | 已实现的前台能力画像契约，描述 Codex、Gemini CLI、opencode 等宿主能力 |
+| `API-013` | `factory-multi-agent-board --project <path>` | CLI Command | `REQ-005` | 当前多代理协作看板入口，后续演进为正式调度与观测面 |
+| `API-014` | `factory-dispatch intent-resolver` | CLI Command | `REQ-003`, `REQ-006` | 最小自然语言意图解析入口，把目标映射到已注册动作和风险策略 |
+| `API-015` | `factory-dispatch intent-eval` | CLI Command | `REQ-003`, `REQ-005`, `REQ-006` | 基于固定样本集回放评估意图解析能力，统计命中率并暴露失败样本 |
+| `API-016` | `factory-dispatch intent-approval` | CLI Command | `REQ-003`, `REQ-005`, `REQ-006` | 查看或处理意图审批票据，并在批准后执行冻结计划 |
 
 ## 2. 设计原则
 
@@ -128,6 +135,122 @@
   - 未发现任何候选项目时，应直接失败并提示补充 `--project` 或 `--root`。
   - 单个项目异常不能阻断其他项目继续处理，但要出现在最终汇总中。
 
+### `API-010` 动作注册表契约
+
+- 请求：运行时加载动作注册信息，供动作解析、策略判断和后续工作流编排使用。
+- 响应：返回动作元数据，包括动作 ID、别名、输入结构、前置条件、风险等级、所需能力、验证方式和恢复提示。
+- 校验规则：
+  - 每个动作 ID 必须全局唯一。
+  - 不允许缺少 `risk_level`、`preconditions` 或 `verification` 的动作进入自动执行层。
+- 错误处理：
+  - 动作注册结构损坏时，应阻止自治执行并提示回退到手工入口。
+  - 若发现同名动作冲突，应返回冲突摘要并停止加载。
+- 当前状态：
+  - MVP 已实现，注册表文件为 `config/action-registry.json`。
+  - `factory-dispatch` 已优先使用注册表解析首批高层动作。
+  - 已支持 `subtargets` 元数据，允许对 `command-profiles` 等高层动作的子目标单独提高风险等级。
+  - 其余历史动作仍由 legacy 映射兼容承载。
+
+### `API-011` 自治策略契约
+
+- 请求：运行时在动作执行前读取自治策略，判断是否自动执行、是否需要确认、是否必须阻断。
+- 响应：给出基于风险等级、项目状态、宿主能力和证据门槛的执行判定。
+- 校验规则：
+  - 策略必须显式覆盖 `L0` ~ `L3`。
+  - 高风险动作不能因为缺省值而降级为自动执行。
+- 错误处理：
+  - 策略缺失或解析失败时，应回退到最保守策略。
+- 当前状态：
+  - MVP 已实现，策略文件为 `config/autonomy-policy.json`。
+  - 当前主要用于 `factory-dispatch --list-actions` 展示已登记动作的默认策略和风险等级。
+  - `L2/L3` 动作的最小审批票据 hook 已实现，但尚未接入 UI / 远程审批入口。
+
+### `API-012` 前台能力画像契约
+
+- 请求：前台适配层读取某个宿主的能力画像，决定是否支持 shell、文件编辑、子代理、MCP 和审批 hook。
+- 响应：返回当前前台的能力集合与降级策略。
+- 校验规则：
+  - 最低必须声明是否支持文件读写、命令执行和上下文压缩。
+  - 不允许未声明能力的宿主假装支持高阶功能。
+- 错误处理：
+  - 能力画像缺失时，应回退到最低能力模式，禁止依赖可选能力的工作流自动执行。
+- 当前状态：
+  - MVP 已实现，能力画像文件位于 `config/frontends/*.json`。
+  - 当前提供 `codex`、`gemini`、`opencode` 三份画像。
+  - `factory-frontend-capabilities` 与 `factory-dispatch frontend-capabilities` 已可查询画像。
+  - `factory-chat-bootstrap` 已开始消费该契约。
+
+### `API-013` 多代理协作看板入口
+
+- 请求：用户提供项目路径、负责人和焦点信息，生成当前项目的多代理协作看板。
+- 响应：输出角色分工、活跃任务、依赖关系、风险点和下一步建议。
+- 校验规则：
+  - 项目路径必须已经纳入软件工厂。
+  - 看板中的角色与工作项引用应来自当前项目状态。
+- 错误处理：
+  - 项目未纳管时，应提示先完成纳管或生成单代理 session，而不是继续生成协作看板。
+- 当前状态：
+  - MVP 已实现，入口为 `scripts/factory-multi-agent-board`。
+  - 当前看板已开始暴露待审批票据、高风险推荐动作、未分派工作项提醒，以及角色写入集合与冲突摘要。
+  - `factory-role-assign` 已支持 `--write-targets`，并会默认阻断与现有角色分派的显式写集冲突。
+  - 尚未覆盖真实子代理提交阶段的隐式写集探测，也未形成完整的多代理调度与自动恢复闭环。
+
+### `API-014` 最小意图解析入口
+
+- 请求：用户提供自然语言目标、项目路径，以及可选前台工具 ID。
+- 响应：返回主推荐动作、候选动作、风险级别、审批策略、项目事实和建议命令；显式传入 `--execute-safe` 时，可直接执行默认策略为 `auto` 的主推荐动作。
+- 校验规则：
+  - 只允许输出已注册动作，不允许直接映射任意 shell。
+  - 解析结果必须包含项目识别、前台识别和风险策略。
+  - 若无明显专项语义，应回退到基于项目事实的安全默认动作。
+  - `--execute-safe` 只能放行 `approval=auto` 且 `execution=auto` 的主推荐动作。
+- 错误处理：
+  - 项目路径不存在或不是目录时应直接失败。
+  - 解析不到高置信候选时，应回退到 `state-doctor`、`historical-project-onboarding` 或 `init` 中的安全默认项。
+  - 若主推荐动作需要确认或存在阻塞，应返回 `policy_denied` / `blocked`，而不是越过审批边界继续执行。
+- 当前状态：
+  - MVP 已实现，入口为 `scripts/factory-intent-resolver`。
+  - `factory-dispatch intent-resolver` 和别名 `intent` 已接入。
+  - 已支持识别 `command-profiles` / `workflow-runner` 的具体子目标，并可通过 `--execute-safe` 自动执行 `L0/L1` 主推荐动作。
+  - 已支持对子目标应用风险覆盖；工作流型 profile 在解析时会提升到 `L2` 审批边界。
+  - 已支持通过 `--request-approval` 为 `L2/L3` 主推荐动作创建冻结审批票据。
+  - 当前解析器仍以关键词和项目事实规则为主，尚未接入学习型排序和 UI / 远程审批入口。
+
+### `API-015` 意图回放评估入口
+
+- 请求：用户提供评估样本文件路径，以及可选前台覆盖参数。
+- 响应：返回总样本数、通过数、失败数、命中率、失败样本明细和下一步建议，并写出评估报告。
+- 校验规则：
+  - 样本文件必须包含非空 `cases`，每条样本必须有 `id`、`intent` 和 `expected`。
+  - 评估结果必须显式区分解析失败、策略阻断和安全执行结果。
+  - 样本夹具应自包含，不能依赖当前仓库临时状态。
+- 错误处理：
+  - 样本文件损坏或夹具类型未知时，应直接失败。
+  - `--strict` 下若存在失败样本，应返回非 0。
+- 当前状态：
+  - MVP 已实现，入口为 `scripts/factory-intent-eval`。
+  - 默认样本集位于 `config/evals/intent-resolver-cases.json`。
+  - 当前已覆盖 `empty`、`historical`、`managed` 三类项目夹具，以及 `action/profile/workflow/safe_execute/approval_request` 五类断言。
+
+### `API-016` 意图审批票据入口
+
+- 请求：用户提供票据 ID，并显式选择 `--approve` 或 `--reject`；也可只用 `--list` 查看当前票据列表。
+- 响应：返回待审批或已处理票据列表；批准时执行票据中冻结的计划，并写回执行结果、审批人和摘要。
+- 校验规则：
+  - `--approve` 与 `--reject` 不能同时使用。
+  - 批准或拒绝时必须提供有效票据 ID。
+  - 只有 `pending` 状态的票据允许继续执行。
+  - 票据必须包含冻结后的 `plan`，不允许重新推导高风险动作。
+- 错误处理：
+  - 票据不存在时应直接失败。
+  - 已处理票据重复批准时，应返回可读状态而不是再次执行。
+  - 冻结计划执行失败时，应把票据状态写成 `failed`，并保留执行摘要。
+- 当前状态：
+  - MVP 已实现，入口为 `scripts/factory-intent-approval`。
+  - `factory-dispatch intent-approval` 和别名 `intent-approve` 已接入。
+  - 审批票据统一写入 `.factory/process/intent-approvals.json` 与对应视图。
+  - 票据已冻结建议 ownership 角色和写入集合；批准执行前会再次校验负责人与显式写集冲突，未通过则阻断执行。
+
 ## 4. 契约文件
 
 - 当前已使用的契约：
@@ -140,6 +263,12 @@
   - `docs/04-project-development/04-design/historical-project-onboarding-automation.md`
 - 未来若引入对外 HTTP API，再补充：
   - `docs/04-project-development/04-design/contracts/api/openapi.yaml`
+- 目标架构中规划新增的内部契约：
+  - `config/action-registry.json`
+  - `config/autonomy-policy.json`
+  - `config/frontends/*.json`
+  - `config/evals/intent-resolver-cases.json`
+  - `.factory/process/intent-approvals.json`
 
 ## 5. 变更记录
 
@@ -153,3 +282,9 @@
 | 2026-03-27 | 增加 `API-007`，支持把仓库内共享 skills 同步到 Codex / Gemini 全局目录 | Codex |
 | 2026-04-01 | 增加 `API-008`，提供 docs 最新源文档标准的一键升级入口 | Codex |
 | 2026-04-01 | 增加 `API-009`，支持批量扫描和升级多个项目的 docs 标准 | Codex |
+| 2026-04-02 | 增加 `API-010` ~ `API-013`，登记动作注册、自治策略、前台能力画像和多代理协作入口 | Codex |
+| 2026-04-02 | 更新 `API-013` 为“显式写集声明 + 冲突默认阻断 + 看板冲突摘要”后的当前状态 | Codex |
+| 2026-04-02 | 增加 `API-014`，提供自然语言到已注册动作的最小意图解析入口 | Codex |
+| 2026-04-02 | 增加 `API-015`，提供意图回放评估入口和固定样本集契约 | Codex |
+| 2026-04-02 | 增加 `API-016`，提供最小审批票据入口和冻结计划执行契约 | Codex |
+| 2026-04-02 | 更新 `API-016`，增加冻结 ownership 与批准前冲突校验 | Codex |

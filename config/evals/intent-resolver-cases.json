@@ -1,0 +1,87 @@
+{
+  "version": 1,
+  "updated_at": "2026-04-02",
+  "cases": [
+    {
+      "id": "intent-empty-init",
+      "intent": "初始化这个空目录项目",
+      "fixture": "empty_project",
+      "tool": "codex",
+      "expected": {
+        "action": "init",
+        "approval": "summary_confirm",
+        "safe_status": "policy_denied"
+      }
+    },
+    {
+      "id": "intent-historical-onboarding",
+      "intent": "先接管这个历史项目",
+      "fixture": "historical_project",
+      "tool": "codex",
+      "expected": {
+        "action": "historical-project-onboarding",
+        "approval": "summary_confirm",
+        "safe_status": "policy_denied"
+      }
+    },
+    {
+      "id": "intent-managed-docs-upgrade",
+      "intent": "把 docs 刷新到最新规范并重建目录",
+      "fixture": "managed_project",
+      "tool": "opencode",
+      "expected": {
+        "action": "docs-standard-upgrade",
+        "approval": "auto",
+        "safe_status": "success"
+      }
+    },
+    {
+      "id": "intent-managed-next-step",
+      "intent": "继续下一步",
+      "fixture": "managed_project",
+      "tool": "gemini",
+      "expected": {
+        "action": "state-doctor",
+        "approval": "auto",
+        "safe_status": "success"
+      }
+    },
+    {
+      "id": "intent-managed-design-kickoff",
+      "intent": "开始设计阶段并生成会话入口",
+      "fixture": "managed_project",
+      "tool": "codex",
+      "expected": {
+        "action": "command-profiles",
+        "profile": "design-kickoff",
+        "approval": "auto"
+      }
+    },
+    {
+      "id": "intent-managed-daily-profile",
+      "intent": "今天收尾并生成会话入口",
+      "fixture": "managed_project",
+      "tool": "codex",
+      "expected": {
+        "action": "command-profiles",
+        "profile": "daily-close",
+        "approval": "summary_confirm",
+        "safe_status": "policy_denied",
+        "approval_request_status": "pending_approval"
+      }
+    },
+    {
+      "id": "intent-managed-daily-workflow",
+      "intent": "执行 daily close workflow",
+      "fixture": "managed_project",
+      "tool": "codex",
+      "expected": {
+        "action": "workflow-runner",
+        "workflow": "daily_close",
+        "approval": "summary_confirm",
+        "safe_status": "policy_denied",
+        "approval_request_status": "pending_approval"
+      }
+    }
+  ]
+}

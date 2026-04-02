@@ -1,0 +1,28 @@
+{
+  "id": "opencode",
+  "label": "OpenCode",
+  "aliases": ["open-code", "open code"],
+  "status": "planned",
+  "family": "cli",
+  "primary_rule_files": ["AGENTS.md", "GEMINI.md"],
+  "capabilities": {
+    "file_read": true,
+    "file_write": true,
+    "command_exec": true,
+    "tool_call": true,
+    "context_compaction": true,
+    "subagent": false,
+    "mcp": false,
+    "stream_observation": false,
+    "approval_hook": false
+  },
+  "fallbacks": {
+    "subagent": "当前按单代理串行执行设计，直到正式多代理适配完成。",
+    "mcp": "当前退化为本地脚本、文件和 shell 能力。",
+    "approval_hook": "高风险动作保守停在建议和摘要阶段。"
+  },
+  "bootstrap_prompts": [
+    "读取 AGENTS.md、GEMINI.md、.factory/project.json 和 .factory/memory/agent-session.md，以{role_title}身份{current_focus}。",
+    "先确认当前阶段、宿主能力边界和推荐动作，再开始执行。"
+  ]
+}

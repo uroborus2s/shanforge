@@ -4,19 +4,26 @@ import argparse
 import json
 from datetime import datetime
 from pathlib import Path
+import shlex
 import sys
 
 from factory_core import (
     append_log_line,
     active_roles_for_stage,
+    assignment_write_targets,
     collect_active_items,
+    current_role_assignment,
+    effective_action_policy,
     ensure_role_catalog,
     group_items_by_role,
+    load_intent_approval_records,
     load_project_config,
     prepend_history_entry,
     project_lock,
     read_risks,
     refresh_ai_memory,
+    resolve_registered_action,
+    role_assignment_conflicts,
     role_document_reads,
     role_recommended_commands,
     save_project_config,
@@ -48,11 +55,151 @@ def handoff_lines(config: dict, top: int) -> list[str]:
     return lines
 
 
+def same_project(record_path: str, project_root: Path) -> bool:
+    try:
+        return Path(str(record_path or "")).expanduser().resolve() == project_root.resolve()
+    except Exception:
+        return str(record_path or "").strip() == str(project_root)
+
+
+def pending_approval_records(project_root: Path) -> list[dict]:
+    records = [item for item in load_intent_approval_records() if item.get("status") == "pending"]
+    matched = [item for item in records if same_project(str(item.get("project_path", "")), project_root)]
+    return sorted(matched, key=lambda item: str(item.get("created_at", "")), reverse=True)
+
+
+def command_boundary(command: str) -> dict | None:
+    try:
+        tokens = shlex.split(command)
+    except Exception:
+        return None
+    if len(tokens) < 3:
+        return None
+    if Path(tokens[1]).name != "factory-dispatch":
+        return None
+
+    action_id = resolve_registered_action(tokens[2])
+    if not action_id:
+        return None
+
+    extra = tokens[3:]
+    positional: list[str] = []
+    index = 0
+    while index < len(extra):
+        token = extra[index]
+        if token.startswith("--"):
+            if "=" in token:
+                index += 1
+                continue
+            if index + 1 < len(extra) and not extra[index + 1].startswith("-"):
+                index += 2
+                continue
+            index += 1
+            continue
+        positional.append(token)
+        index += 1
+    selected_profile = ""
+    selected_workflow = ""
+    if action_id == "command-profiles":
+        selected_profile = positional[0] if positional else ""
+    elif action_id == "workflow-runner":
+        for index, token in enumerate(extra[:-1]):
+            if token == "--workflow":
+                selected_workflow = extra[index + 1]
+                break
+
+    policy = effective_action_policy(
+        action_id,
+        selected_profile=selected_profile,
+        selected_workflow=selected_workflow,
+    )
+    return {
+        "action": action_id,
+        "selected_profile": selected_profile,
+        "selected_workflow": selected_workflow,
+        "policy": policy,
+        "command": command,
+    }
+
+
+def boundary_note(boundary: dict) -> str:
+    policy = boundary["policy"]
+    subtarget = boundary.get("selected_profile") or boundary.get("selected_workflow")
+    suffix = f"/{subtarget}" if subtarget else ""
+    return (
+        f"动作：`{boundary['action']}{suffix}` | 风险：`{policy.get('risk_level', 'L3')}` | "
+        f"审批：`{policy.get('approval', 'explicit_confirm')}`；先由主代理申请审批票据。"
+    )
+
+
+def approval_boundary_lines(project_root: Path, config: dict, active_roles: list[dict], owner: str, focus: str, top: int) -> list[str]:
+    lines: list[str] = []
+    seen = set()
+    for role in active_roles:
+        commands = role_recommended_commands(project_root, config, role["id"], owner, focus, limit=None)
+        for command in commands:
+            boundary = command_boundary(command)
+            if not boundary:
+                continue
+            policy = boundary["policy"]
+            if policy.get("approval") == "auto" and policy.get("execution") == "auto":
+                continue
+            key = (
+                role["id"],
+                boundary["action"],
+                boundary.get("selected_profile", ""),
+                boundary.get("selected_workflow", ""),
+            )
+            if key in seen:
+                continue
+            seen.add(key)
+            lines.append(f"- `{role['title']}`：{boundary_note(boundary)}")
+    return lines
+
+
+def ownership_warning_lines(grouped: dict[str, list[dict]], top: int) -> list[str]:
+    unassigned = grouped.get("unassigned", [])
+    if not unassigned:
+        return ["- 当前未发现未分派工作项。"]
+    lines = [f"- 当前存在 {len(unassigned)} 个未分派工作项，需先明确 ownership："]
+    for item in unassigned[:top]:
+        lines.append(f"  - `{item['id']}` {item['title']} | 状态：{item['status']} | 负责人：{item['owner']}")
+    return lines
+
+
+def ownership_snapshot_lines(project_root: Path, config: dict, active_roles: list[dict], top: int) -> list[str]:
+    lines: list[str] = []
+    for role in active_roles[:top]:
+        assignment = current_role_assignment(config, role["id"])
+        write_targets = assignment_write_targets(project_root, assignment)
+        lines.append(
+            f"- `{role['title']}` | 负责人：{assignment.get('owner', role['title']) or role['title']} | "
+            f"状态：{assignment.get('status', '未分派') or '未分派'} | "
+            f"写入集合：{', '.join(write_targets) if write_targets else '无'}"
+        )
+    return lines or ["- 当前没有可展示的角色 ownership。"]
+
+
+def ownership_conflict_lines(project_root: Path, config: dict, top: int) -> list[str]:
+    conflicts = role_assignment_conflicts(project_root, config)
+    if not conflicts:
+        return ["- 当前未发现写集冲突。"]
+    lines = []
+    for item in conflicts[:top]:
+        lines.append(
+            f"- `{item['role_titles'][0]}` <-> `{item['role_titles'][1]}` | "
+            f"重叠：{', '.join(item['overlaps'][:3])}"
+        )
+    return lines
+
+
 def lane_lines(project_root: Path, config: dict, role: dict, grouped: dict[str, list[dict]], owner: str, focus: str, top: int) -> list[str]:
     items = grouped.get(role["id"], [])[:top]
     skill_text = "、".join(skill["name"] for skill in role.get("skills", [])) or "无"
     doc_text = "、".join(role_document_reads(project_root, config, role["id"], include_ai=False)[:3]) or "无"
     commands = role_recommended_commands(project_root, config, role["id"], owner, focus)[:2]
+    assignment = current_role_assignment(config, role["id"])
+    write_targets = assignment_write_targets(project_root, assignment)
 
     lines = [
         f"### {role['title']}",
@@ -60,6 +207,7 @@ def lane_lines(project_root: Path, config: dict, role: dict, grouped: dict[str, 
         f"- 推荐工具：{' / '.join(role.get('preferred_tools', [])) or '无'}",
         f"- 共享技能：{skill_text}",
         f"- 优先文档：{doc_text}",
+        f"- 写入集合：{', '.join(write_targets) if write_targets else '无'}",
     ]
     if items:
         lines.append("- 当前工作项：")
@@ -72,11 +220,21 @@ def lane_lines(project_root: Path, config: dict, role: dict, grouped: dict[str, 
     if commands:
         lines.append("- 推荐动作：")
         for command in commands:
-            lines.append(f"  - `{command}`")
+            boundary = command_boundary(command)
+            if boundary and (
+                boundary["policy"].get("approval") != "auto" or boundary["policy"].get("execution") != "auto"
+            ):
+                lines.append(f"  - [需审批] `{command}`")
+                lines.append(f"    {boundary_note(boundary)}")
+            else:
+                lines.append(f"  - `{command}`")
     return lines
 
 
 def summary_markdown(config: dict, focus: str, active_items: list[dict], risks: list[str], active_roles: list[dict], grouped: dict[str, list[dict]], project_root: Path, owner: str, top: int) -> str:
+    pending_approvals = pending_approval_records(project_root)
+    boundary_lines = approval_boundary_lines(project_root, config, active_roles, owner, focus, top)
+    conflicts = role_assignment_conflicts(project_root, config)
     lines = [
         "# 多 Agent 协作看板摘要",
         "",
@@ -86,6 +244,9 @@ def summary_markdown(config: dict, focus: str, active_items: list[dict], risks: 
         f"- 焦点：{focus or '无'}",
         f"- 活跃工作项：{len(active_items)}",
         f"- 开放风险：{len(risks)}",
+        f"- 待审批票据：{len(pending_approvals)}",
+        f"- 未分派工作项：{len(grouped.get('unassigned', []))}",
+        f"- 写集冲突：{len(conflicts)}",
         "",
         "## 当前主要角色",
         "",
@@ -98,6 +259,33 @@ def summary_markdown(config: dict, focus: str, active_items: list[dict], risks: 
     for role in active_roles:
         lines.extend(lane_lines(project_root, config, role, grouped, owner, focus, top))
         lines.append("")
+    lines.extend(["## 审批与边界", ""])
+    if pending_approvals:
+        for item in pending_approvals[:top]:
+            lines.append(
+                f"- 待审批票据：`{item.get('id', '')}` | 动作：`{item.get('action', '')}` | 审批：`{item.get('approval', '')}`"
+            )
+    else:
+        lines.append("- 当前项目暂无待审批票据。")
+    if boundary_lines:
+        lines.extend(boundary_lines[:top])
+    else:
+        lines.append("- 当前推荐动作未发现需要额外审批的注册动作。")
+    lines.extend(
+        [
+            "",
+            "## Ownership 与冲突",
+            "",
+            *ownership_snapshot_lines(project_root, config, active_roles, top),
+            "",
+            *ownership_conflict_lines(project_root, config, top),
+            "",
+            "## Ownership 提醒",
+            "",
+            *ownership_warning_lines(grouped, top),
+            "",
+        ]
+    )
     lines.extend(["## 最近交接", "", *handoff_lines(config, top)])
     if risks:
         lines.extend(["", "## 开放风险", "", *risks[:top]])
@@ -138,6 +326,11 @@ def main() -> int:
                 "active_roles": [role["id"] for role in active_roles],
                 "active_items": [item["id"] for item in active_items[:20]],
                 "open_risks": open_risks[:20],
+                "pending_approvals": [item.get("id", "") for item in pending_approval_records(project_root)[:20]],
+                "approval_boundary_count": len(approval_boundary_lines(project_root, config, active_roles, args.owner.strip(), args.focus.strip(), max(1, args.top))),
+                "unassigned_items": [item["id"] for item in grouped.get("unassigned", [])[:20]],
+                "ownership_conflicts": role_assignment_conflicts(project_root, config)[:20],
+                "execution_blocked": bool(role_assignment_conflicts(project_root, config)),
             }
 
             doc_path = project_root / ".factory" / "process" / "multi-agent-board.md"
@@ -151,6 +344,10 @@ def main() -> int:
                     f"- 焦点：{args.focus.strip() or '无'}",
                     f"- 活跃工作项：{len(active_items)}",
                     f"- 开放风险：{len(open_risks)}",
+                    f"- 待审批票据：{len(board_payload['pending_approvals'])}",
+                    f"- 未分派工作项：{len(board_payload['unassigned_items'])}",
+                    f"- 写集冲突：{len(board_payload['ownership_conflicts'])}",
+                    f"- 并行执行状态：{'阻断' if board_payload['execution_blocked'] else '可继续'}",
                 ],
                 default_title="# 多 Agent 协作看板",
             )
@@ -184,6 +381,41 @@ def main() -> int:
                 doc_path,
                 "## 风险与提醒",
                 open_risks[: max(1, args.top)] or ["- 当前无开放风险。"],
+                default_title="# 多 Agent 协作看板",
+            )
+            approval_lines = []
+            for item in pending_approval_records(project_root)[: max(1, args.top)]:
+                approval_lines.append(
+                    f"- 待审批票据：`{item.get('id', '')}` | 动作：`{item.get('action', '')}` | 审批：`{item.get('approval', '')}`"
+                )
+            approval_lines.extend(
+                approval_boundary_lines(
+                    project_root,
+                    config,
+                    active_roles,
+                    args.owner.strip(),
+                    args.focus.strip(),
+                    max(1, args.top),
+                )[: max(1, args.top)]
+            )
+            upsert_section(
+                doc_path,
+                "## 审批与边界",
+                approval_lines or ["- 当前项目暂无待审批票据，也未发现需要额外审批的推荐动作。"],
+                default_title="# 多 Agent 协作看板",
+            )
+            upsert_section(
+                doc_path,
+                "## Ownership 提醒",
+                ownership_warning_lines(grouped, max(1, args.top)),
+                default_title="# 多 Agent 协作看板",
+            )
+            upsert_section(
+                doc_path,
+                "## Ownership 与冲突",
+                ownership_snapshot_lines(project_root, config, active_roles, max(1, args.top))
+                + [""]
+                + ownership_conflict_lines(project_root, config, max(1, args.top)),
                 default_title="# 多 Agent 协作看板",
             )
             prepend_history_entry(

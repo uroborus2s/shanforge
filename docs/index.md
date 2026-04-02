@@ -130,6 +130,15 @@ mkdocs:
             - title: 源文档标准升级分析
               path: 04-project-development/04-design/source-docs-standard-upgrade-analysis.md
               access: private
+            - title: 动作注册与分级自治策略设计
+              path: 04-project-development/04-design/action-registry-and-autonomy-policy.md
+              access: private
+            - title: 多前台适配与多代理协作设计
+              path: 04-project-development/04-design/frontend-adapters-and-multi-agent-coordination.md
+              access: private
+            - title: Skill 进化机制设计
+              path: 04-project-development/04-design/skill-evolution-mechanism.md
+              access: private
         - title: 开发过程文档
           children:
             - title: 概览

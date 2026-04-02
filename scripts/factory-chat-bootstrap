@@ -10,11 +10,14 @@ from factory_core import (
     append_log_line,
     collect_active_items,
     ensure_role_catalog,
+    frontend_prompt_examples,
     group_items_by_role,
     load_project_config,
+    load_frontend_profiles,
     prepend_history_entry,
     project_lock,
     refresh_ai_memory,
+    resolve_frontend_profile,
     resolve_role,
     role_document_reads,
     role_recommended_commands,
@@ -26,9 +29,14 @@ from factory_core import (
 
 
 def parse_args() -> argparse.Namespace:
+    supported_tools = sorted(load_frontend_profiles().keys())
     parser = argparse.ArgumentParser(description="生成给 Codex / Gemini CLI 直接读取的角色化对话启动入口。")
     parser.add_argument("--project", required=True, help="项目根目录。")
-    parser.add_argument("--tool", default="generic", choices=["codex", "gemini", "generic"], help="目标工具。")
+    parser.add_argument(
+        "--tool",
+        default="generic",
+        help=f"目标工具。支持已登记前台、其别名或 generic。当前已登记：{', '.join(supported_tools) if supported_tools else '无'}。",
+    )
     parser.add_argument("--role", default="coordinator", help="要扮演的角色。")
     parser.add_argument("--owner", default="会话协调者", help="启动入口负责人。")
     parser.add_argument("--focus", default="", help="当前对话焦点。")
@@ -37,41 +45,24 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
-def tool_label(tool: str) -> str:
-    if tool == "codex":
-        return "Codex"
-    if tool == "gemini":
-        return "Gemini CLI"
-    return "通用 CLI 模型"
+def tool_label(profile: dict) -> str:
+    return str(profile.get("label", "")).strip() or "通用 CLI 模型"
 
 
-def primary_rule_file(tool: str) -> str:
-    if tool == "codex":
-        return "AGENTS.md"
-    if tool == "gemini":
-        return "GEMINI.md"
-    return "AGENTS.md 与 GEMINI.md"
+def primary_rule_file(profile: dict) -> str:
+    files = [str(item).strip() for item in profile.get("primary_rule_files", []) if str(item).strip()]
+    if not files:
+        return "AGENTS.md 与 GEMINI.md"
+    if len(files) == 1:
+        return files[0]
+    return " 与 ".join(files)
 
 
 def example_prompts(role_title: str, tool: str, focus: str) -> list[str]:
-    current_focus = focus or "继续当前项目阶段工作"
-    if tool == "codex":
-        return [
-            f"读取 AGENTS.md、.factory/project.json 和 .factory/memory/agent-session.md，以{role_title}身份{current_focus}。",
-            f"先检查当前相关工作项和推荐命令，再直接推进{role_title}负责的动作。",
-        ]
-    if tool == "gemini":
-        return [
-            f"读取 GEMINI.md、.factory/project.json 和 .factory/memory/agent-session.md，以{role_title}身份{current_focus}。",
-            f"先补齐分析与文档，再给出本角色下一步最合适的命令。",
-        ]
-    return [
-        f"读取 AGENTS.md、GEMINI.md、.factory/project.json 和 .factory/memory/agent-session.md，以{role_title}身份{current_focus}。",
-        "先确认当前阶段、角色职责和推荐动作，再开始执行。",
-    ]
+    return frontend_prompt_examples(tool, role_title, focus)
 
 
-def build_markdown(tool: str, config: dict, role: dict, focus: str, reads: list[str], commands: list[str], items: list[dict]) -> str:
+def build_markdown(profile: dict, config: dict, role: dict, focus: str, reads: list[str], commands: list[str], items: list[dict]) -> str:
     item_lines = [
         f"- `{item['id']}` {item['title']} | 状态：{item['status']} | 负责人：{item['owner']}" for item in items
     ] or ["- 当前没有直接分配给该角色的活跃工作项。"]
@@ -85,17 +76,17 @@ def build_markdown(tool: str, config: dict, role: dict, focus: str, reads: list[
     ] or ["- 当前技术画像未额外要求专用 skills。"]
     read_lines = [f"- `{item}`" for item in reads] or ["- 无"]
     command_lines = [f"- `{item}`" for item in commands] or ["- 无"]
-    prompt_lines = [f"- {item}" for item in example_prompts(role["title"], tool, focus)]
+    prompt_lines = [f"- {item}" for item in example_prompts(role["title"], profile["id"], focus)]
 
     lines = [
-        f"# {tool_label(tool)} 对话启动入口",
+        f"# {tool_label(profile)} 对话启动入口",
         "",
         f"- 生成时间：{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
         f"- 项目名称：{config.get('project_name', '未命名项目')}",
         f"- 当前阶段：{config.get('stage', '未知')}",
         f"- 角色：{role['title']}",
         f"- 焦点：{focus or '无'}",
-        f"- 优先规则文件：{primary_rule_file(tool)}",
+        f"- 优先规则文件：{primary_rule_file(profile)}",
         "",
         "## 角色说明",
         "",
@@ -139,6 +130,7 @@ def build_markdown(tool: str, config: dict, role: dict, focus: str, reads: list[
 def main() -> int:
     args = parse_args()
     project_root = Path(args.project).expanduser().resolve()
+    profile = resolve_frontend_profile(args.tool.strip(), default_id="generic")
 
     try:
         with project_lock(project_root, reason="生成角色化对话启动入口"):
@@ -159,7 +151,7 @@ def main() -> int:
             )
 
             markdown = build_markdown(
-                args.tool,
+                profile,
                 config,
                 role,
                 args.focus.strip(),
@@ -167,10 +159,10 @@ def main() -> int:
                 commands[:8],
                 items,
             )
-            output_path = project_root / ".factory" / "memory" / f"chat-bootstrap.{args.tool}.{role['id']}.md"
+            output_path = project_root / ".factory" / "memory" / f"chat-bootstrap.{profile['id']}.{role['id']}.md"
             payload = {
                 "generated_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                "tool": args.tool,
+                "tool": profile["id"],
                 "role": role["id"],
                 "owner": args.owner.strip(),
                 "focus": args.focus.strip(),
@@ -188,7 +180,7 @@ def main() -> int:
                         "# 对话启动摘要",
                         "",
                         f"- 时间：{payload['generated_at']}",
-                        f"- 工具：{tool_label(args.tool)}",
+                        f"- 工具：{tool_label(profile)}",
                         f"- 角色：{role['title']}",
                         f"- 焦点：{args.focus.strip() or '无'}",
                         f"- 输出文件：`{output_path.relative_to(project_root)}`",
@@ -206,12 +198,12 @@ def main() -> int:
                 "## 最新启动入口",
                 [
                     f"- 时间：{payload['generated_at']}",
-                    f"- 工具：{tool_label(args.tool)}",
+                    f"- 工具：{tool_label(profile)}",
                     f"- 角色：{role['title']}",
                     f"- 负责人：{args.owner.strip()}",
                     f"- 焦点：{args.focus.strip() or '无'}",
                     f"- 输出文件：`{output_path.relative_to(project_root)}`",
-                    f"- 建议先读：`{primary_rule_file(args.tool)}`",
+                    f"- 建议先读：`{primary_rule_file(profile)}`",
                 ],
                 default_title="# 对话启动记录",
             )
@@ -224,14 +216,14 @@ def main() -> int:
             upsert_section(
                 doc_path,
                 "## 建议对话提示",
-                [f"- {item}" for item in example_prompts(role["title"], args.tool, args.focus.strip())],
+                [f"- {item}" for item in example_prompts(role["title"], profile["id"], args.focus.strip())],
                 default_title="# 对话启动记录",
             )
             prepend_history_entry(
                 doc_path,
                 "## 历史启动记录",
                 (
-                    f"- {payload['generated_at']}: 为 `{tool_label(args.tool)}` 生成 `{role['title']}` 对话入口，"
+                    f"- {payload['generated_at']}: 为 `{tool_label(profile)}` 生成 `{role['title']}` 对话入口，"
                     f"负责人：{args.owner.strip()}。"
                 ),
                 default_title="# 对话启动记录",
@@ -239,11 +231,11 @@ def main() -> int:
 
             now_text = payload["generated_at"]
             config["last_chat_bootstrap_at"] = now_text
-            config["last_chat_bootstrap_tool"] = args.tool
+            config["last_chat_bootstrap_tool"] = profile["id"]
             config["last_chat_bootstrap_role"] = role["id"]
             config.setdefault("chat_bootstraps", []).append(
                 {
-                    "tool": args.tool,
+                    "tool": profile["id"],
                     "role": role["id"],
                     "owner": args.owner.strip(),
                     "focus": args.focus.strip(),
@@ -255,7 +247,7 @@ def main() -> int:
             append_log_line(
                 project_root / ".factory" / "process" / "execution-log.md",
                 (
-                    f"- {datetime.now().strftime('%Y-%m-%d')}: 生成 `{tool_label(args.tool)}` 的 `{role['title']}` "
+                    f"- {datetime.now().strftime('%Y-%m-%d')}: 生成 `{tool_label(profile)}` 的 `{role['title']}` "
                     f"对话启动入口，负责人：{args.owner.strip()}。"
                 ),
             )

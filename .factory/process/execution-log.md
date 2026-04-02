@@ -7,3 +7,27 @@
 - 2026-04-01: 执行状态诊断，范围：full，结果：通过，负责人：Codex。
 - 2026-04-01: 完成 shanforge 历史项目纳管，并生成 docs-stratego 升级通知。
 - 2026-04-01: 更新项目使用指南与提示词速查，新增 docs 标准升级和批量通知项目负责人的自然语言模板，并复查 docs 源文档状态为就绪。
+- 2026-04-02: 升级 docs 到最新源文档标准，负责人：Codex。
+- 2026-04-02: 新增动作注册、分级自治、skill 进化、多前台适配和多代理协作设计文档，并同步总架构、接口追踪和文档索引。
+- 2026-04-02: 落地动作注册表和自治策略文件契约，接入 `factory-dispatch` 首批高层动作，并完成 38 项回归测试。
+- 2026-04-02: 落地前台能力画像配置与查询入口，支持 `codex`、`gemini`、`opencode`，并让 `factory-chat-bootstrap` 接入前台画像。
+- 2026-04-02: 落地最小 `factory-intent-resolver`，实现自然语言到已注册动作的规则型解析，并把 `init`、`intent-resolver` 纳入动作注册表；相关回归测试通过。
+- 2026-04-02: 为 `factory-intent-resolver` 增加 `profile/workflow` 子目标选择和 `--execute-safe`，并在当前仓库通过该入口成功自动执行一次 `state-doctor`。
+- 2026-04-02: 执行状态诊断，范围：full，结果：通过，负责人：Codex。
+- 2026-04-02: 执行 intent 回放评估，结果：5/6 通过，命中率 83.33%。
+- 2026-04-02: 执行 intent 回放评估，结果：6/6 通过，命中率 100.00%。
+- 2026-04-02: 落地最小 intent 审批票据链路，支持 `factory-intent-resolver --request-approval`、`factory-intent-approval`、冻结执行计划与回归测试。
+- 2026-04-02: 为工作流型 `command-profiles` 增加子目标风险覆盖，并将审批票据断言纳入 intent 固定样本回放，结果：7/7 通过。
+- 2026-04-02: 执行 intent 回放评估，结果：7/7 通过，命中率 100.00%。
+- 2026-04-02: 执行 intent 回放评估，结果：7/7 通过，命中率 100.00%。
+- 2026-04-02: 执行 intent 回放评估，结果：7/7 通过，命中率 100.00%。
+- 2026-04-02: 刷新多 Agent 协作看板，阶段：MAINTENANCE，负责人：Codex。
+- 2026-04-02: 落地显式写集声明与默认冲突阻断；`factory-role-assign` 已支持 `--write-targets`，`factory-multi-agent-board` 已展示 ownership、写集冲突和并行阻断状态。
+- 2026-04-02: 增强 `factory-multi-agent-board`，开始暴露待审批票据、高风险推荐动作和未分派工作项提醒，并完成回归与冒烟验证。
+- 2026-04-02: 刷新多 Agent 协作看板，阶段：MAINTENANCE，负责人：Codex。
+- 2026-04-02: 执行 intent 回放评估，结果：7/7 通过，命中率 100.00%。
+- 2026-04-02: 执行 intent 回放评估，结果：7/7 通过，命中率 100.00%。
+- 2026-04-02: 刷新多 Agent 协作看板，阶段：MAINTENANCE，负责人：Codex。
+- 2026-04-02: 创建 intent 审批票据 `IA-20260402174647-commandprofi-8b80cf`，动作 `command-profiles`，项目 `/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmptul4ih4l/managed-project`。
+- 2026-04-02: 执行 intent 回放评估，结果：7/7 通过，命中率 100.00%。
+- 2026-04-02: 创建 intent 审批票据 `IA-20260402174924-commandprofi-5dc869`，动作 `command-profiles`，项目 `/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmptbjv5imo/managed-project`。

@@ -1,0 +1,306 @@
+#!/usr/bin/env python3
+
+import argparse
+import importlib.util
+import json
+import os
+import tempfile
+from contextlib import contextmanager
+from datetime import datetime
+from importlib.machinery import SourceFileLoader
+from pathlib import Path
+import sys
+
+from factory_core import (
+    INTENT_APPROVAL_ROOT_ENV,
+    EXECUTION_LOG_RELATIVE,
+    append_log_line,
+    factory_workspace_root,
+    load_json_document,
+    write_text,
+)
+
+
+DEFAULT_CASES_PATH = factory_workspace_root() / "config" / "evals" / "intent-resolver-cases.json"
+INTENT_RESOLVER_PATH = factory_workspace_root() / "scripts" / "factory-intent-resolver"
+
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description="回放评估自然语言到动作解析能力。")
+    parser.add_argument("--cases", default=str(DEFAULT_CASES_PATH), help="评估样本文件路径。")
+    parser.add_argument("--tool", default="", help="覆盖所有样本的前台工具。")
+    parser.add_argument("--json", action="store_true", help="以 JSON 输出。")
+    parser.add_argument("--strict", action="store_true", help="若存在失败样本则返回非 0。")
+    return parser.parse_args()
+
+
+def load_intent_resolver_module():
+    script_dir = str(INTENT_RESOLVER_PATH.parent)
+    if script_dir not in sys.path:
+        sys.path.insert(0, script_dir)
+    loader = SourceFileLoader("factory_intent_resolver_eval", str(INTENT_RESOLVER_PATH))
+    spec = importlib.util.spec_from_loader(loader.name, loader)
+    module = importlib.util.module_from_spec(spec)
+    assert spec is not None and spec.loader is not None
+    spec.loader.exec_module(module)
+    return module
+
+
+def load_cases(path: Path) -> list[dict]:
+    payload = load_json_document(path)
+    if not isinstance(payload, dict):
+        raise RuntimeError(f"评估样本文件无效：{path}")
+    cases = payload.get("cases", [])
+    if not isinstance(cases, list) or not cases:
+        raise RuntimeError("评估样本文件缺少非空 `cases`。")
+    normalized = []
+    for raw in cases:
+        if not isinstance(raw, dict):
+            raise RuntimeError("评估样本项必须是对象。")
+        case_id = str(raw.get("id", "")).strip()
+        intent = str(raw.get("intent", "")).strip()
+        fixture = str(raw.get("fixture", "")).strip() or "managed_project"
+        expected = raw.get("expected", {})
+        if not case_id or not intent or not isinstance(expected, dict):
+            raise RuntimeError(f"评估样本缺少 id、intent 或 expected：{raw}")
+        normalized.append(
+            {
+                "id": case_id,
+                "intent": intent,
+                "fixture": fixture,
+                "tool": str(raw.get("tool", "")).strip(),
+                "expected": expected,
+            }
+        )
+    return normalized
+
+
+def managed_project_payload(project_name: str) -> dict:
+    return {
+        "project_name": project_name,
+        "project_root": ".",
+        "stage": "MAINTENANCE",
+        "active_mode": "cli_direct",
+        "docs_profile": {
+            "project_kind": "application",
+            "audiences": ["maintainer"],
+            "surfaces": {},
+            "modules": {"04-project-development": "required"},
+            "reasons": {},
+            "detected_at": "2026-04-02T00:00:00Z",
+            "source": "intent-eval",
+        },
+    }
+
+
+@contextmanager
+def fixture_project(case: dict):
+    fixture = case["fixture"]
+    with tempfile.TemporaryDirectory() as temp_dir:
+        project_root = Path(temp_dir)
+        if fixture == "historical_project":
+            (project_root / "README.md").write_text("# Historical Project\n", encoding="utf-8")
+        elif fixture == "managed_project":
+            (project_root / ".factory").mkdir(parents=True)
+            (project_root / "docs" / "01-getting-started").mkdir(parents=True)
+            (project_root / "docs" / "02-user-guide").mkdir(parents=True)
+            (project_root / "docs" / "04-project-development").mkdir(parents=True)
+            write_text(
+                project_root / ".factory" / "project.json",
+                json.dumps(managed_project_payload("intent-eval-project"), ensure_ascii=False, indent=2),
+            )
+            write_text(project_root / "docs" / "01-getting-started" / "project-overview.md", "# 项目概览\n")
+            write_text(project_root / "docs" / "02-user-guide" / "user-guide.md", "# 使用指南\n")
+            write_text(project_root / "docs" / "04-project-development" / "overview.md", "# 项目开发\n")
+        elif fixture != "empty_project":
+            raise RuntimeError(f"未知评估夹具：{fixture}")
+        yield project_root
+
+
+def case_expected_mismatches(case: dict, result: dict, execution: dict | None) -> list[str]:
+    expected = case["expected"]
+    primary = result.get("primary") or {}
+    mismatches = []
+    if expected.get("action") and primary.get("action") != expected["action"]:
+        mismatches.append(f"expected action `{expected['action']}` but got `{primary.get('action', '')}`")
+    if expected.get("approval") and primary.get("policy", {}).get("approval") != expected["approval"]:
+        mismatches.append(
+            f"expected approval `{expected['approval']}` but got `{primary.get('policy', {}).get('approval', '')}`"
+        )
+    if expected.get("profile") and primary.get("selected_profile") != expected["profile"]:
+        mismatches.append(f"expected profile `{expected['profile']}` but got `{primary.get('selected_profile', '')}`")
+    if expected.get("workflow") and primary.get("selected_workflow") != expected["workflow"]:
+        mismatches.append(
+            f"expected workflow `{expected['workflow']}` but got `{primary.get('selected_workflow', '')}`"
+        )
+    if expected.get("safe_status") and (execution or {}).get("status") != expected["safe_status"]:
+        mismatches.append(
+            f"expected safe_status `{expected['safe_status']}` but got `{(execution or {}).get('status', '')}`"
+        )
+    approval_request = (execution or {}).get("approval_request")
+    if expected.get("approval_request_status") and (approval_request or {}).get("status") != expected["approval_request_status"]:
+        mismatches.append(
+            "expected approval_request_status "
+            f"`{expected['approval_request_status']}` but got `{(approval_request or {}).get('status', '')}`"
+        )
+    return mismatches
+
+
+def evaluate_case(case: dict, *, tool_override: str = "") -> dict:
+    module = load_intent_resolver_module()
+    tool = tool_override.strip() or case.get("tool", "").strip() or "generic"
+
+    with fixture_project(case) as project_root:
+        result = module.resolve_intent(case["intent"], project_root, tool=tool)
+        execution = None
+        if "safe_status" in case["expected"]:
+            execution = module.execute_primary_safe(
+                result,
+                owner="intent-eval",
+                note=case["id"],
+                focus=case["intent"],
+                strict=False,
+            )
+        approval_request = None
+        if "approval_request_status" in case["expected"]:
+            with tempfile.TemporaryDirectory() as approval_root:
+                previous = os.environ.get(INTENT_APPROVAL_ROOT_ENV)
+                os.environ[INTENT_APPROVAL_ROOT_ENV] = approval_root
+                try:
+                    approval_request = module.request_primary_approval(
+                        result,
+                        owner="intent-eval",
+                        note=case["id"],
+                        focus=case["intent"],
+                        strict=False,
+                    )
+                finally:
+                    if previous is None:
+                        os.environ.pop(INTENT_APPROVAL_ROOT_ENV, None)
+                    else:
+                        os.environ[INTENT_APPROVAL_ROOT_ENV] = previous
+                execution = dict(execution or {})
+                execution["approval_request"] = approval_request
+        mismatches = case_expected_mismatches(case, result, execution)
+
+    return {
+        "id": case["id"],
+        "intent": case["intent"],
+        "tool": tool,
+        "expected": case["expected"],
+        "primary_action": (result.get("primary") or {}).get("action", ""),
+        "primary_policy": (result.get("primary") or {}).get("policy", {}),
+        "selected_profile": (result.get("primary") or {}).get("selected_profile", ""),
+        "selected_workflow": (result.get("primary") or {}).get("selected_workflow", ""),
+        "safe_status": (execution or {}).get("status", ""),
+        "approval_request_status": (approval_request or {}).get("status", ""),
+        "passed": not mismatches,
+        "mismatches": mismatches,
+    }
+
+
+def evaluate_cases(cases: list[dict], *, tool_override: str = "") -> dict:
+    results = [evaluate_case(case, tool_override=tool_override) for case in cases]
+    passed = sum(1 for item in results if item["passed"])
+    total = len(results)
+    accuracy = round((passed / total) * 100, 2) if total else 0.0
+    return {
+        "generated_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        "cases": results,
+        "total": total,
+        "passed": passed,
+        "failed": total - passed,
+        "accuracy": accuracy,
+        "status": "success" if passed == total else "warning",
+        "summary": f"intent 回放通过 {passed}/{total}，命中率 {accuracy:.2f}%。",
+        "next_actions": (
+            ["继续增加回放样本，覆盖更多自然语言变体。"]
+            if passed == total
+            else ["先修复失败样本，再继续放宽自动执行边界。"]
+        ),
+        "artifacts": [
+            ".factory/process/intent-eval-report.md",
+            ".factory/memory/intent-eval.summary.md",
+        ],
+    }
+
+
+def render_markdown(summary: dict) -> str:
+    lines = [
+        "# Intent 回放评估",
+        "",
+        f"- 时间：{summary['generated_at']}",
+        f"- 总样本：{summary['total']}",
+        f"- 通过：{summary['passed']}",
+        f"- 失败：{summary['failed']}",
+        f"- 命中率：{summary['accuracy']:.2f}%",
+        f"- 状态：`{summary['status']}`",
+        "",
+        "## 结果",
+        "",
+    ]
+    for item in summary["cases"]:
+        base = f"- `{item['id']}`：{'通过' if item['passed'] else '失败'} | 动作：`{item['primary_action']}` | 工具：`{item['tool']}`"
+        if item["selected_profile"]:
+            base += f" | profile：`{item['selected_profile']}`"
+        if item["selected_workflow"]:
+            base += f" | workflow：`{item['selected_workflow']}`"
+        if item["safe_status"]:
+            base += f" | safe：`{item['safe_status']}`"
+        if item["approval_request_status"]:
+            base += f" | approval_request：`{item['approval_request_status']}`"
+        lines.append(base)
+        for mismatch in item["mismatches"]:
+            lines.append(f"  - {mismatch}")
+    lines.extend(["", "## 下一步", ""])
+    lines.extend(f"- {item}" for item in summary.get("next_actions", []))
+    return "\n".join(lines).rstrip() + "\n"
+
+
+def write_reports(summary: dict) -> None:
+    root = factory_workspace_root()
+    report_path = root / ".factory" / "process" / "intent-eval-report.md"
+    summary_path = root / ".factory" / "memory" / "intent-eval.summary.md"
+    write_text(report_path, render_markdown(summary))
+    write_text(
+        summary_path,
+        "\n".join(
+            [
+                "# Intent Eval 摘要",
+                "",
+                f"- 时间：{summary['generated_at']}",
+                f"- 命中率：{summary['accuracy']:.2f}%",
+                f"- 通过：{summary['passed']}/{summary['total']}",
+                f"- 状态：{summary['status']}",
+            ]
+        ),
+    )
+    append_log_line(
+        root / EXECUTION_LOG_RELATIVE,
+        f"- {datetime.now().strftime('%Y-%m-%d')}: 执行 intent 回放评估，结果：{summary['passed']}/{summary['total']} 通过，命中率 {summary['accuracy']:.2f}%。",
+    )
+
+
+def main() -> int:
+    args = parse_args()
+    cases_path = Path(args.cases).expanduser().resolve()
+
+    try:
+        cases = load_cases(cases_path)
+        summary = evaluate_cases(cases, tool_override=args.tool.strip())
+        write_reports(summary)
+    except Exception as exc:
+        print(f"intent 回放评估失败：{exc}", file=sys.stderr)
+        return 1
+
+    if args.json:
+        print(json.dumps(summary, ensure_ascii=False, indent=2))
+    else:
+        print(render_markdown(summary))
+    if args.strict and summary["failed"] > 0:
+        return 2
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

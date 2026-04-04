@@ -40,7 +40,7 @@
 
 - 目录结构非法时直接在检查输出中报异常
 - 迁移目标冲突时拒绝覆盖，除非显式 `--force`
-- 旧结构残留时阻断 `docs-index-refresh --check` 并提示先迁移
+- 旧结构残留时阻断 `docs-stratego source validate` 并提示先按 `document-templates` skill 迁移
 - 对于已存在的自定义 `index.md`，刷新逻辑保留人工正文，避免误覆盖
 
 ### 2.5 可观测性
@@ -48,7 +48,7 @@
 当前项目的主要观测点不是服务指标，而是：
 
 - `unittest` 回归结果
-- `docs-index-refresh --check` 结果
+- `docs-stratego source validate` 结果
 - Markdown 链接与路径重写结果
 - 迁移脚本是否正确识别旧结构和新结构
 

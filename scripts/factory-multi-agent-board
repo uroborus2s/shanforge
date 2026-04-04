@@ -6,6 +6,7 @@ from datetime import datetime
 from pathlib import Path
 import shlex
 import sys
+from typing import Optional
 
 from factory_core import (
     append_log_line,
@@ -68,7 +69,7 @@ def pending_approval_records(project_root: Path) -> list[dict]:
     return sorted(matched, key=lambda item: str(item.get("created_at", "")), reverse=True)
 
 
-def command_boundary(command: str) -> dict | None:
+def command_boundary(command: str) -> Optional[dict]:
     try:
         tokens = shlex.split(command)
     except Exception:

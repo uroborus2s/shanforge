@@ -37,3 +37,41 @@
 - 2026-04-02: 创建 intent 审批票据 `IA-20260402182658-commandprofi-d88ef5`，动作 `command-profiles`，项目 `/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmpmraffi1b/managed-project`。
 - 2026-04-02: 升级 docs 到最新源文档标准，负责人：Codex。
 - 2026-04-02: 升级 docs 到最新源文档标准，负责人：Codex。
+- 2026-04-03: 落地 `factory-skill-draft`，开始把候选能力写入 `skills-drafts/`，并接入 `factory-dispatch`、动作注册表、回复摘要契约和回归测试。
+- 2026-04-03: 执行 intent 回放评估，结果：7/7 通过，命中率 100.00%。
+- 2026-04-03: 创建 intent 审批票据 `IA-20260403160113-commandprofi-aaaab5`，动作 `command-profiles`，项目 `/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmp1fe6_xjs/managed-project`。
+- 2026-04-03: 落地 `factory-skill-approval`，开始把候选 skill 接入专用审批票据链路，并把批准结果写回 `skills-drafts/<skill>/approval.json` 与 `proposal.json`。
+- 2026-04-03: 落地 `factory-skill-promote`，开始把正式 skill 晋升收口到“候选 + 评估通过 + 批准完成”后的单一发布入口，并生成晋升记录与旧版本备份。
+- 2026-04-03: 落地 `factory-skill-rollback`，开始把已晋升 skill 的安全回退收口到“存在旧版本备份”后的单一恢复入口，并生成回退记录与当前版本备份。
+- 2026-04-03: 落地 `factory-skill-eval`，开始把候选 skill 的正式评估收口到可重复执行命令，检查 skill 结构、evals schema、输入文件与变更摘要，不再依赖手工改 `eval-report.json`。
+- 2026-04-03: 收紧 `factory-skill-approval` 门禁，候选 skill 必须先通过 `factory-skill-eval` 的正式评估后才能申请审批票据；相关 approval/promote/rollback 回归已同步调整。
+- 2026-04-03: 落地 `factory-skill-delete-approval`，为首次发布的新 skill 提供删除回退审批票据，并让 `factory-skill-rollback` 支持“恢复旧版”与“审批后删除回退”两种模式。
+- 2026-04-03: 执行 intent 回放评估，结果：7/7 通过，命中率 100.00%。
+- 2026-04-03: 创建 intent 审批票据 `IA-20260403161032-commandprofi-289ae0`，动作 `command-profiles`，项目 `/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmpr_gis1zo/managed-project`。
+- 2026-04-03: 创建 intent 审批票据 `IA-20260403162618-commandprofi-defeb9`，动作 `command-profiles`，项目 `/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmpk6pig2s2/managed-project`。
+- 2026-04-03: 执行 intent 回放评估，结果：7/7 通过，命中率 100.00%。
+- 2026-04-03: 执行 intent 回放评估，结果：7/7 通过，命中率 100.00%。
+- 2026-04-03: 创建 intent 审批票据 `IA-20260403163831-commandprofi-9a9b7c`，动作 `command-profiles`，项目 `/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmpwy9g250c/managed-project`。
+- 2026-04-03: 执行 intent 回放评估，结果：7/7 通过，命中率 100.00%。
+- 2026-04-03: 创建 intent 审批票据 `IA-20260403165548-commandprofi-6d3d99`，动作 `command-profiles`，项目 `/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmppg4fftrc/managed-project`。
+- 2026-04-03: 执行 intent 回放评估，结果：7/7 通过，命中率 100.00%。
+- 2026-04-03: 创建 intent 审批票据 `IA-20260403171242-commandprofi-793648`，动作 `command-profiles`，项目 `/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmpqkinvwzs/managed-project`。
+- 2026-04-03: 创建 intent 审批票据 `IA-20260403171346-commandprofi-4ac853`，动作 `command-profiles`，项目 `/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmpxqlv096m/managed-project`。
+- 2026-04-03: 执行 intent 回放评估，结果：7/7 通过，命中率 100.00%。
+- 2026-04-03: 创建 intent 审批票据 `IA-20260403172844-commandprofi-579e8f`，动作 `command-profiles`，项目 `/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmpcebzu7js/managed-project`。
+- 2026-04-03: 执行 intent 回放评估，结果：12/12 通过，命中率 100.00%。
+- 2026-04-03: 创建 intent 审批票据 `IA-20260403175049-commandprofi-171564`，动作 `command-profiles`，项目 `/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmph8_03fe3/managed-project`。
+- 2026-04-03: 执行 intent 回放评估，结果：12/13 通过，命中率 92.31%。
+- 2026-04-03: 创建 intent 审批票据 `IA-20260403175409-commandprofi-857ff5`，动作 `command-profiles`，项目 `/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmpyxdsradh/managed-project`。
+- 2026-04-03: 执行 intent 回放评估，结果：13/13 通过，命中率 100.00%。
+- 2026-04-03: 创建 intent 审批票据 `IA-20260403175451-commandprofi-0efbe1`，动作 `command-profiles`，项目 `/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmp9t5ivfb1/managed-project`。
+- 2026-04-03: 按方案 2 完成 `factory-intent-resolver` 的 skill 生命周期解析重构；自然语言现可按候选状态路由 `skill-eval`、`skill-approval`、`skill-promote`、`skill-delete-approval`、`skill-rollback`，缺少候选时保留显式阻塞边界。
+- 2026-04-03: 执行 intent 回放评估，结果：13/13 通过，命中率 100.00%。
+- 2026-04-03: 创建 intent 审批票据 `IA-20260403180034-commandprofi-cac040`，动作 `command-profiles`，项目 `/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmp1d9m5qff/managed-project`。
+- 2026-04-03: 执行 intent 回放评估，结果：13/13 通过，命中率 100.00%。
+- 2026-04-03: 创建 intent 审批票据 `IA-20260403180130-commandprofi-0962f6`，动作 `command-profiles`，项目 `/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmpvg4s0ykv/managed-project`。
+- 2026-04-03: 创建 intent 审批票据 `IA-20260403192410-commandprofi-78c0c5`，动作 `command-profiles`，项目 `/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmpp3458yah/managed-project`。
+- 2026-04-03: 执行状态诊断，范围：docs，结果：未通过，负责人：项目医生。
+- 2026-04-03: 执行 intent 回放评估，结果：13/13 通过，命中率 100.00%。
+- 2026-04-03: 创建 intent 审批票据 `IA-20260403192712-commandprofi-e79541`，动作 `command-profiles`，项目 `/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmpf18eopm9/managed-project`。
+- 2026-04-03: 执行状态诊断，范围：docs，结果：未通过，负责人：项目医生。

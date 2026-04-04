@@ -729,8 +729,8 @@
   "last_agent_session_at": "2026-04-01 10:43:46",
   "last_agent_session_owner": "Codex",
   "last_agent_session_focus": "完成历史项目纳管后的首轮维护入口确认",
-  "last_state_doctor_at": "2026-04-02 13:03:13",
-  "last_state_doctor_result": "通过",
+  "last_state_doctor_at": "2026-04-03 20:15:24",
+  "last_state_doctor_result": "未通过",
   "state_doctor_runs": [
     {
       "scope": "full",
@@ -752,6 +752,20 @@
       "owner": "Codex",
       "note": "继续下一步",
       "checked_at": "2026-04-02 13:03:13"
+    },
+    {
+      "scope": "docs",
+      "result": "未通过",
+      "owner": "项目医生",
+      "note": "",
+      "checked_at": "2026-04-03 19:24:19"
+    },
+    {
+      "scope": "docs",
+      "result": "未通过",
+      "owner": "项目医生",
+      "note": "",
+      "checked_at": "2026-04-03 20:15:24"
     }
   ],
   "last_multi_agent_board_at": "2026-04-02 15:19:02",

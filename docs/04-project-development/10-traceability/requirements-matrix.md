@@ -2,19 +2,19 @@
 
 **项目名称：** 山海工枢 / shanforge  
 **负责人：** 仓库维护者  
-**最后更新：** 2026-04-02  
+**最后更新：** 2026-04-03
 
 ## 1. 需求到设计/实施/测试映射
 
 | 需求 ID | 需求摘要 | 设计文档 | 模块 | 接口 | 任务 | 测试 | 发布状态 |
 |---|---|---|---|---|---|---|---|
-| `REQ-001` | 建立正式的人类文档入口 | `project-charter.md`, `system-architecture.md` | `MOD-001`, `MOD-004` | `API-003`, `API-005` | `TASK-001` 文档基线建设 | 文档结构走查 | 已完成基线 |
+| `REQ-001` | 建立正式的人类文档入口 | `project-charter.md`, `system-architecture.md` | `MOD-001`, `MOD-004` | `API-005`, `API-008` | `TASK-001` 文档基线建设 | 文档结构走查 | 已完成基线 |
 | `REQ-002` | 形成需求规划与设计基线 | `prd.md`, `requirements-analysis.md`, `system-architecture.md`, `module-boundaries.md` | `MOD-001`, `MOD-004` | `API-005` | `TASK-001` 文档基线建设 | 需求一致性校验 | 已完成基线 |
 | `REQ-003` | 保持 CLI-first 的统一执行入口 | `technical-selection.md`, `api-design.md`, `user-guide.md` | `MOD-002`, `MOD-003` | `API-001`, `API-002` | `TASK-002` 入口对齐 | 用户路径走查 | 已完成基线 |
 | `REQ-004` | 明确人类文档与 AI 记忆分层 | `prd.md`, `technical-selection.md`, `system-architecture.md` | `MOD-001`, `MOD-002`, `MOD-004` | `API-003`, `API-004`, `API-005` | `TASK-002` 入口对齐 | 文档与配置检查 | 已完成基线 |
 | `REQ-005` | 支持角色化协作与交接理解 | `project-charter.md`, `requirements-analysis.md`, `module-boundaries.md`, `user-guide.md` | `MOD-001`, `MOD-002`, `MOD-003` | `API-002`, `API-004` | `TASK-003` 协作说明沉淀 | 人工评审 | 已完成基线 |
 | `REQ-006` | 提供带自然语言速查表的用户使用文档 | `user-guide.md`, `prompt-templates.md`, `api-design.md`, `prd.md` | `MOD-001`, `MOD-003` | `API-001`, `API-002`, `API-005` | `TASK-004` 用户指南整理 | 用户路径走查 | 已完成基线 |
-| `REQ-007` | 接管非软件工厂历史项目并完成纳管 | `user-guide.md`, `current-state-analysis.md`, `historical-project-onboarding-checklist.md`, `historical-project-onboarding-automation.md`, `requirements-analysis.md`, `prd.md` | `MOD-001`, `MOD-003`, `MOD-004` | `API-002`, `API-004`, `API-005`, `API-006` | `TASK-005` 历史项目纳管规则整理 | 纳管场景走查 | MVP 已实现 |
+| `REQ-007` | 接管非软件工厂历史项目并完成纳管 | `user-guide.md`, `current-state-analysis.md`, `historical-project-onboarding-checklist.md`, `historical-project-onboarding-automation.md`, `requirements-analysis.md`, `prd.md` | `MOD-001`, `MOD-003`, `MOD-004` | `API-002`, `API-005`, `API-006`, `API-008` | `TASK-005` 历史项目纳管规则整理 | 纳管场景走查 | MVP 已实现 |
 
 ## 2. 非功能需求映射
 
@@ -32,14 +32,20 @@
 | `API-002` | `factory-agent-session` | 使用者、维护者 | `scripts/factory-agent-session` | 推荐阅读和下一步命令是否合理 | 脚本维护者 |
 | `API-003` | 默认配置层 | 初始化脚本、规则刷新脚本 | `config/software-factory.defaults.json` | 文档路径是否有效 | 仓库维护者 |
 | `API-004` | 项目状态层 | 被管理项目、脚本、模型 | `.factory/project.json` | 状态结构有效性 | 项目协调者 |
-| `API-005` | 正式文档层 | 人类读者、维护者 | `docs/*` | 文档是否可发现和可追踪 | 文档维护者 |
+| `API-005` | 正式文档层 | 人类读者、维护者、`docs-stratego` | `docs/*` | 文档是否可发现和可追踪 | 文档维护者 |
 | `API-006` | `factory-historical-project-onboarding` / `factory-dispatch historical-project-onboarding` | 维护者、项目协调者 | `historical-project-onboarding-automation.md`, `scripts/factory-historical-project-onboarding`, `scripts/factory-dispatch` | 命令是否可在非空历史仓库中补齐最小骨架并生成 session/doctor | 脚本维护者 |
-| `API-008` | `factory-docs-standard-upgrade` / `factory-dispatch docs-standard-upgrade` | 维护者、项目协调者 | `scripts/factory-docs-standard-upgrade`, `scripts/factory_core.py`, `scripts/factory-dispatch` | 升级后是否直接达到 docs 源文档 `就绪` 状态 | 脚本维护者 |
-| `API-009` | `factory-docs-standard-upgrade-batch` / `factory-dispatch docs-standard-upgrade-batch` | 平台维护者、项目协调者 | `scripts/factory-docs-standard-upgrade-batch`, `scripts/factory_core.py`, `scripts/factory-dispatch` | 批量扫描与升级汇总是否准确 | 脚本维护者 |
-| `API-014` | `factory-intent-resolver` / `factory-dispatch intent-resolver` | 使用者、维护者 | `scripts/factory-intent-resolver`, `scripts/factory-dispatch`, `config/action-registry.json`, `config/autonomy-policy.json` | 自然语言是否稳定映射到已注册动作和风险策略 | 脚本维护者 |
-| `API-015` | `factory-intent-eval` / `factory-dispatch intent-eval` | 平台维护者、QA | `scripts/factory-intent-eval`, `config/evals/intent-resolver-cases.json` | 意图回放命中率和失败样本是否稳定可见 | 脚本维护者 |
+| `API-008` | `docs-stratego source validate` | 文档维护者、项目协调者 | `docs-stratego` CLI | 源仓 docs 是否达到 `就绪` 状态 | 文档维护者 |
+| `API-009` | `docs-stratego source add/remove/scaffold-notify/sync/build/dev` | 平台维护者、项目协调者 | `docs-stratego` CLI | 聚合接入、构建和预览链路是否健康 | 平台维护者 |
+| `API-014` | `factory-intent-resolver` / `factory-dispatch intent-resolver` | 使用者、维护者 | `scripts/factory-intent-resolver`, `scripts/factory-dispatch`, `config/action-registry.json`, `config/autonomy-policy.json` | 自然语言是否稳定映射到已注册动作和风险策略，并在 skill 生命周期场景下保留正确的阻塞边界 | 脚本维护者 |
+| `API-015` | `factory-intent-eval` / `factory-dispatch intent-eval` | 平台维护者、QA | `scripts/factory-intent-eval`, `config/evals/intent-resolver-cases.json` | 意图回放命中率和失败样本是否稳定可见，且 skill 生命周期与阻塞边界样本不会回归 | 脚本维护者 |
 | `API-016` | `factory-intent-approval` / `factory-dispatch intent-approval` | 使用者、维护者、审批协作者 | `scripts/factory-intent-approval`, `scripts/factory-intent-resolver`, `.factory/process/intent-approvals.json` | `L2/L3` 意图是否能通过冻结票据完成显式批准后继续执行 | 脚本维护者 |
 | `API-017` | `config/reply-policy.json` + `factory_core.build_reply_summary` | 使用者、维护者、技能维护者 | `config/reply-policy.json`, `scripts/factory_core.py` | 日常回复是否稳定返回摘要，skill 正式变更是否始终先走候选/评估/批准 | 脚本维护者 |
+| `API-018` | `factory-skill-draft` / `factory-dispatch skill-draft` | 技能维护者、平台维护者 | `scripts/factory-skill-draft`, `config/reply-policy.json` | 是否能稳定生成候选 skill 草案和评估骨架，而不直接改正式 skill | 脚本维护者 |
+| `API-019` | `factory-skill-approval` / `factory-dispatch skill-approval` | 技能维护者、平台维护者、审批协作者 | `scripts/factory-skill-approval`, `config/reply-policy.json`, `.factory/process/skill-approvals.json` | 候选 skill 是否只能在正式评估通过后申请专用票据，并通过显式批准或拒绝把结果写回候选目录 | 脚本维护者 |
+| `API-020` | `factory-skill-promote` / `factory-dispatch skill-promote` | 技能维护者、平台维护者、发布协作者 | `scripts/factory-skill-promote`, `config/reply-policy.json`, `.factory/process/skill-promotions.json` | 候选 skill 是否只能在评估通过且批准完成后晋升到正式 `skills/`，并保留晋升记录与备份 | 脚本维护者 |
+| `API-021` | `factory-skill-rollback` / `factory-dispatch skill-rollback` | 技能维护者、平台维护者、发布协作者 | `scripts/factory-skill-rollback`, `config/reply-policy.json`, `.factory/process/skill-rollbacks.json` | 已晋升 skill 是否能在存在旧版本备份时恢复旧版，或在首次发布新 skill 获删除审批后安全删除回退，并保留回退记录与当前版本备份 | 脚本维护者 |
+| `API-022` | `factory-skill-eval` / `factory-dispatch skill-eval` | 技能维护者、平台维护者、QA | `scripts/factory-skill-eval`, `config/reply-policy.json`, `.factory/process/skill-evals.json` | 候选 skill 是否能通过正式评估命令产出 `passed/failed` 报告，并阻止手工篡改式晋升 | 脚本维护者 |
+| `API-023` | `factory-skill-delete-approval` / `factory-dispatch skill-delete-approval` | 技能维护者、平台维护者、审批协作者 | `scripts/factory-skill-delete-approval`, `config/reply-policy.json`, `.factory/process/skill-delete-approvals.json` | 首次发布的新 skill 是否能通过专用票据完成显式删除回退批准或拒绝，并把结果写回候选目录 | 脚本维护者 |
 
 ## 4. 未闭环项
 
@@ -50,10 +56,10 @@
 | `GAP-003` | 尚未建立文档入口一致性自动检查 | 自动化保障 | 脚本维护者 | 后续阶段 |
 | `GAP-004` | 完全脱离真实目录锚点的手工包装分组仍需人工复核 | 导航高级兼容 | 脚本维护者 | 后续阶段 |
 | `GAP-005` | 动作注册表和自治策略契约已建立，但多数 legacy 动作仍未迁入统一注册表 | 动作治理层 | 脚本维护者 | 后续阶段 |
-| `GAP-006` | 已固定 skill 正式变更必须先走候选/评估/批准的治理边界，但仍未建立完整的候选生成器、专用审批命令和正式晋升流水线 | 技能治理 | 平台维护者 | 后续阶段 |
+| `GAP-006` | 已固定 skill 正式变更必须先走候选/正式评估/批准的治理边界，并已落地候选草案生成器、正式评估命令、专用审批命令、正式晋升与回退执行器；首次发布的新 skill 现已支持经专用删除审批后执行删除回退，但审批入口仍停留在本地 CLI 票据 | 技能治理 | 平台维护者 | 后续阶段 |
 | `GAP-007` | 已建立多前台能力画像与查询入口，但前台适配层尚未接入工作流编排和自动降级运行时 | 前台适配层 | 平台维护者 | 后续阶段 |
 | `GAP-008` | 已具备显式写集声明、分派时默认阻断冲突写集，以及看板中的 ownership/冲突摘要；但仍未覆盖真实子代理提交阶段的隐式写集探测、自动串行化与恢复协议 | 多代理协作治理 | 平台维护者 | 后续阶段 |
-| `GAP-009` | 已提供最小意图解析入口、`profile/workflow` 子目标选择、`--execute-safe` 自动执行、固定样本回放和最小审批票据 hook，但当前仍是规则型关键词匹配，尚未接入基于回放的排序优化、更细粒度语义理解以及 UI/远程审批入口 | 意图治理层 | 平台维护者 | 后续阶段 |
+| `GAP-009` | 已提供最小意图解析入口、`profile/workflow` 子目标选择、skill 生命周期路由、`--execute-safe` 自动执行、`13` 条固定样本回放和最小审批票据 hook，但当前仍是规则型关键词匹配，尚未接入基于回放的排序优化、更细粒度语义理解以及 UI/远程审批入口 | 意图治理层 | 平台维护者 | 后续阶段 |
 
 ## 5. 变更记录
 
@@ -76,3 +82,10 @@
 | 2026-04-02 | 增加 `API-016` 意图审批票据入口，并将 `GAP-009` 更新为“已有最小审批 hook”后的剩余缺口 | Codex |
 | 2026-04-02 | 更新 `GAP-008` 为“显式写集冲突已可阻断，剩余缺口在隐式写集探测和恢复协议” | Codex |
 | 2026-04-02 | 增加 `API-017` 对话摘要与 skill 变更批准边界契约，并将 `GAP-006` 收敛到候选生成与晋升流水线缺口 | Codex |
+| 2026-04-03 | 增加 `API-018` 候选 skill 草案生成入口，并将 `GAP-006` 收敛到专用审批命令与正式晋升流水线缺口 | Codex |
+| 2026-04-03 | 增加 `API-019` 候选 skill 专用审批票据入口，并将 `GAP-006` 收敛到正式晋升执行器与回退流水线缺口 | Codex |
+| 2026-04-03 | 增加 `API-020` 候选 skill 正式晋升入口，并将 `GAP-006` 收敛到 skill 回退流水线缺口 | Codex |
+| 2026-04-03 | 增加 `API-021` 候选 skill 安全回退入口，并将 `GAP-006` 收敛到“首次发布新 skill 无旧版备份时不自动删除”的剩余边界 | Codex |
+| 2026-04-03 | 增加 `API-022` 候选 skill 正式评估入口，并将 `GAP-006` 收敛到“首次发布新 skill 无旧版备份时不自动删除”的剩余边界 | Codex |
+| 2026-04-03 | 增加 `API-023` 首次发布新 skill 删除回退审批入口，并将 `GAP-006` 收敛到“审批仍为本地 CLI 票据”的剩余边界 | Codex |
+| 2026-04-03 | 重构 `API-014` / `API-015`，让自然语言可按候选状态路由 skill 生命周期动作，并把固定回放扩到 `13` 条样本覆盖缺少候选时的阻塞边界 | Codex |

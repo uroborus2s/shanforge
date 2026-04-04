@@ -30,7 +30,8 @@
 开始前至少要满足下面条件：
 
 - 已安装可用的 `Codex` 或 `Gemini CLI`
-- 本机可运行 `python3`
+- 已安装 `uv`
+- 本机可提供 `Python 3.14+`
 - 你能读取和修改 `shanforge` 仓库
 - 你对目标项目目录有读写权限
 
@@ -47,7 +48,7 @@
 如果你希望把当前仓库里的共享 skills 同步到本地 `Codex` / `Gemini CLI` 技能目录，可以执行：
 
 ```bash
-python3 scripts/sync-codex-skills
+uv run python scripts/sync-codex-skills
 ```
 
 这一步不是必需，但第一次搭环境时通常值得做一次。
@@ -57,12 +58,18 @@ python3 scripts/sync-codex-skills
 第一次使用前，建议至少做下面检查：
 
 ```bash
-python3 scripts/factory-dispatch --help
-python3 scripts/factory-init --help
-python3 scripts/factory-agent-session --help
+uv run python scripts/factory-dispatch --help
+uv run python scripts/factory-init --help
+uv run python scripts/factory-agent-session --help
 ```
 
 只要帮助信息能正常输出，说明最基本的脚本入口是可用的。
+
+补充说明：
+
+- 当前仓库正式基线是 `Python 3.14+` + `uv`
+- 推荐入口是 `uv run python scripts/...`
+- 系统 `python3` 只适合做临时探测，不再作为正式工作流基线
 
 ## 3. 先理解两个目录不是一回事
 
@@ -290,38 +297,38 @@ python3 scripts/factory-agent-session --help
 - 不要把它当空目录重建
 - 不要重写整套现有文档
 
-### 8.5 已纳管项目按新规范刷新 docs
+### 8.5 已纳管项目按新规范重构 docs
 
 标准顺序：
 
 1. 先确认项目已经被山海工枢接管，也就是已有 `AGENTS.md`、`GEMINI.md`、`.factory/project.json` 和 `docs/`
-2. 先执行 `factory-docs-standard-upgrade --check`
-3. 再执行 `factory-docs-standard-upgrade`
-4. 升级完成后执行 `factory-state-doctor --scope docs`
+2. 激活 `document-templates` skill，按 4 大模块手工重构 `docs/`
+3. 完成后执行 `uvx --from docs-stratego docs-stratego source validate --repo-path "."`
+4. 再执行 `factory-state-doctor --scope docs`
 5. 人工复核根 `docs/index.md`、相关目录 `index.md`、`access` 例外和契约页纳入情况
 
 推荐开场：
 
 ```text
 这个项目已经纳入软件工厂。
-请不要重写整套 docs，先按最新山海工枢源文档标准刷新 `docs/`，并在完成后告诉我最终是否为 `就绪`。
+请使用 `document-templates` skill 按最新山海工枢源文档标准重构 `docs/`，并在完成后执行 `docs-stratego source validate`，告诉我最终是否为 `就绪`。
 ```
 
 这类场景对应的可复制模板，直接看 [提示词速查](./prompt-templates.md#19-已纳管项目升级-docs-到最新源文档标准)。
 
-### 8.6 统一通知多个项目负责人刷新 docs
+### 8.6 统一通知多个项目负责人校验 docs
 
 标准顺序：
 
-1. 先用 `factory-docs-standard-upgrade-batch --check` 扫描一个工作区
-2. 区分“已接管可直接升级”和“未接管需先纳管”的项目
-3. 为每个项目负责人生成统一通知，要求他们在各自仓库执行单项目升级
+1. 先确认每个项目都已经由负责人用 `document-templates` skill 调整过 `docs/`
+2. 为每个项目负责人生成统一通知，要求他们在各自仓库执行 `docs-stratego source validate`
+3. 区分“已通过校验”和“仍需补文档/修导航”的项目
 4. 收齐反馈后，再决定是否需要集中复核导航和契约页
 
 不要做的事：
 
 - 不要在平台仓库里直接替每个业务项目手工改 docs
-- 不要跳过 `--check` 就批量升级
+- 不要继续使用 `factory-docs-*` 旧命令
 
 如果你需要直接转发的自然语言通知模板，看 [提示词速查](./prompt-templates.md#20-批量扫描并通知项目负责人刷新-docs)。
 
@@ -404,7 +411,7 @@ python3 scripts/factory-agent-session --help
 
 检查：
 
-- `factory-docs-standard-upgrade` 最终是否为 `就绪`
+- `docs-stratego source validate` 最终是否为 `就绪`
 - 根 `docs/index.md` 和相关目录 `index.md` 是否已经刷新
 - `openapi` / `tools` 契约页是否正确纳入导航
 - 是否还有需要人工复核的导航顺序、标题或 `access` 例外

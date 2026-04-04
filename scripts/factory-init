@@ -9,14 +9,13 @@ import sys
 import textwrap
 
 from factory_core import (
-    MODERN_DOCS_BOOTSTRAP_PAGES,
     build_default_roles,
     detect_docs_profile,
     docs_relative_path_enabled,
+    docs_profile_module_enabled,
     filter_relative_doc_paths,
     normalize_docs_profile,
     update_publication_policy_for_modern_docs,
-    write_docs_stratego_indexes,
 )
 
 
@@ -263,46 +262,163 @@ def build_placeholder(title: str, body: str) -> str:
     ).strip()
 
 
-def build_docs_index(project_name: str) -> str:
+def build_docs_index(project_name: str, docs_profile: dict) -> str:
+    sections = [
+        (
+            "01-getting-started",
+            "入门说明",
+            "public",
+            [
+                ("概览", "01-getting-started/index.md"),
+                ("项目概览", "01-getting-started/project-overview.md"),
+                ("快速开始", "01-getting-started/quick-start.md"),
+                ("文档地图", "01-getting-started/document-map.md"),
+            ],
+        ),
+        (
+            "02-user-guide",
+            "用户指南",
+            "public",
+            [
+                ("概览", "02-user-guide/index.md"),
+                ("使用指南", "02-user-guide/user-guide.md"),
+            ],
+        ),
+        (
+            "03-developer-guide",
+            "开发者指南",
+            "public",
+            [
+                ("概览", "03-developer-guide/index.md"),
+            ],
+        ),
+        (
+            "04-project-development",
+            "项目开发文档（内）",
+            "private",
+            [
+                ("概览", "04-project-development/index.md"),
+            ],
+        ),
+    ]
+
+    lines = [
+        "---",
+        f"title: {project_name}",
+        "mkdocs:",
+        "  home_access: public",
+        "  nav:",
+    ]
+    for module_key, title, access, entries in sections:
+        if not docs_profile_module_enabled(docs_profile, module_key, None):
+            continue
+        lines.extend(
+            [
+                f"    - title: {title}",
+                "      children:",
+            ]
+        )
+        for entry_title, entry_path in entries:
+            lines.extend(
+                [
+                    f"        - title: {entry_title}",
+                    f"          path: {entry_path}",
+                    f"          access: {access}",
+                ]
+            )
+
+    lines.extend(
+        [
+            "---",
+            f"# {project_name}",
+            "",
+            f"这是 `{project_name}` 的正式项目文档源。AI 软件工厂在项目仓库内直接维护这些文档，`docs-stratego` CLI 负责源仓校验和聚合站点接入，但不反向改写源文档。",
+            "",
+            "## 维护规则",
+            "",
+            "- 只有根 `docs/index.md` 声明全站 `mkdocs.nav`、页面路径和页面权限。",
+            "- 子目录 `index.md` 只作为正文首页，不再承担导航声明职责。",
+            "- 页面、图片和附件跟随所属目录维护；资源文件放在当前目录或当前目录的 `assets/` 下。",
+            "- 仓内链接统一使用相对路径，不写机器绝对路径。",
+            "- 新增、删除或移动页面后，直接更新根 `docs/index.md`，再执行 `docs-stratego source validate`。",
+        ]
+    )
+    return "\n".join(lines).strip()
+
+
+def build_getting_started_index() -> str:
     return textwrap.dedent(
-        f"""
-        ---
-        title: {project_name}
-        mkdocs:
-          home_access: public
-          nav:
-            - title: 入门说明
-              children:
-                - title: 概览
-                  path: 01-getting-started/index.md
-                  access: public
-            - title: 用户指南
-              children:
-                - title: 概览
-                  path: 02-user-guide/index.md
-                  access: public
-            - title: 开发者指南
-              children:
-                - title: 概览
-                  path: 03-developer-guide/index.md
-                  access: public
-            - title: 项目开发文档（内）
-              children:
-                - title: 概览
-                  path: 04-project-development/index.md
-                  access: private
-        ---
-        # {project_name}
+        """
+        # 入门说明
 
-        这是 `{project_name}` 的正式项目文档源。AI 软件工厂在项目仓库内直接维护这些文档，`docs-stratego` 通过 Git 子模块或等价的仓级挂载方式聚合展示，但不反向改写源文档。
+        本目录面向第一次接触项目的读者，回答三个问题：这是什么、先看什么、怎么开始。
 
-        ## 维护规则
+        ## 1. 推荐阅读顺序
 
-        - 只有根 `docs/index.md` 声明全站 `mkdocs.nav`、页面路径和页面权限。
-        - 子目录 `index.md` 只作为正文首页和资源权限锚点，不再承担导航声明职责。
-        - 页面、图片和附件跟随所属目录维护；资源文件放在当前目录或当前目录的 `assets/` 下。
-        - 仓内链接统一使用相对路径，不写机器绝对路径。
-        - 新增、删除或移动 Markdown 页面后，同步刷新根 `docs/index.md` 的目录树和子目录概览页。
+        1. [项目概览](./project-overview.md)
+        2. [快速开始](./quick-start.md)
+        3. [文档地图](./document-map.md)
+
+        ## 2. 维护要求
+
+        - 先在这里建立整体心智模型，再进入更细文档
+        - 如果启动方式、入口或阅读路径变化，同步回写本目录
+        """
+    ).strip()
+
+
+def build_user_guide_index() -> str:
+    return textwrap.dedent(
+        """
+        # 用户指南
+
+        本目录面向实际使用者、协作者和项目维护者，说明正式使用路径。
+
+        ## 1. 推荐先看
+
+        1. [使用指南](./user-guide.md)
+
+        ## 2. 维护要求
+
+        - 这里放稳定使用说明，不放内部设计过程
+        - 行为变化时优先更新这里的正式说明，再补充更细速查页
+        """
+    ).strip()
+
+
+def build_developer_guide_index() -> str:
+    return textwrap.dedent(
+        """
+        # 开发者指南
+
+        本目录面向需要扩展、集成或二次开发的人，说明稳定开发入口和边界。
+
+        ## 1. 适用场景
+
+        - 需要对项目做二次开发
+        - 需要了解稳定函数、接口或插件机制
+        - 需要准备本地开发与调试环境
+
+        ## 2. 维护要求
+
+        - 这里只记录稳定开发者事实，不记录一次性项目过程
+        - 若项目不再提供稳定开发者暴露面，可整体裁剪此模块
+        """
+    ).strip()
+
+
+def build_project_development_index() -> str:
+    return textwrap.dedent(
+        """
+        # 项目开发文档（内）
+
+        本目录是项目内部事实源，供治理、需求、设计、开发、测试、发布、运维和演进使用。
+
+        ## 1. 使用规则
+
+        - 这里放内部项目资料，不放对外用户说明
+        - 软件开发流程相关过程文档只在这里维护
+        - 需求、接口、函数、测试、发布变化都要回写到这里的正式页
         """
     ).strip()
 
@@ -356,6 +472,8 @@ def initialize_project(target: Path, project_name: str, idea: str, stack: str, o
         "AGENTS.md": build_agents_md(project_name, target, config),
         "GEMINI.md": build_gemini_md(project_name, target, config),
         ".factory/project.json": build_project_config(project_name, idea, stack, owner, target, config, docs_profile),
+        "docs/index.md": build_docs_index(project_name, docs_profile),
+        "docs/01-getting-started/index.md": build_getting_started_index(),
         "docs/01-getting-started/project-overview.md": build_placeholder(
             "项目概览",
             "介绍项目定位、适用场景、核心能力、角色边界和推荐阅读顺序。",
@@ -368,6 +486,7 @@ def initialize_project(target: Path, project_name: str, idea: str, stack: str, o
             "文档地图",
             "说明 4 大文档模块的职责边界、目标读者和推荐阅读方式。",
         ),
+        "docs/02-user-guide/index.md": build_user_guide_index(),
         "docs/02-user-guide/user-guide.md": build_placeholder(
             "使用指南",
             "说明使用前准备、项目类型判断、第一轮会话怎么开始，以及日常使用节奏。",
@@ -380,6 +499,7 @@ def initialize_project(target: Path, project_name: str, idea: str, stack: str, o
             "命令速查",
             "列出命令的常见写法、作用、适用场景和预期结果。",
         ),
+        "docs/03-developer-guide/index.md": build_developer_guide_index(),
         "docs/03-developer-guide/01-concepts/01-system-map.md": build_placeholder(
             "1.1 系统地图与术语",
             "说明宿主、模块、CLI、调试链路和交付产物之间的关系，以及关键术语口径。",
@@ -665,6 +785,7 @@ def initialize_project(target: Path, project_name: str, idea: str, stack: str, o
             "需求追踪矩阵",
             "把 REQ、NFR、ARCH、API、UI、TASK、TC、CR 和 BUG 记录关联到一个矩阵中。",
         ),
+        "docs/04-project-development/index.md": build_project_development_index(),
         ".factory/memory/project-index.md": build_placeholder(
             "项目索引",
             "汇总项目目标、当前阶段、活跃需求和最关键的项目文件。",
@@ -774,11 +895,6 @@ def initialize_project(target: Path, project_name: str, idea: str, stack: str, o
         ),
     }
 
-    for relative_path, content in MODERN_DOCS_BOOTSTRAP_PAGES.items():
-        if not docs_relative_path_enabled(relative_path, docs_profile, target / "docs"):
-            continue
-        files[f"docs/{relative_path}"] = content
-
     written = []
     for relative_path, content in files.items():
         if not docs_relative_path_enabled(relative_path, docs_profile, target / "docs"):
@@ -789,7 +905,6 @@ def initialize_project(target: Path, project_name: str, idea: str, stack: str, o
 
     update_publication_policy_for_modern_docs(target, docs_profile)
     written.append(str(target / "docs" / "publication-policy.json"))
-    written.extend(str(target / relative_path) for relative_path in write_docs_stratego_indexes(target, project_name))
     return written
 
 

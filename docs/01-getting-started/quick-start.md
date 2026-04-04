@@ -22,7 +22,7 @@
 - `scripts/factory-dispatch`
 - `scripts/factory-agent-session`
 - `scripts/factory-workflow-runner`
-- `python3 scripts/sync-codex-skills`
+- `uv run python scripts/sync-codex-skills`
 
 ## 4. 一条最实用的使用原则
 

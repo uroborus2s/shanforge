@@ -47,6 +47,79 @@
         {"label": "命中率", "path": "accuracy"},
         {"label": "摘要", "path": "summary"}
       ]
+    },
+    "skill-draft": {
+      "required": true,
+      "mode": "manager_brief",
+      "fields": [
+        {"label": "状态", "path": "status"},
+        {"label": "摘要", "path": "summary"},
+        {"label": "候选 skill", "path": "record.name"},
+        {"label": "候选目录", "path": "record.candidate_dir"},
+        {"label": "正式目标", "path": "record.official_skill_path"},
+        {"label": "来源项目", "path": "record.project_path"}
+      ]
+    },
+    "skill-eval": {
+      "required": true,
+      "mode": "eval_brief",
+      "fields": [
+        {"label": "状态", "path": "status"},
+        {"label": "摘要", "path": "summary"},
+        {"label": "评估记录", "path": "id"},
+        {"label": "候选 skill", "path": "skill_name"},
+        {"label": "通过", "path": "passed_checks"},
+        {"label": "失败", "path": "failed_checks"}
+      ]
+    },
+    "skill-approval": {
+      "required": true,
+      "mode": "manager_brief",
+      "fields": [
+        {"label": "状态", "path": "status"},
+        {"label": "摘要", "path": "summary"},
+        {"label": "票据", "path": "ticket"},
+        {"label": "候选 skill", "path": "record.candidate_name"},
+        {"label": "评估状态", "path": "record.eval_status"},
+        {"label": "正式目标", "path": "record.official_skill_path"},
+        {"label": "审批人", "path": "record.decision_owner"}
+      ]
+    },
+    "skill-delete-approval": {
+      "required": true,
+      "mode": "manager_brief",
+      "fields": [
+        {"label": "状态", "path": "status"},
+        {"label": "摘要", "path": "summary"},
+        {"label": "票据", "path": "ticket"},
+        {"label": "候选 skill", "path": "record.candidate_name"},
+        {"label": "正式目标", "path": "record.official_skill_path"},
+        {"label": "审批人", "path": "record.decision_owner"}
+      ]
+    },
+    "skill-promote": {
+      "required": true,
+      "mode": "manager_brief",
+      "fields": [
+        {"label": "状态", "path": "status"},
+        {"label": "摘要", "path": "summary"},
+        {"label": "晋升记录", "path": "promotion.id"},
+        {"label": "候选 skill", "path": "promotion.candidate_name"},
+        {"label": "正式目标", "path": "promotion.official_skill_path"},
+        {"label": "发布者", "path": "promotion.owner"}
+      ]
+    },
+    "skill-rollback": {
+      "required": true,
+      "mode": "manager_brief",
+      "fields": [
+        {"label": "状态", "path": "status"},
+        {"label": "摘要", "path": "summary"},
+        {"label": "回退记录", "path": "rollback.id"},
+        {"label": "候选 skill", "path": "rollback.candidate_name"},
+        {"label": "正式目标", "path": "rollback.official_skill_path"},
+        {"label": "回退者", "path": "rollback.owner"}
+      ]
     }
   },
   "skill_changes": {
@@ -55,6 +128,7 @@
     "require_candidate_first": true,
     "require_eval": true,
     "require_approval_ticket": true,
+    "require_first_publish_delete_approval": true,
     "required_artifacts": [
       "candidate_skill",
       "eval_report",

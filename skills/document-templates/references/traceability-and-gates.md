@@ -1,4 +1,4 @@
-# 追踪规则与阶段关口
+# 追踪规则、阶段关口与重构流程
 
 ## 每份正式文档的最小元数据
 
@@ -13,79 +13,105 @@
 - 关联追踪 ID
 - 最后更新时间
 
-这组元数据的目的，是让接手人能快速判断“这份文档现在能不能用、该和谁确认、看完之后该去哪里”。
+## 核心稳定 ID
 
-## 推荐追踪 ID 体系
+默认优先使用项目级稳定 ID：
 
 | 前缀 | 含义 |
 |---|---|
-| `BIZ-xxx` | 业务目标或商业诉求 |
-| `RISK-xxx` | 风险项 |
-| `REQ-xxx` | 功能需求 |
-| `NFR-xxx` | 非功能需求 |
-| `UX-xxx` | 用户旅程、页面或交互规格 |
-| `ADR-xxx` | 架构决策记录 |
-| `MOD-xxx` | 模块或组件边界 |
-| `API-xxx` | API 端点或接口 |
-| `EVT-xxx` | 事件契约 |
-| `INT-xxx` | 内部接口或集成项 |
-| `DATA-xxx` | 数据实体、表或迁移项 |
-| `SEC-xxx` | 安全控制点 |
-| `DEP-xxx` | 部署或环境项 |
-| `TASK-xxx` | 实施任务 |
-| `TC-xxx` | 测试用例 |
-| `UAT-xxx` | 验收项 |
-| `REL-xxx` | 发布项 |
-| `OPS-xxx` | 运维操作项 |
-| `DOC-xxx` | 用户/管理员/支持文档项 |
-| `CR-xxx` | 变更请求 |
-| `INC-xxx` | 事故或问题项 |
+| `REQ-*` | 功能需求 |
+| `NFR-*` | 非功能需求 |
+| `ARCH-*` | 架构设计项 |
+| `MOD-*` | 模块或组件边界 |
+| `API-*` | API / CLI / 接口项 |
+| `DATA-*` | 数据实体、表、迁移项 |
+| `UI-*` | 页面、交互、用户旅程项 |
+| `TASK-*` | 实施任务 |
+| `TC-*` | 测试用例 |
+| `CR-*` | 变更请求 |
+| `BUG-*` | 缺陷 |
+| `REL-*` | 发布项 |
+| `OPS-*` | 运维项 |
+
+如果项目已经在用扩展前缀，可以兼容保留，例如 `BIZ-*`、`RISK-*`、`DOC-*`、`UAT-*`、`ADR-*`，但不要让扩展前缀替代核心稳定 ID。
 
 规则：
 
-- 同一项目内按前缀分别递增。
-- 废弃的编号不回收。
-- 文档中尽量引用编号，而不是只写自然语言标题。
+- 同一项目内按前缀递增
+- 废弃编号不回收
+- 需求、设计、测试、发布和运维文档尽量引用编号而不是只有自然语言标题
 
-## 追踪矩阵最少要覆盖什么
+## 4 大模块和旧目录的映射
 
-最小矩阵至少能回答以下关系：
+| 旧目录 | 新路径 |
+|---|---|
+| `00-governance` | `04-project-development/01-governance` |
+| `01-discovery` | `04-project-development/02-discovery` |
+| `02-requirements` | `04-project-development/03-requirements` |
+| `03-solution` | `04-project-development/04-design` |
+| `04-delivery` | `04-project-development/05-development-process` |
+| `05-quality` | `04-project-development/06-testing-verification` |
+| `06-release` | `04-project-development/07-release-delivery` |
+| `07-operations` | `04-project-development/08-operations-maintenance` |
+| `08-handover` | `02-user-guide` |
+| `09-evolution` | `04-project-development/09-evolution` |
+| `traceability` | `04-project-development/10-traceability` |
 
-- `REQ/NFR -> MOD/API/DATA`
+## 追踪矩阵至少覆盖什么
+
+最小矩阵至少回答：
+
+- `REQ/NFR -> ARCH/MOD/API/DATA/UI`
 - `REQ/NFR -> TASK`
-- `REQ/NFR -> TC/UAT`
-- `REQ/NFR -> 发布状态`
-- `MOD/API -> 运维责任`
+- `REQ/NFR -> TC`
+- `REQ/NFR -> REL`
+- `MOD/API -> OPS`
 
-如果项目存在跨团队接口，再额外维护：
+如果存在稳定对外接口，再补：
 
-- `接口 -> 提供方/消费方`
-- `接口 -> 版本/兼容策略`
-- `接口 -> 监控与告警`
+- `API -> 提供方/消费方`
+- `API -> 版本/兼容策略`
+- `API -> 监控与告警`
 
 ## 阶段关口
 
-### 立项 -> 需求
+### 立项 -> 调研 / 需求
 
 至少准备：
 
-- 项目章程
-- RACI / Stakeholder
-- 风险登记册
+- `04-project-development/01-governance/project-charter.md`
+- 必要时的职责和风险文档
 
 通过标准：
 
-- 目标、范围、负责人、成功标准已经明确
-- 已知高风险点已记录
+- 目标、范围、负责人、成功标准明确
+- 高风险点已经登记
 
-### 需求 -> 方案设计
+### 调研 -> 需求
 
 至少准备：
 
-- PRD
-- 需求分析
-- NFR 目录
-- 验收标准
+- `04-project-development/02-discovery/input.md`
+- `04-project-development/02-discovery/brainstorm-record.md`
+- 历史项目时补 `current-state-analysis.md`
+
+通过标准：
+
+- 当前事实、约束和候选方案明确
+- 能判断下一步是补需求、纳管还是直接维护
+
+### 需求 -> 设计
+
+至少准备：
+
+- `04-project-development/03-requirements/prd.md`
+- `04-project-development/03-requirements/requirements-analysis.md`
+- `04-project-development/03-requirements/requirements-verification.md`
+
+建议同时准备：
+
+- `nfr-catalog.md`
+- `acceptance-criteria.md`
 
 通过标准：
 
@@ -93,114 +119,105 @@
 - 非功能要求可被设计与测试引用
 - 变更入口清晰
 
-### 方案设计 -> 开发实施
+### 设计 -> 开发实施
 
 至少准备：
 
-- 系统架构设计
-- 模块边界文档
-- 接口契约文档
-- 数据设计
-- 实施计划
+- `04-project-development/04-design/technical-selection.md`
+- `04-project-development/04-design/system-architecture.md`
+- `04-project-development/04-design/module-boundaries.md`
+- `04-project-development/04-design/api-design.md`
+- `04-project-development/05-development-process/implementation-plan.md`
 
 通过标准：
 
-- 模块职责和依赖方向明确
-- 接口语义、输入输出、错误与兼容策略明确
+- 模块职责、接口语义和依赖方向明确
 - 可以据此拆任务、写代码、写测试
 
-### 开发实施 -> 测试/验收
+### 开发实施 -> 测试 / 验收
 
 至少准备：
 
-- 测试策略或测试计划
-- 关键测试用例
+- `04-project-development/06-testing-verification/test-plan.md`
+- 必要时的测试用例、缺陷日志
 - 可追踪到需求的任务状态
 
 通过标准：
 
 - 每个高优先级需求都有验证路径
-- 已知风险有专门测试覆盖
+- 已知风险有对应测试覆盖
 
-### 测试/验收 -> 发布
-
-至少准备：
-
-- 测试报告
-- 缺陷清单
-- UAT 结果（需要时）
-- 发布检查清单
-- 回滚方案
-
-通过标准：
-
-- 残留问题被明确接受或关闭
-- 上线失败时有可执行回退路径
-
-### 发布 -> 运维/交接
+### 测试 / 验收 -> 发布
 
 至少准备：
 
-- 发布说明
-- 部署说明
-- 运维手册
-- 用户指南
-- 管理员指南（如有管理员角色）
+- `04-project-development/06-testing-verification/test-report.md`
+- `04-project-development/07-release-delivery/release-notes.md`
+- 自托管或关键系统时补 `rollback-plan.md`
 
 通过标准：
 
-- 接手团队能独立完成部署、巡检、基础故障排查
+- 残留问题被接受或关闭
+- 失败时有清晰回退路径
+
+### 发布 -> 运维 / 交接
+
+至少准备：
+
+- `04-project-development/08-operations-maintenance/deployment-guide.md`
+- `04-project-development/08-operations-maintenance/operations-runbook.md`
+- `02-user-guide/user-guide.md`
+- 有管理员角色时补 `02-user-guide/admin-guide.md`
+
+通过标准：
+
+- 接手团队能独立完成部署、巡检和基础排障
 - 用户或实施方知道如何完成主要操作
 
-## 最小文档包建议
+## 文档重构 / 升级流程
 
-### 小型内部工具
+### 1. 先识别项目状态
 
-至少保留：
+| 场景 | 推荐入口 | 说明 |
+|---|---|---|
+| 空目录新项目 | `factory-init` | 创建最小治理骨架和新结构 |
+| 历史未纳管项目 | `factory-dispatch historical-project-onboarding` + `document-templates` skill | 先补治理骨架，再手工重构 `docs/` |
+| 已纳管但旧目录结构 | `document-templates` skill + `docs-stratego source validate` | 直接按 4 大模块重构并校验 |
+| 只有需求文档落后 | `factory-requirements-upgrade` | 只升级需求文档，不替代整套重构 |
 
-- 项目章程
-- PRD
-- 系统架构
-- 模块边界
-- 实施计划
-- 测试计划
-- 部署说明
-- 用户指南
+### 2. docs 标准升级主路径
 
-### 标准业务系统
+优先使用 skill + CLI 主路径：
 
-至少保留：
+1. 用 `document-templates` skill 按 4 大模块重构 `docs/`
+2. 明确根 `docs/index.md` 是唯一导航与权限事实源
+3. 执行 `uvx --from docs-stratego docs-stratego source validate --repo-path .`
+4. 如需接入 `docs-stratego` 聚合站点，再执行 `docs-stratego source add/remove/scaffold-notify/sync/build`
 
-- 小型内部工具全部内容
-- 接口契约文档
-- 发布检查清单
-- 回滚方案
-- 运维手册
-- 管理员指南
-- 追踪矩阵
+说明：
 
-### 集成型或平台型系统
+- 文档重构本身由 `document-templates` skill 承担
+- `docs-stratego source validate` 是当前唯一正式的源仓校验入口
+- 旧的 `factory-docs-*` 迁移、刷新、升级脚本已退场，不再作为正式流程
 
-额外补齐：
+### 3. 历史项目纳管后的收口
 
-- 集成清单
-- API/Event 契约文件
-- 配置矩阵
-- 监控告警说明
-- 支持手册
+历史项目至少确认：
 
-### 高风险、金融、医疗、关键基础设施类系统
+- 已建立 `current-state-analysis.md`
+- 已补齐项目章程、PRD、技术选型、架构、模块边界、API 设计
+- 已补齐用户指南与运维手册
+- 再执行一次 `docs-stratego source validate`
 
-额外补齐：
+### 4. 对接 `docs-stratego` 的额外约束
 
-- 安全设计 / Threat Model
-- 备份与灾备方案
-- 生产就绪评审
-- 审计或合规映射
-- 事故预案与复盘机制
+- 根 `docs/index.md` 是唯一导航与权限事实源
+- 页面节点 `access` 才决定 `public/private`
+- 子目录 `index.md` 不再维护导航树
+- 契约文件不能放在 `assets/`
 
 ## 推荐写法
 
-- 把文档写成“下一个人拿到就能继续工作”的形式。
-- 把阶段关口写成“缺哪份文档就不能稳妥交接”的形式。
-- 把追踪矩阵写成“可以快速检查遗漏”的形式，而不是装饰性表格。
+- 把 Gate 写成“缺哪份文档就不能稳妥交接”的形式
+- 把升级流程写成“先重构、再校验、再接入聚合站点”的形式
+- 把根索引视为导航事实源，而不是普通首页正文

@@ -1,0 +1,557 @@
+#!/usr/bin/env python3
+
+import argparse
+from datetime import datetime
+import json
+from pathlib import Path
+import re
+import sys
+import uuid
+
+from factory_core import (
+    EXECUTION_LOG_RELATIVE,
+    append_log_line,
+    build_reply_summary,
+    factory_workspace_root,
+    load_json_document,
+    skill_change_governance,
+    write_text,
+)
+
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description="查看或处理候选 skill 草案审批票据。")
+    parser.add_argument("target", nargs="?", help="候选 skill 名称/目录，或审批票据 ID。")
+    parser.add_argument("--list", action="store_true", help="列出当前 skill 审批票据。")
+    parser.add_argument("--request", action="store_true", help="为候选 skill 草案创建审批票据。")
+    parser.add_argument("--approve", action="store_true", help="批准指定票据。")
+    parser.add_argument("--reject", action="store_true", help="拒绝指定票据。")
+    parser.add_argument("--owner", default="审批人", help="当前审批人。")
+    parser.add_argument("--note", default="", help="审批备注。")
+    parser.add_argument("--json", action="store_true", help="以 JSON 输出。")
+    return parser.parse_args()
+
+
+def skill_slug(value: str) -> str:
+    normalized = re.sub(r"[^a-z0-9]+", "-", str(value or "").strip().lower()).strip("-")
+    return normalized or "candidate-skill"
+
+
+def candidate_root() -> Path:
+    governance = skill_change_governance()
+    root = str(governance.get("candidate_root", "skills-drafts")).strip() or "skills-drafts"
+    return factory_workspace_root() / root
+
+
+def skill_approval_state_path() -> Path:
+    return factory_workspace_root() / ".factory" / "process" / "skill-approvals.json"
+
+
+def skill_approval_report_path() -> Path:
+    return factory_workspace_root() / ".factory" / "process" / "skill-approvals.md"
+
+
+def skill_approval_summary_path() -> Path:
+    return factory_workspace_root() / ".factory" / "memory" / "skill-approvals.summary.md"
+
+
+def load_skill_approval_records() -> list[dict]:
+    payload = load_json_document(skill_approval_state_path())
+    if not isinstance(payload, dict):
+        return []
+    records = payload.get("records", [])
+    if not isinstance(records, list):
+        return []
+    return [dict(item) for item in records if isinstance(item, dict)]
+
+
+def save_skill_approval_records(records: list[dict]) -> None:
+    payload = {
+        "version": 1,
+        "updated_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        "records": records,
+    }
+    write_text(skill_approval_state_path(), json.dumps(payload, ensure_ascii=False, indent=2))
+
+
+def new_skill_approval_id(candidate_name: str) -> str:
+    stamp = datetime.now().strftime("%Y%m%d%H%M%S")
+    short = uuid.uuid4().hex[:6]
+    return f"SA-{stamp}-{skill_slug(candidate_name)[:12]}-{short}"
+
+
+def ordered_records(records: list[dict]) -> list[dict]:
+    return sorted(records, key=lambda item: str(item.get("created_at", "")), reverse=True)
+
+
+def render_skill_approval_report(records: list[dict]) -> str:
+    ordered = ordered_records(records)
+    pending = [item for item in ordered if item.get("status") == "pending"]
+    recent = [item for item in ordered if item.get("status") != "pending"][:10]
+    lines = [
+        "# Skill 审批记录",
+        "",
+        f"- 更新时间：{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
+        f"- 待审批票据：{len(pending)}",
+        f"- 全部票据：{len(ordered)}",
+        "",
+        "## 待审批",
+        "",
+    ]
+    if pending:
+        for item in pending:
+            lines.extend(
+                [
+                    f"- `{item.get('id', '')}` | 候选：`{item.get('candidate_name', '')}` | 正式目标：`{item.get('official_skill_path', '') or 'new-skill'}`",
+                    f"  - 摘要：{item.get('summary', '')}",
+                    f"  - 产物：{', '.join(item.get('artifacts', [])) or '无'}",
+                ]
+            )
+    else:
+        lines.append("- 当前没有待审批票据。")
+    lines.extend(["", "## 最近已处理", ""])
+    if recent:
+        for item in recent:
+            lines.append(
+                f"- `{item.get('id', '')}` | 状态：`{item.get('status', '')}` | 候选：`{item.get('candidate_name', '')}` | 审批人：{item.get('decision_owner', '') or '无'}"
+            )
+    else:
+        lines.append("- 当前还没有已处理票据。")
+    return "\n".join(lines).rstrip() + "\n"
+
+
+def write_skill_approval_views(records: list[dict]) -> None:
+    pending = [item for item in records if item.get("status") == "pending"]
+    write_text(skill_approval_report_path(), render_skill_approval_report(records))
+    write_text(
+        skill_approval_summary_path(),
+        "\n".join(
+            [
+                "# Skill 审批摘要",
+                "",
+                f"- 时间：{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
+                f"- 待审批：{len(pending)}",
+                f"- 全部票据：{len(records)}",
+            ]
+        ),
+    )
+
+
+def resolve_candidate_dir(target: str) -> Path:
+    raw = str(target or "").strip()
+    if not raw:
+        raise RuntimeError("必须提供候选 skill 名称或目录。")
+    direct = Path(raw).expanduser()
+    if direct.exists():
+        return direct.resolve()
+    workspace_relative = (factory_workspace_root() / raw).resolve()
+    if workspace_relative.exists():
+        return workspace_relative
+    return (candidate_root() / skill_slug(raw)).resolve()
+
+
+def load_candidate_record(target: str) -> tuple[Path, dict]:
+    candidate_dir = resolve_candidate_dir(target)
+    proposal_path = candidate_dir / "proposal.json"
+    if not proposal_path.exists():
+        raise RuntimeError(f"候选 skill 提案不存在：{proposal_path}")
+    payload = load_json_document(proposal_path)
+    if not isinstance(payload, dict):
+        raise RuntimeError(f"候选 skill 提案无效：{proposal_path}")
+    return candidate_dir, payload
+
+
+def candidate_artifacts(candidate_dir: Path) -> list[str]:
+    workspace_root = factory_workspace_root().resolve()
+    return [
+        str((candidate_dir / "SKILL.md").resolve().relative_to(workspace_root)),
+        str((candidate_dir / "proposal.json").resolve().relative_to(workspace_root)),
+        str((candidate_dir / "evals" / "evals.json").resolve().relative_to(workspace_root)),
+        str((candidate_dir / "evals" / "eval-report.json").resolve().relative_to(workspace_root)),
+        str((candidate_dir / "change-summary.md").resolve().relative_to(workspace_root)),
+    ]
+
+
+def load_eval_report(candidate_dir: Path) -> dict:
+    path = candidate_dir / "evals" / "eval-report.json"
+    payload = load_json_document(path)
+    if not isinstance(payload, dict):
+        raise RuntimeError(f"候选 skill 评估报告无效：{path}")
+    return payload
+
+
+def ensure_eval_passed(candidate_dir: Path, *, context: str) -> dict:
+    report = load_eval_report(candidate_dir)
+    status = str(report.get("status", "")).strip()
+    if status != "passed":
+        raise RuntimeError(
+            f"候选 skill 尚未通过正式评估，无法{context}；请先运行 "
+            f"`python3 {factory_workspace_root() / 'scripts' / 'factory-dispatch'} skill-eval "
+            f"{candidate_dir.name}` 并确保 eval-report.json.status=passed。"
+        )
+    return report
+
+
+def artifact_status(artifacts: list[str]) -> list[dict]:
+    status = []
+    root = factory_workspace_root().resolve()
+    for item in artifacts:
+        path = root / item
+        status.append({"path": item, "exists": path.exists()})
+    return status
+
+
+def list_payload() -> dict:
+    records = ordered_records(load_skill_approval_records())
+    pending = [item for item in records if item.get("status") == "pending"]
+    recent = [item for item in records if item.get("status") != "pending"][:10]
+    payload = {
+        "status": "success",
+        "summary": f"当前共有 {len(records)} 张 skill 审批票据，其中待审批 {len(pending)} 张。",
+        "pending": pending,
+        "recent": recent,
+        "total": len(records),
+    }
+    payload["reply_summary"] = build_reply_summary("skill-approval", payload)
+    return payload
+
+
+def inspect_target(target: str) -> dict:
+    if str(target).startswith("SA-"):
+        records = load_skill_approval_records()
+        for item in records:
+            if item.get("id") == target:
+                payload = {
+                    "status": "success",
+                    "summary": f"已读取 skill 审批票据 `{target}`。",
+                    "ticket": target,
+                    "record": item,
+                }
+                payload["reply_summary"] = build_reply_summary("skill-approval", payload)
+                return payload
+        raise RuntimeError(f"未找到 skill 审批票据：{target}")
+
+    candidate_dir, record = load_candidate_record(target)
+    artifacts = candidate_artifacts(candidate_dir)
+    payload = {
+        "status": "success",
+        "summary": f"已读取候选 skill 草案 `{record.get('name', '')}`。",
+        "candidate": {
+            "name": record.get("name", ""),
+            "candidate_dir": str(candidate_dir.resolve().relative_to(factory_workspace_root().resolve())),
+            "summary": record.get("summary", ""),
+            "official_skill_path": record.get("official_skill_path", ""),
+            "approval_status": record.get("approval_status", record.get("status", "draft")),
+            "eval_status": record.get("eval_status", ""),
+            "eval_record": record.get("eval_record", {}),
+            "artifacts": artifacts,
+            "artifact_status": artifact_status(artifacts),
+        },
+    }
+    payload["reply_summary"] = build_reply_summary("skill-approval", payload)
+    return payload
+
+
+def request_ticket(target: str, *, owner: str, note: str) -> dict:
+    candidate_dir, proposal = load_candidate_record(target)
+    records = load_skill_approval_records()
+    candidate_name = str(proposal.get("name", "")).strip()
+    existing = next(
+        (
+            item for item in records
+            if item.get("candidate_name") == candidate_name and item.get("status") == "pending"
+        ),
+        None,
+    )
+    if existing:
+        payload = {
+            "status": "already_pending",
+            "summary": f"候选 skill `{candidate_name}` 已存在待审批票据 `{existing['id']}`。",
+            "ticket": existing["id"],
+            "record": existing,
+        }
+        payload["reply_summary"] = build_reply_summary("skill-approval", payload)
+        return payload
+
+    artifacts = candidate_artifacts(candidate_dir)
+    missing = [item["path"] for item in artifact_status(artifacts) if not item["exists"]]
+    if missing:
+        raise RuntimeError(f"候选 skill 缺少必要产物：{', '.join(missing)}")
+    eval_report = ensure_eval_passed(candidate_dir, context="申请审批票据")
+
+    now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    ticket = new_skill_approval_id(candidate_name)
+    record = {
+        "id": ticket,
+        "status": "pending",
+        "created_at": now,
+        "updated_at": now,
+        "requested_by": owner,
+        "candidate_name": candidate_name,
+        "candidate_dir": str(candidate_dir.resolve().relative_to(factory_workspace_root().resolve())),
+        "summary": proposal.get("summary", ""),
+        "official_skill_path": proposal.get("official_skill_path", ""),
+        "project_path": proposal.get("project_path", ""),
+        "target_skill": proposal.get("target_skill", ""),
+        "required_artifacts": proposal.get("required_artifacts", []),
+        "artifacts": artifacts,
+        "artifact_status": artifact_status(artifacts),
+        "eval_status": eval_report.get("status", ""),
+        "eval_record": {
+            "id": eval_report.get("id", ""),
+            "evaluated_at": eval_report.get("evaluated_at", ""),
+            "owner": eval_report.get("owner", ""),
+        },
+        "signals": list(proposal.get("signals", [])),
+        "triggers": list(proposal.get("triggers", [])),
+        "approval": "explicit_confirm",
+        "note": note.strip(),
+    }
+    records.append(record)
+    save_skill_approval_records(records)
+    write_skill_approval_views(records)
+    append_log_line(
+        factory_workspace_root() / EXECUTION_LOG_RELATIVE,
+        f"- {datetime.now().strftime('%Y-%m-%d')}: 创建 skill 审批票据 `{ticket}`，候选 `{candidate_name}`。",
+    )
+    payload = {
+        "status": "pending_approval",
+        "summary": f"已为候选 skill `{candidate_name}` 创建审批票据 `{ticket}`。",
+        "ticket": ticket,
+        "record": record,
+        "artifacts": [
+            ".factory/process/skill-approvals.json",
+            ".factory/process/skill-approvals.md",
+            ".factory/memory/skill-approvals.summary.md",
+        ],
+        "next_actions": [
+            f"运行 `python3 {factory_workspace_root() / 'scripts' / 'factory-dispatch'} skill-approval {ticket} --approve --owner \"<owner>\"` 批准票据。",
+            f"或运行 `python3 {factory_workspace_root() / 'scripts' / 'factory-dispatch'} skill-approval {ticket} --reject --owner \"<owner>\"` 拒绝票据。",
+        ],
+    }
+    payload["reply_summary"] = build_reply_summary("skill-approval", payload)
+    return payload
+
+
+def write_candidate_approval(candidate_dir: Path, proposal: dict, decision_payload: dict) -> None:
+    write_text(candidate_dir / "approval.json", json.dumps(decision_payload, ensure_ascii=False, indent=2))
+    write_text(candidate_dir / "proposal.json", json.dumps(proposal, ensure_ascii=False, indent=2))
+
+
+def decide_ticket(ticket: str, *, decision: str, owner: str, note: str) -> dict:
+    records = load_skill_approval_records()
+    index = next((i for i, item in enumerate(records) if item.get("id") == ticket), None)
+    if index is None:
+        raise RuntimeError(f"未找到 skill 审批票据：{ticket}")
+    record = dict(records[index])
+    status = str(record.get("status", "")).strip()
+    if status != "pending":
+        payload = {
+            "status": "already_processed",
+            "summary": f"票据 `{ticket}` 已处理，当前状态 `{status}`。",
+            "ticket": ticket,
+            "record": record,
+        }
+        payload["reply_summary"] = build_reply_summary("skill-approval", payload)
+        return payload
+
+    candidate_dir, proposal = load_candidate_record(record.get("candidate_dir", ""))
+    artifacts = candidate_artifacts(candidate_dir)
+    missing = [item["path"] for item in artifact_status(artifacts) if not item["exists"]]
+    if missing:
+        raise RuntimeError(f"候选 skill 缺少必要产物，无法处理票据：{', '.join(missing)}")
+    if decision == "approve":
+        eval_report = ensure_eval_passed(candidate_dir, context="批准审批票据")
+        record["eval_status"] = eval_report.get("status", "")
+        record["eval_record"] = {
+            "id": eval_report.get("id", ""),
+            "evaluated_at": eval_report.get("evaluated_at", ""),
+            "owner": eval_report.get("owner", ""),
+        }
+
+    now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    record["decision"] = decision
+    record["decision_owner"] = owner
+    record["decision_note"] = note.strip()
+    record["decided_at"] = now
+    record["updated_at"] = now
+
+    approval_payload = {
+        "version": 1,
+        "ticket": ticket,
+        "decision": decision,
+        "owner": owner,
+        "note": note.strip(),
+        "decided_at": now,
+    }
+
+    if decision == "approve":
+        record["status"] = "approved"
+        proposal["status"] = "approved_candidate"
+        proposal["approval_status"] = "approved"
+        summary = f"已批准候选 skill 票据 `{ticket}`。"
+        next_actions = [
+            "继续补齐评估结果或后续晋升命令所需产物。",
+            "后续正式晋升时，必须显式复用该批准记录。",
+        ]
+    else:
+        record["status"] = "rejected"
+        proposal["status"] = "rejected_candidate"
+        proposal["approval_status"] = "rejected"
+        summary = f"已拒绝候选 skill 票据 `{ticket}`。"
+        next_actions = ["如需继续推进，请修改候选草案后重新申请审批。"]
+
+    proposal["approval_record"] = approval_payload
+    record["approval_record"] = approval_payload
+    write_candidate_approval(candidate_dir, proposal, approval_payload)
+
+    records[index] = record
+    save_skill_approval_records(records)
+    write_skill_approval_views(records)
+    append_log_line(
+        factory_workspace_root() / EXECUTION_LOG_RELATIVE,
+        f"- {datetime.now().strftime('%Y-%m-%d')}: skill 审批票据 `{ticket}` 执行 `{decision}`，候选 `{record.get('candidate_name', '')}`，审批人 `{owner}`。",
+    )
+
+    payload = {
+        "status": record["status"],
+        "summary": summary,
+        "ticket": ticket,
+        "record": record,
+        "artifacts": [
+            record["candidate_dir"] + "/approval.json",
+            record["candidate_dir"] + "/proposal.json",
+            ".factory/process/skill-approvals.json",
+        ],
+        "next_actions": next_actions,
+    }
+    payload["reply_summary"] = build_reply_summary("skill-approval", payload)
+    return payload
+
+
+def render_markdown(payload: dict) -> str:
+    status = payload.get("status", "unknown")
+    if "pending" in payload and "recent" in payload:
+        lines = [
+            "# Skill 审批票据",
+            "",
+            f"- 状态：`{status}`",
+            f"- 摘要：{payload.get('summary', '无')}",
+            "",
+            "## 待审批",
+            "",
+        ]
+        pending = payload.get("pending", [])
+        if pending:
+            for item in pending:
+                lines.append(
+                    f"- `{item.get('id', '')}` | 候选：`{item.get('candidate_name', '')}` | 正式目标：`{item.get('official_skill_path', '') or 'new-skill'}`"
+                )
+        else:
+            lines.append("- 当前没有待审批票据。")
+        lines.extend(["", "## 最近已处理", ""])
+        recent = payload.get("recent", [])
+        if recent:
+            for item in recent:
+                lines.append(
+                    f"- `{item.get('id', '')}` | 状态：`{item.get('status', '')}` | 候选：`{item.get('candidate_name', '')}` | 审批人：{item.get('decision_owner', '') or '无'}"
+                )
+        else:
+            lines.append("- 当前还没有已处理票据。")
+        items = (payload.get("reply_summary") or {}).get("items") or []
+        if items:
+            lines.extend(["", "## 对话摘要", ""])
+            for item in items:
+                lines.append(f"- {item.get('label', item.get('path', ''))}：{item.get('value')}")
+        return "\n".join(lines).rstrip() + "\n"
+
+    if "candidate" in payload:
+        candidate = payload["candidate"]
+        lines = [
+            "# Skill 候选草案",
+            "",
+            f"- 状态：`{status}`",
+            f"- 摘要：{payload.get('summary', '无')}",
+            f"- 候选：`{candidate.get('name', '')}`",
+            f"- 目录：`{candidate.get('candidate_dir', '')}`",
+            f"- 正式目标：`{candidate.get('official_skill_path', '') or 'new-skill'}`",
+            f"- 批准状态：`{candidate.get('approval_status', '')}`",
+            f"- 评估状态：`{candidate.get('eval_status', '') or 'unknown'}`",
+            "",
+            "## 产物",
+            "",
+        ]
+        for item in candidate.get("artifact_status", []):
+            lines.append(f"- `{item['path']}` | {'存在' if item['exists'] else '缺失'}")
+        items = (payload.get("reply_summary") or {}).get("items") or []
+        if items:
+            lines.extend(["", "## 对话摘要", ""])
+            for item in items:
+                lines.append(f"- {item.get('label', item.get('path', ''))}：{item.get('value')}")
+        return "\n".join(lines).rstrip() + "\n"
+
+    record = payload.get("record") or {}
+    lines = [
+        "# Skill 审批票据",
+        "",
+        f"- 状态：`{status}`",
+        f"- 摘要：{payload.get('summary', '无')}",
+        f"- 票据：`{payload.get('ticket', record.get('id', ''))}`",
+        f"- 候选：`{record.get('candidate_name', '')}`",
+        f"- 正式目标：`{record.get('official_skill_path', '') or 'new-skill'}`",
+        f"- 项目：`{record.get('project_path', '')}`",
+        f"- 评估状态：`{record.get('eval_status', '') or 'unknown'}`",
+        f"- 审批策略：`{record.get('approval', 'explicit_confirm')}`",
+    ]
+    if record.get("signals"):
+        lines.append(f"- 信号：{'；'.join(record.get('signals', []))}")
+    next_actions = payload.get("next_actions") or []
+    if next_actions:
+        lines.extend(["", "## 下一步", ""])
+        lines.extend(f"- {item}" for item in next_actions)
+    items = (payload.get("reply_summary") or {}).get("items") or []
+    if items:
+        lines.extend(["", "## 对话摘要", ""])
+        for item in items:
+            lines.append(f"- {item.get('label', item.get('path', ''))}：{item.get('value')}")
+    return "\n".join(lines).rstrip() + "\n"
+
+
+def main() -> int:
+    args = parse_args()
+    try:
+        if sum(1 for flag in (args.list, args.request, args.approve, args.reject) if flag) > 1:
+            raise RuntimeError("`--list`、`--request`、`--approve`、`--reject` 只能选择一个。")
+
+        if args.list or (not args.target and not args.request and not args.approve and not args.reject):
+            payload = list_payload()
+        elif args.request:
+            if not args.target:
+                raise RuntimeError("申请 skill 审批票据时必须提供候选 skill 名称或目录。")
+            payload = request_ticket(args.target, owner=args.owner.strip(), note=args.note)
+        elif args.approve:
+            if not args.target:
+                raise RuntimeError("批准 skill 审批票据时必须提供 ticket。")
+            payload = decide_ticket(args.target, decision="approve", owner=args.owner.strip(), note=args.note)
+        elif args.reject:
+            if not args.target:
+                raise RuntimeError("拒绝 skill 审批票据时必须提供 ticket。")
+            payload = decide_ticket(args.target, decision="reject", owner=args.owner.strip(), note=args.note)
+        else:
+            if not args.target:
+                raise RuntimeError("请提供候选 skill 名称/目录或审批票据 ID。")
+            payload = inspect_target(args.target)
+    except Exception as exc:
+        print(f"skill 审批失败：{exc}", file=sys.stderr)
+        return 1
+
+    if args.json:
+        print(json.dumps(payload, ensure_ascii=False, indent=2))
+        return 0
+
+    print(render_markdown(payload))
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

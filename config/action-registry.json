@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updated_at": "2026-04-02",
+  "updated_at": "2026-04-03",
   "actions": {
     "init": {
       "script_name": "factory-init",
@@ -58,32 +58,6 @@
       "success_criteria": ["项目建立最小治理骨架", "生成首轮 session 与 state doctor"],
       "verification": ["核心文件存在", "命令返回码为 0"],
       "recovery_hints": ["若项目已纳管，改走 session 或 state-doctor"]
-    },
-    "docs-standard-upgrade": {
-      "script_name": "factory-docs-standard-upgrade",
-      "description": "升级项目 docs 到最新源文档标准",
-      "aliases": ["docs-upgrade", "upgrade-docs-standard"],
-      "risk_level": "L1",
-      "purpose": "按需迁移 docs 结构、刷新根导航和目录首页并做最终校验。",
-      "preconditions": ["目标项目存在 docs/"],
-      "frontend_requirements": ["file_read", "file_write", "command_exec"],
-      "artifacts": ["docs/index.md", "相关目录 index.md"],
-      "success_criteria": ["docs 状态达到就绪或明确给出缺口"],
-      "verification": ["命令返回码为 0", "输出包含最终状态"],
-      "recovery_hints": ["若遇到结构冲突，先执行 --check 并人工复核冲突文件"]
-    },
-    "docs-standard-upgrade-batch": {
-      "script_name": "factory-docs-standard-upgrade-batch",
-      "description": "批量升级多个项目的 docs 源文档标准",
-      "aliases": ["docs-upgrade-batch", "upgrade-docs-standard-batch"],
-      "risk_level": "L2",
-      "purpose": "扫描多个项目并逐个执行 docs 标准检查或升级。",
-      "preconditions": ["至少提供一个 --root 或 --project"],
-      "frontend_requirements": ["file_read", "file_write", "command_exec"],
-      "artifacts": ["批量升级汇总输出"],
-      "success_criteria": ["返回逐项目结果汇总", "失败项目明确暴露在结果中"],
-      "verification": ["命令返回码符合结果状态", "输出包含项目汇总"],
-      "recovery_hints": ["先用 --check 缩小影响范围，再执行正式升级"]
     },
     "project-rules-refresh": {
       "script_name": "factory-project-rules-refresh",
@@ -166,6 +140,119 @@
       "success_criteria": ["票据列表可读", "批准或拒绝结果被写回票据状态"],
       "verification": ["命令返回码为 0", "审批视图文件存在"],
       "recovery_hints": ["若票据不存在，先重新执行 intent-resolver --request-approval 生成新票据"]
+    },
+    "skill-draft": {
+      "script_name": "factory-skill-draft",
+      "description": "生成候选 skill 草案",
+      "aliases": ["skill-candidate", "propose-skill"],
+      "risk_level": "L1",
+      "purpose": "把重复问题或优化想法先固化到 skills-drafts，而不是直接覆盖正式 skill。",
+      "preconditions": ["shanforge 仓库存在 reply-policy.json 中声明的候选目录"],
+      "frontend_requirements": ["file_read", "file_write", "command_exec"],
+      "artifacts": [
+        "skills-drafts/<skill>/SKILL.md",
+        "skills-drafts/<skill>/proposal.json",
+        "skills-drafts/<skill>/evals/evals.json",
+        "skills-drafts/<skill>/evals/eval-report.json",
+        "skills-drafts/<skill>/change-summary.md"
+      ],
+      "success_criteria": ["生成候选 skill 草案目录", "写出 proposal 与 eval 骨架"],
+      "verification": ["命令返回码为 0", "候选目录内核心文件存在"],
+      "recovery_hints": ["若是正式 skill 演进，后续需补审批记录和评估结果后再晋升"]
+    },
+    "skill-eval": {
+      "script_name": "factory-skill-eval",
+      "description": "执行候选 skill 的正式评估",
+      "aliases": ["eval-skill", "evaluate-skill"],
+      "risk_level": "L1",
+      "purpose": "对候选 skill 进行可重复静态评估，并正式回写 eval-report.json。",
+      "preconditions": ["候选 skill 草案目录存在", "存在 evals/evals.json 与 change-summary.md"],
+      "frontend_requirements": ["file_read", "file_write", "command_exec"],
+      "artifacts": [
+        ".factory/process/skill-evals.json",
+        ".factory/process/skill-evals.md",
+        ".factory/memory/skill-evals.summary.md",
+        "skills-drafts/<skill>/evals/eval-report.json"
+      ],
+      "success_criteria": ["候选 skill 评估已执行", "eval-report.json 与控制面评估记录已写出"],
+      "verification": ["命令返回码为 0", "评估记录文件存在"],
+      "recovery_hints": ["若评估未通过，先修复 change-summary.md 占位内容、evals/evals.json 模式或 skill 结构"]
+    },
+    "skill-approval": {
+      "script_name": "factory-skill-approval",
+      "description": "查看或处理候选 skill 草案审批票据",
+      "aliases": ["approve-skill", "skill-ticket"],
+      "risk_level": "L1",
+      "purpose": "把候选 skill 草案接入专用审批链路，并将批准结果写回候选目录。",
+      "preconditions": ["候选 skill 草案目录存在或审批票据存在", "申请票据前 eval-report.json 必须明确为 passed"],
+      "frontend_requirements": ["file_read", "file_write", "command_exec"],
+      "artifacts": [
+        ".factory/process/skill-approvals.json",
+        ".factory/process/skill-approvals.md",
+        ".factory/memory/skill-approvals.summary.md",
+        "skills-drafts/<skill>/approval.json",
+        "skills-drafts/<skill>/evals/eval-report.json",
+        "skills-drafts/<skill>/change-summary.md"
+      ],
+      "success_criteria": ["已通过正式评估的候选 skill 可申请审批票据", "批准或拒绝结果被写回候选草案和审批记录"],
+      "verification": ["命令返回码为 0", "审批记录文件存在"],
+      "recovery_hints": ["若候选草案缺少 SKILL.md、proposal.json 或 evals/evals.json，先修复草案再申请审批", "若 eval-report.json 不是 passed，先运行 factory-skill-eval 并修复失败检查项"]
+    },
+    "skill-delete-approval": {
+      "script_name": "factory-skill-delete-approval",
+      "description": "查看或处理首次发布新 skill 的删除回退审批票据",
+      "aliases": ["approve-skill-delete", "skill-delete-ticket"],
+      "risk_level": "L2",
+      "purpose": "为没有旧版本备份的首次发布新 skill 提供显式删除回退审批边界。",
+      "preconditions": ["候选 skill 已完成首次晋升", "promotion.json 不存在 backup_path", "正式 skill 文件仍存在"],
+      "frontend_requirements": ["file_read", "file_write", "command_exec"],
+      "artifacts": [
+        ".factory/process/skill-delete-approvals.json",
+        ".factory/process/skill-delete-approvals.md",
+        ".factory/memory/skill-delete-approvals.summary.md",
+        "skills-drafts/<skill>/delete-approval.json"
+      ],
+      "success_criteria": ["首次发布的新 skill 可申请删除回退审批票据", "批准或拒绝结果被写回候选草案和删除审批记录"],
+      "verification": ["命令返回码为 0", "删除审批记录文件存在"],
+      "recovery_hints": ["若候选 skill 还未晋升，先完成 skill-promote", "若 promotion.json 已包含 backup_path，直接使用 skill-rollback 恢复旧版本，不要申请删除审批"]
+    },
+    "skill-promote": {
+      "script_name": "factory-skill-promote",
+      "description": "将满足条件的候选 skill 晋升到正式 skills/",
+      "aliases": ["promote-skill", "publish-skill"],
+      "risk_level": "L2",
+      "purpose": "在候选 skill 已完成评估并获得批准后，将其写入正式技能库。",
+      "preconditions": ["候选 skill 草案目录存在", "eval-report.json 已通过", "approval.json 已批准"],
+      "frontend_requirements": ["file_read", "file_write", "command_exec"],
+      "artifacts": [
+        ".factory/process/skill-promotions.json",
+        ".factory/process/skill-promotions.md",
+        ".factory/memory/skill-promotions.summary.md",
+        "skills-drafts/<skill>/promotion.json",
+        "skills/<skill>/SKILL.md"
+      ],
+      "success_criteria": ["候选 skill 满足晋升门禁", "正式 skill 已写入并保留候选记录"],
+      "verification": ["命令返回码为 0", "正式 skill 文件存在", "晋升记录文件存在"],
+      "recovery_hints": ["若评估或批准条件未满足，先修复 eval-report.json、approval.json 和 change-summary.md"]
+    },
+    "skill-rollback": {
+      "script_name": "factory-skill-rollback",
+      "description": "将已晋升 skill 回退到候选目录中的旧版本备份",
+      "aliases": ["rollback-skill", "revert-skill"],
+      "risk_level": "L2",
+      "purpose": "在已有明确旧版本备份时恢复正式 skill，或在首次发布新 skill 已获删除审批时执行删除回退。",
+      "preconditions": ["候选 skill 已完成晋升", "候选目录存在旧版本备份，或首次发布新 skill 已获得删除回退批准"],
+      "frontend_requirements": ["file_read", "file_write", "command_exec"],
+      "artifacts": [
+        ".factory/process/skill-rollbacks.json",
+        ".factory/process/skill-rollbacks.md",
+        ".factory/memory/skill-rollbacks.summary.md",
+        "skills-drafts/<skill>/rollback.json",
+        "skills/<skill>/SKILL.md"
+      ],
+      "success_criteria": ["正式 skill 已恢复到旧版本或按批准完成删除回退", "回退记录与候选目录回写已完成"],
+      "verification": ["命令返回码为 0", "回退记录文件存在", "正式 skill 文件状态符合回退模式"],
+      "recovery_hints": ["若没有旧版本备份，说明该候选是首次发布的新 skill；先运行 skill-delete-approval 申请并批准删除回退票据", "若存在 backup_path，优先恢复旧版本而不是删除正式 skill"]
     },
     "workflow-runner": {
       "script_name": "factory-workflow-runner",

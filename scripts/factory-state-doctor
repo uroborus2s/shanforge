@@ -10,7 +10,7 @@ from factory_core import (
     CLOSED_STATUSES,
     append_log_line,
     collect_items,
-    docs_stratego_source_status,
+    docs_stratego_validate_status,
     file_readiness,
     inspect_project_lock,
     load_project_config,
@@ -218,7 +218,9 @@ def determine_result(
     if doc_state in {"缺失", "占位"}:
         suggestions.append("优先补齐当前阶段关键文档，并完成单文件版本更新。")
     if docs_source_state != "就绪":
-        suggestions.append("执行 `factory-dispatch docs-index-refresh --project <项目路径>` 刷新目录 `index.md`，并清理文档中的机器绝对路径。")
+        suggestions.append(
+            "改用 `document-templates` skill 修正文档结构，再执行 `uvx --from docs-stratego docs-stratego source validate --repo-path <项目路径>` 做合规校验。"
+        )
     if memory_state in {"缺失", "滞后"}:
         suggestions.append("执行 `factory-dispatch memory --project <项目路径>` 刷新 AI 记忆。")
     if trace_state in {"缺失", "异常", "空"}:
@@ -325,9 +327,8 @@ def main() -> int:
 
         doc_state, doc_lines = doc_status(project_root, stage)
         rules_state, rules_lines = rules_entry_status(project_root)
-        docs_source_state, docs_source_lines = docs_stratego_source_status(
+        docs_source_state, docs_source_lines = docs_stratego_validate_status(
             project_root,
-            config.get("project_name", project_root.name) or project_root.name,
         )
         memory_state, memory_lines, _ = ai_memory_status(project_root)
         trace_state, trace_lines, _ = trace_status(project_root)

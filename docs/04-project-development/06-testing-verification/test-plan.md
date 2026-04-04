@@ -12,7 +12,7 @@
 
 - `factory_core.py` 的路径归一化、索引生成和迁移逻辑
 - `factory-init` 的初始化目录与文件生成逻辑
-- `factory-docs-index-refresh --check` 的结构校验逻辑
+- `docs-stratego source validate` 的结构校验逻辑
 - 自定义 `index.md` 保留策略
 
 ### 2.2 测试层次
@@ -20,7 +20,7 @@
 当前采用四层验证：
 
 - 单元 / 回归测试：`unittest`
-- 文档结构检查：`docs-index-refresh --check`
+- 文档结构检查：`docs-stratego source validate`
 - 迁移回归：测试用临时项目目录验证旧结构升级
 - 人工走查：检查站点入口和关键文档可读性
 
@@ -47,7 +47,7 @@
 当前发布前最小门槛：
 
 - `unittest` 全绿
-- `docs-index-refresh --check` 为 `就绪`
+- `docs-stratego source validate` 为 `就绪`
 - 关键变更页无旧路径和明显占位内容
 - 迁移链路在样例项目上可复现
 
@@ -56,6 +56,6 @@
 | 测试层次 | 覆盖对象 | 负责角色 | 准入条件 | 准出条件 |
 |---|---|---|---|---|
 | 单元 / 回归测试 | `factory_core.py`、`factory-init` | 仓库维护者 | 代码完成 | 26 项通过 |
-| 结构检查 | `docs/index.md` 与各级 `index.md` | 文档维护者 | 文档变更完成 | `--check` 返回 `就绪` |
+| 结构检查 | `docs/index.md` 与各级 `index.md` | 文档维护者 | 文档变更完成 | `docs-stratego source validate` 返回 `就绪` |
 | 迁移回归 | 旧 `docs/` 到新 4 模块结构 | 仓库维护者 | 迁移逻辑变更 | 样例迁移通过 |
 | 人工走查 | 文档可读性与入口一致性 | 维护者 / 协作者 | 模板更新完成 | 主要入口可读 |

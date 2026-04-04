@@ -1,213 +1,233 @@
-# 软件项目全生命周期文档清单
+# 软件项目文档清单（4 大模块版）
 
 ## 使用方式
 
-- 把文档视为阶段出口物，而不是写给归档系统的材料。
-- `必备` 表示大多数软件项目默认应该有。
-- `条件` 表示只有在复杂度、风险、合规、跨团队协作或外部交付出现时才补齐。
-- 每一类文档都要明确“主要编写者”和“下游消费者”，这样交付链才清晰。
+- 先判断当前项目需要哪些顶层模块，再决定模块内部补哪些文档。
+- `04-project-development/` 内部仍按阶段组织，但它只是第 4 个模块，不是顶层唯一入口。
+- `必备` 表示大多数正式维护项目默认应该有。
+- `条件` 表示只有在复杂度、风险、协作面或交付方式达到阈值时才补齐。
 
-## 00. 立项与治理
+## 1. `01-getting-started`
 
-| 文档 | 默认性 | 主要编写者 | 交付给 | 主要作用 |
-|---|---|---|---|---|
-| 项目章程 / Project Charter | 必备 | 项目经理/负责人 | 产品、架构、开发、管理层 | 明确目标、范围、成功标准、资源和里程碑 |
-| Stakeholder / RACI | 必备 | 项目经理 | 所有角色 | 明确谁负责、谁审批、谁知会 |
-| 风险登记册 | 必备 | 项目经理/架构师 | 需求、测试、运维 | 让高风险点在后续设计和测试中被显式覆盖 |
-| 术语表 / Glossary | 条件 | 业务分析/架构师 | 所有角色 | 统一领域术语和数据口径 |
-| 路线图 / 版本规划 | 条件 | 产品/项目经理 | 开发、测试、发布 | 明确阶段性发布策略和交付边界 |
+| 文档 | 默认性 | 主要读者 | 主要作用 |
+|---|---|---|---|
+| `index.md` | 必备 | 所有新读者 | 给出本模块边界和推荐阅读顺序 |
+| `project-overview.md` | 必备 | 新维护者、管理者、协作者 | 说明项目定位、边界、目标读者和推荐阅读路径 |
+| `quick-start.md` | 必备 | 新维护者、使用者 | 提供最小启动步骤和常用命令 |
+| `document-map.md` | 必备 | 新维护者、文档维护者 | 解释 4 大模块分别解决什么问题 |
 
-最小交付给下一阶段：
+最小交付：
 
-- `project-charter.md`
-- `stakeholders-raci.md`
-- `risk-register.md`
+- `project-overview.md`
+- `quick-start.md`
+- `document-map.md`
 
-## 01. 调研与发现
+## 2. `02-user-guide`
 
-| 文档 | 默认性 | 主要编写者 | 交付给 | 主要作用 |
-|---|---|---|---|---|
-| 项目输入 / Input Brief | 必备 | 项目负责人/产品 | 需求分析、管理者 | 固化原始创意、背景、预期技术栈和启动约束 |
-| 头脑风暴记录 | 必备 | 产品/需求/AI | 需求分析、管理者 | 保留问题空间、约束和方案比较过程 |
-| 现状分析 / As-Is Analysis | 条件 | 业务分析/架构师 | 需求、设计 | 记录现有流程、系统和痛点 |
-| 业务流程图 / User Journey | 条件 | 产品/设计 | 需求、架构、测试 | 梳理参与者、动作和关键路径 |
-| 范围清单 / Scope Outline | 必备 | 项目经理/产品 | 需求、设计、开发 | 明确做什么和不做什么 |
+| 文档 | 默认性 | 主要读者 | 主要作用 |
+|---|---|---|---|
+| `index.md` | 必备 | 用户、协作者 | 说明使用边界与阅读顺序 |
+| `user-guide.md` | 必备 | 最终用户、维护者 | 讲清日常使用、关键任务和常见问题 |
+| `admin-guide.md` | 条件 | 管理员、实施者 | 讲清配置、权限、初始化和升级维护 |
+| `installation.md` | 条件 | 用户、实施者 | 说明安装、前置条件和环境准备 |
+| `configuration.md` | 条件 | 管理员、实施者 | 说明配置项、密钥、差异和修改方法 |
+| `usage.md` | 条件 | 用户、实施者 | 补充按场景组织的使用说明 |
+| `prompt-templates.md` | 条件 | AI 协作者 | 提供 Prompt 模板和使用时机 |
+| `command-cheatsheet.md` | 条件 | 高阶使用者、维护者 | 下钻到命令入口、参数和预期结果 |
 
-最小交付给需求阶段：
+最小交付：
 
-- `brainstorm-record.md`
-- `scope-outline.md`
-
-## 02. 需求与分析
-
-| 文档 | 默认性 | 主要编写者 | 交付给 | 主要作用 |
-|---|---|---|---|---|
-| PRD / BRD | 必备 | 产品/需求 | 设计、开发、测试 | 形成正式功能需求与业务目标 |
-| 需求分析文档 | 必备 | 需求分析/架构师 | 架构、开发、测试 | 分析流程、依赖、可行性与优先级 |
-| 需求一致性校验报告 | 必备 | 需求分析/QA/AI | 架构、开发、测试、Gate 审查 | 检查 PRD、需求分析和字段完整性的覆盖一致性 |
-| NFR 目录 | 必备 | 架构师/安全/产品 | 设计、测试、运维 | 记录性能、安全、可靠性、合规等非功能要求 |
-| 用户故事 / 用例规格 | 条件 | 产品/需求 | 设计、开发、测试 | 对复杂交互或流程进行更细颗粒拆解 |
-| 验收标准 / UAT Basis | 必备 | 产品/需求/QA | 测试、验收 | 明确“什么算完成” |
-| 变更请求日志 | 必备 | 项目经理/产品 | 所有角色 | 记录需求变更、影响和审批 |
-
-最小交付给方案设计阶段：
-
-- `prd.md`
-- `requirements-analysis.md`
-- `requirements-verification.md`
-- `nfr-catalog.md`
-- `acceptance-criteria.md`
-
-## 03. 方案设计与架构
-
-| 文档 | 默认性 | 主要编写者 | 交付给 | 主要作用 |
-|---|---|---|---|---|
-| 技术选型 / Engineering Rules | 必备 | 架构师/技术负责人 | 开发、测试、维护者 | 固化技术栈、必装模块、工程规则和后台范围 |
-| 系统架构设计 | 必备 | 架构师/技术负责人 | 开发、测试、运维 | 描述系统上下文、分层、关键组件和技术决策 |
-| ADR 决策记录 | 条件 | 架构师/技术负责人 | 开发、维护者 | 保留关键设计决策及其取舍 |
-| 模块边界文档 | 必备 | 架构师/技术负责人 | 开发、测试、维护者 | 明确模块职责、数据所有权、接口和耦合边界 |
-| API 设计文档 | 必备 | 架构师/后端/集成负责人 | 前后端、测试、集成方 | 统一 API 语义、资源模型、错误契约和版本策略 |
-| 后端设计文档 | 条件 | 架构师/后端 | 开发、测试、运维 | 细化服务划分、后台任务、幂等、重试和可观测性 |
-| 接口契约文档 | 必备 | 架构师/后端/集成负责人 | 前后端、集成方、测试 | 定义 API、事件、批处理、内部接口的输入输出和约束 |
-| 数据设计 / 数据库设计 | 必备 | 架构师/后端 | 开发、测试、运维 | 定义实体、关系、索引、迁移策略和数据生命周期 |
-| 集成清单 / Integration Catalog | 条件 | 集成负责人 | 开发、测试、运维、第三方 | 梳理外部系统、调用方向、凭证和失败策略 |
-| 安全设计 / Threat Model | 条件 | 安全/架构 | 开发、测试、运维 | 明确攻击面、鉴权、审计、数据保护 |
-| 部署架构设计 | 条件 | 架构师/运维 | 发布、运维 | 描述环境拓扑、网络、依赖、容量和弹性策略 |
-| UX/UI 规格 | 条件 | 设计/前端 | 开发、测试、验收 | 给交互、页面状态和组件规范提供统一基线 |
-
-最小交付给开发计划阶段：
-
-- `system-architecture.md`
-- `technical-selection.md`
-- `module-boundaries.md`
-- `api-design.md`
-- `database-design.md`
-
-## 04. 交付计划与实施准备
-
-| 文档 | 默认性 | 主要编写者 | 交付给 | 主要作用 |
-|---|---|---|---|---|
-| 实施方案 / Implementation Plan | 必备 | 技术负责人/项目经理 | 开发、测试、发布 | 把需求与设计转成实施波次、顺序和里程碑 |
-| 任务分解 / WBS | 必备 | 技术负责人/项目经理 | 开发、测试 | 形成可执行任务颗粒与负责人 |
-| 执行日志 / Execution Log | 必备 | 技术负责人/实施角色 | 团队、管理者、后续接手人 | 记录每天或每次关键推进后的代码、测试、文档和审批动作 |
-| 迭代 / Sprint 计划 | 条件 | 项目经理/开发负责人 | 团队成员 | 管理短周期迭代交付 |
-| 数据迁移方案 | 条件 | 后端/DBA | 开发、测试、运维 | 设计迁移步骤、校验、回滚和窗口期 |
-| 开发环境说明 | 条件 | 技术负责人 | 开发、新成员 | 统一本地启动、依赖、测试和调试方式 |
-| Definition of Done / 工程规范 | 条件 | 技术负责人/QA | 开发、测试 | 统一提交、评审、测试和交付标准 |
-
-最小交付给实施与测试阶段：
-
-- `implementation-plan.md`
-- `task-breakdown.md`
-- `execution-log.md`
-- 必要时的 `migration-plan.md`
-
-## 05. 质量保证与验收
-
-| 文档 | 默认性 | 主要编写者 | 交付给 | 主要作用 |
-|---|---|---|---|---|
-| 测试策略 / Test Strategy | 必备 | QA/测试负责人 | 开发、测试、管理者 | 定义测试范围、层次、职责和自动化策略 |
-| 测试计划 / Test Plan | 必备 | QA | 测试执行者、管理者 | 明确环境、范围、时间和入口/出口条件 |
-| 测试用例 / Test Cases | 必备 | QA | 测试执行者、自动化工程师 | 把需求转成可验证步骤和预期结果 |
-| 测试数据说明 | 条件 | QA/开发 | 测试执行者 | 统一关键测试数据和准备方式 |
-| 缺陷日志 / Defect Log | 必备 | QA/项目经理 | 开发、管理者 | 跟踪缺陷状态、影响和修复优先级 |
-| 测试报告 / Test Report | 必备 | QA | 管理者、发布负责人 | 汇总通过情况、遗留问题和风险判断 |
-| UAT 报告 | 条件 | 产品/业务/QA | 管理者、发布负责人 | 记录业务侧验收结果 |
-| 上线前评审 / Readiness Review | 条件 | 技术负责人/QA/运维 | 发布负责人 | 判断是否具备上线条件 |
-
-最小交付给发布阶段：
-
-- `test-plan.md`
-- `test-report.md`
-- 需要业务验收时补 `uat-report.md`
-
-## 06. 发布与部署
-
-| 文档 | 默认性 | 主要编写者 | 交付给 | 主要作用 |
-|---|---|---|---|---|
-| 验收清单 | 必备 | 发布负责人/产品/QA | 发布、管理者 | 汇总上线前的通过条件、验收项和签字结果 |
-| Stage Check 报告 | 条件 | QA/项目协调者 | 发布负责人、管理者 | 判断当前阶段是否具备进入 Gate 的条件 |
-| Quality Check 报告 | 条件 | QA | 发布负责人、管理者 | 对文档、测试、追踪和风险做质量总检 |
-| 状态诊断报告 / State Doctor | 条件 | 项目协调者/AI | 发布负责人、接手团队 | 汇总阶段状态、阻塞、异常配置和上下文健康度 |
-| 交付包 / Delivery Package | 条件 | 发布负责人 | 接手团队、客户、支持 | 汇总代码、文档、发布和交接资产 |
-| 发布检查清单 | 必备 | 发布负责人/技术负责人 | 发布、运维 | 确保上线前置动作已完成 |
-| 发布说明 / Release Notes | 必备 | 产品/技术负责人 | 用户、支持、管理者 | 对外说明变更内容、影响和注意事项 |
-| 部署说明 / Deployment Guide | 必备 | 开发/运维 | 运维、实施、支持 | 定义部署步骤、环境依赖、配置和验证动作 |
-| 回滚方案 / Rollback Plan | 必备 | 开发/运维 | 发布、运维 | 明确失败时如何快速恢复 |
-| 配置矩阵 / Config Matrix | 条件 | 开发/运维 | 运维、支持 | 汇总环境变量、密钥、依赖和差异 |
-
-最小交付给运维阶段：
-
-- `acceptance-checklist.md`
-- `stage-check-report.md`
-- `quality-check-report.md`
-- `release-notes.md`
-- `deployment-guide.md`
-- `rollback-plan.md`
-
-## 07. 运维与支持
-
-| 文档 | 默认性 | 主要编写者 | 交付给 | 主要作用 |
-|---|---|---|---|---|
-| 运维手册 / Operations Runbook | 必备 | 运维/技术负责人 | 运维、支持 | 规定日常巡检、启停、扩缩容、故障处理入口 |
-| 监控告警说明 | 条件 | 运维/SRE | 运维、支持 | 定义指标、阈值、告警路由和处理优先级 |
-| 应急响应预案 / Incident Playbook | 条件 | 运维/SRE/安全 | 运维、管理者 | 标准化重大故障处理流程和升级路径 |
-| 备份与灾备方案 | 条件 | 运维/DBA | 运维、审计 | 明确备份频率、恢复目标和演练要求 |
-| 支持手册 / Support Handbook | 条件 | 支持负责人/技术负责人 | 客服、实施、支持 | 统一常见问题、升级路径和处理时限 |
-| SLO/SLA 说明 | 条件 | 产品/运维/管理者 | 支持、客户成功 | 统一服务目标和承诺边界 |
-
-最小交付给交接阶段：
-
-- `operations-runbook.md`
-- 若有正式运营要求，再补监控、应急和支持手册
-
-## 08. 用户交接与启用
-
-| 文档 | 默认性 | 主要编写者 | 交付给 | 主要作用 |
-|---|---|---|---|---|
-| 用户指南 / User Guide | 必备 | 产品/设计/技术写作 | 最终用户 | 指导日常使用和关键任务操作 |
-| 管理员指南 / Admin Guide | 条件 | 技术负责人/实施 | 管理员、实施方 | 指导配置、权限、初始化、升级和维护 |
-| 培训材料 / Training Guide | 条件 | 产品/实施/支持 | 用户、实施方 | 支持培训和上线切换 |
-| FAQ / Troubleshooting | 条件 | 支持/产品 | 用户、支持 | 降低重复问题沟通成本 |
-| 交接说明 / Handover Memo | 条件 | 项目经理/负责人 | 维护团队、客户 | 总结当前版本、遗留问题、责任边界和后续计划 |
-
-最小交付给正式使用方：
-
+- `index.md`
 - `user-guide.md`
-- 有管理员或实施角色时补 `admin-guide.md`
 
-## 09. 演进、变更与收尾
+以下场景建议补充：
 
-| 文档 | 默认性 | 主要编写者 | 交付给 | 主要作用 |
-|---|---|---|---|---|
-| 变更请求日志 | 必备 | 项目经理/产品 | 所有角色 | 控制新增需求、范围变更和影响评估 |
-| 回顾总结 / Retrospective | 条件 | 团队负责人 | 团队、管理者 | 沉淀做得好/不好和改进项 |
-| 事故复盘 / Postmortem | 条件 | 技术负责人/运维 | 团队、管理者 | 追溯重大问题、根因和防再发措施 |
-| 退役 / EOL 计划 | 条件 | 产品/技术负责人 | 运维、客户、支持 | 规划停用、迁移和数据保留策略 |
+- 自托管或实施交付：补 `installation.md`、`configuration.md`、`admin-guide.md`
+- 强依赖 AI 协作：补 `prompt-templates.md`、`command-cheatsheet.md`
 
-## 模块边界与接口文档的最低要求
+## 3. `03-developer-guide`
 
-### 模块边界文档至少包含
+只有存在稳定开发或集成面时才默认需要。
 
-- 模块名称、目标和责任边界
-- 所拥有的数据与状态
-- 对外暴露的接口
-- 允许依赖和禁止依赖
-- 错误传播、重试和降级策略
-- 关联需求、测试、运维责任
+| 文档 | 默认性 | 主要读者 | 主要作用 |
+|---|---|---|---|
+| `index.md` | 必备（启用时） | 开发者、集成方 | 说明开发者入口和边界 |
+| `application-development.md` | 条件 | 应用开发者 | 讲清如何扩展当前应用或工程 |
+| `development-setup.md` | 条件 | 开发者 | 讲清本地环境、依赖和调试入口 |
+| `function-reference.md` | 条件 | 集成者、开发者 | 固定函数/CLI/能力入口的调用说明 |
+| `interface-reference.md` | 条件 | 集成者、开发者 | 对外接口、协议和兼容约束 |
+| `plugin-development.md` | 条件 | 插件开发者 | 讲清插件机制、生命周期和交付方式 |
+| `openapi/*` | 条件 | API 集成方 | 存放公开 OpenAPI 契约和说明页 |
+| `tools/*` | 条件 | Agent / MCP 集成方 | 存放公开 MCP tools 快照和说明页 |
 
-### 接口文档至少包含
+启用信号：
 
-- 调用方与提供方
-- 场景目的与业务语义
-- 输入输出结构
-- 认证、授权、限流、超时、幂等性要求
-- 错误码、失败处理、兼容性与版本策略
-- 示例请求/响应或消息样例
-- 对应的机器契约文件位置
+- 有公开 API、SDK、MCP tools 或函数入口
+- 有插件机制、模块扩展点或二次开发场景
+- 需要对外发布稳定契约，而不是只留在内部设计文档中
+
+## 4. `04-project-development`
+
+这是内部项目事实源，按阶段列出。
+
+### `01-governance`
+
+| 文档 | 默认性 | 主要作用 |
+|---|---|---|
+| `project-charter.md` | 必备 | 明确目标、范围、成功标准和里程碑 |
+| `stakeholders-raci.md` | 条件 | 明确职责与审批边界 |
+| `risk-register.md` | 条件 | 让高风险点在设计和测试中被显式覆盖 |
+| `glossary.md` | 条件 | 统一术语 |
+| `roadmap.md` | 条件 | 说明阶段性规划 |
+
+### `02-discovery`
+
+| 文档 | 默认性 | 主要作用 |
+|---|---|---|
+| `input.md` | 必备 | 固化原始创意、背景、约束和启动输入 |
+| `brainstorm-record.md` | 必备 | 保留问题空间、方案比较和决策过程 |
+| `current-state-analysis.md` | 条件 | 历史项目现状基线 |
+| `business-flow.md` | 条件 | 说明业务流程或用户旅程 |
+| `scope-outline.md` | 条件 | 列清范围内/范围外 |
+
+### `03-requirements`
+
+| 文档 | 默认性 | 主要作用 |
+|---|---|---|
+| `prd.md` | 必备 | 正式功能需求与业务目标 |
+| `requirements-analysis.md` | 必备 | 依赖、优先级、可行性与风险分析 |
+| `requirements-verification.md` | 必备 | 校验 PRD、分析、字段与追踪覆盖 |
+| `changelog.md` | 条件 | 记录需求级变更历史 |
+| `nfr-catalog.md` | 条件 | 固化非功能要求 |
+| `acceptance-criteria.md` | 条件 | 明确“什么算完成” |
+| `change-requests.md` | 条件 | 管控 `CR-*` 变更入口 |
+
+### `04-design`
+
+| 文档 | 默认性 | 主要作用 |
+|---|---|---|
+| `technical-selection.md` | 必备 | 固化技术栈、工程规则和必装模块 |
+| `system-architecture.md` | 必备 | 描述系统上下文、分层和关键组件 |
+| `module-boundaries.md` | 必备 | 明确职责、数据所有权和耦合边界 |
+| `api-design.md` | 必备 | 统一 API / CLI / 契约语义 |
+| `backend-design.md` | 条件 | 细化服务、任务、幂等和可观测性 |
+| `database-design.md` | 条件 | 定义实体、关系、索引和迁移 |
+| `security-design.md` | 条件 | 说明安全控制和威胁模型 |
+| `deployment-architecture.md` | 条件 | 描述环境拓扑和部署约束 |
+| `ux-ui-design.md` | 条件 | 说明交互、页面和设计交付物 |
+| `contracts/*` | 条件 | 放内部接口、事件、Schema 和契约说明 |
+
+### `05-development-process`
+
+| 文档 | 默认性 | 主要作用 |
+|---|---|---|
+| `software-development-process.md` | 必备 | 说明阶段顺序、输入输出和准入准出 |
+| `implementation-plan.md` | 必备 | 把设计转成实施波次和顺序 |
+| `task-breakdown.md` | 条件 | 形成任务颗粒和依赖 |
+| `wbs.md` | 条件 | 给出工作分解结构 |
+| `execution-log.md` | 条件 | 留存推进日志和回写记录 |
+| `iteration-plan.md` | 条件 | 管理迭代或冲刺 |
+| `migration-plan.md` | 条件 | 迁移、切换、回滚规划 |
+| `historical-project-onboarding-checklist.md` | 条件 | 历史项目纳管收口清单 |
+
+### `06-testing-verification`
+
+| 文档 | 默认性 | 主要作用 |
+|---|---|---|
+| `test-strategy.md` | 条件 | 定义测试层次和自动化策略 |
+| `test-plan.md` | 必备 | 定义测试范围、环境和入口/出口条件 |
+| `test-cases.md` | 条件 | 需求到验证步骤的映射 |
+| `test-data.md` | 条件 | 说明测试数据和准备方式 |
+| `defect-log.md` | 条件 | 跟踪缺陷状态和优先级 |
+| `test-report.md` | 必备 | 汇总通过情况、遗留问题和风险 |
+| `uat-report.md` | 条件 | 业务验收结果 |
+
+### `07-release-delivery`
+
+| 文档 | 默认性 | 主要作用 |
+|---|---|---|
+| `acceptance-checklist.md` | 条件 | 上线前验收项与签字结果 |
+| `delivery-package.md` | 条件 | 汇总代码、文档和交接资产 |
+| `release-checklist.md` | 条件 | 上线动作检查清单 |
+| `release-notes.md` | 必备 | 对外说明变更和影响 |
+| `rollback-plan.md` | 条件 | 上线失败恢复方案 |
+| `stage-check-report.md` | 条件 | 阶段 Gate 判断 |
+| `quality-check-report.md` | 条件 | 质量总检 |
+
+### `08-operations-maintenance`
+
+| 文档 | 默认性 | 主要作用 |
+|---|---|---|
+| `deployment-guide.md` | 必备 | 定义部署步骤、依赖和验证动作 |
+| `operations-runbook.md` | 必备 | 定义巡检、启停、故障处理入口 |
+| `monitoring-alerting.md` | 条件 | 指标、阈值和告警路由 |
+| `incident-playbook.md` | 条件 | 重大故障处理流程 |
+| `backup-dr.md` | 条件 | 备份与灾备策略 |
+| `support-handbook.md` | 条件 | 支持团队操作和升级路径 |
+| `configuration-matrix.md` | 条件 | 汇总环境变量、密钥和差异 |
+
+### `09-evolution`
+
+| 文档 | 默认性 | 主要作用 |
+|---|---|---|
+| `skill-evolution-plan.md` | 条件 | 记录技能和流程演进方案 |
+| `retrospective.md` | 条件 | 迭代或阶段回顾 |
+| `postmortem.md` | 条件 | 事故复盘 |
+| `deprecation-plan.md` | 条件 | 退役和替换规划 |
+
+### `10-traceability`
+
+| 文档 | 默认性 | 主要作用 |
+|---|---|---|
+| `requirements-matrix.md` | 必备 | 覆盖需求到设计/任务/测试/发布 |
+| `interface-matrix.md` | 条件 | 覆盖接口到责任方/版本/验证 |
+| `document-index.md` | 条件 | 总览正式文档现状 |
+
+## 最小文档包建议
+
+### 小型内部 CLI / 工具
+
+- `01-getting-started/*`
+- `02-user-guide/index.md`
+- `02-user-guide/user-guide.md`
+- `04-project-development` 内的项目章程、输入、PRD、需求分析、需求校验、技术选型、架构、模块边界、API 设计、实施计划、测试计划、发布说明、部署说明、运维手册、需求追踪矩阵
+
+### 公开 API / 集成型项目
+
+在“小型内部 CLI / 工具”基础上，额外补：
+
+- `03-developer-guide/index.md`
+- `03-developer-guide/interface-reference.md`
+- `03-developer-guide/openapi/*`
+- `03-developer-guide/tools/*`
+- `04-project-development/04-design/contracts/*`
+
+### 历史项目纳管
+
+最先补齐：
+
+- `04-project-development/02-discovery/current-state-analysis.md`
+- `04-project-development/01-governance/project-charter.md`
+- `04-project-development/03-requirements/prd.md`
+- `04-project-development/04-design/system-architecture.md`
+- `04-project-development/04-design/module-boundaries.md`
+- `04-project-development/04-design/technical-selection.md`
+- `04-project-development/04-design/api-design.md`
+- `04-project-development/08-operations-maintenance/operations-runbook.md`
+- `02-user-guide/user-guide.md`
+
+### 自托管 / 实施交付型系统
+
+额外补：
+
+- `02-user-guide/admin-guide.md`
+- `02-user-guide/installation.md`
+- `02-user-guide/configuration.md`
+- `04-project-development/08-operations-maintenance/configuration-matrix.md`
+- `04-project-development/07-release-delivery/rollback-plan.md`
 
 ## 推荐做法
 
-- 对每个阶段都给出“最小交付包”，避免遗漏关键文档。
-- 文档要围绕“谁接手、怎么继续”编写，而不是只做归档。
-- 机器契约和人类说明要成对出现，避免“只有规范文件、没有阅读说明”。
+- 先判断是否需要启用 `03-developer-guide/`，不要机械生成。
+- 稳定对外事实放公开模块；内部过程和决策放 `04-project-development/`。
+- 文档写成“下一个人拿到就能继续工作”的形式，而不是只做归档。

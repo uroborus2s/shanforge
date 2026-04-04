@@ -1,0 +1,360 @@
+#!/usr/bin/env python3
+
+import argparse
+from datetime import datetime
+import json
+from pathlib import Path
+import re
+import sys
+
+from factory_core import (
+    EXECUTION_LOG_RELATIVE,
+    append_log_line,
+    build_reply_summary,
+    factory_workspace_root,
+    skill_change_governance,
+    write_text,
+)
+
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description="生成候选 skill 草案，不直接修改正式 SKILL.md。")
+    parser.add_argument("name", help="候选 skill 名称；将同时用于目录名和 SKILL frontmatter name。")
+    parser.add_argument("--summary", required=True, help="一句话描述该 skill 要解决的问题或新增能力。")
+    parser.add_argument("--triggers", action="append", default=[], help="触发场景描述；可重复传入。")
+    parser.add_argument("--signal", action="append", default=[], help="触发该草案的信号或失败模式；可重复传入。")
+    parser.add_argument("--constraint", action="append", default=[], help="候选 skill 必须遵守的约束；可重复传入。")
+    parser.add_argument("--target-skill", default="", help="若用于演进已有正式 skill，填写正式 skill 名称。")
+    parser.add_argument("--owner", default="技能维护者", help="候选草案负责人。")
+    parser.add_argument("--project", default=".", help="触发该候选草案的项目路径。")
+    parser.add_argument("--note", default="", help="补充说明。")
+    parser.add_argument("--json", action="store_true", help="以 JSON 输出。")
+    return parser.parse_args()
+
+
+def normalize_items(values: list[str]) -> list[str]:
+    items: list[str] = []
+    for raw in values:
+        text = str(raw or "").strip()
+        if not text:
+            continue
+        for part in text.split("||"):
+            cleaned = part.strip()
+            if cleaned:
+                items.append(cleaned)
+    return items
+
+
+def candidate_root() -> Path:
+    governance = skill_change_governance()
+    root = str(governance.get("candidate_root", "skills-drafts")).strip() or "skills-drafts"
+    return factory_workspace_root() / root
+
+
+def skill_slug(value: str) -> str:
+    normalized = re.sub(r"[^a-z0-9]+", "-", str(value or "").strip().lower()).strip("-")
+    return normalized or "candidate-skill"
+
+
+def official_skill_path(skill_name: str) -> Path:
+    return factory_workspace_root() / "skills" / skill_name / "SKILL.md"
+
+
+def default_trigger(summary: str) -> str:
+    return f"当用户需要 {summary.strip()} 时使用。"
+
+
+def render_skill_markdown(record: dict) -> str:
+    trigger_lines = record["triggers"] or [default_trigger(record["summary"])]
+    signal_lines = record["signals"] or ["补充来自失败样本、人工纠偏或重复工作流的真实信号。"]
+    constraint_lines = record["constraints"] or [
+        "未完成候选评估和显式批准前，不要覆盖正式 SKILL.md。",
+        "优先把执行动作沉淀到 action/workflow，而不是把执行细节硬塞进 skill。",
+    ]
+    target_skill = record.get("target_skill", "").strip()
+    description = "；".join(trigger_lines)
+    lines = [
+        "---",
+        f"name: {record['name']}",
+        'description: >',
+        f"  {description}",
+        "---",
+        "",
+        f"# Candidate Skill Draft: {record['name']}",
+        "",
+        "## Status",
+        "",
+        "- 类型：候选 skill 草案",
+        f"- 负责人：{record['owner']}",
+        f"- 来源项目：`{record['project_path']}`",
+        f"- 创建时间：{record['created_at']}",
+        f"- 正式目标：`{target_skill or 'new-skill'}`",
+        "",
+        "## Goal",
+        "",
+        f"- {record['summary']}",
+        "",
+        "## Trigger Signals",
+        "",
+    ]
+    lines.extend(f"- {item}" for item in trigger_lines)
+    lines.extend(["", "## Observed Signals", ""])
+    lines.extend(f"- {item}" for item in signal_lines)
+    lines.extend(["", "## Constraints", ""])
+    lines.extend(f"- {item}" for item in constraint_lines)
+    lines.extend(
+        [
+            "",
+            "## Proposed Workflow",
+            "",
+            "1. 先复核触发边界和适用阶段，避免把一次性问题错误沉淀为 skill。",
+            "2. 明确该能力应固化为 skill、action、workflow、adapter、eval 还是 recovery。",
+            "3. 若确认需要 skill，再补阅读顺序、边界约束和成功证据。",
+            "4. 基于 `evals/evals.json` 补固定样本回放，验证触发准确率和越权率。",
+            "5. 未完成批准前，只允许在 `skills-drafts/` 演进，不要改正式 `skills/*/SKILL.md`。",
+            "",
+            "## Open Questions",
+            "",
+            "- 是否已有正式 skill 可以吸收该能力，而不是新建 skill？",
+            "- 是否需要补 action/workflow，而不是扩张 skill 边界？",
+            "- 评估样本应如何覆盖高频成功和高频失败场景？",
+        ]
+    )
+    return "\n".join(lines).rstrip() + "\n"
+
+
+def build_eval_payload(record: dict) -> dict:
+    trigger_text = "；".join(record["triggers"]) or default_trigger(record["summary"])
+    expected = [
+        f"在合适场景下触发候选 skill `{record['name']}`。",
+        "不会直接修改正式 skills/*/SKILL.md。",
+        "会输出候选边界、约束和后续评估要求。",
+    ]
+    return {
+        "skill_name": record["name"],
+        "evals": [
+            {
+                "id": 1,
+                "prompt": f"请为这个能力准备 skill 候选：{record['summary']}",
+                "expected_output": "返回候选 skill 草案，而不是直接覆盖正式 skill。",
+                "files": [],
+                "expectations": expected + [f"触发描述覆盖：{trigger_text}"],
+            }
+        ],
+    }
+
+
+def build_eval_report_payload(record: dict) -> dict:
+    return {
+        "version": 1,
+        "skill_name": record["name"],
+        "status": "pending",
+        "summary": "尚未执行正式 skill 评估，当前仅生成候选草案骨架。",
+        "updated_at": record["created_at"],
+        "required_gate": {"must_pass_before_promotion": True},
+    }
+
+
+def render_change_summary(record: dict) -> str:
+    lines = [
+        f"# Skill 变更摘要：{record['name']}",
+        "",
+        f"- 候选目录：`{record['candidate_dir']}`",
+        f"- 正式目标：`{record.get('official_skill_path', '') or 'new-skill'}`",
+        f"- 当前状态：`{record['status']}`",
+        "",
+        "## 变更动机",
+        "",
+        f"- {record['summary']}",
+        "",
+        "## 预期收益",
+        "",
+        "- 待补充：明确该 skill 改动将减少的重复劳动、误判或越权风险。",
+        "",
+        "## 影响范围",
+        "",
+        "- 待补充：列出受影响的阶段、角色、动作或工作流。",
+        "",
+        "## 验证计划",
+        "",
+        "- 待补充：补齐固定样本、评估命令和通过阈值。",
+    ]
+    return "\n".join(lines).rstrip() + "\n"
+
+
+def build_proposal_record(
+    *,
+    name: str,
+    summary: str,
+    triggers: list[str],
+    signals: list[str],
+    constraints: list[str],
+    target_skill: str,
+    owner: str,
+    project_path: Path,
+    note: str,
+) -> dict:
+    governance = skill_change_governance()
+    official_path = ""
+    if target_skill:
+        target_path = official_skill_path(target_skill)
+        if not target_path.exists():
+            raise RuntimeError(f"正式 skill 不存在：{target_path}")
+        official_path = str(target_path.relative_to(factory_workspace_root()))
+    created_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    return {
+        "version": 1,
+        "status": "draft",
+        "name": name,
+        "summary": summary,
+        "triggers": triggers,
+        "signals": signals,
+        "constraints": constraints,
+        "target_skill": target_skill,
+        "official_skill_path": official_path,
+        "owner": owner,
+        "project_path": str(project_path),
+        "note": note.strip(),
+        "created_at": created_at,
+        "required_artifacts": list(governance.get("required_artifacts", [])),
+        "require_candidate_first": bool(governance.get("require_candidate_first", False)),
+        "require_eval": bool(governance.get("require_eval", False)),
+        "require_approval_ticket": bool(governance.get("require_approval_ticket", False)),
+    }
+
+
+def create_skill_draft(
+    *,
+    name: str,
+    summary: str,
+    triggers: list[str],
+    signals: list[str],
+    constraints: list[str],
+    target_skill: str,
+    owner: str,
+    project_path: Path,
+    note: str,
+) -> dict:
+    skill_name = skill_slug(name)
+    record = build_proposal_record(
+        name=skill_name,
+        summary=summary.strip(),
+        triggers=triggers,
+        signals=signals,
+        constraints=constraints,
+        target_skill=target_skill.strip(),
+        owner=owner.strip() or "技能维护者",
+        project_path=project_path,
+        note=note,
+    )
+    root = candidate_root()
+    draft_dir = root / skill_name
+    if draft_dir.exists():
+        raise RuntimeError(f"候选 skill 目录已存在：{draft_dir}")
+
+    record["candidate_root"] = str(root.relative_to(factory_workspace_root()))
+    record["candidate_dir"] = str(draft_dir.relative_to(factory_workspace_root()))
+
+    skill_path = draft_dir / "SKILL.md"
+    evals_path = draft_dir / "evals" / "evals.json"
+    eval_report_path = draft_dir / "evals" / "eval-report.json"
+    change_summary_path = draft_dir / "change-summary.md"
+    proposal_path = draft_dir / "proposal.json"
+
+    write_text(skill_path, render_skill_markdown(record))
+    write_text(evals_path, json.dumps(build_eval_payload(record), ensure_ascii=False, indent=2))
+    write_text(eval_report_path, json.dumps(build_eval_report_payload(record), ensure_ascii=False, indent=2))
+    write_text(change_summary_path, render_change_summary(record))
+    write_text(proposal_path, json.dumps(record, ensure_ascii=False, indent=2))
+
+    append_log_line(
+        factory_workspace_root() / EXECUTION_LOG_RELATIVE,
+        (
+            f"- {datetime.now().strftime('%Y-%m-%d')}: 生成候选 skill 草案 `{skill_name}`，"
+            f"目录 `{record['candidate_dir']}`，正式目标 `{record['official_skill_path'] or 'new-skill'}`。"
+        ),
+    )
+
+    payload = {
+        "status": "success",
+        "summary": f"已生成候选 skill 草案 `{skill_name}`。",
+        "artifacts": [
+            record["candidate_dir"] + "/SKILL.md",
+            record["candidate_dir"] + "/proposal.json",
+            record["candidate_dir"] + "/evals/evals.json",
+            record["candidate_dir"] + "/evals/eval-report.json",
+            record["candidate_dir"] + "/change-summary.md",
+        ],
+        "record": record,
+        "next_actions": [
+            "补充 eval 样本，覆盖高频成功案例和失败案例。",
+            (
+                f"运行 `python3 {factory_workspace_root() / 'scripts' / 'factory-dispatch'} "
+                f"skill-eval {skill_name} --owner \"<owner>\"` 生成正式评估结果；晋升前必须达到 `passed`。"
+            ),
+            "补全 change-summary.md，明确影响范围、收益和验证计划。",
+            (
+                f"如需进入专用审批链路，运行 `python3 {factory_workspace_root() / 'scripts' / 'factory-dispatch'} "
+                f"skill-approval {skill_name} --request --owner \"<owner>\"`。"
+            ),
+            "如需晋升到正式 skill，后续必须补审批记录和评估结果。",
+        ],
+    }
+    payload["reply_summary"] = build_reply_summary("skill-draft", payload)
+    return payload
+
+
+def render_markdown(payload: dict) -> str:
+    record = payload.get("record") or {}
+    lines = [
+        "# Skill 候选草案",
+        "",
+        f"- 状态：`{payload.get('status', 'unknown')}`",
+        f"- 摘要：{payload.get('summary', '无')}",
+        f"- 名称：`{record.get('name', '')}`",
+        f"- 目录：`{record.get('candidate_dir', '')}`",
+        f"- 正式目标：`{record.get('official_skill_path', '') or 'new-skill'}`",
+        f"- 来源项目：`{record.get('project_path', '')}`",
+        "",
+        "## 产物",
+        "",
+    ]
+    lines.extend(f"- `{item}`" for item in payload.get("artifacts", []))
+    lines.extend(["", "## 下一步", ""])
+    lines.extend(f"- {item}" for item in payload.get("next_actions", []))
+    items = (payload.get("reply_summary") or {}).get("items") or []
+    if items:
+        lines.extend(["", "## 对话摘要", ""])
+        for item in items:
+            lines.append(f"- {item.get('label', item.get('path', ''))}：{item.get('value')}")
+    return "\n".join(lines).rstrip() + "\n"
+
+
+def main() -> int:
+    args = parse_args()
+    try:
+        payload = create_skill_draft(
+            name=args.name,
+            summary=args.summary,
+            triggers=normalize_items(args.triggers),
+            signals=normalize_items(args.signal),
+            constraints=normalize_items(args.constraint),
+            target_skill=args.target_skill,
+            owner=args.owner,
+            project_path=Path(args.project).expanduser().resolve(),
+            note=args.note,
+        )
+    except Exception as exc:
+        print(f"生成候选 skill 草案失败：{exc}", file=sys.stderr)
+        return 1
+
+    if args.json:
+        print(json.dumps(payload, ensure_ascii=False, indent=2))
+        return 0
+
+    print(render_markdown(payload))
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

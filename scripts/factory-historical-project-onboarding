@@ -14,13 +14,11 @@ from factory_core import (
     append_log_line,
     detect_docs_profile,
     docs_relative_path_enabled,
-    docs_stratego_directories,
     project_lock,
     refresh_ai_memory,
     save_project_config,
     save_tech_profile_state,
     update_publication_policy_for_modern_docs,
-    write_docs_stratego_indexes,
     write_text,
     run_script,
 )
@@ -935,8 +933,13 @@ def main() -> int:
     helpers = init_helpers()
     load_config = helpers["load_config"]
     build_agents_md = helpers["build_agents_md"]
+    build_developer_guide_index = helpers["build_developer_guide_index"]
+    build_docs_index = helpers["build_docs_index"]
     build_gemini_md = helpers["build_gemini_md"]
+    build_getting_started_index = helpers["build_getting_started_index"]
+    build_project_development_index = helpers["build_project_development_index"]
     build_project_config = helpers["build_project_config"]
+    build_user_guide_index = helpers["build_user_guide_index"]
 
     project_root = Path(args.project).expanduser().resolve()
     if not project_root.exists() or not project_root.is_dir():
@@ -1030,6 +1033,11 @@ def main() -> int:
             )
 
             managed_docs = {
+                "docs/index.md": build_docs_index(project_name, docs_profile),
+                "docs/01-getting-started/index.md": build_getting_started_index(),
+                "docs/02-user-guide/index.md": build_user_guide_index(),
+                "docs/03-developer-guide/index.md": build_developer_guide_index(),
+                "docs/04-project-development/index.md": build_project_development_index(),
                 "docs/04-project-development/01-governance/project-charter.md": build_project_charter(project_name, args.owner.strip(), goal, now_date, scan),
                 "docs/04-project-development/02-discovery/input.md": build_discovery_input(project_name, goal, scan),
                 "docs/04-project-development/02-discovery/current-state-analysis.md": build_current_state_analysis(project_root, project_name, goal, now_date, scan),
@@ -1074,21 +1082,7 @@ def main() -> int:
                     updated=updated,
                 )
 
-            docs_index_paths = sorted(
-                {
-                    "docs/index.md",
-                    *(f"docs/{relative_dir}/index.md" for relative_dir in docs_stratego_directories(project_root, docs_profile)),
-                }
-            )
-            docs_index_existed = {relative: (project_root / relative).exists() for relative in docs_index_paths}
             update_publication_policy_for_modern_docs(project_root, docs_profile)
-            for relative_path in write_docs_stratego_indexes(project_root, project_name):
-                if relative_path in created or relative_path in updated or relative_path in preserved:
-                    continue
-                if docs_index_existed.get(relative_path):
-                    updated.append(relative_path)
-                else:
-                    created.append(relative_path)
 
             save_tech_profile_state(project_root, tech_profile)
             graph, traceability_summary = build_traceability_graph(args.owner.strip(), now_text)

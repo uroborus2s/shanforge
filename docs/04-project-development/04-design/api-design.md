@@ -5,7 +5,7 @@
 **主要读者：** 前后端 | 测试 | 集成方 | 运维  
 **上游输入：** PRD | 技术选型 | 系统架构 | 模块边界  
 **下游输出：** 接口实现 | 测试用例 | 契约文件  
-**最后更新：** 2026-04-02  
+**最后更新：** 2026-04-03
 
 ## 1. 接口目录
 
@@ -17,9 +17,9 @@
 | `API-004` | `.factory/project.json` | File Contract | `REQ-004`, `REQ-005` | 被管理项目的运行状态合同 |
 | `API-005` | `docs/*` | Document Contract | `REQ-001`, `REQ-002`, `REQ-006` | 正式人类文档合同 |
 | `API-006` | `factory-dispatch historical-project-onboarding` | CLI Command | `REQ-007` | 历史项目纳管自动化入口，支持 `legacy-onboard` 别名 |
-| `API-007` | `scripts/sync-codex-skills` | CLI Command | `REQ-003` | 把仓库内 `skills/` 增量同步到 `~/.codex/skills` 与 `~/.gemini/skills` |
-| `API-008` | `factory-dispatch docs-standard-upgrade` | CLI Command | `REQ-001`, `REQ-002`, `REQ-006` | 一键把项目 docs 升级到最新源文档标准 |
-| `API-009` | `factory-dispatch docs-standard-upgrade-batch` | CLI Command | `REQ-001`, `REQ-002`, `REQ-006` | 批量扫描并升级多个山海工枢项目的 docs |
+| `API-007` | `uv run python scripts/sync-codex-skills` | CLI Command | `REQ-003` | 把仓库内 `skills/` 增量同步到 `~/.codex/skills` 与 `~/.gemini/skills` |
+| `API-008` | `docs-stratego source validate` | CLI Command | `REQ-001`, `REQ-002`, `REQ-006` | 校验源仓 `docs/` 是否符合 `docs-stratego` 标准 |
+| `API-009` | `docs-stratego source add/remove/scaffold-notify/sync/build/dev` | CLI Command | `REQ-001`, `REQ-002`, `REQ-006` | 接入聚合站点、通知脚手架、同步、构建和预览入口 |
 | `API-010` | `config/action-registry.json` | File Contract | `REQ-003`, `REQ-005`, `REQ-006` | 已实现的动作注册表契约，定义首批高层动作的 ID、风险、前置条件和验证规则 |
 | `API-011` | `config/autonomy-policy.json` | File Contract | `REQ-003`, `REQ-005`, `REQ-006` | 已实现的自治策略契约，定义 `L0` ~ `L3` 风险级别和默认审批边界 |
 | `API-012` | `config/frontends/*.json` | File Contract | `REQ-003`, `REQ-005` | 已实现的前台能力画像契约，描述 Codex、Gemini CLI、opencode 等宿主能力 |
@@ -28,6 +28,12 @@
 | `API-015` | `factory-dispatch intent-eval` | CLI Command | `REQ-003`, `REQ-005`, `REQ-006` | 基于固定样本集回放评估意图解析能力，统计命中率并暴露失败样本 |
 | `API-016` | `factory-dispatch intent-approval` | CLI Command | `REQ-003`, `REQ-005`, `REQ-006` | 查看或处理意图审批票据，并在批准后执行冻结计划 |
 | `API-017` | `config/reply-policy.json` | File Contract | `REQ-003`, `REQ-005`, `REQ-006` | 对话摘要、审批票据触发条件和 skill 正式变更批准边界的运行时契约 |
+| `API-018` | `factory-dispatch skill-draft` | CLI Command | `REQ-003`, `REQ-005`, `REQ-006` | 生成候选 skill 草案并写入 `skills-drafts/`，不直接改正式 `SKILL.md` |
+| `API-019` | `factory-dispatch skill-approval` | CLI Command | `REQ-003`, `REQ-005`, `REQ-006` | 为候选 skill 草案申请、查看和处理专用审批票据 |
+| `API-020` | `factory-dispatch skill-promote` | CLI Command | `REQ-003`, `REQ-005`, `REQ-006` | 将满足评估与批准条件的候选 skill 晋升到正式 `skills/` |
+| `API-021` | `factory-dispatch skill-rollback` | CLI Command | `REQ-003`, `REQ-005`, `REQ-006` | 将已晋升 skill 回退到候选目录中的旧版本备份 |
+| `API-022` | `factory-dispatch skill-eval` | CLI Command | `REQ-003`, `REQ-005`, `REQ-006` | 对候选 skill 执行正式评估，并回写 `eval-report.json` |
+| `API-023` | `factory-dispatch skill-delete-approval` | CLI Command | `REQ-003`, `REQ-005`, `REQ-006` | 为首次发布的新 skill 提供删除回退专用审批票据 |
 
 ## 2. 设计原则
 
@@ -112,29 +118,26 @@
   - 源目录不存在或不可读时，应直接失败并提示源路径。
   - 若目标目录存在无法自动解决的命名冲突，应保留原有项并返回冲突摘要。
 
-### `API-008` docs 标准升级入口
+### `API-008` docs 源仓校验入口
 
-- 请求：用户提供项目路径、负责人，以及可选 `--force` / `--check`。
-- 响应：按需执行旧 docs 结构迁移、刷新根索引和目录首页，并返回最终 `docs-stratego` 源文档状态。
+- 请求：用户在源仓执行 `docs-stratego source validate --repo-path <path>`。
+- 响应：返回当前 `docs/` 是否满足 `docs-stratego` 源文档标准，以及缺口列表。
 - 校验规则：
   - 若项目不存在 `docs/`，应直接失败。
-  - `--check` 只报告“是否需要迁移”和当前是否已经 `就绪`。
-  - 正式执行时，若根导航中已有人工维护的页面级权限和标题，应尽量保留。
+  - 根 `docs/index.md` 必须是唯一导航与权限事实源。
+  - 契约页、访问级别和目录首页规则统一按 `docs-stratego` 标准检查。
 - 错误处理：
-  - 结构迁移遇到冲突文件时，默认失败；显式传入 `--force` 才允许覆盖。
   - 最终状态若不是 `就绪`，命令应以非零退出码结束。
 
-### `API-009` docs 标准批量升级入口
+### `API-009` docs-stratego 站点操作入口
 
-- 请求：用户提供一个或多个 `--root` 扫描根目录，或显式传入多个 `--project`。
-- 响应：识别已纳管项目，逐个执行检查或升级，并输出汇总结果。
+- 请求：用户在 `docs-stratego` 根仓执行 `source add/remove/scaffold-notify/sync/build/dev` 等命令。
+- 响应：完成源仓接入、通知脚手架管理、聚合同步、站点构建或本地预览。
 - 校验规则：
-  - 默认只处理同时具备 `.factory/project.json` 与 `docs/` 的项目。
-  - 扫描时跳过 `node_modules`、`.git`、`dist` 等无关目录。
-  - 任一项目失败或未就绪时，批量命令应以非零退出码结束。
+  - `source add/remove` 只在 `docs-stratego` 根仓执行。
+  - `sync/build/dev` 统一面向聚合站点工作区，而不是源仓本身。
 - 错误处理：
-  - 未发现任何候选项目时，应直接失败并提示补充 `--project` 或 `--root`。
-  - 单个项目异常不能阻断其他项目继续处理，但要出现在最终汇总中。
+  - 配置缺失、源仓未合规或同步失败时，应返回可定位的失败原因。
 
 ### `API-010` 动作注册表契约
 
@@ -213,6 +216,8 @@
   - MVP 已实现，入口为 `scripts/factory-intent-resolver`。
   - `factory-dispatch intent-resolver` 和别名 `intent` 已接入。
   - 已支持识别 `command-profiles` / `workflow-runner` 的具体子目标，并可通过 `--execute-safe` 自动执行 `L0/L1` 主推荐动作。
+  - 已支持统一 skill 生命周期语义解析；当工作区存在候选 skill 时，可按候选状态选择 `skill-eval` / `skill-approval` / `skill-promote` / `skill-delete-approval` / `skill-rollback`，并输出 `selected_skill_candidate` / `selected_skill_operation`。
+  - 当自然语言明确命中 skill 生命周期，但当前无法定位候选 skill 时，主推荐动作会保留在对应 skill 治理命令上，并把“缺少 `skills-drafts/` 候选”作为阻塞边界显式返回。
   - 已支持对子目标应用风险覆盖；工作流型 profile 在解析时会提升到 `L2` 审批边界。
   - 已支持通过 `--request-approval` 为 `L2/L3` 主推荐动作创建冻结审批票据。
   - 已支持输出 `approval_guidance` 和固定 `reply_summary`，用于当前对话回复和后续审批衔接。
@@ -232,7 +237,8 @@
 - 当前状态：
   - MVP 已实现，入口为 `scripts/factory-intent-eval`。
   - 默认样本集位于 `config/evals/intent-resolver-cases.json`。
-  - 当前已覆盖 `empty`、`historical`、`managed` 三类项目夹具，以及 `action/profile/workflow/safe_execute/approval_request` 五类断言。
+  - 当前已覆盖 `empty`、`historical`、`managed` 与 5 类 skill 生命周期夹具，共 `13` 条固定样本。
+  - 当前断言已覆盖 `action/profile/workflow/skill_operation/skill_candidate/safe_execute/approval_request/blocked_reason`。
   - 已输出固定 `reply_summary`，便于在日常开发回复中给出简短评估结论。
 
 ### `API-016` 意图审批票据入口
@@ -270,6 +276,115 @@
   - 当前已覆盖 `intent-resolver`、`intent-eval`、`intent-approval` 3 类运行时入口。
   - 当前已把 skill 正式变更固定为“候选优先、评估先行、显式批准后晋升”的治理边界。
 
+### `API-018` 候选 skill 草案生成入口
+
+- 请求：用户提供候选 skill 名称、能力摘要、触发场景，以及可选的正式目标 skill、信号和约束。
+- 响应：生成 `skills-drafts/<skill>/` 下的候选 `SKILL.md`、`proposal.json`、`evals/evals.json`、`evals/eval-report.json` 和 `change-summary.md`。
+- 校验规则：
+  - 只允许写入 `reply-policy.json` 中声明的候选目录。
+  - 若声明 `--target-skill`，则正式 `skills/<name>/SKILL.md` 必须存在。
+  - 当前阶段仅允许生成候选，不允许直接覆盖正式 skill。
+- 错误处理：
+  - 候选目录已存在时应失败，避免静默覆盖。
+  - 正式目标 skill 不存在时应直接失败。
+- 当前状态：
+  - MVP 已实现，入口为 `scripts/factory-skill-draft`。
+  - `factory-dispatch skill-draft`、别名 `skill-candidate`、`propose-skill` 已接入。
+  - 已输出固定 `reply_summary`，便于在日常开发回复中摘要展示候选 skill 草案状态。
+
+### `API-019` 候选 skill 审批票据入口
+
+- 请求：用户提供候选 skill 名称/目录并执行 `--request`，或提供审批票据 ID 并执行 `--approve` / `--reject`。
+- 响应：返回候选 skill 的审批票据、票据列表，或将审批结果写回候选草案。
+- 校验规则：
+  - 申请票据前，候选草案必须存在 `SKILL.md`、`proposal.json`、`evals/evals.json`、`evals/eval-report.json` 和 `change-summary.md`。
+  - `evals/eval-report.json` 必须明确为 `status=passed`，否则不得申请审批票据。
+  - 批准或拒绝时必须提供有效票据 ID。
+  - 仅 `pending` 状态的 skill 票据允许继续处理。
+- 错误处理：
+  - 候选草案缺少必要产物时，应直接失败。
+  - 候选草案尚未通过正式评估时，应直接失败并提示先运行 `factory-skill-eval`。
+  - 已处理票据重复审批时，应返回当前状态而不是再次改写。
+- 当前状态：
+  - MVP 已实现，入口为 `scripts/factory-skill-approval`。
+  - `factory-dispatch skill-approval`、别名 `approve-skill`、`skill-ticket` 已接入。
+  - 申请票据时会冻结候选的正式评估记录摘要；批准或拒绝后会写回 `skills-drafts/<skill>/approval.json` 与 `proposal.json`。
+  - 当前只管理候选 skill 审批，不直接执行正式 skill 晋升。
+
+### `API-020` 候选 skill 正式晋升入口
+
+- 请求：用户提供候选 skill 名称/目录；可通过 `--check` 只检查门禁，通过默认执行完成正式晋升。
+- 响应：返回候选 skill 的晋升就绪状态，或把正式 `SKILL.md`、晋升记录和候选目录回写结果一起落盘。
+- 校验规则：
+  - 候选草案必须存在 `SKILL.md`、`proposal.json`、`evals/evals.json`、`evals/eval-report.json`、`change-summary.md` 和 `approval.json`。
+  - `evals/eval-report.json` 必须明确为 `status=passed`。
+  - `approval.json` 必须明确为 `decision=approve`。
+  - 候选 skill 必须通过 `skill-creator` 的结构校验。
+  - 若声明 `target_skill`，候选 skill 名称必须与正式目标一致，当前不允许在晋升阶段重写技能身份。
+- 错误处理：
+  - 任一必要产物缺失、评估未通过或批准缺失时，应直接失败并指出阻断项。
+  - 已晋升候选再次执行时，应返回当前状态而不是重复覆盖。
+  - 若正式 skill 已存在，应先在候选目录保留备份，再写入新版本。
+- 当前状态：
+  - MVP 已实现，入口为 `scripts/factory-skill-promote`。
+  - `factory-dispatch skill-promote`、别名 `promote-skill`、`publish-skill` 已接入。
+  - 晋升记录会写入 `.factory/process/skill-promotions.json`、`.factory/process/skill-promotions.md`、`.factory/memory/skill-promotions.summary.md` 和 `skills-drafts/<skill>/promotion.json`。
+
+### `API-021` 候选 skill 安全回退入口
+
+- 请求：用户提供候选 skill 名称/目录；可通过 `--check` 只检查当前是否满足回退条件，通过默认执行完成正式回退。
+- 响应：返回候选 skill 的回退就绪状态，或将正式 `SKILL.md` 恢复到旧版本备份，或在首次发布新 skill 已获删除审批时删除正式文件，并把回退记录写回候选目录和控制面。
+- 校验规则：
+  - 候选草案必须存在 `promotion.json`，且当前处于已晋升状态。
+  - 若候选目录存在 promotion 阶段保留的旧版本备份，则按恢复旧版本模式回退。
+  - 若候选是首次发布的新 skill 且不存在旧版本备份，则必须先通过 `API-023` 的删除回退审批。
+  - 正式 `skills/<name>/SKILL.md` 必须存在。
+- 错误处理：
+  - 未晋升候选、正式 skill 不存在或首次发布新 skill 未获删除审批时，应直接失败并指出阻断项。
+  - 已回退候选重复执行时，应返回当前状态而不是再次覆盖。
+  - 回退前应先为当前线上版本再保留一份备份，避免二次误操作；删除回退也必须保留当前线上版本备份。
+- 当前状态：
+  - MVP 已实现，入口为 `scripts/factory-skill-rollback`。
+  - `factory-dispatch skill-rollback`、别名 `rollback-skill`、`revert-skill` 已接入。
+  - 回退记录会写入 `.factory/process/skill-rollbacks.json`、`.factory/process/skill-rollbacks.md`、`.factory/memory/skill-rollbacks.summary.md` 和 `skills-drafts/<skill>/rollback.json`。
+  - 当前已支持两种模式：恢复旧版本备份，或在首次发布新 skill 已获删除审批时执行删除回退。
+
+### `API-022` 候选 skill 正式评估入口
+
+- 请求：用户提供候选 skill 名称/目录；默认执行正式评估，也可通过评估记录 ID 查看历史结果。
+- 响应：返回候选 skill 的评估结果，并将最新评估正式回写到 `evals/eval-report.json` 与控制面记录。
+- 校验规则：
+  - 候选草案必须存在 `SKILL.md`、`proposal.json`、`evals/evals.json` 和 `change-summary.md`。
+  - 候选 skill 必须通过 `skill-creator` 的结构校验。
+  - `evals/evals.json` 必须满足 schema：`skill_name` 一致、至少一个用例、`id/prompt/expected_output/expectations` 合法。
+  - 评估用例引用的输入文件必须存在。
+  - `change-summary.md` 必须包含必要章节，且不允许保留“待补充”占位文本。
+- 错误处理：
+  - 候选结构、评估 schema、输入文件或变更摘要任一失败时，应输出失败检查项并写入 `failed` 报告。
+  - `--strict` 模式下，评估失败应返回退出码 `2`。
+- 当前状态：
+  - MVP 已实现，入口为 `scripts/factory-skill-eval`。
+  - `factory-dispatch skill-eval`、别名 `eval-skill`、`evaluate-skill` 已接入。
+  - 评估记录会写入 `.factory/process/skill-evals.json`、`.factory/process/skill-evals.md`、`.factory/memory/skill-evals.summary.md` 和 `skills-drafts/<skill>/evals/eval-report.json`。
+
+### `API-023` 首次发布新 skill 删除回退审批入口
+
+- 请求：用户提供候选 skill 名称/目录并执行 `--request`，或提供审批票据 ID 并执行 `--approve` / `--reject`。
+- 响应：返回首次发布新 skill 的删除回退审批票据、票据列表，或将审批结果写回候选草案。
+- 校验规则：
+  - 候选草案必须已晋升，且 `promotion.json` 不得包含 `backup_path`。
+  - 只有首次发布的新 skill 才允许申请删除回退审批。
+  - 正式 skill 文件必须仍存在。
+  - 批准或拒绝时必须提供有效票据 ID。
+- 错误处理：
+  - 若候选已存在旧版本备份，应直接失败并提示改用 `skill-rollback` 恢复备份。
+  - 若候选未晋升、已回退或正式 skill 文件已不存在，应直接失败。
+  - 已处理票据重复审批时，应返回当前状态而不是再次改写。
+- 当前状态：
+  - MVP 已实现，入口为 `scripts/factory-skill-delete-approval`。
+  - `factory-dispatch skill-delete-approval`、别名 `approve-skill-delete`、`skill-delete-ticket` 已接入。
+  - 审批结果会写回 `.factory/process/skill-delete-approvals.json`、`.factory/process/skill-delete-approvals.md`、`.factory/memory/skill-delete-approvals.summary.md` 和 `skills-drafts/<skill>/delete-approval.json`。
+
 ## 4. 契约文件
 
 - 当前已使用的契约：
@@ -299,11 +414,18 @@
 | 2026-03-26 | 将 `API-006` 更新为已实现 MVP，并登记脚本与别名入口 | Codex |
 | 2026-03-27 | 将项目名称统一更新为“山海工枢 / shanforge”，并同步仓库路径 | Codex |
 | 2026-03-27 | 增加 `API-007`，支持把仓库内共享 skills 同步到 Codex / Gemini 全局目录 | Codex |
-| 2026-04-01 | 增加 `API-008`，提供 docs 最新源文档标准的一键升级入口 | Codex |
-| 2026-04-01 | 增加 `API-009`，支持批量扫描和升级多个项目的 docs 标准 | Codex |
+| 2026-04-03 | 将 `API-008` / `API-009` 重构为 `docs-stratego` CLI 校验与聚合站点操作入口，删除仓内旧 docs 升级链路 | Codex |
 | 2026-04-02 | 增加 `API-010` ~ `API-013`，登记动作注册、自治策略、前台能力画像和多代理协作入口 | Codex |
 | 2026-04-02 | 更新 `API-013` 为“显式写集声明 + 冲突默认阻断 + 看板冲突摘要”后的当前状态 | Codex |
 | 2026-04-02 | 增加 `API-014`，提供自然语言到已注册动作的最小意图解析入口 | Codex |
 | 2026-04-02 | 增加 `API-015`，提供意图回放评估入口和固定样本集契约 | Codex |
 | 2026-04-02 | 增加 `API-016`，提供最小审批票据入口和冻结计划执行契约 | Codex |
 | 2026-04-02 | 更新 `API-016`，增加冻结 ownership 与批准前冲突校验 | Codex |
+| 2026-04-03 | 增加 `API-017`，固定对话摘要、审批票据触发条件和 skill 变更治理边界 | Codex |
+| 2026-04-03 | 增加 `API-018`，提供候选 skill 草案生成入口 | Codex |
+| 2026-04-03 | 增加 `API-019`，提供候选 skill 专用审批票据入口 | Codex |
+| 2026-04-03 | 增加 `API-020`，提供候选 skill 正式晋升入口 | Codex |
+| 2026-04-03 | 增加 `API-021`，提供候选 skill 安全回退入口 | Codex |
+| 2026-04-03 | 增加 `API-022`，提供候选 skill 正式评估入口 | Codex |
+| 2026-04-03 | 收紧 `API-019` 门禁，候选 skill 必须先通过正式评估后才能申请审批票据 | Codex |
+| 2026-04-03 | 增加 `API-023`，为首次发布的新 skill 提供删除回退审批入口，并让 `API-021` 支持受控删除回退模式 | Codex |

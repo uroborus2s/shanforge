@@ -568,20 +568,20 @@
 请不要重新初始化，也不要重写整套 docs。
 
 本轮目标：
-- 按最新山海工枢源文档标准刷新 `docs/`
-- 刷新根 `docs/index.md` 和相关目录 `index.md`
+- 按最新山海工枢源文档标准重构 `docs/`
+- 修正根 `docs/index.md` 和相关目录 `index.md`
 - 保留现有人工标题、顺序和必要的访问控制例外
 
 请按下面顺序执行：
 1. 先读取 `AGENTS.md`、`GEMINI.md`、`.factory/project.json` 和当前 `docs/`
 2. 先判断项目是否已经被山海工枢正式接管；如果没有，停止本轮升级并告诉我应先走“历史项目纳管”
-3. 先执行 `factory-docs-standard-upgrade --check`
-4. 如果检查结果允许升级，再执行 `factory-docs-standard-upgrade`
-5. 升级完成后再执行 `factory-state-doctor --scope docs`
+3. 使用 `document-templates` skill 完成文档重构，不要调用 `factory-docs-*` 旧脚本
+4. 完成后执行 `uvx --from docs-stratego docs-stratego source validate --repo-path "[项目路径]"`
+5. 校验完成后再执行 `factory-state-doctor --scope docs`
 
 要求：
 1. 不要顺手修改无关代码
-2. 不要手工绕过命令直接重写整个 docs 目录
+2. 不要继续使用 `factory-docs-*` 旧命令
 3. 最后按下面结构输出：
    - 是否需要迁移旧 docs 结构
    - 实际刷新了哪些 docs 文件
@@ -591,8 +591,8 @@
 
 ### 预期结果
 
-- AI 会优先走正式升级命令，而不是手工改一堆目录页
-- 你会得到升级结果、人工复核点和最终 docs 状态
+- AI 会优先使用 `document-templates` skill 重构文档，并用 `docs-stratego` CLI 校验
+- 你会得到校验结果、人工复核点和最终 docs 状态
 
 <a id="20-批量扫描并通知项目负责人刷新-docs"></a>
 
@@ -610,13 +610,13 @@
 shanforge 仓库路径是：[shanforge 路径]
 待扫描根目录是：[工作区根目录]
 
-请先用新的山海工枢对这个工作区做一次 docs 标准批量检查，但先不要直接升级任何业务项目。
+请先生成一份统一通知模板，要求每个项目负责人在各自仓库里使用 `document-templates` skill 重构文档，并执行 `docs-stratego source validate`；先不要直接修改任何业务项目。
 
 执行要求：
-1. 先执行 `factory-docs-standard-upgrade-batch --check`
-2. 汇总每个项目的检查结果
-3. 为每个项目负责人生成一份可直接转发的通知，不要省略命令
-4. 如果项目还没被山海工枢接管，单独标记为“需先纳管”
+1. 不要调用 `factory-docs-*` 旧命令
+2. 为每个项目负责人生成一份可直接转发的通知，不要省略命令
+3. 如果项目还没被山海工枢接管，单独标记为“需先纳管”
+4. 明确他们需要执行的 `docs-stratego` CLI 命令
 5. 不要直接修改这些业务项目，除非我明确要求
 
 每个项目负责人的通知必须包含：
@@ -629,19 +629,16 @@ shanforge 仓库路径是：[shanforge 路径]
 ### 可直接转发给项目负责人的通知模板
 
 ```text
-[项目名] 需要按最新山海工枢 docs 源文档标准刷新一次 docs。
+[项目名] 需要按最新山海工枢 docs 源文档标准重构并校验一次 docs。
 
-请先把 `<shanforge-path>` 替换为你本机上的山海工枢仓库路径。
-
-请在项目根目录执行下面三步：
-1. `python3 <shanforge-path>/scripts/factory-dispatch docs-standard-upgrade --project "[项目路径]" --check`
-2. `python3 <shanforge-path>/scripts/factory-dispatch docs-standard-upgrade --project "[项目路径]"`
-3. `python3 <shanforge-path>/scripts/factory-state-doctor --project "[项目路径]" --owner "[负责人]" --scope docs`
+请在项目根目录完成文档修改后，执行下面两步：
+1. 使用 `document-templates` skill 按 4 大模块重构 `docs/`
+2. `uvx --from docs-stratego docs-stratego source validate --repo-path "[项目路径]"`
 
 预期结果：
-- `docs-standard-upgrade --check` 能告诉你是否需要结构迁移，以及当前 docs 是否已经 `就绪`
-- 正式执行后，根 `docs/index.md` 和相关目录 `index.md` 会按最新规范刷新
-- `state-doctor --scope docs` 不再提示 docs 标准缺口
+- `docs-stratego source validate` 会告诉你当前 docs 是否已经 `就绪`
+- 根 `docs/index.md` 和相关目录 `index.md` 会符合最新规范
+- 若仍有缺口，输出里会明确指出导航、权限或契约页问题
 
 请升级后反馈：
 - 是否需要迁移旧 docs 结构

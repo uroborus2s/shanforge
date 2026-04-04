@@ -1,0 +1,485 @@
+#!/usr/bin/env python3
+
+import argparse
+from datetime import datetime
+import json
+from pathlib import Path
+import re
+import sys
+import uuid
+
+from factory_core import (
+    EXECUTION_LOG_RELATIVE,
+    append_log_line,
+    build_reply_summary,
+    factory_workspace_root,
+    load_json_document,
+    skill_change_governance,
+    write_text,
+)
+
+SCRIPT_DIR = Path(__file__).resolve().parent
+REPO_ROOT = SCRIPT_DIR.parent
+SKILL_CREATOR_SCRIPTS = REPO_ROOT / "skills" / "skill-creator" / "scripts"
+if str(SKILL_CREATOR_SCRIPTS) not in sys.path:
+    sys.path.insert(0, str(SKILL_CREATOR_SCRIPTS))
+
+from quick_validate import validate_skill  # noqa: E402
+
+
+REQUIRED_CHANGE_HEADINGS = ["## 变更动机", "## 预期收益", "## 影响范围", "## 验证计划"]
+PLACEHOLDER_MARKERS = ["待补充"]
+
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description="执行候选 skill 的正式评估，并回写 eval-report.json。")
+    parser.add_argument("target", nargs="?", help="候选 skill 名称/目录，或评估记录 ID。")
+    parser.add_argument("--list", action="store_true", help="列出当前 skill 评估记录。")
+    parser.add_argument("--strict", action="store_true", help="评估未通过时返回退出码 2。")
+    parser.add_argument("--owner", default="技能评估者", help="当前评估责任人。")
+    parser.add_argument("--note", default="", help="评估备注。")
+    parser.add_argument("--json", action="store_true", help="以 JSON 输出。")
+    return parser.parse_args()
+
+
+def skill_slug(value: str) -> str:
+    normalized = re.sub(r"[^a-z0-9]+", "-", str(value or "").strip().lower()).strip("-")
+    return normalized or "candidate-skill"
+
+
+def candidate_root() -> Path:
+    governance = skill_change_governance()
+    root = str(governance.get("candidate_root", "skills-drafts")).strip() or "skills-drafts"
+    return factory_workspace_root() / root
+
+
+def skill_eval_state_path() -> Path:
+    return factory_workspace_root() / ".factory" / "process" / "skill-evals.json"
+
+
+def skill_eval_report_path() -> Path:
+    return factory_workspace_root() / ".factory" / "process" / "skill-evals.md"
+
+
+def skill_eval_summary_path() -> Path:
+    return factory_workspace_root() / ".factory" / "memory" / "skill-evals.summary.md"
+
+
+def load_skill_eval_records() -> list[dict]:
+    payload = load_json_document(skill_eval_state_path())
+    if not isinstance(payload, dict):
+        return []
+    records = payload.get("records", [])
+    if not isinstance(records, list):
+        return []
+    return [dict(item) for item in records if isinstance(item, dict)]
+
+
+def save_skill_eval_records(records: list[dict]) -> None:
+    payload = {
+        "version": 1,
+        "updated_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        "records": records,
+    }
+    write_text(skill_eval_state_path(), json.dumps(payload, ensure_ascii=False, indent=2))
+
+
+def new_skill_eval_id(candidate_name: str) -> str:
+    stamp = datetime.now().strftime("%Y%m%d%H%M%S")
+    short = uuid.uuid4().hex[:6]
+    return f"SE-{stamp}-{skill_slug(candidate_name)[:12]}-{short}"
+
+
+def ordered_records(records: list[dict]) -> list[dict]:
+    return sorted(records, key=lambda item: str(item.get("evaluated_at", item.get("updated_at", ""))), reverse=True)
+
+
+def render_skill_eval_history(records: list[dict]) -> str:
+    ordered = ordered_records(records)
+    recent = ordered[:10]
+    lines = [
+        "# Skill 评估记录",
+        "",
+        f"- 更新时间：{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
+        f"- 全部记录：{len(ordered)}",
+        "",
+        "## 最近评估",
+        "",
+    ]
+    if recent:
+        for item in recent:
+            lines.append(
+                f"- `{item.get('id', '')}` | 候选：`{item.get('candidate_name', '')}` | 状态：`{item.get('status', '')}` | 通过：{item.get('passed_checks', 0)}/{item.get('total_checks', 0)} | 评估者：{item.get('owner', '') or '无'}"
+            )
+    else:
+        lines.append("- 当前还没有 skill 评估记录。")
+    return "\n".join(lines).rstrip() + "\n"
+
+
+def write_skill_eval_views(records: list[dict]) -> None:
+    ordered = ordered_records(records)
+    write_text(skill_eval_report_path(), render_skill_eval_history(records))
+    latest = ordered[0] if ordered else {}
+    write_text(
+        skill_eval_summary_path(),
+        "\n".join(
+            [
+                "# Skill Eval 摘要",
+                "",
+                f"- 时间：{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
+                f"- 总记录：{len(ordered)}",
+                f"- 最近状态：{latest.get('status', '无') if latest else '无'}",
+                f"- 最近候选：{latest.get('candidate_name', '无') if latest else '无'}",
+            ]
+        ),
+    )
+
+
+def resolve_candidate_dir(target: str) -> Path:
+    raw = str(target or "").strip()
+    if not raw:
+        raise RuntimeError("必须提供候选 skill 名称或目录。")
+    direct = Path(raw).expanduser()
+    if direct.exists():
+        return direct.resolve()
+    workspace_relative = (factory_workspace_root() / raw).resolve()
+    if workspace_relative.exists():
+        return workspace_relative
+    return (candidate_root() / skill_slug(raw)).resolve()
+
+
+def load_candidate_record(target: str) -> tuple[Path, dict]:
+    candidate_dir = resolve_candidate_dir(target)
+    proposal_path = candidate_dir / "proposal.json"
+    if not proposal_path.exists():
+        raise RuntimeError(f"候选 skill 提案不存在：{proposal_path}")
+    payload = load_json_document(proposal_path)
+    if not isinstance(payload, dict):
+        raise RuntimeError(f"候选 skill 提案无效：{proposal_path}")
+    return candidate_dir, payload
+
+
+def candidate_eval_artifacts(candidate_dir: Path) -> dict[str, str]:
+    workspace_root = factory_workspace_root().resolve()
+    return {
+        "candidate_skill": str((candidate_dir / "SKILL.md").resolve().relative_to(workspace_root)),
+        "proposal": str((candidate_dir / "proposal.json").resolve().relative_to(workspace_root)),
+        "eval_cases": str((candidate_dir / "evals" / "evals.json").resolve().relative_to(workspace_root)),
+        "eval_report": str((candidate_dir / "evals" / "eval-report.json").resolve().relative_to(workspace_root)),
+        "change_summary": str((candidate_dir / "change-summary.md").resolve().relative_to(workspace_root)),
+    }
+
+
+def check_item(name: str, passed: bool, message: str, *, evidence: str = "") -> dict:
+    return {
+        "name": name,
+        "passed": bool(passed),
+        "message": message,
+        "evidence": evidence,
+    }
+
+
+def evaluate_structure(candidate_dir: Path, proposal: dict) -> dict:
+    valid, message = validate_skill(candidate_dir)
+    return check_item(
+        "skill_structure",
+        valid,
+        "候选 skill 结构校验通过。" if valid else f"候选 skill 结构校验失败：{message}",
+        evidence=message,
+    )
+
+
+def evaluate_evals_schema(candidate_dir: Path, proposal: dict) -> tuple[dict, list[str]]:
+    evals_path = candidate_dir / "evals" / "evals.json"
+    payload = load_json_document(evals_path)
+    if not isinstance(payload, dict):
+        return check_item("evals_schema", False, "evals/evals.json 不是合法对象。"), []
+    skill_name = str(payload.get("skill_name", "")).strip()
+    proposal_name = str(proposal.get("name", "")).strip()
+    evals = payload.get("evals")
+    if skill_name != proposal_name:
+        return check_item(
+            "evals_schema",
+            False,
+            f"evals.skill_name `{skill_name}` 与候选 skill `{proposal_name}` 不一致。",
+        ), []
+    if not isinstance(evals, list) or not evals:
+        return check_item("evals_schema", False, "evals/evals.json 必须至少包含一个评估用例。"), []
+
+    referenced: list[str] = []
+    seen_ids: set[int] = set()
+    for index, item in enumerate(evals, start=1):
+        if not isinstance(item, dict):
+            return check_item("evals_schema", False, f"第 {index} 个评估用例不是对象。"), []
+        raw_id = item.get("id")
+        if not isinstance(raw_id, int):
+            return check_item("evals_schema", False, f"第 {index} 个评估用例缺少整数 id。"), []
+        if raw_id in seen_ids:
+            return check_item("evals_schema", False, f"评估用例 id `{raw_id}` 重复。"), []
+        seen_ids.add(raw_id)
+        prompt = str(item.get("prompt", "")).strip()
+        expected_output = str(item.get("expected_output", "")).strip()
+        expectations = item.get("expectations")
+        files = item.get("files", [])
+        if not prompt:
+            return check_item("evals_schema", False, f"评估用例 `{raw_id}` 缺少 prompt。"), []
+        if not expected_output:
+            return check_item("evals_schema", False, f"评估用例 `{raw_id}` 缺少 expected_output。"), []
+        if not isinstance(expectations, list) or not expectations or any(not str(v).strip() for v in expectations):
+            return check_item("evals_schema", False, f"评估用例 `{raw_id}` 的 expectations 必须是非空字符串列表。"), []
+        if not isinstance(files, list):
+            return check_item("evals_schema", False, f"评估用例 `{raw_id}` 的 files 必须是列表。"), []
+        referenced.extend(str(v).strip() for v in files if str(v).strip())
+
+    return check_item(
+        "evals_schema",
+        True,
+        f"评估用例结构通过，共 {len(evals)} 条。",
+        evidence=f"skill_name={skill_name}；cases={len(evals)}",
+    ), referenced
+
+
+def evaluate_referenced_files(candidate_dir: Path, referenced_files: list[str]) -> dict:
+    missing = []
+    for item in referenced_files:
+        path = (candidate_dir / item).resolve()
+        if not path.exists():
+            missing.append(item)
+    if missing:
+        return check_item(
+            "eval_input_files",
+            False,
+            "评估用例引用的输入文件缺失：" + "，".join(missing),
+        )
+    return check_item(
+        "eval_input_files",
+        True,
+        f"评估用例引用文件检查通过，共 {len(referenced_files)} 个。",
+    )
+
+
+def evaluate_change_summary(candidate_dir: Path) -> dict:
+    path = candidate_dir / "change-summary.md"
+    if not path.exists():
+        return check_item("change_summary", False, "change-summary.md 不存在。")
+    content = path.read_text(encoding="utf-8")
+    missing_headings = [item for item in REQUIRED_CHANGE_HEADINGS if item not in content]
+    placeholders = [item for item in PLACEHOLDER_MARKERS if item in content]
+    if missing_headings:
+        return check_item(
+            "change_summary",
+            False,
+            "change-summary.md 缺少必要章节：" + "，".join(missing_headings),
+        )
+    if placeholders:
+        return check_item(
+            "change_summary",
+            False,
+            "change-summary.md 仍包含占位内容，请先补全再评估通过。",
+        )
+    return check_item("change_summary", True, "change-summary.md 已补全必要章节且无占位文本。")
+
+
+def build_eval_report(candidate_dir: Path, proposal: dict, *, owner: str, note: str) -> dict:
+    checks = [evaluate_structure(candidate_dir, proposal)]
+    schema_check, referenced_files = evaluate_evals_schema(candidate_dir, proposal)
+    checks.append(schema_check)
+    checks.append(evaluate_referenced_files(candidate_dir, referenced_files))
+    checks.append(evaluate_change_summary(candidate_dir))
+
+    passed = sum(1 for item in checks if item["passed"])
+    total = len(checks)
+    failed = total - passed
+    status = "passed" if failed == 0 else "failed"
+    candidate_name = str(proposal.get("name", "")).strip()
+    report = {
+        "version": 1,
+        "id": new_skill_eval_id(candidate_name),
+        "skill_name": candidate_name,
+        "status": status,
+        "summary": (
+            f"候选 skill `{candidate_name}` 评估通过，共 {passed}/{total} 项。"
+            if status == "passed"
+            else f"候选 skill `{candidate_name}` 评估未通过，共失败 {failed} 项。"
+        ),
+        "evaluated_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        "owner": owner,
+        "note": note.strip(),
+        "checks": checks,
+        "total_checks": total,
+        "passed_checks": passed,
+        "failed_checks": failed,
+        "candidate_dir": str(candidate_dir.resolve().relative_to(factory_workspace_root().resolve())),
+        "artifacts": [
+            str((candidate_dir / "evals" / "eval-report.json").resolve().relative_to(factory_workspace_root().resolve())),
+            ".factory/process/skill-evals.json",
+            ".factory/process/skill-evals.md",
+            ".factory/memory/skill-evals.summary.md",
+        ],
+        "next_actions": (
+            ["可以进入 skill 审批与正式晋升链路。"]
+            if status == "passed"
+            else [
+                "先修复失败检查项，再重新运行 factory-skill-eval。",
+                "不要手工把 eval-report.json 改成 passed。",
+            ]
+        ),
+    }
+    report["reply_summary"] = build_reply_summary("skill-eval", report)
+    return report
+
+
+def write_candidate_eval(candidate_dir: Path, proposal: dict, report: dict) -> None:
+    write_text(candidate_dir / "evals" / "eval-report.json", json.dumps(report, ensure_ascii=False, indent=2))
+    proposal["eval_status"] = report["status"]
+    proposal["eval_record"] = {
+        "id": report["id"],
+        "status": report["status"],
+        "evaluated_at": report["evaluated_at"],
+        "owner": report["owner"],
+    }
+    write_text(candidate_dir / "proposal.json", json.dumps(proposal, ensure_ascii=False, indent=2))
+
+
+def evaluate_candidate(target: str, *, owner: str, note: str) -> dict:
+    candidate_dir, proposal = load_candidate_record(target)
+    report = build_eval_report(candidate_dir, proposal, owner=owner, note=note)
+    records = load_skill_eval_records()
+    records.append({
+        "id": report["id"],
+        "candidate_name": report["skill_name"],
+        "candidate_dir": report["candidate_dir"],
+        "status": report["status"],
+        "passed_checks": report["passed_checks"],
+        "failed_checks": report["failed_checks"],
+        "total_checks": report["total_checks"],
+        "owner": report["owner"],
+        "evaluated_at": report["evaluated_at"],
+    })
+    save_skill_eval_records(records)
+    write_skill_eval_views(records)
+    write_candidate_eval(candidate_dir, proposal, report)
+    append_log_line(
+        factory_workspace_root() / EXECUTION_LOG_RELATIVE,
+        f"- {datetime.now().strftime('%Y-%m-%d')}: 执行 skill 评估 `{report['id']}`，候选 `{report['skill_name']}`，结果 `{report['status']}`。",
+    )
+    return report
+
+
+def list_payload() -> dict:
+    records = ordered_records(load_skill_eval_records())
+    payload = {
+        "status": "success",
+        "summary": f"当前共有 {len(records)} 条 skill 评估记录。",
+        "recent": records[:10],
+        "total": len(records),
+    }
+    payload["reply_summary"] = build_reply_summary("skill-eval", payload)
+    return payload
+
+
+def inspect_target(target: str) -> dict:
+    if str(target).startswith("SE-"):
+        for item in load_skill_eval_records():
+            if item.get("id") == target:
+                payload = {
+                    "status": "success",
+                    "summary": f"已读取 skill 评估记录 `{target}`。",
+                    "record": item,
+                    "evaluation": item,
+                }
+                payload["reply_summary"] = build_reply_summary("skill-eval", payload)
+                return payload
+        raise RuntimeError(f"未找到 skill 评估记录：{target}")
+
+    candidate_dir, proposal = load_candidate_record(target)
+    payload = load_json_document(candidate_dir / "evals" / "eval-report.json")
+    if not isinstance(payload, dict):
+        raise RuntimeError(f"候选 skill 评估报告无效：{candidate_dir / 'evals' / 'eval-report.json'}")
+    payload = dict(payload)
+    payload.setdefault("reply_summary", build_reply_summary("skill-eval", payload))
+    return payload
+
+
+def render_markdown(payload: dict) -> str:
+    status = payload.get("status", "unknown")
+    if "recent" in payload:
+        lines = [
+            "# Skill 评估记录",
+            "",
+            f"- 状态：`{status}`",
+            f"- 摘要：{payload.get('summary', '无')}",
+            f"- 总记录：`{payload.get('total', 0)}`",
+            "",
+            "## 最近记录",
+            "",
+        ]
+        recent = payload.get("recent", [])
+        if recent:
+            for item in recent:
+                lines.append(
+                    f"- `{item.get('id', '')}` | 候选：`{item.get('candidate_name', '')}` | 状态：`{item.get('status', '')}` | 通过：{item.get('passed_checks', 0)}/{item.get('total_checks', 0)}"
+                )
+        else:
+            lines.append("- 当前还没有 skill 评估记录。")
+        items = (payload.get("reply_summary") or {}).get("items") or []
+        if items:
+            lines.extend(["", "## 对话摘要", ""])
+            for item in items:
+                lines.append(f"- {item.get('label', item.get('path', ''))}：{item.get('value')}")
+        return "\n".join(lines).rstrip() + "\n"
+
+    lines = [
+        "# Skill 评估结果",
+        "",
+        f"- 状态：`{status}`",
+        f"- 摘要：{payload.get('summary', '无')}",
+        f"- 评估记录：`{payload.get('id', '')}`",
+        f"- 候选：`{payload.get('skill_name', payload.get('candidate_name', ''))}`",
+        f"- 目录：`{payload.get('candidate_dir', '')}`",
+        f"- 评估者：`{payload.get('owner', '')}`",
+        f"- 通过：`{payload.get('passed_checks', 0)}/{payload.get('total_checks', 0)}`",
+        "",
+        "## 检查项",
+        "",
+    ]
+    for item in payload.get("checks", []):
+        lines.append(f"- `{item.get('name', '')}` | {'通过' if item.get('passed') else '失败'} | {item.get('message', '')}")
+    next_actions = payload.get("next_actions") or []
+    if next_actions:
+        lines.extend(["", "## 下一步", ""])
+        lines.extend(f"- {item}" for item in next_actions)
+    items = (payload.get("reply_summary") or {}).get("items") or []
+    if items:
+        lines.extend(["", "## 对话摘要", ""])
+        for item in items:
+            lines.append(f"- {item.get('label', item.get('path', ''))}：{item.get('value')}")
+    return "\n".join(lines).rstrip() + "\n"
+
+
+def main() -> int:
+    args = parse_args()
+    try:
+        if args.list:
+            payload = list_payload()
+        elif not args.target:
+            raise RuntimeError("请提供候选 skill 名称/目录，或使用 --list。")
+        elif str(args.target).startswith("SE-"):
+            payload = inspect_target(args.target)
+        else:
+            payload = evaluate_candidate(args.target, owner=args.owner.strip(), note=args.note)
+    except Exception as exc:
+        print(f"skill 评估失败：{exc}", file=sys.stderr)
+        return 1
+
+    if args.json:
+        print(json.dumps(payload, ensure_ascii=False, indent=2))
+    else:
+        print(render_markdown(payload))
+    if args.strict and payload.get("status") == "failed":
+        return 2
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

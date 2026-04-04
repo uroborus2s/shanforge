@@ -42,5 +42,5 @@
 1. 修改脚本或文档
 2. 更新受影响的正式文档
 3. 执行 `python3 -m unittest discover -s tests -p 'test_*.py'`
-4. 执行 `python3 scripts/factory-docs-index-refresh --project . --name shanforge --check`
-5. 如涉及历史项目迁移，再到目标项目执行迁移和校验
+4. 执行 `uvx --from docs-stratego docs-stratego source validate --repo-path .`
+5. 如涉及历史项目文档重构，再在目标项目中使用 `document-templates` skill 修正文档并重新校验

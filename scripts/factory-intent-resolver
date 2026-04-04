@@ -5,6 +5,7 @@ from datetime import datetime
 import json
 import sys
 from pathlib import Path
+from typing import Optional, Tuple
 
 from factory_core import (
     EXECUTION_LOG_RELATIVE,
@@ -16,6 +17,7 @@ from factory_core import (
     action_reply_contract,
     load_action_registry,
     load_intent_approval_records,
+    load_json_document,
     load_project_config,
     new_intent_approval_id,
     normalize_key,
@@ -24,6 +26,7 @@ from factory_core import (
     role_assignment_conflicts,
     run_script,
     save_intent_approval_records,
+    skill_change_governance,
     write_intent_approval_views,
 )
 
@@ -40,6 +43,22 @@ MULTI_AGENT_KEYWORDS = ["多代理", "多 agent", "协作看板", "分工", "boa
 WORKFLOW_KEYWORDS = ["工作流", "workflow", "流程执行", "一键流程"]
 PROFILE_KEYWORDS = ["命令画像", "画像", "profile", "profiles", "推荐命令序列"]
 SESSION_OUTPUT_KEYWORDS = ["会话入口", "生成会话", "session", "接手入口"]
+SKILL_KEYWORDS = ["skill", "技能", "候选 skill", "candidate skill", "skills-drafts", "skill 候选", "skill 草案"]
+SKILL_OPERATION_SELECTORS = {
+    "eval": ["评估 skill", "验证 skill", "运行 skill eval", "检查候选 skill", "skill 评估", "skill eval"],
+    "approval_request": ["申请 skill 审批", "提交 skill 审批", "让 skill 进入审批", "申请批准 skill", "skill 审批"],
+    "promote": ["发布 skill", "晋升 skill", "正式发布 skill", "上线 skill", "publish skill", "promote skill"],
+    "rollback": ["回退 skill", "恢复旧版 skill", "恢复 skill", "撤销 skill 变更", "还原 skill", "rollback skill"],
+    "delete_first_publish": [
+        "撤回刚发布的新 skill",
+        "删除刚发布的新 skill",
+        "回撤刚发布的新 skill",
+        "撤回新 skill",
+        "删除新 skill",
+        "删除回退 skill",
+    ],
+    "next": ["skill 下一步", "继续推进 skill", "继续这个 skill", "这个候选 skill 下一步", "继续这个候选 skill"],
+}
 
 PROFILE_SELECTORS = {
     "requirements-kickoff": ["开始需求", "进入需求阶段", "初始化需求", "需求 kickoff", "requirements kickoff"],
@@ -68,8 +87,12 @@ ROLE_TITLES = {
 ACTION_OWNERSHIP_ROLES = {
     "init": "coordinator",
     "historical-project-onboarding": "coordinator",
-    "docs-standard-upgrade-batch": "coordinator",
     "workflow-runner": "release-manager",
+    "skill-eval": "coordinator",
+    "skill-approval": "coordinator",
+    "skill-delete-approval": "coordinator",
+    "skill-promote": "release-manager",
+    "skill-rollback": "release-manager",
 }
 PROFILE_OWNERSHIP_ROLES = {
     "requirements-kickoff": "requirements-analyst",
@@ -89,8 +112,12 @@ WORKFLOW_OWNERSHIP_ROLES = {
 ACTION_OWNERSHIP_TARGETS = {
     "init": ["AGENTS.md", "GEMINI.md", ".factory", "docs"],
     "historical-project-onboarding": ["AGENTS.md", "GEMINI.md", ".factory", "docs"],
-    "docs-standard-upgrade-batch": ["."],
     "workflow-runner": [".factory", "docs"],
+    "skill-eval": [".factory", "skills-drafts"],
+    "skill-approval": [".factory", "skills-drafts"],
+    "skill-delete-approval": [".factory", "skills-drafts"],
+    "skill-promote": [".factory", "skills-drafts", "skills"],
+    "skill-rollback": [".factory", "skills-drafts", "skills"],
 }
 PROFILE_OWNERSHIP_TARGETS = {
     "requirements-kickoff": [".factory", "docs/04-project-development/03-requirements"],
@@ -106,6 +133,15 @@ WORKFLOW_OWNERSHIP_TARGETS = {
     "daily_close": [".factory", "docs"],
     "release_ready": [".factory", "docs"],
     "handover_ready": [".factory", "docs"],
+}
+
+SKILL_OPERATION_ACTIONS = {
+    "eval": "skill-eval",
+    "approval_request": "skill-approval",
+    "promote": "skill-promote",
+    "rollback": "skill-rollback",
+    "delete_first_publish": "skill-delete-approval",
+    "next": "skill-eval",
 }
 
 
@@ -166,6 +202,221 @@ def inspect_project(project_root: Path) -> dict:
     }
 
 
+def skill_candidate_root(project_root: Path) -> Optional[Path]:
+    workspace_root = factory_workspace_root().resolve()
+    if project_root.resolve() != workspace_root:
+        return None
+    governance = skill_change_governance()
+    root_name = str(governance.get("candidate_root", "skills-drafts")).strip() or "skills-drafts"
+    return project_root / root_name
+
+
+def load_candidate_json(path: Path) -> dict:
+    payload = load_json_document(path)
+    return dict(payload) if isinstance(payload, dict) else {}
+
+
+def inspect_skill_candidates(project_root: Path) -> list[dict]:
+    root = skill_candidate_root(project_root)
+    if root is None or not root.exists():
+        return []
+
+    candidates: list[dict] = []
+    for candidate_dir in sorted(root.iterdir()):
+        if not candidate_dir.is_dir():
+            continue
+        proposal = load_candidate_json(candidate_dir / "proposal.json")
+        if not proposal:
+            continue
+        promotion = load_candidate_json(candidate_dir / "promotion.json")
+        delete_approval = load_candidate_json(candidate_dir / "delete-approval.json")
+        name = str(proposal.get("name", "")).strip() or candidate_dir.name
+        target_skill = str(proposal.get("target_skill", "")).strip()
+        official_skill_path = (
+            str(promotion.get("official_skill_path", "")).strip()
+            or str(proposal.get("official_skill_path", "")).strip()
+        )
+        backup_path = str(promotion.get("backup_path", "")).strip()
+        promotion_status = str(proposal.get("promotion_status", "")).strip()
+        rollback_status = str(proposal.get("rollback_status", "")).strip()
+        delete_decision = str(delete_approval.get("decision", "")).strip()
+        official_exists = bool(official_skill_path and (project_root / official_skill_path).exists())
+        candidates.append(
+            {
+                "name": name,
+                "candidate_dir": str(candidate_dir.resolve()),
+                "candidate_ref": str(candidate_dir.resolve().relative_to(project_root.resolve())),
+                "target_skill": target_skill,
+                "official_skill_path": official_skill_path,
+                "eval_status": str(proposal.get("eval_status", "")).strip(),
+                "approval_status": str(proposal.get("approval_status", "")).strip(),
+                "delete_approval_status": str(proposal.get("delete_approval_status", "")).strip(),
+                "delete_approval_decision": delete_decision,
+                "promotion_status": promotion_status,
+                "rollback_status": rollback_status,
+                "has_backup": bool(backup_path),
+                "backup_path": backup_path,
+                "first_publish": promotion_status == "promoted" and not bool(backup_path),
+                "official_exists": official_exists,
+            }
+        )
+    return candidates
+
+
+def candidate_matches_intent(candidate: dict, intent_key: str) -> bool:
+    names = {
+        normalize_key(candidate.get("name", "")),
+        normalize_key(candidate.get("target_skill", "")),
+    }
+    official = str(candidate.get("official_skill_path", "")).strip()
+    if official:
+        names.add(normalize_key(Path(official).parent.name))
+    names.discard("")
+    return any(name and name in intent_key for name in names)
+
+
+def detect_skill_operation(intent_text: str, intent_key: str) -> str:
+    for operation, keywords in SKILL_OPERATION_SELECTORS.items():
+        if contains_keyword(intent_text, intent_key, keywords):
+            return operation
+    if contains_keyword(intent_text, intent_key, SKILL_KEYWORDS):
+        return "next"
+    return ""
+
+
+def skill_action_for_operation(operation: str, candidate: Optional[dict] = None) -> str:
+    if operation == "delete_first_publish":
+        if candidate and candidate.get("delete_approval_decision") == "approve":
+            return "skill-rollback"
+        return "skill-delete-approval"
+    if operation == "rollback":
+        if candidate and not candidate.get("has_backup") and candidate.get("first_publish", False):
+            if candidate.get("delete_approval_decision") == "approve":
+                return "skill-rollback"
+            return "skill-delete-approval"
+        return "skill-rollback"
+    return SKILL_OPERATION_ACTIONS.get(operation, "skill-eval")
+
+
+def candidate_relevant_for_operation(candidate: dict, operation: str) -> bool:
+    promotion_status = candidate.get("promotion_status", "")
+    rollback_status = candidate.get("rollback_status", "")
+    if rollback_status == "rolled_back":
+        return False
+    if operation == "eval":
+        return promotion_status != "promoted"
+    if operation == "approval_request":
+        return promotion_status != "promoted" and candidate.get("eval_status") == "passed"
+    if operation == "promote":
+        return (
+            promotion_status != "promoted"
+            and candidate.get("eval_status") == "passed"
+            and candidate.get("approval_status") == "approved"
+        )
+    if operation == "rollback":
+        return promotion_status == "promoted"
+    if operation == "delete_first_publish":
+        return promotion_status == "promoted" and candidate.get("first_publish", False)
+    if operation == "next":
+        return True
+    return False
+
+
+def infer_next_skill_operation(candidate: dict) -> str:
+    if candidate.get("rollback_status") == "rolled_back":
+        return ""
+    if candidate.get("promotion_status") == "promoted":
+        if candidate.get("has_backup") or candidate.get("delete_approval_decision") == "approve":
+            return "rollback"
+        return "delete_first_publish"
+    if candidate.get("approval_status") == "approved" and candidate.get("eval_status") == "passed":
+        return "promote"
+    if candidate.get("eval_status") == "passed":
+        return "approval_request"
+    return "eval"
+
+
+def select_skill_candidate(candidates: list[dict], intent_key: str, operation: str) -> Tuple[Optional[dict], list[str]]:
+    relevant = [item for item in candidates if candidate_relevant_for_operation(item, operation)]
+    if operation == "next":
+        relevant = [item for item in candidates if infer_next_skill_operation(item)]
+    if not relevant:
+        return None, [f"当前没有满足 `{operation}` 条件的候选 skill。"]
+
+    explicit = [item for item in relevant if candidate_matches_intent(item, intent_key)]
+    if len(explicit) == 1:
+        return explicit[0], []
+    if len(explicit) > 1:
+        names = "，".join(item["name"] for item in explicit)
+        return None, [f"意图同时命中了多个候选 skill：{names}；请显式说明 skill 名称。"]
+    if len(relevant) == 1:
+        return relevant[0], []
+    names = "，".join(item["name"] for item in relevant[:5])
+    return None, [f"当前存在多个候选 skill：{names}；请显式说明 skill 名称。"]
+
+
+def resolve_skill_lifecycle(intent_text: str, intent_key: str, project_root: Path) -> Optional[dict]:
+    operation = detect_skill_operation(intent_text, intent_key)
+    if not operation:
+        return None
+
+    candidates = inspect_skill_candidates(project_root)
+    if not candidates:
+        return {
+            "operation": operation,
+            "action": skill_action_for_operation(operation),
+            "reasons": [f"检测到 skill 生命周期语义 `{operation}`。"],
+            "blocked": ["当前工作区没有可用的 `skills-drafts/` 候选 skill。"],
+        }
+
+    candidate, blocked = select_skill_candidate(candidates, intent_key, operation)
+    if candidate is None:
+        return {
+            "operation": operation,
+            "action": skill_action_for_operation(operation),
+            "reasons": [f"检测到 skill 生命周期语义 `{operation}`，但当前无法唯一定位候选 skill。"],
+            "blocked": blocked,
+        }
+
+    resolved_operation = operation if operation != "next" else infer_next_skill_operation(candidate)
+    if not resolved_operation:
+        return {
+            "operation": operation,
+            "candidate": candidate,
+            "blocked": [f"候选 skill `{candidate['name']}` 已没有可继续推进的生命周期动作。"],
+        }
+
+    reasons = [f"检测到 skill 生命周期语义 `{resolved_operation}`。", f"匹配候选 skill `{candidate['name']}`。"]
+    action = skill_action_for_operation(resolved_operation, candidate)
+    if resolved_operation == "approval_request":
+        reasons.append("候选 skill 已评估通过，下一步应申请审批票据。")
+    elif resolved_operation == "promote":
+        reasons.append("候选 skill 已评估通过且已批准，下一步应正式晋升。")
+    elif resolved_operation == "rollback":
+        if candidate.get("has_backup"):
+            reasons.append("候选 skill 存在旧版本备份，可直接恢复旧版。")
+        elif candidate.get("delete_approval_decision") == "approve":
+            reasons.append("首次发布的新 skill 已获删除回退审批，可直接执行删除回退。")
+        else:
+            reasons.append("首次发布的新 skill 没有旧版本备份，回退前必须先申请删除回退审批。")
+    elif resolved_operation == "delete_first_publish":
+        if candidate.get("delete_approval_decision") == "approve":
+            reasons.append("首次发布的新 skill 已获删除回退审批，下一步应执行删除回退。")
+        else:
+            reasons.append("首次发布的新 skill 没有旧版本备份，必须先申请删除回退审批。")
+
+    if not action:
+        return {"operation": resolved_operation, "candidate": candidate, "blocked": ["未识别出可执行的 skill 生命周期动作。"]}
+
+    return {
+        "operation": resolved_operation,
+        "candidate": candidate,
+        "action": action,
+        "blocked": [],
+        "reasons": reasons,
+    }
+
+
 def contains_keyword(intent_text: str, intent_key: str, keywords: list[str]) -> bool:
     lowered = intent_text.lower()
     return any(keyword.lower() in lowered or normalize_key(keyword) in intent_key for keyword in keywords)
@@ -180,20 +431,37 @@ def missing_frontend_capabilities(action_spec: dict, frontend_profile: dict) -> 
     return missing
 
 
-def detect_named_selector(intent_text: str, intent_key: str, selectors: dict[str, list[str]]) -> tuple[str, str] | None:
+def detect_named_selector(intent_text: str, intent_key: str, selectors: dict[str, list[str]]) -> Optional[Tuple[str, str]]:
     for name, keywords in selectors.items():
         if contains_keyword(intent_text, intent_key, keywords):
             return name, f"检测到 `{name}` 子目标语义。"
     return None
 
 
-def evaluate_action(action_spec: dict, intent_text: str, intent_key: str, facts: dict, frontend_profile: dict) -> dict:
+def evaluate_action(
+    action_spec: dict,
+    intent_text: str,
+    intent_key: str,
+    facts: dict,
+    frontend_profile: dict,
+    lifecycle: Optional[dict] = None,
+) -> dict:
     action_id = action_spec["id"]
     score = 0
     reasons: list[str] = []
     blocked: list[str] = []
     selected_profile = ""
     selected_workflow = ""
+    selected_skill_candidate = ""
+    selected_skill_operation = ""
+
+    if lifecycle and lifecycle.get("action") == action_id:
+        candidate = lifecycle.get("candidate") or {}
+        score += 18
+        reasons.extend(lifecycle.get("reasons") or [])
+        blocked.extend(lifecycle.get("blocked") or [])
+        selected_skill_candidate = str(candidate.get("candidate_ref", "")).strip()
+        selected_skill_operation = str(lifecycle.get("operation", "")).strip()
 
     if action_id == "init":
         if contains_keyword(intent_text, intent_key, NEW_PROJECT_KEYWORDS):
@@ -215,33 +483,17 @@ def evaluate_action(action_spec: dict, intent_text: str, intent_key: str, facts:
             blocked.append("项目已被山海工枢接管。")
         if facts["project_kind"] == "empty":
             blocked.append("空目录应优先初始化，而不是历史项目纳管。")
-    elif action_id == "docs-standard-upgrade":
-        docs_hit = contains_keyword(intent_text, intent_key, DOCS_KEYWORDS)
-        if docs_hit:
-            score += 10
-            reasons.append("检测到 docs 刷新或规范升级语义。")
-        if facts["docs_exists"]:
-            if docs_hit:
-                score += 4
-                reasons.append("目标项目已存在 docs/。")
-        else:
-            blocked.append("目标项目不存在 docs/。")
-        if contains_keyword(intent_text, intent_key, BATCH_KEYWORDS):
-            score -= 2
-    elif action_id == "docs-standard-upgrade-batch":
-        if contains_keyword(intent_text, intent_key, DOCS_KEYWORDS):
-            score += 4
-        if contains_keyword(intent_text, intent_key, BATCH_KEYWORDS):
-            score += 12
-            reasons.append("检测到批量刷新多个项目 docs 的语义。")
     elif action_id == "state-doctor":
+        docs_hit = contains_keyword(intent_text, intent_key, DOCS_KEYWORDS)
         if contains_keyword(intent_text, intent_key, DIAGNOSTIC_KEYWORDS):
             score += 10
             reasons.append("检测到诊断、检查或下一步建议语义。")
+        if docs_hit:
+            score += 8
+            reasons.append("检测到 docs 维护语义；当前 docs 流程改由 `document-templates` skill 配合 `docs-stratego` CLI 完成，先做状态诊断与缺口确认。")
         if not any(
             contains_keyword(intent_text, intent_key, keywords)
             for keywords in (
-                DOCS_KEYWORDS,
                 ONBOARDING_KEYWORDS,
                 NEW_PROJECT_KEYWORDS,
                 SESSION_KEYWORDS,
@@ -335,6 +587,8 @@ def evaluate_action(action_spec: dict, intent_text: str, intent_key: str, facts:
         "policy": policy,
         "selected_profile": selected_profile,
         "selected_workflow": selected_workflow,
+        "selected_skill_candidate": selected_skill_candidate,
+        "selected_skill_operation": selected_skill_operation,
     }
 
 
@@ -346,12 +600,9 @@ def fallback_action(facts: dict) -> tuple[str, str]:
     return "state-doctor", "项目已纳管或已有明确骨架，默认先做状态诊断。"
 
 
-def command_hint(action_id: str, project_root: Path, intent_text: str, candidate: dict | None = None) -> str:
+def command_hint(action_id: str, project_root: Path, intent_text: str, candidate: Optional[dict] = None) -> str:
     dispatch = factory_workspace_root() / "scripts" / "factory-dispatch"
-    if action_id == "docs-standard-upgrade":
-        return f"python3 {dispatch} {action_id} --project \"{project_root}\""
-    if action_id == "docs-standard-upgrade-batch":
-        return f"python3 {dispatch} {action_id} --root \"{project_root}\" --check"
+    selected_skill_candidate = (candidate or {}).get("selected_skill_candidate", "").strip()
     if action_id == "historical-project-onboarding":
         goal = intent_text.strip() or "纳入软件工厂治理"
         return f"python3 {dispatch} {action_id} --project \"{project_root}\" --owner \"<owner>\" --goal \"{goal}\""
@@ -373,6 +624,26 @@ def command_hint(action_id: str, project_root: Path, intent_text: str, candidate
             f"python3 {dispatch} {action_id} --project \"{project_root}\" --workflow {candidate['selected_workflow']} "
             f"--owner \"<owner>\" --focus \"{intent_text.strip()}\""
         )
+    if action_id == "skill-eval" and selected_skill_candidate:
+        return f"python3 {dispatch} {action_id} \"{selected_skill_candidate}\" --owner \"<owner>\""
+    if action_id == "skill-eval":
+        return f"python3 {dispatch} {action_id} <candidate> --owner \"<owner>\""
+    if action_id == "skill-approval" and selected_skill_candidate:
+        return f"python3 {dispatch} {action_id} \"{selected_skill_candidate}\" --request --owner \"<owner>\""
+    if action_id == "skill-approval":
+        return f"python3 {dispatch} {action_id} <candidate> --request --owner \"<owner>\""
+    if action_id == "skill-delete-approval" and selected_skill_candidate:
+        return f"python3 {dispatch} {action_id} \"{selected_skill_candidate}\" --request --owner \"<owner>\""
+    if action_id == "skill-delete-approval":
+        return f"python3 {dispatch} {action_id} <candidate> --request --owner \"<owner>\""
+    if action_id == "skill-promote" and selected_skill_candidate:
+        return f"python3 {dispatch} {action_id} \"{selected_skill_candidate}\" --owner \"<owner>\""
+    if action_id == "skill-promote":
+        return f"python3 {dispatch} {action_id} <candidate> --owner \"<owner>\""
+    if action_id == "skill-rollback" and selected_skill_candidate:
+        return f"python3 {dispatch} {action_id} \"{selected_skill_candidate}\" --owner \"<owner>\""
+    if action_id == "skill-rollback":
+        return f"python3 {dispatch} {action_id} <candidate> --owner \"<owner>\""
     return f"python3 {dispatch} {action_id} --project \"{project_root}\""
 
 
@@ -482,18 +753,6 @@ def build_execution_plan(result: dict, *, owner: str, note: str, focus: str, str
             arguments=["--project", str(project_root), "--owner", owner, "--focus", focus_text],
             label="按意图生成会话入口",
         )
-    elif action_id == "docs-standard-upgrade":
-        plan.update(
-            script_name="factory-docs-standard-upgrade",
-            arguments=["--project", str(project_root), "--name", project_name, "--owner", owner],
-            label="按意图升级 docs 标准",
-        )
-    elif action_id == "docs-standard-upgrade-batch":
-        plan.update(
-            script_name="factory-docs-standard-upgrade-batch",
-            arguments=["--root", str(project_root), "--max-depth", "2"],
-            label="按意图批量升级 docs 标准",
-        )
     elif action_id == "project-rules-refresh":
         plan.update(
             script_name="factory-project-rules-refresh",
@@ -536,6 +795,54 @@ def build_execution_plan(result: dict, *, owner: str, note: str, focus: str, str
             script_name="factory-workflow-runner",
             arguments=arguments,
             label=f"按意图执行工作流 {selected_workflow}",
+        )
+    elif action_id == "skill-eval":
+        selected_candidate = candidate.get("selected_skill_candidate", "").strip()
+        if not selected_candidate:
+            raise RuntimeError("skill-eval 缺少候选 skill 目标，无法自动执行。")
+        arguments = [selected_candidate, "--owner", owner, "--note", note_text]
+        if strict:
+            arguments.append("--strict")
+        plan.update(
+            script_name="factory-skill-eval",
+            arguments=arguments,
+            label=f"按意图评估候选 skill {selected_candidate}",
+        )
+    elif action_id == "skill-approval":
+        selected_candidate = candidate.get("selected_skill_candidate", "").strip()
+        if not selected_candidate:
+            raise RuntimeError("skill-approval 缺少候选 skill 目标，无法自动执行。")
+        plan.update(
+            script_name="factory-skill-approval",
+            arguments=[selected_candidate, "--request", "--owner", owner, "--note", note_text],
+            label=f"按意图申请候选 skill 审批 {selected_candidate}",
+        )
+    elif action_id == "skill-delete-approval":
+        selected_candidate = candidate.get("selected_skill_candidate", "").strip()
+        if not selected_candidate:
+            raise RuntimeError("skill-delete-approval 缺少候选 skill 目标，无法自动执行。")
+        plan.update(
+            script_name="factory-skill-delete-approval",
+            arguments=[selected_candidate, "--request", "--owner", owner, "--note", note_text],
+            label=f"按意图申请首次发布 skill 删除回退审批 {selected_candidate}",
+        )
+    elif action_id == "skill-promote":
+        selected_candidate = candidate.get("selected_skill_candidate", "").strip()
+        if not selected_candidate:
+            raise RuntimeError("skill-promote 缺少候选 skill 目标，无法自动执行。")
+        plan.update(
+            script_name="factory-skill-promote",
+            arguments=[selected_candidate, "--owner", owner, "--note", note_text],
+            label=f"按意图晋升候选 skill {selected_candidate}",
+        )
+    elif action_id == "skill-rollback":
+        selected_candidate = candidate.get("selected_skill_candidate", "").strip()
+        if not selected_candidate:
+            raise RuntimeError("skill-rollback 缺少候选 skill 目标，无法自动执行。")
+        plan.update(
+            script_name="factory-skill-rollback",
+            arguments=[selected_candidate, "--owner", owner, "--note", note_text],
+            label=f"按意图回退候选 skill {selected_candidate}",
         )
     else:
         raise RuntimeError(f"当前动作 `{action_id}` 还没有接入安全自动执行。")
@@ -729,9 +1036,10 @@ def resolve_intent(intent_text: str, project_root: Path, tool: str = "generic", 
     frontend_profile = resolve_frontend_profile(tool.strip(), default_id="generic")
     registry = load_action_registry()
     intent_key = normalize_key(intent_text)
+    skill_lifecycle = resolve_skill_lifecycle(intent_text, intent_key, project_root)
 
     candidates = [
-        evaluate_action(spec, intent_text, intent_key, facts, frontend_profile)
+        evaluate_action(spec, intent_text, intent_key, facts, frontend_profile, lifecycle=skill_lifecycle)
         for action_id, spec in registry.items()
         if action_id != "intent-resolver"
     ]
@@ -747,13 +1055,13 @@ def resolve_intent(intent_text: str, project_root: Path, tool: str = "generic", 
     ordered = sorted(
         candidates,
         key=lambda item: (
-            1 if item["blocked"] else 0,
             -item["score"],
+            1 if item["blocked"] else 0,
             item["action"],
         ),
     )
 
-    primary = next((item for item in ordered if not item["blocked"]), ordered[0] if ordered else None)
+    primary = ordered[0] if ordered else None
     if primary is not None:
         primary["command_hint"] = command_hint(primary["action"], project_root, intent_text, primary)
     for item in ordered[: max(1, top)]:
@@ -792,6 +1100,11 @@ def render_markdown(result: dict) -> str:
             subtarget = f" | profile：`{item['selected_profile']}`"
         if item.get("selected_workflow"):
             subtarget = f" | workflow：`{item['selected_workflow']}`"
+        if item.get("selected_skill_candidate"):
+            subtarget = (
+                f"{subtarget} | skill：`{item['selected_skill_candidate']}`"
+                f" | operation：`{item.get('selected_skill_operation', '') or 'unknown'}`"
+            )
         candidate_lines.append(
             f"- `{item['action']}` [{policy.get('risk_level', 'L3')} | {policy.get('approval', 'explicit_confirm')}]"
             f"：{item['description']} | 评分：{item['score']} | 理由：{reasons}{subtarget}{blocked}"
@@ -820,6 +1133,8 @@ def render_markdown(result: dict) -> str:
         f"- 审批：`{primary['policy'].get('approval', 'explicit_confirm')}`",
         *([f"- 子目标：`{primary['selected_profile']}`"] if primary.get("selected_profile") else []),
         *([f"- 子目标：`{primary['selected_workflow']}`"] if primary.get("selected_workflow") else []),
+        *([f"- 候选 skill：`{primary['selected_skill_candidate']}`"] if primary.get("selected_skill_candidate") else []),
+        *([f"- 生命周期动作：`{primary['selected_skill_operation']}`"] if primary.get("selected_skill_operation") else []),
         f"- 理由：{'；'.join(primary['reasons']) or '未提供额外理由。'}",
         f"- 建议命令：`{primary['command_hint']}`",
         "",

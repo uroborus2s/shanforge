@@ -3,8 +3,8 @@
 **文档状态：** MVP 已实现  
 **主要读者：** 架构师 | 脚本维护者 | 平台维护者 | 项目协调者  
 **负责人：** 仓库维护者  
-**关联 ID：** `REQ-003`, `REQ-005`, `REQ-006`, `API-001`, `API-002`, `API-010`, `API-011`, `API-014`, `API-015`, `API-016`  
-**最后更新：** 2026-04-02  
+**关联 ID：** `REQ-003`, `REQ-005`, `REQ-006`, `API-001`, `API-002`, `API-010`, `API-011`, `API-014`, `API-015`, `API-016`, `API-018`, `API-019`, `API-020`, `API-021`, `API-022`, `API-023`
+**最后更新：** 2026-04-03
 
 ## 1. 设计目标
 
@@ -28,6 +28,7 @@
 - `factory-intent-resolver --execute-safe` 已可自动执行 `L0/L1` 主推荐动作
 - `factory-intent-resolver --request-approval` 已可为 `L2/L3` 主推荐动作生成冻结审批票据
 - `factory-intent-resolver` 已可选择 `command-profiles` / `workflow-runner` 的具体子目标
+- `factory-intent-resolver` 已完成一轮 skill 生命周期解析重构，可按候选状态把自然语言映射到 `skill-eval` / `skill-approval` / `skill-promote` / `skill-delete-approval` / `skill-rollback`
 - `command-profiles` 已支持子目标风险覆盖，`pre-gate` / `daily-close` / `release-ready` / `handover-ready` 会提升到 `L2`
 - `factory-intent-eval` 与 `config/evals/intent-resolver-cases.json`
 - `factory-intent-approval` 与控制面审批队列视图
@@ -141,7 +142,7 @@ flowchart LR
 | `session.refresh` | `factory-agent-session` | 编译当前会话最小上下文包 |
 | `state.doctor` | `factory-state-doctor` | 诊断项目状态和缺口 |
 | `project.historical_onboarding` | `factory-historical-project-onboarding` | 历史项目纳管 |
-| `docs.standard_upgrade` | `factory-docs-standard-upgrade` | 升级 docs 到最新标准 |
+| `docs.validation` | `docs-stratego source validate` | 校验源仓 docs 是否合规 |
 | `workflow.pre_gate` | `factory-command-profiles pre-gate` 或 `factory-dispatch workflow` | Gate 前组合动作 |
 | `board.multi_agent` | `factory-multi-agent-board` | 多代理协作看板 |
 
@@ -153,13 +154,19 @@ flowchart LR
 - `agent-session`
 - `state-doctor`
 - `historical-project-onboarding`
-- `docs-standard-upgrade`
-- `docs-standard-upgrade-batch`
 - `project-rules-refresh`
 - `multi-agent-board`
 - `frontend-capabilities`
 - `intent-resolver`
 - `intent-eval`
+- `skill-draft`
+- `skill-eval`
+- `skill-approval`
+
+文档维护不再登记为山海工枢动作注册表中的专用 docs 动作，统一改由 `document-templates` skill + `docs-stratego` CLI 处理。
+- `skill-delete-approval`
+- `skill-promote`
+- `skill-rollback`
 - `workflow-runner`
 - `command-profiles`
 
@@ -273,3 +280,10 @@ flowchart LR
 | 2026-04-02 | 为审批票据增加冻结 ownership 和批准前显式写集冲突校验 | Codex |
 | 2026-04-02 | 为 `command-profiles` 增加子目标风险覆盖，并将工作流型 profile 纳入审批与回放验证 | Codex |
 | 2026-04-02 | 增加 `reply-policy.json`，把对话摘要字段、审批票据触发条件和 skill 正式变更批准边界固定为运行时契约 | Codex |
+| 2026-04-03 | 增加 `skill-draft` 动作，允许先将候选能力固化到 `skills-drafts/`，而不是直接改正式 skill | Codex |
+| 2026-04-03 | 增加 `skill-eval` 动作，要求候选 skill 通过正式评估命令生成 `passed/failed` 报告，而不是手工改评估状态 | Codex |
+| 2026-04-03 | 增加 `skill-approval` 动作，允许候选 skill 进入专用审批票据链路并把批准结果写回候选目录 | Codex |
+| 2026-04-03 | 增加 `skill-promote` 动作，要求候选 skill 必须通过评估且已批准后才能写入正式 `skills/` | Codex |
+| 2026-04-03 | 增加 `skill-delete-approval` 动作，为首次发布的新 skill 提供删除回退专用审批票据 | Codex |
+| 2026-04-03 | 更新 `skill-rollback` 动作，允许首次发布的新 skill 在删除回退审批通过后执行受控删除回退 | Codex |
+| 2026-04-03 | 重构 `factory-intent-resolver` 的 skill 生命周期解析块，允许自然语言按候选状态路由到 skill 治理链的下一条正式动作，并在缺少候选时保留阻塞边界而不是回退成无关动作 | Codex |

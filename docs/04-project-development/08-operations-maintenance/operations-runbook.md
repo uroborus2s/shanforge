@@ -11,7 +11,7 @@
 每次重要变更后至少检查：
 
 - `tests/` 是否仍全绿
-- `docs-index-refresh --check` 是否返回 `就绪`
+- `docs-stratego source validate` 是否返回 `就绪`
 - `docs/` 是否仍保持 4 大模块结构
 - 文档里是否存在旧路径或明显占位内容
 

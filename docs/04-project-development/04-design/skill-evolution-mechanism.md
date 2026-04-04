@@ -3,8 +3,8 @@
 **文档状态：** 已确认方向  
 **主要读者：** 技能维护者 | 架构师 | 平台维护者 | QA  
 **负责人：** 仓库维护者  
-**关联 ID：** `REQ-003`, `REQ-005`, `REQ-006`, `API-010`, `API-011`, `API-015`  
-**最后更新：** 2026-04-02  
+**关联 ID：** `REQ-003`, `REQ-005`, `REQ-006`, `API-010`, `API-011`, `API-015`, `API-018`, `API-019`, `API-020`, `API-021`, `API-022`
+**最后更新：** 2026-04-03
 
 ## 1. 设计定位
 
@@ -209,6 +209,65 @@
 - `config/evals/intent-resolver-cases.json`
 - `scripts/factory-intent-eval`
 
+当前已落地的第一个候选生成资产：
+
+- `scripts/factory-skill-draft`
+- `skills-drafts/<skill>/SKILL.md`
+- `skills-drafts/<skill>/proposal.json`
+- `skills-drafts/<skill>/evals/evals.json`
+- `skills-drafts/<skill>/evals/eval-report.json`
+- `skills-drafts/<skill>/change-summary.md`
+
+当前已落地的第一个 skill 正式评估资产：
+
+- `scripts/factory-skill-eval`
+- `.factory/process/skill-evals.json`
+- `.factory/process/skill-evals.md`
+- `skills-drafts/<skill>/evals/eval-report.json`
+
+当前已落地的第一个 skill 专用审批资产：
+
+- `scripts/factory-skill-approval`
+- `.factory/process/skill-approvals.json`
+- `.factory/process/skill-approvals.md`
+- `skills-drafts/<skill>/approval.json`
+
+当前审批门禁已收紧为：
+
+- 只有 `factory-skill-eval` 已产出 `status=passed` 的候选 skill 才能申请审批票据
+- 审批票据会冻结候选对应的评估记录摘要，作为后续晋升链路的治理证据
+
+当前已落地的第一个 skill 正式晋升资产：
+
+- `scripts/factory-skill-promote`
+- `.factory/process/skill-promotions.json`
+- `.factory/process/skill-promotions.md`
+- `skills-drafts/<skill>/promotion.json`
+- `skills/<skill>/SKILL.md`
+
+当前已落地的第一个 skill 回退资产：
+
+- `scripts/factory-skill-rollback`
+- `.factory/process/skill-rollbacks.json`
+- `.factory/process/skill-rollbacks.md`
+- `skills-drafts/<skill>/rollback.json`
+- `skills-drafts/<skill>/backups/official-SKILL.before-rollback-*.md`
+
+当前已落地的第一个首发新 skill 删除回退审批资产：
+
+- `scripts/factory-skill-delete-approval`
+- `.factory/process/skill-delete-approvals.json`
+- `.factory/process/skill-delete-approvals.md`
+- `skills-drafts/<skill>/delete-approval.json`
+
+当前已落地的第一个 skill 生命周期自然语言路由资产：
+
+- `scripts/factory-intent-resolver`
+- `scripts/factory-intent-eval`
+- `config/evals/intent-resolver-cases.json`
+
+它让项目负责人不必手工记忆 skill 治理链上的下一条命令，而是直接用自然语言推进候选 skill 的评估、审批、晋升和回退；若缺少候选目录，系统会保留阻塞边界而不是退回无关动作。
+
 它用于固定评估自然语言到动作解析的命中率、审批边界和安全执行结果，是后续 skill / intent / policy 联合进化的起点，而不是终点。
 
 ## 10. 与现有山海工枢资产的衔接
@@ -234,3 +293,11 @@
 | 2026-04-02 | 初始版本，定义 skill 的分层定位、进化约束和新能力固化流程 | Codex |
 | 2026-04-02 | 增加首个已落地回放资产 `intent-eval`，把固定样本回放纳入进化基线 | Codex |
 | 2026-04-02 | 将 skill 正式变更的候选优先、评估先行、显式批准边界固化到 `reply-policy.json` | Codex |
+| 2026-04-03 | 增加候选 skill 草案生成器 `factory-skill-draft`，开始把候选能力固化到 `skills-drafts/` | Codex |
+| 2026-04-03 | 增加 `factory-skill-eval`，开始把候选 skill 的正式评估收口到可重复执行的命令入口 | Codex |
+| 2026-04-03 | 增加 `factory-skill-approval`，开始把候选 skill 接入专用审批票据链路 | Codex |
+| 2026-04-03 | 增加 `factory-skill-promote`，开始把候选 skill 正式晋升收口到单一命令入口 | Codex |
+| 2026-04-03 | 增加 `factory-skill-rollback`，开始把已有旧版本备份的 skill 安全回退收口到单一命令入口 | Codex |
+| 2026-04-03 | 收紧 `factory-skill-approval`，候选 skill 必须先通过正式评估才能申请审批票据 | Codex |
+| 2026-04-03 | 增加 `factory-skill-delete-approval`，为首次发布的新 skill 提供删除回退审批入口，并让 `factory-skill-rollback` 支持受控删除回退模式 | Codex |
+| 2026-04-03 | 重构 `factory-intent-resolver`，让自然语言可按候选状态路由 skill 生命周期动作，并把缺少候选 skill 的情况显式保留为阻塞边界 | Codex |

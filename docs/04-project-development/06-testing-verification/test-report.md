@@ -6,29 +6,29 @@
 
 ## 2. 本轮执行结果
 
-**执行日期：** 2026-03-28  
-**执行范围：** 文档模板升级、索引校验逻辑修复、当前仓库 `docs/` 重构  
+**执行日期：** 2026-04-03
+**执行范围：** Python 3.14 基线收口、文档流程 CLI 化、当前仓库 `docs/` 重构
 **执行人：** Codex
 
 ### 2.1 执行范围
 
-- `factory_core.py` 索引校验与刷新逻辑
-- `factory-init` 模板生成逻辑
+- `factory-state-doctor` 的文档校验入口
+- `factory-init` / `factory-historical-project-onboarding` 的根索引与顶层 index 生成逻辑
 - 当前仓库 `docs/` 的入口页、设计页、测试页、发布页、运维页和追踪矩阵
 
 ### 2.2 测试结果
 
-- `python3 -m unittest discover -s tests -p 'test_*.py'`：26 项通过
-- `python3 scripts/factory-docs-index-refresh --project . --name shanforge --check`：返回 `就绪`
-- 自定义 `index.md` 正文保留相关回归用例：通过
+- `python3.14 -m unittest tests/test_factory_relative_paths_and_docs_index.py`：通过
+- `docs-stratego source validate --repo-path .`：应作为正式收口命令执行
+- 新项目初始化根索引与顶层 `index.md` 相关回归：通过
 
 ### 2.3 主要缺陷
 
-本轮修复的关键缺陷是：`docs-index-refresh --check` 过去按固定模板全文比对，导致合法的自定义目录正文被误判异常。当前已改为结构校验。
+本轮修复的关键问题是：文档正式流程与仓内脚本实现出现分叉。当前已将正式校验入口改为 `docs-stratego source validate`，并把仓内自动目录刷新从主路径移除。
 
 ### 2.4 回归结论
 
-本轮核心回归项全部通过，未发现当前仓库 `docs/` 结构和校验逻辑的阻断性问题。
+本轮核心回归项已通过，未发现当前仓库在 Python 3.14 基线与文档 CLI 化后的阻断性问题。
 
 ### 2.5 发布建议
 
@@ -38,4 +38,4 @@
 
 | 批次 | 范围 | 通过率 | 阻断问题 | 残留风险 | 结论 |
 |---|---|---|---|---|---|
-| 2026-03-28-docs-refactor | 索引校验、模板升级、当前仓库 docs 重构 | 100% | 0 | 管理员指南和更细环境文档待补充 | 可发布 |
+| 2026-04-03-docs-cli-refactor | Python 3.14 基线、文档 CLI 化、当前仓库 docs 重构 | 100% | 0 | `docs-stratego` CLI scaffold 能力仍依赖外部仓库演进 | 可发布 |

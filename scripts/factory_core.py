@@ -27,6 +27,8 @@ FACTORY_MEMORY_RELATIVE = f"{FACTORY_DIR_RELATIVE}/memory"
 FACTORY_PROCESS_RELATIVE = f"{FACTORY_DIR_RELATIVE}/process"
 FACTORY_WORKITEMS_RELATIVE = f"{FACTORY_DIR_RELATIVE}/workitems"
 INTENT_APPROVAL_ROOT_ENV = "SHANFORGE_INTENT_APPROVAL_ROOT"
+DOCS_STRATEGO_PACKAGE_SPEC_ENV = "DOCS_STRATEGO_PACKAGE_SPEC"
+DEFAULT_UV_CACHE_DIR = "/tmp/uv-cache"
 
 
 def memory_file(*parts: str) -> str:
@@ -200,7 +202,7 @@ TECH_PROFILE_PRESETS = {
         "stack": "python backend",
         "summary": "适用于 Python 服务端或 CLI/任务型工程，统一使用 uv 管理 Python 版本、虚拟环境、依赖、锁文件和工具执行，强调 pyproject、类型标注、测试与文档同步。",
         "projects": ["业务后端服务工程", "CLI/任务执行工程"],
-        "modules": ["Python 3.11+", "uv", "pytest", "ruff", "mypy"],
+        "modules": ["Python 3.14+", "uv", "pytest", "ruff", "mypy"],
         "rules": [
             "统一使用 uv 管理 Python 版本、虚拟环境、依赖、锁文件和工具执行，不把 pip、Poetry、Pipenv、requirements.txt 当作主工作流。",
             "项目元数据、依赖和工具配置统一收敛到 pyproject.toml，提交 uv.lock，不提交 .venv。",
@@ -2115,101 +2117,9 @@ def docs_structure_migration_needed(project_root: Path) -> bool:
 
 
 def migrate_docs_structure(project_root: Path, project_name: str, *, force: bool = False) -> dict[str, list[str]]:
-    docs_root = project_root / "docs"
-    if not docs_root.exists():
-        raise RuntimeError("缺少 `docs/` 目录，无法迁移文档结构。")
-
-    docs_profile = resolve_project_docs_profile(project_root, project_name=project_name)
-
-    for relative_dir in DOCS_STRATEGO_DIRECTORY_SPECS:
-        if not docs_relative_path_enabled(relative_dir, docs_profile, docs_root):
-            continue
-        (docs_root / relative_dir).mkdir(parents=True, exist_ok=True)
-
-    moved: list[str] = []
-    created: list[str] = []
-    updated: list[str] = []
-    removed: list[str] = []
-    markdown_origins: dict[str, str] = {}
-
-    for path in sorted((item for item in docs_root.rglob("*") if item.is_file()), key=lambda item: item.as_posix()):
-        relative = path.relative_to(docs_root).as_posix()
-        if relative == "index.md" or relative.endswith("/index.md"):
-            continue
-        target_relative = canonical_docs_relative_path(relative)
-        if target_relative == relative:
-            if path.suffix.lower() == ".md":
-                markdown_origins.setdefault(relative, relative)
-            continue
-
-        target = docs_root / target_relative
-        if target.exists():
-            same_content = target.is_file() and target.read_bytes() == path.read_bytes()
-            if same_content:
-                path.unlink()
-                removed.append(f"docs/{relative}")
-            elif not force:
-                raise RuntimeError(f"迁移目标已存在且内容不同：docs/{target_relative}。若确认覆盖请加 --force。")
-            else:
-                target.unlink()
-                target.parent.mkdir(parents=True, exist_ok=True)
-                shutil.move(str(path), str(target))
-                updated.append(f"docs/{target_relative}")
-        else:
-            target.parent.mkdir(parents=True, exist_ok=True)
-            shutil.move(str(path), str(target))
-            moved.append(f"docs/{relative} -> docs/{target_relative}")
-
-        if path.suffix.lower() == ".md":
-            markdown_origins[target_relative] = relative
-
-    for path in sorted((item for item in docs_root.rglob("index.md") if item.is_file()), key=lambda item: item.as_posix(), reverse=True):
-        relative = path.relative_to(docs_root).as_posix()
-        if relative == "index.md":
-            continue
-        legacy_relative = legacy_docs_relative_path(relative)
-        if canonical_docs_relative_path(legacy_relative) != legacy_relative and path.exists():
-            path.unlink()
-            removed.append(f"docs/{relative}")
-
-    for relative, content in MODERN_DOCS_BOOTSTRAP_PAGES.items():
-        if not docs_relative_path_enabled(relative, docs_profile, docs_root):
-            continue
-        path = docs_root / relative
-        if path.exists():
-            markdown_origins.setdefault(relative, legacy_docs_relative_path(relative))
-            continue
-        write_text(path, content)
-        created.append(f"docs/{relative}")
-        markdown_origins[relative] = relative
-
-    for path in sorted((item for item in docs_root.rglob("*.md") if item.is_file()), key=lambda item: item.as_posix()):
-        relative = path.relative_to(docs_root).as_posix()
-        if relative == "index.md" or relative.endswith("/index.md"):
-            continue
-        original = markdown_origins.get(relative, legacy_docs_relative_path(relative))
-        current = path.read_text(encoding="utf-8")
-        rewritten = rewrite_markdown_doc_links(current, old_current_relative=original, new_current_relative=relative)
-        if rewritten != current:
-            path.write_text(rewritten, encoding="utf-8")
-            if f"docs/{relative}" not in created:
-                updated.append(f"docs/{relative}")
-
-    for directory in sorted((item for item in docs_root.rglob("*") if item.is_dir()), key=lambda item: len(item.parts), reverse=True):
-        if directory == docs_root:
-            continue
-        if not any(directory.iterdir()):
-            directory.rmdir()
-
-    update_publication_policy_for_modern_docs(project_root, docs_profile)
-    updated.extend(path for path in write_docs_stratego_indexes(project_root, project_name) if path not in created)
-
-    return {
-        "moved": sorted(set(moved)),
-        "created": sorted(set(created)),
-        "updated": sorted(set(updated)),
-        "removed": sorted(set(removed)),
-    }
+    raise RuntimeError(
+        "`migrate_docs_structure` 已退场；请直接使用 `document-templates` skill 手工重构文档，再执行 `docs-stratego source validate`。"
+    )
 
 
 def docs_stratego_directory_spec(relative_dir: str) -> dict | None:
@@ -3421,60 +3331,15 @@ def build_docs_stratego_indexes(project_root: Path, project_name: str) -> dict[s
 
 
 def write_docs_stratego_indexes(project_root: Path, project_name: str) -> list[str]:
-    docs_root = project_root / "docs"
-    if not docs_root.exists():
-        return []
-
-    written: list[str] = []
-    docs_profile = resolve_project_docs_profile(project_root, project_name=project_name)
-    root_relative = "docs/index.md"
-    root_path = project_root / root_relative
-    existing_root = root_path.read_text(encoding="utf-8", errors="ignore") if root_path.exists() else None
-    merged_root = merge_docs_stratego_root_index(project_root, project_name, existing_root)
-    if existing_root != merged_root:
-        write_text(root_path, merged_root)
-        written.append(root_relative)
-
-    for relative_dir in docs_stratego_directories(project_root, docs_profile):
-        relative_path = f"docs/{relative_dir}/index.md"
-        path = project_root / relative_path
-        if not should_rewrite_directory_index(path):
-            continue
-        content = render_docs_stratego_directory_index(project_root, project_name, relative_dir)
-        existing = path.read_text(encoding="utf-8", errors="ignore") if path.exists() else None
-        if existing != content:
-            write_text(path, content)
-            written.append(relative_path)
-    return sorted(written)
+    raise RuntimeError(
+        "`write_docs_stratego_indexes` 已退场；根 `docs/index.md` 与顶层模块 `index.md` 由文档模板和人工维护。"
+    )
 
 
 def upgrade_docs_source_standard(project_root: Path, project_name: str, *, force: bool = False) -> dict[str, object]:
-    docs_root = project_root / "docs"
-    if not docs_root.exists():
-        raise RuntimeError("缺少 `docs/` 目录，无法升级到最新源文档标准。")
-
-    migration_result = {
-        "moved": [],
-        "created": [],
-        "updated": [],
-        "removed": [],
-    }
-    migrated = docs_structure_migration_needed(project_root)
-    if migrated:
-        migration_result = migrate_docs_structure(project_root, project_name, force=force)
-    else:
-        docs_profile = resolve_project_docs_profile(project_root, project_name=project_name)
-        update_publication_policy_for_modern_docs(project_root, docs_profile)
-
-    refreshed = write_docs_stratego_indexes(project_root, project_name)
-    status, lines = docs_stratego_source_status(project_root, project_name)
-    return {
-        "migrated": migrated,
-        "migration": migration_result,
-        "refreshed": refreshed,
-        "status": status,
-        "lines": lines,
-    }
+    raise RuntimeError(
+        "`upgrade_docs_source_standard` 已退场；请使用 `document-templates` skill 重构文档，并以 `docs-stratego source validate` 作为收口。"
+    )
 
 
 def docs_stratego_valid_relative_page_path(relative_path: str) -> bool:
@@ -3510,100 +3375,7 @@ def docs_stratego_contract_validation_errors(path: Path) -> list[str]:
 
 
 def docs_stratego_source_status(project_root: Path, project_name: str) -> tuple[str, list[str]]:
-    docs_root = project_root / "docs"
-    if not docs_root.exists():
-        return "缺失", ["- 缺少 `docs/` 目录，无法生成 docs-stratego 源文档。"]
-
-    findings: list[str] = []
-    docs_profile = resolve_project_docs_profile(project_root, project_name=project_name)
-    legacy_entries = ["docs/README.md", *(f"docs/{name}" for name in LEGACY_DOCS_DIRECTORY_MAP)]
-    for relative in legacy_entries:
-        if (project_root / relative).exists():
-            findings.append(f"- 检测到旧版 docs 结构入口：`{relative}`；请先执行 `factory-dispatch docs-migrate-structure --project <项目路径>`。")
-    for module_key in docs_profile_required_top_levels(docs_profile):
-        if not (docs_root / module_key).exists():
-            findings.append(f"- docs_profile 要求存在模块：`docs/{module_key}`，但当前目录缺失。")
-    for module_key in DOCS_STRATEGO_TOP_LEVEL_ORDER:
-        if docs_profile_module_state(docs_profile, module_key) == "omit" and (docs_root / module_key).exists():
-            findings.append(f"- docs_profile 将 `docs/{module_key}` 标记为 `omit`，但目录仍存在；请删除目录或调整 docs_profile。")
-    root_index_path = project_root / "docs" / "index.md"
-    if not root_index_path.exists():
-        findings.append("- 缺少 docs-stratego 根入口：`docs/index.md`。")
-    else:
-        root_text = root_index_path.read_text(encoding="utf-8", errors="ignore")
-        front_matter, _ = split_markdown_front_matter(root_text)
-        if not front_matter:
-            findings.append("- `docs/index.md` 缺少根 front matter，无法声明 `mkdocs.nav`。")
-        else:
-            home_access = extract_docs_home_access(root_text)
-            if home_access not in DOCS_STRATEGO_ACCESS_LEVELS:
-                findings.append("- `docs/index.md` 的 `mkdocs.home_access` 只能是 `public` 或 `private`。")
-            expected_nav = set(extract_docs_nav_page_meta(render_docs_stratego_root_index(project_root, project_name)))
-            actual_nav = extract_docs_nav_page_meta(root_text)
-            for required_path in sorted(expected_nav):
-                if required_path not in actual_nav:
-                    findings.append(f"- `docs/index.md` 缺少必需导航项：`{required_path}`。")
-            for actual_path, meta in sorted(actual_nav.items()):
-                if not docs_stratego_valid_relative_page_path(actual_path):
-                    findings.append(
-                        f"- `docs/index.md` 中 `{actual_path}` 不是合法页面路径；仅允许 `*.md`、`*.openapi.*`、`*.mcp-tools.*`，且不能使用 `../` 或 `assets/`。"
-                    )
-                    continue
-                access = str(meta.get("access", "")).strip()
-                if access not in DOCS_STRATEGO_ACCESS_LEVELS:
-                    findings.append(f"- `docs/index.md` 中 `{actual_path}` 的访问级别只能是 `public` 或 `private`。")
-                page_path = docs_root / actual_path
-                if not page_path.exists():
-                    findings.append(f"- `docs/index.md` 中导航项指向不存在的页面：`{actual_path}`。")
-                    continue
-                for error in docs_stratego_contract_validation_errors(page_path):
-                    findings.append(f"- `{actual_path}` 不满足契约最小要求：{error}。")
-
-    for relative_dir in docs_stratego_directories(project_root, docs_profile):
-        relative_path = f"docs/{relative_dir}/index.md"
-        path = project_root / relative_path
-        if not path.exists():
-            findings.append(f"- 缺少 docs-stratego 目录入口：`{relative_path}`。")
-            continue
-        text = path.read_text(encoding="utf-8", errors="ignore")
-        if "mkdocs:" in text:
-            findings.append(f"- `{relative_path}` 不应声明 `mkdocs.nav`；目录导航只允许放在根 `docs/index.md`。")
-        if not re.search(r"(?m)^#\s+\S", text):
-            findings.append(f"- `{relative_path}` 缺少一级标题，无法作为目录概览页。")
-
-    for path in sorted(docs_root.rglob("*")):
-        if not path.is_file():
-            continue
-        relative = path.relative_to(project_root).as_posix()
-        if "assets" in path.parts and is_docs_stratego_page_file(path):
-            findings.append(f"- `assets/` 目录下不应包含 Markdown 页面或契约文件：`{relative}`。")
-            continue
-        if not is_docs_stratego_page_file(path):
-            continue
-        text = path.read_text(encoding="utf-8", errors="ignore")
-        if is_docs_markdown_page(path) and not re.search(r"(?m)^#\s+\S", strip_markdown_front_matter(text)):
-            findings.append(f"- `{relative}` 缺少一级标题，无法作为正式 Markdown 页面。")
-        if DOCS_MACHINE_PATH_PATTERN.search(text):
-            findings.append(f"- `{relative}` 含有机器绝对路径，请改为仓内相对路径。")
-        if is_docs_markdown_page(path):
-            explicit_anchors = extract_explicit_anchor_ids(text)
-            for anchor in sorted(extract_self_anchor_targets(text)):
-                if anchor not in explicit_anchors:
-                    findings.append(
-                        f"- `{relative}` 包含页内锚点链接 `#{anchor}`，但未声明显式锚点；请添加 `<a id=\"{anchor}\"></a>`。"
-                    )
-        for error in docs_stratego_contract_validation_errors(path):
-            findings.append(f"- `{relative}` 不满足契约最小要求：{error}。")
-
-    findings = list(dict.fromkeys(findings))
-    if findings:
-        return "异常", findings
-
-    lines = [
-        "- `docs/` 已提供可供 docs-stratego 聚合的文档入口；根 `docs/index.md` 负责全站目录树、页面权限和契约渲染入口，各子目录 `index.md` 保持为正文概览页。",
-        "- 当前文档内容未发现明显机器绝对路径污染。",
-    ]
-    return "就绪", lines
+    return docs_stratego_validate_status(project_root)
 
 
 def normalize_key(value: str) -> str:
@@ -4629,8 +4401,23 @@ def script_path(name: str) -> str:
     return str(Path(__file__).resolve().parent / name)
 
 
-def run_step(command: Sequence[str], label: str, *, cwd: Path | None = None) -> dict:
-    result = subprocess.run(list(command), capture_output=True, text=True, cwd=str(cwd) if cwd else None)
+def run_step(
+    command: Sequence[str],
+    label: str,
+    *,
+    cwd: Path | None = None,
+    env: dict[str, str] | None = None,
+) -> dict:
+    merged_env = os.environ.copy()
+    if env:
+        merged_env.update(env)
+    result = subprocess.run(
+        list(command),
+        capture_output=True,
+        text=True,
+        cwd=str(cwd) if cwd else None,
+        env=merged_env,
+    )
     return {
         "label": label,
         "command": " ".join(command),
@@ -4647,6 +4434,48 @@ def run_script(name: str, *arguments: str, label: str) -> dict:
 
 def command_available(name: str) -> bool:
     return shutil.which(name) is not None
+
+
+def docs_stratego_package_spec() -> str:
+    return os.environ.get(DOCS_STRATEGO_PACKAGE_SPEC_ENV, "").strip() or "docs-stratego"
+
+
+def docs_stratego_validate_status(project_root: Path, docs_dir: str = "docs") -> tuple[str, list[str]]:
+    args = ["source", "validate", "--repo-path", str(project_root), "--docs-dir", docs_dir]
+    attempts: list[tuple[list[str], dict[str, str] | None]] = []
+    package_spec = docs_stratego_package_spec()
+    uv_env = {"UV_CACHE_DIR": os.environ.get("UV_CACHE_DIR", DEFAULT_UV_CACHE_DIR)}
+
+    if command_available("uvx"):
+        attempts.append((["uvx", "--from", package_spec, "docs-stratego", *args], uv_env))
+    elif command_available("uv"):
+        attempts.append((["uv", "tool", "run", "--from", package_spec, "docs-stratego", *args], uv_env))
+
+    if not attempts:
+        return (
+            "缺失",
+            [
+                "- 未找到可执行的 `uvx` / `uv`，无法调用 PyPI 已发布的 `docs-stratego` CLI。",
+                "- 请先安装 `uv`，再执行 `uvx --from docs-stratego docs-stratego ...`。",
+            ],
+        )
+
+    failures: list[str] = []
+    for command, env in attempts:
+        result = run_step(command, "docs-stratego source validate", cwd=project_root, env=env)
+        if result["returncode"] == 0:
+            summary = result["stdout"] or result["stderr"] or "校验通过。"
+            return (
+                "就绪",
+                [
+                    f"- 已执行 `{' '.join(command)}`。",
+                    f"- {summary}",
+                ],
+            )
+        detail = result["stderr"] or result["stdout"] or "无输出"
+        failures.append(f"- `{' '.join(command)}` 失败：{detail}")
+
+    return ("异常", failures)
 
 
 def is_git_repo(project_root: Path) -> bool:

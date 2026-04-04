@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updated_at": "2026-04-02",
+  "updated_at": "2026-04-03",
   "cases": [
     {
       "id": "intent-empty-init",
@@ -30,7 +30,7 @@
       "fixture": "managed_project",
       "tool": "opencode",
       "expected": {
-        "action": "docs-standard-upgrade",
+        "action": "state-doctor",
         "approval": "auto",
         "safe_status": "success"
       }
@@ -81,6 +81,78 @@
         "approval": "summary_confirm",
         "safe_status": "policy_denied",
         "approval_request_status": "pending_approval"
+      }
+    },
+    {
+      "id": "intent-skill-without-candidate",
+      "intent": "撤回刚发布的新 skill intent-governance-coach",
+      "fixture": "managed_project",
+      "tool": "codex",
+      "expected": {
+        "action": "skill-delete-approval",
+        "skill_operation": "delete_first_publish",
+        "approval": "summary_confirm",
+        "blocked_contains": "skills-drafts"
+      }
+    },
+    {
+      "id": "intent-skill-next-eval",
+      "intent": "继续推进这个 skill intent-governance-coach",
+      "fixture": "managed_skill_candidate",
+      "tool": "codex",
+      "expected": {
+        "action": "skill-eval",
+        "skill_operation": "eval",
+        "skill_candidate": "skills-drafts/intent-governance-coach",
+        "approval": "auto"
+      }
+    },
+    {
+      "id": "intent-skill-approval-request",
+      "intent": "让这个 skill 进入审批 intent-governance-coach",
+      "fixture": "managed_skill_passed",
+      "tool": "codex",
+      "expected": {
+        "action": "skill-approval",
+        "skill_operation": "approval_request",
+        "skill_candidate": "skills-drafts/intent-governance-coach",
+        "approval": "auto"
+      }
+    },
+    {
+      "id": "intent-skill-promote",
+      "intent": "正式发布这个 skill intent-governance-coach",
+      "fixture": "managed_skill_approved",
+      "tool": "codex",
+      "expected": {
+        "action": "skill-promote",
+        "skill_operation": "promote",
+        "skill_candidate": "skills-drafts/intent-governance-coach",
+        "approval": "summary_confirm"
+      }
+    },
+    {
+      "id": "intent-skill-delete-approval",
+      "intent": "撤回刚发布的新 skill intent-governance-coach",
+      "fixture": "managed_skill_promoted_new",
+      "tool": "codex",
+      "expected": {
+        "action": "skill-delete-approval",
+        "skill_operation": "delete_first_publish",
+        "skill_candidate": "skills-drafts/intent-governance-coach",
+        "approval": "summary_confirm"
+      }
+    },
+    {
+      "id": "intent-skill-delete-approved-rollback",
+      "intent": "撤回刚发布的新 skill intent-governance-coach",
+      "fixture": "managed_skill_promoted_new_approved_delete",
+      "tool": "codex",
+      "expected": {
+        "action": "skill-rollback",
+        "skill_operation": "delete_first_publish",
+        "skill_candidate": "skills-drafts/intent-governance-coach",
+        "approval": "summary_confirm"
       }
     }
   ]

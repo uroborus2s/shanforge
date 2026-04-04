@@ -10,6 +10,7 @@ from datetime import datetime
 from importlib.machinery import SourceFileLoader
 from pathlib import Path
 import sys
+from typing import Optional
 
 from factory_core import (
     INTENT_APPROVAL_ROOT_ENV,
@@ -94,6 +95,61 @@ def managed_project_payload(project_name: str) -> dict:
     }
 
 
+def create_skill_candidate_state(
+    project_root: Path,
+    *,
+    name: str,
+    eval_status: str = "",
+    approval_status: str = "",
+    promotion_status: str = "",
+    rollback_status: str = "",
+    delete_approval_status: str = "",
+    has_backup: bool = False,
+    delete_approval_decision: str = "",
+) -> None:
+    candidate_dir = project_root / "skills-drafts" / name
+    candidate_dir.mkdir(parents=True, exist_ok=True)
+    proposal = {
+        "version": 1,
+        "name": name,
+        "summary": f"{name} summary",
+        "target_skill": "",
+        "official_skill_path": f"skills/{name}/SKILL.md",
+        "eval_status": eval_status,
+        "approval_status": approval_status,
+        "promotion_status": promotion_status,
+        "rollback_status": rollback_status,
+        "delete_approval_status": delete_approval_status,
+    }
+    write_text(candidate_dir / "proposal.json", json.dumps(proposal, ensure_ascii=False, indent=2))
+    if promotion_status:
+        promotion = {
+            "version": 1,
+            "id": "SP-test",
+            "candidate_name": name,
+            "official_skill_path": f"skills/{name}/SKILL.md",
+            "backup_path": f"skills-drafts/{name}/backups/official-SKILL.before-promote.md" if has_backup else "",
+        }
+        write_text(candidate_dir / "promotion.json", json.dumps(promotion, ensure_ascii=False, indent=2))
+        skill_dir = project_root / "skills" / name
+        skill_dir.mkdir(parents=True, exist_ok=True)
+        write_text(skill_dir / "SKILL.md", f"---\nname: {name}\n---\n\n# {name}\n")
+        if has_backup:
+            backup_path = project_root / promotion["backup_path"]
+            backup_path.parent.mkdir(parents=True, exist_ok=True)
+            write_text(backup_path, f"---\nname: {name}\n---\n\n# old {name}\n")
+    if delete_approval_decision:
+        delete_approval = {
+            "version": 1,
+            "ticket": "SDA-test",
+            "decision": delete_approval_decision,
+            "owner": "lead",
+            "mode": "first_publish_delete",
+            "official_skill_path": f"skills/{name}/SKILL.md",
+        }
+        write_text(candidate_dir / "delete-approval.json", json.dumps(delete_approval, ensure_ascii=False, indent=2))
+
+
 @contextmanager
 def fixture_project(case: dict):
     fixture = case["fixture"]
@@ -113,12 +169,66 @@ def fixture_project(case: dict):
             write_text(project_root / "docs" / "01-getting-started" / "project-overview.md", "# 项目概览\n")
             write_text(project_root / "docs" / "02-user-guide" / "user-guide.md", "# 使用指南\n")
             write_text(project_root / "docs" / "04-project-development" / "overview.md", "# 项目开发\n")
+        elif fixture == "managed_skill_candidate":
+            (project_root / ".factory").mkdir(parents=True)
+            write_text(
+                project_root / ".factory" / "project.json",
+                json.dumps(managed_project_payload("intent-eval-project"), ensure_ascii=False, indent=2),
+            )
+            create_skill_candidate_state(project_root, name="intent-governance-coach")
+        elif fixture == "managed_skill_passed":
+            (project_root / ".factory").mkdir(parents=True)
+            write_text(
+                project_root / ".factory" / "project.json",
+                json.dumps(managed_project_payload("intent-eval-project"), ensure_ascii=False, indent=2),
+            )
+            create_skill_candidate_state(project_root, name="intent-governance-coach", eval_status="passed")
+        elif fixture == "managed_skill_approved":
+            (project_root / ".factory").mkdir(parents=True)
+            write_text(
+                project_root / ".factory" / "project.json",
+                json.dumps(managed_project_payload("intent-eval-project"), ensure_ascii=False, indent=2),
+            )
+            create_skill_candidate_state(
+                project_root,
+                name="intent-governance-coach",
+                eval_status="passed",
+                approval_status="approved",
+            )
+        elif fixture == "managed_skill_promoted_new":
+            (project_root / ".factory").mkdir(parents=True)
+            write_text(
+                project_root / ".factory" / "project.json",
+                json.dumps(managed_project_payload("intent-eval-project"), ensure_ascii=False, indent=2),
+            )
+            create_skill_candidate_state(
+                project_root,
+                name="intent-governance-coach",
+                eval_status="passed",
+                approval_status="approved",
+                promotion_status="promoted",
+            )
+        elif fixture == "managed_skill_promoted_new_approved_delete":
+            (project_root / ".factory").mkdir(parents=True)
+            write_text(
+                project_root / ".factory" / "project.json",
+                json.dumps(managed_project_payload("intent-eval-project"), ensure_ascii=False, indent=2),
+            )
+            create_skill_candidate_state(
+                project_root,
+                name="intent-governance-coach",
+                eval_status="passed",
+                approval_status="approved",
+                promotion_status="promoted",
+                delete_approval_status="approved",
+                delete_approval_decision="approve",
+            )
         elif fixture != "empty_project":
             raise RuntimeError(f"未知评估夹具：{fixture}")
         yield project_root
 
 
-def case_expected_mismatches(case: dict, result: dict, execution: dict | None) -> list[str]:
+def case_expected_mismatches(case: dict, result: dict, execution: Optional[dict]) -> list[str]:
     expected = case["expected"]
     primary = result.get("primary") or {}
     mismatches = []
@@ -133,6 +243,19 @@ def case_expected_mismatches(case: dict, result: dict, execution: dict | None) -
     if expected.get("workflow") and primary.get("selected_workflow") != expected["workflow"]:
         mismatches.append(
             f"expected workflow `{expected['workflow']}` but got `{primary.get('selected_workflow', '')}`"
+        )
+    if expected.get("skill_operation") and primary.get("selected_skill_operation") != expected["skill_operation"]:
+        mismatches.append(
+            f"expected skill_operation `{expected['skill_operation']}` but got `{primary.get('selected_skill_operation', '')}`"
+        )
+    if expected.get("skill_candidate") and primary.get("selected_skill_candidate") != expected["skill_candidate"]:
+        mismatches.append(
+            f"expected skill_candidate `{expected['skill_candidate']}` but got `{primary.get('selected_skill_candidate', '')}`"
+        )
+    blocked_contains = str(expected.get("blocked_contains", "")).strip()
+    if blocked_contains and not any(blocked_contains in item for item in primary.get("blocked", [])):
+        mismatches.append(
+            f"expected blocked reason containing `{blocked_contains}` but got `{'; '.join(primary.get('blocked', []))}`"
         )
     if expected.get("safe_status") and (execution or {}).get("status") != expected["safe_status"]:
         mismatches.append(
@@ -152,6 +275,8 @@ def evaluate_case(case: dict, *, tool_override: str = "") -> dict:
     tool = tool_override.strip() or case.get("tool", "").strip() or "generic"
 
     with fixture_project(case) as project_root:
+        if case["fixture"].startswith("managed_skill_"):
+            module.factory_workspace_root = lambda: project_root
         result = module.resolve_intent(case["intent"], project_root, tool=tool)
         execution = None
         if "safe_status" in case["expected"]:
@@ -193,6 +318,8 @@ def evaluate_case(case: dict, *, tool_override: str = "") -> dict:
         "primary_policy": (result.get("primary") or {}).get("policy", {}),
         "selected_profile": (result.get("primary") or {}).get("selected_profile", ""),
         "selected_workflow": (result.get("primary") or {}).get("selected_workflow", ""),
+        "selected_skill_operation": (result.get("primary") or {}).get("selected_skill_operation", ""),
+        "selected_skill_candidate": (result.get("primary") or {}).get("selected_skill_candidate", ""),
         "safe_status": (execution or {}).get("status", ""),
         "approval_request_status": (approval_request or {}).get("status", ""),
         "passed": not mismatches,
@@ -248,6 +375,8 @@ def render_markdown(summary: dict) -> str:
             base += f" | profile：`{item['selected_profile']}`"
         if item["selected_workflow"]:
             base += f" | workflow：`{item['selected_workflow']}`"
+        if item["selected_skill_candidate"]:
+            base += f" | skill：`{item['selected_skill_candidate']}` | skill_op：`{item['selected_skill_operation']}`"
         if item["safe_status"]:
             base += f" | safe：`{item['safe_status']}`"
         if item["approval_request_status"]:

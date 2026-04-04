@@ -20,7 +20,7 @@
 
 1. 修改脚本和正式文档
 2. 执行 `unittest`
-3. 执行 `docs-index-refresh --check`
+3. 执行 `docs-stratego source validate`
 4. 在目标项目验证迁移和检查逻辑
 5. 通过仓库提交或分发方式交付
 
@@ -49,7 +49,7 @@
 
 - 回退相关脚本变更
 - 回退文档模板或索引规则
-- 重跑测试与 `docs-index-refresh --check`
+- 重跑测试与 `docs-stratego source validate`
 - 在受影响项目重新验证迁移链路
 
 ## 3. 当前部署矩阵

@@ -80,7 +80,7 @@ description: 在本地 Codex 和 Gemini CLI 中，通过共享全局 skills、�
 - 有效做法要沉淀到 `factory-evolution-baseline`，不要只留在单次会话里
 - 对接 `docs-stratego` 时，源项目必须把 `docs/` 作为正式事实源；根 `docs/index.md` 统一维护全站目录树、页面路径和页面权限，各子目录 `index.md` 只保留正文概览
 - `docs-stratego` 可以通过 Git 子模块或其他仓级挂载方式接入项目，但不会反向改写源仓文档
-- 新增、删除或移动 `docs/` 页面后，要同步刷新根 `docs/index.md` 的目录树和对应子目录概览页；可执行 `factory-dispatch docs-index-refresh --project "."`
+- 文档维护改走 `document-templates` skill；完成修改后，使用 `docs-stratego` CLI 做校验与聚合站点接入，不再走 `factory-docs-*` 旧链路
 
 ## 技术与设计纪律
 

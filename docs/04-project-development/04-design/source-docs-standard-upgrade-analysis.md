@@ -5,7 +5,7 @@
 **主要读者：** 架构 | 文档维护者 | 脚本维护者 | 历史项目纳管负责人  
 **上游输入：** `docs-stratego` 最新《源文档标准》 | 当前 `factory-*` 脚本 | 现有 `docs/` 正式文档结构  
 **下游输出：** `implementation-plan.md` | 脚本改造 | 存量项目刷新方案  
-**最后更新：** 2026-04-01  
+**最后更新：** 2026-04-03
 
 ## 1. 变更摘要
 
@@ -21,27 +21,24 @@
 
 | 能力项 | 当前工具 | 判断 | 说明 |
 |---|---|---|---|
-| 根 `docs/index.md` 作为唯一导航入口 | `factory-docs-index-refresh` | 已满足 | 当前已经只在根 `docs/index.md` 生成 `mkdocs.nav`。 |
-| 子目录 `index.md` 不再声明导航 | `factory-docs-index-refresh` / `docs_stratego_source_status` | 已满足 | 已能阻止子目录继续声明 `mkdocs.nav`。 |
-| 契约文件纳入自动发现与导航 | `factory-docs-index-refresh` | 原先不满足，本轮已补齐 | 现在自动识别 `*.openapi.*`、`*.mcp-tools.*`。 |
-| 契约文件最小结构校验 | `docs_stratego_source_status` | 原先不满足，本轮已补齐 | 新增 OpenAPI 与 MCP tools 最小字段检查。 |
+| 根 `docs/index.md` 作为唯一导航入口 | `document-templates` skill + `docs-stratego source validate` | 已满足 | 根导航由 skill 维护，合规性由 CLI 校验。 |
+| 子目录 `index.md` 不再声明导航 | `document-templates` skill + `docs-stratego source validate` | 已满足 | 目录首页只保留正文职责。 |
+| 契约文件纳入自动发现与导航 | `document-templates` skill | 已满足 | skill 已明确 `*.openapi.*`、`*.mcp-tools.*` 的放置规则。 |
+| 契约文件最小结构校验 | `docs-stratego source validate` | 已满足 | 统一交由 `docs-stratego` CLI 做最小结构检查。 |
 | 目录首页不再重复页面清单 | 目录首页生成逻辑 | 原先不满足，本轮已补齐 | 原先会生成“建议阅读顺序”，现改为范围/边界说明。 |
 | 自定义首页正文保留 | 根/目录 `index.md` 合并逻辑 | 已满足 | 既有人工正文仍保留。 |
 | 页面访问级别以根导航为准 | 根索引刷新逻辑 | 已满足 | 当前已保留 `home_access` 与页面级 `access`/`title`。 |
 | 源仓维护目录分组与顺序 | 根索引刷新逻辑 | 基本满足 | 现在会保留以真实目录概览页为锚点的人工分组、标题与顺序。 |
-| 一键升级到最新标准 | 高层入口命令 | 本轮已补齐 | 新增 `factory-docs-standard-upgrade` 收口迁移、刷新和校验。 |
+| 一键升级到最新标准 | `document-templates` skill + CLI 校验 | 已重构 | 不再保留仓内专用升级脚本。 |
 
 ## 3. 本轮设计决策
 
 ### 3.1 已落地
 
-- 根索引刷新支持保留已有 `mkdocs.home_access`。
-- 根索引刷新支持保留已有页面节点 `title` 与 `access`。
-- 根索引刷新支持保留以真实目录为锚点的目录节点标题和顺序。
-- 自动索引与校验同时识别 Markdown、OpenAPI 契约、MCP tools 快照。
-- 目录首页生成策略改为“说明范围与边界”，不再自动抄写子页面清单。
-- `assets/` 下的 Markdown 页面和契约文件会被明确报错。
-- 新增统一升级入口 `factory-docs-standard-upgrade`。
+- 文档重构流程统一收口到 `document-templates` skill。
+- 文档合规校验统一收口到 `docs-stratego source validate`。
+- 聚合站点接入、通知脚手架、同步、构建与预览统一收口到 `docs-stratego` CLI。
+- 仓内 `factory-docs-*` 旧命令不再作为正式流程保留。
 
 ### 3.2 仍保留为后续任务
 
@@ -52,11 +49,19 @@
 
 | 命令 | 影响 | 结论 |
 |---|---|---|
-| `factory-docs-index-refresh` | 会把契约文件纳入根导航，并刷新旧版目录首页正文 | 继续保留，作为主入口 |
-| `factory-docs-migrate-structure` | 仍负责把旧生命周期目录迁到 4 大模块结构 | 继续保留，历史项目先跑这个 |
-| `factory-docs-profile-detect` | 需要把 OpenAPI / MCP tools 视为二次开发信号 | 本轮已增强识别 |
-| `factory-historical-project-onboarding` | 纳管历史项目后，仍需补一次 docs 结构刷新与权限复核 | 保持现状，配合刷新方案执行 |
-| `factory-docs-standard-upgrade` | 串起迁移、索引刷新和最终校验 | 新增，作为最新规范升级入口 |
+| `factory-docs-index-refresh` | 旧的仓内 docs 刷新入口 | 退场 |
+| `factory-docs-migrate-structure` | 旧的仓内 docs 迁移入口 | 退场 |
+| `factory-docs-profile-detect` | 旧的仓内 docs 画像入口 | 退场 |
+| `factory-docs-standard-upgrade` | 旧的仓内 docs 升级入口 | 退场 |
+| `docs-stratego source validate` | 源仓文档合规校验 | 保留，作为正式校验入口 |
+| `docs-stratego source add/remove/scaffold-notify` | 聚合站点接入与通知脚手架 | 保留 |
+| `docs-stratego sync/build/dev` | 聚合站点同步、构建与预览 | 保留 |
+
+补充边界：
+
+- 本仓库内的文档内容维护，正式入口是 `document-templates` skill。
+- `docs-stratego` CLI 承担源仓校验、聚合站点接入、通知脚手架、同步、构建和预览。
+- 结论上，这一层已经从“山海工枢本地 docs 脚本 + docs-stratego 边界分层”改成“文档 skill + docs-stratego CLI”。
 
 ## 5. 对使用山海工枢项目的影响
 
@@ -70,8 +75,8 @@
 
 结论分两层：
 
-- 从“能不能用”看：当前工具已经能支撑最新标准的主路径，包括契约纳入、最小校验、目录首页策略修正、导航合并和统一升级入口。
-- 从“还剩什么边角”看：只剩“完全脱离真实目录锚点的人工包装分组”这类高自由度导航写法需要人工复核。
+- 从“正式入口”看：仓内旧 docs 处理脚本已经退出主路径，文档维护统一改走 `document-templates` skill，命令执行统一改走 `docs-stratego` CLI。
+- 从“还剩什么边角”看：仍然需要人工复核“完全脱离真实目录锚点的包装分组”和页面级权限例外。
 
 ## 7. 变更记录
 
@@ -79,3 +84,4 @@
 |---|---|---|
 | 2026-04-01 | 初始版本，完成《源文档标准》升级分析并登记本轮改造结论 | Codex |
 | 2026-04-01 | 补充导航合并与统一升级入口落地结论 | Codex |
+| 2026-04-03 | 明确本地 docs 维护入口与 `docs-stratego` CLI 校验/聚合入口的分层边界 | Codex |

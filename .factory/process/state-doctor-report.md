@@ -1,11 +1,11 @@
 # 项目状态诊断报告
 
-- 诊断时间：2026-04-02 13:03:13
-- 诊断负责人：Codex
-- 诊断范围：full
+- 诊断时间：2026-04-03 20:15:24
+- 诊断负责人：项目医生
+- 诊断范围：docs
 - 当前阶段：MAINTENANCE
-- 结果：通过
-- 备注：继续下一步
+- 结果：未通过
+- 备注：无
 
 ## 锁状态
 
@@ -27,12 +27,16 @@
 
 ## docs-stratego 源文档状态
 
-- `docs/` 已提供可供 docs-stratego 聚合的文档入口；根 `docs/index.md` 负责全站目录树、页面权限和契约渲染入口，各子目录 `index.md` 保持为正文概览页。
-- 当前文档内容未发现明显机器绝对路径污染。
+- `uvx --from docs-stratego docs-stratego source validate --repo-path /Users/uroborus/AiProject/shanforge --docs-dir docs` 失败：thread 'main2' (5022007) panicked at /Users/brew/Library/Caches/Homebrew/cargo_cache/registry/src/index.crates.io-1949cf8c6b5b557f/system-configuration-0.6.1/src/dynamic_store.rs:154:1:
+Attempted to create a NULL object.
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+thread 'main' (5022006) panicked at /private/tmp/uv-20251216-7757-vnmxef/uv-0.9.18/crates/uv/src/lib.rs:2540:10:
+Tokio executor failed, was there a panic?: Any { .. }
 
 ## AI 记忆状态
 
-- AI 记忆与当前项目资产时间线基本一致。
+- AI 记忆晚于源文件更新时间不足，建议刷新 `factory-refresh-memory`。
 
 ## 追踪状态
 
@@ -49,4 +53,5 @@
 
 ## 建议动作
 
-- 当前状态健康，可继续推进下一阶段或高层 profile。
+- 改用 `document-templates` skill 修正文档结构，再执行 `uvx --from docs-stratego docs-stratego source validate --repo-path <项目路径>` 做合规校验。
+- 执行 `factory-dispatch memory --project <项目路径>` 刷新 AI 记忆。

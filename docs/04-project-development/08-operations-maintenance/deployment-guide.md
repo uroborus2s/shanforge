@@ -24,21 +24,21 @@
 
 ```bash
 python3 -m unittest discover -s tests -p 'test_*.py'
-python3 scripts/factory-docs-index-refresh --project . --name shanforge --check
+uvx --from docs-stratego docs-stratego source validate --repo-path .
 ```
 
 3. 在目标项目中按需执行：
 
 ```bash
-python3 <shanforge-root>/scripts/factory-dispatch docs-migrate-structure --project "."
-python3 <shanforge-root>/scripts/factory-dispatch docs-index-refresh --project "." --check
+使用 `document-templates` skill 重构目标项目 `docs/`
+uvx --from docs-stratego docs-stratego source validate --repo-path "."
 ```
 
 ### 2.3 验证步骤
 
 - 目标项目 `docs/` 已为 4 大模块结构
 - 根 `docs/index.md` 能被章略·墨衡读取
-- `docs-index-refresh --check` 返回 `就绪`
+- `docs-stratego source validate` 返回 `就绪`
 
 ### 2.4 回滚步骤
 

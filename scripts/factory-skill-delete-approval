@@ -1,0 +1,557 @@
+#!/usr/bin/env python3
+
+import argparse
+from datetime import datetime
+import json
+from pathlib import Path
+import re
+import sys
+import uuid
+
+from factory_core import (
+    EXECUTION_LOG_RELATIVE,
+    append_log_line,
+    build_reply_summary,
+    factory_workspace_root,
+    load_json_document,
+    skill_change_governance,
+    write_text,
+)
+
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description="查看或处理首次发布新 skill 删除回退审批票据。")
+    parser.add_argument("target", nargs="?", help="候选 skill 名称/目录，或删除审批票据 ID。")
+    parser.add_argument("--list", action="store_true", help="列出当前 skill 删除审批票据。")
+    parser.add_argument("--request", action="store_true", help="为首次发布的新 skill 创建删除回退审批票据。")
+    parser.add_argument("--approve", action="store_true", help="批准指定删除审批票据。")
+    parser.add_argument("--reject", action="store_true", help="拒绝指定删除审批票据。")
+    parser.add_argument("--owner", default="审批人", help="当前审批人。")
+    parser.add_argument("--note", default="", help="审批备注。")
+    parser.add_argument("--json", action="store_true", help="以 JSON 输出。")
+    return parser.parse_args()
+
+
+def skill_slug(value: str) -> str:
+    normalized = re.sub(r"[^a-z0-9]+", "-", str(value or "").strip().lower()).strip("-")
+    return normalized or "candidate-skill"
+
+
+def candidate_root() -> Path:
+    governance = skill_change_governance()
+    root = str(governance.get("candidate_root", "skills-drafts")).strip() or "skills-drafts"
+    return factory_workspace_root() / root
+
+
+def delete_approval_state_path() -> Path:
+    return factory_workspace_root() / ".factory" / "process" / "skill-delete-approvals.json"
+
+
+def delete_approval_report_path() -> Path:
+    return factory_workspace_root() / ".factory" / "process" / "skill-delete-approvals.md"
+
+
+def delete_approval_summary_path() -> Path:
+    return factory_workspace_root() / ".factory" / "memory" / "skill-delete-approvals.summary.md"
+
+
+def load_delete_approval_records() -> list[dict]:
+    payload = load_json_document(delete_approval_state_path())
+    if not isinstance(payload, dict):
+        return []
+    records = payload.get("records", [])
+    if not isinstance(records, list):
+        return []
+    return [dict(item) for item in records if isinstance(item, dict)]
+
+
+def save_delete_approval_records(records: list[dict]) -> None:
+    payload = {
+        "version": 1,
+        "updated_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        "records": records,
+    }
+    write_text(delete_approval_state_path(), json.dumps(payload, ensure_ascii=False, indent=2))
+
+
+def new_delete_approval_id(candidate_name: str) -> str:
+    stamp = datetime.now().strftime("%Y%m%d%H%M%S")
+    short = uuid.uuid4().hex[:6]
+    return f"SDA-{stamp}-{skill_slug(candidate_name)[:12]}-{short}"
+
+
+def ordered_records(records: list[dict]) -> list[dict]:
+    return sorted(records, key=lambda item: str(item.get("created_at", "")), reverse=True)
+
+
+def render_delete_approval_report(records: list[dict]) -> str:
+    ordered = ordered_records(records)
+    pending = [item for item in ordered if item.get("status") == "pending"]
+    recent = [item for item in ordered if item.get("status") != "pending"][:10]
+    lines = [
+        "# Skill 删除回退审批记录",
+        "",
+        f"- 更新时间：{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
+        f"- 待审批票据：{len(pending)}",
+        f"- 全部票据：{len(ordered)}",
+        "",
+        "## 待审批",
+        "",
+    ]
+    if pending:
+        for item in pending:
+            lines.extend(
+                [
+                    f"- `{item.get('id', '')}` | 候选：`{item.get('candidate_name', '')}` | 正式目标：`{item.get('official_skill_path', '') or 'unknown'}`",
+                    f"  - 摘要：{item.get('summary', '')}",
+                    f"  - 删除模式：`{item.get('delete_mode', 'first_publish')}`",
+                ]
+            )
+    else:
+        lines.append("- 当前没有待审批票据。")
+    lines.extend(["", "## 最近已处理", ""])
+    if recent:
+        for item in recent:
+            lines.append(
+                f"- `{item.get('id', '')}` | 状态：`{item.get('status', '')}` | 候选：`{item.get('candidate_name', '')}` | 审批人：{item.get('decision_owner', '') or '无'}"
+            )
+    else:
+        lines.append("- 当前还没有已处理票据。")
+    return "\n".join(lines).rstrip() + "\n"
+
+
+def write_delete_approval_views(records: list[dict]) -> None:
+    pending = [item for item in records if item.get("status") == "pending"]
+    write_text(delete_approval_report_path(), render_delete_approval_report(records))
+    write_text(
+        delete_approval_summary_path(),
+        "\n".join(
+            [
+                "# Skill 删除回退审批摘要",
+                "",
+                f"- 时间：{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
+                f"- 待审批：{len(pending)}",
+                f"- 全部票据：{len(records)}",
+            ]
+        ),
+    )
+
+
+def resolve_candidate_dir(target: str) -> Path:
+    raw = str(target or "").strip()
+    if not raw:
+        raise RuntimeError("必须提供候选 skill 名称或目录。")
+    direct = Path(raw).expanduser()
+    if direct.exists():
+        return direct.resolve()
+    workspace_relative = (factory_workspace_root() / raw).resolve()
+    if workspace_relative.exists():
+        return workspace_relative
+    return (candidate_root() / skill_slug(raw)).resolve()
+
+
+def load_candidate_record(target: str) -> tuple[Path, dict]:
+    candidate_dir = resolve_candidate_dir(target)
+    proposal_path = candidate_dir / "proposal.json"
+    if not proposal_path.exists():
+        raise RuntimeError(f"候选 skill 提案不存在：{proposal_path}")
+    payload = load_json_document(proposal_path)
+    if not isinstance(payload, dict):
+        raise RuntimeError(f"候选 skill 提案无效：{proposal_path}")
+    return candidate_dir, payload
+
+
+def load_promotion_record(candidate_dir: Path) -> dict:
+    payload = load_json_document(candidate_dir / "promotion.json")
+    return dict(payload) if isinstance(payload, dict) else {}
+
+
+def delete_approval_file(candidate_dir: Path) -> Path:
+    return candidate_dir / "delete-approval.json"
+
+
+def load_delete_approval_file(candidate_dir: Path) -> dict:
+    payload = load_json_document(delete_approval_file(candidate_dir))
+    return dict(payload) if isinstance(payload, dict) else {}
+
+
+def official_skill_path(proposal: dict, promotion: dict) -> Path:
+    official_relative = (
+        str(promotion.get("official_skill_path", "")).strip()
+        or str(proposal.get("official_skill_path", "")).strip()
+    )
+    if not official_relative:
+        raise RuntimeError("候选 skill 缺少正式目标路径，无法申请删除回退审批。")
+    return (factory_workspace_root() / official_relative).resolve()
+
+
+def deletion_readiness(candidate_dir: Path, proposal: dict) -> dict:
+    promotion = load_promotion_record(candidate_dir)
+    delete_approval = load_delete_approval_file(candidate_dir)
+    promoted = str(proposal.get("promotion_status", "")).strip() == "promoted"
+    rollback_status = str(proposal.get("rollback_status", "")).strip()
+    official_path = official_skill_path(proposal, promotion) if promotion else None
+    backup_relative = str(promotion.get("backup_path", "")).strip()
+
+    blockers: list[str] = []
+    if not promotion:
+        blockers.append("候选 skill 不存在 promotion.json，尚未进入可删除回退状态。")
+    if not promoted:
+        blockers.append("候选 skill 当前不是已晋升状态。")
+    if backup_relative:
+        blockers.append("当前候选存在旧版本备份；应直接使用 skill-rollback 恢复备份，而不是申请首次发布删除回退审批。")
+    if official_path is not None and not official_path.exists():
+        blockers.append(f"正式 skill 文件不存在：{official_path}")
+    if rollback_status == "rolled_back":
+        blockers.append("候选 skill 已完成回退，不应再次申请首次发布删除审批。")
+
+    return {
+        "candidate_name": str(proposal.get("name", "")).strip(),
+        "candidate_dir": str(candidate_dir.resolve().relative_to(factory_workspace_root().resolve())),
+        "official_skill_path": (
+            str(official_path.relative_to(factory_workspace_root().resolve())) if official_path is not None else ""
+        ),
+        "promotion_id": str(promotion.get("id", "")).strip(),
+        "backup_path": backup_relative,
+        "delete_mode": "first_publish",
+        "delete_approval": delete_approval,
+        "ready": not blockers,
+        "blockers": blockers,
+    }
+
+
+def list_payload() -> dict:
+    records = ordered_records(load_delete_approval_records())
+    pending = [item for item in records if item.get("status") == "pending"]
+    recent = [item for item in records if item.get("status") != "pending"][:10]
+    payload = {
+        "status": "success",
+        "summary": f"当前共有 {len(records)} 张 skill 删除回退审批票据，其中待审批 {len(pending)} 张。",
+        "pending": pending,
+        "recent": recent,
+        "total": len(records),
+    }
+    payload["reply_summary"] = build_reply_summary("skill-delete-approval", payload)
+    return payload
+
+
+def inspect_target(target: str) -> dict:
+    if str(target).startswith("SDA-"):
+        records = load_delete_approval_records()
+        for item in records:
+            if item.get("id") == target:
+                payload = {
+                    "status": "success",
+                    "summary": f"已读取 skill 删除回退审批票据 `{target}`。",
+                    "ticket": target,
+                    "record": item,
+                }
+                payload["reply_summary"] = build_reply_summary("skill-delete-approval", payload)
+                return payload
+        raise RuntimeError(f"未找到 skill 删除回退审批票据：{target}")
+
+    candidate_dir, proposal = load_candidate_record(target)
+    readiness = deletion_readiness(candidate_dir, proposal)
+    payload = {
+        "status": "ready" if readiness["ready"] else "blocked",
+        "summary": f"已读取候选 skill `{readiness['candidate_name']}` 的首次发布删除回退条件。",
+        "candidate": readiness,
+    }
+    payload["reply_summary"] = build_reply_summary("skill-delete-approval", payload)
+    return payload
+
+
+def write_candidate_delete_approval(candidate_dir: Path, proposal: dict, decision_payload: dict) -> None:
+    write_text(delete_approval_file(candidate_dir), json.dumps(decision_payload, ensure_ascii=False, indent=2))
+    write_text(candidate_dir / "proposal.json", json.dumps(proposal, ensure_ascii=False, indent=2))
+
+
+def request_ticket(target: str, *, owner: str, note: str) -> dict:
+    candidate_dir, proposal = load_candidate_record(target)
+    readiness = deletion_readiness(candidate_dir, proposal)
+    if not readiness["ready"]:
+        raise RuntimeError("候选 skill 未满足首次发布删除审批条件：" + "；".join(readiness["blockers"]))
+
+    records = load_delete_approval_records()
+    candidate_name = readiness["candidate_name"]
+    existing = next(
+        (
+            item for item in records
+            if item.get("candidate_name") == candidate_name and item.get("status") == "pending"
+        ),
+        None,
+    )
+    if existing:
+        payload = {
+            "status": "already_pending",
+            "summary": f"候选 skill `{candidate_name}` 已存在待审批的删除回退票据 `{existing['id']}`。",
+            "ticket": existing["id"],
+            "record": existing,
+        }
+        payload["reply_summary"] = build_reply_summary("skill-delete-approval", payload)
+        return payload
+
+    delete_approval = readiness.get("delete_approval") or {}
+    if str(delete_approval.get("decision", "")).strip() == "approve":
+        payload = {
+            "status": "already_approved",
+            "summary": f"候选 skill `{candidate_name}` 已存在已批准的删除回退记录 `{delete_approval.get('ticket', '')}`。",
+            "ticket": delete_approval.get("ticket", ""),
+            "record": delete_approval,
+        }
+        payload["reply_summary"] = build_reply_summary("skill-delete-approval", payload)
+        return payload
+
+    now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    ticket = new_delete_approval_id(candidate_name)
+    record = {
+        "id": ticket,
+        "status": "pending",
+        "created_at": now,
+        "updated_at": now,
+        "requested_by": owner,
+        "candidate_name": candidate_name,
+        "candidate_dir": readiness["candidate_dir"],
+        "official_skill_path": readiness["official_skill_path"],
+        "promotion_id": readiness["promotion_id"],
+        "delete_mode": readiness["delete_mode"],
+        "summary": f"首次发布的新 skill `{candidate_name}` 申请删除回退审批。",
+        "approval": "explicit_confirm",
+        "note": note.strip(),
+        "artifacts": [
+            readiness["candidate_dir"] + "/promotion.json",
+            readiness["candidate_dir"] + "/proposal.json",
+            ".factory/process/skill-delete-approvals.json",
+            ".factory/process/skill-delete-approvals.md",
+            ".factory/memory/skill-delete-approvals.summary.md",
+        ],
+    }
+    records.append(record)
+    save_delete_approval_records(records)
+    write_delete_approval_views(records)
+    append_log_line(
+        factory_workspace_root() / EXECUTION_LOG_RELATIVE,
+        f"- {datetime.now().strftime('%Y-%m-%d')}: 创建 skill 删除回退审批票据 `{ticket}`，候选 `{candidate_name}`。",
+    )
+    payload = {
+        "status": "pending_approval",
+        "summary": f"已为候选 skill `{candidate_name}` 创建首次发布删除回退审批票据 `{ticket}`。",
+        "ticket": ticket,
+        "record": record,
+        "artifacts": [
+            ".factory/process/skill-delete-approvals.json",
+            ".factory/process/skill-delete-approvals.md",
+            ".factory/memory/skill-delete-approvals.summary.md",
+        ],
+        "next_actions": [
+            f"运行 `python3 {factory_workspace_root() / 'scripts' / 'factory-dispatch'} skill-delete-approval {ticket} --approve --owner \"<owner>\"` 批准票据。",
+            f"或运行 `python3 {factory_workspace_root() / 'scripts' / 'factory-dispatch'} skill-delete-approval {ticket} --reject --owner \"<owner>\"` 拒绝票据。",
+        ],
+    }
+    payload["reply_summary"] = build_reply_summary("skill-delete-approval", payload)
+    return payload
+
+
+def decide_ticket(ticket: str, *, decision: str, owner: str, note: str) -> dict:
+    records = load_delete_approval_records()
+    index = next((i for i, item in enumerate(records) if item.get("id") == ticket), None)
+    if index is None:
+        raise RuntimeError(f"未找到 skill 删除回退审批票据：{ticket}")
+    record = dict(records[index])
+    status = str(record.get("status", "")).strip()
+    if status != "pending":
+        payload = {
+            "status": "already_processed",
+            "summary": f"票据 `{ticket}` 已处理，当前状态 `{status}`。",
+            "ticket": ticket,
+            "record": record,
+        }
+        payload["reply_summary"] = build_reply_summary("skill-delete-approval", payload)
+        return payload
+
+    candidate_dir, proposal = load_candidate_record(record.get("candidate_dir", ""))
+    readiness = deletion_readiness(candidate_dir, proposal)
+    if decision == "approve" and not readiness["ready"]:
+        raise RuntimeError("候选 skill 未满足首次发布删除审批条件：" + "；".join(readiness["blockers"]))
+
+    now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    record["decision"] = decision
+    record["decision_owner"] = owner
+    record["decision_note"] = note.strip()
+    record["decided_at"] = now
+    record["updated_at"] = now
+
+    approval_payload = {
+        "version": 1,
+        "ticket": ticket,
+        "decision": decision,
+        "owner": owner,
+        "note": note.strip(),
+        "decided_at": now,
+        "mode": "first_publish_delete",
+        "official_skill_path": readiness["official_skill_path"],
+    }
+
+    if decision == "approve":
+        record["status"] = "approved"
+        proposal["delete_approval_status"] = "approved"
+        summary = f"已批准首次发布新 skill 的删除回退票据 `{ticket}`。"
+        next_actions = [
+            f"现在可以运行 `python3 {factory_workspace_root() / 'scripts' / 'factory-dispatch'} skill-rollback {readiness['candidate_name']} --owner \"<owner>\"` 执行删除回退。",
+        ]
+    else:
+        record["status"] = "rejected"
+        proposal["delete_approval_status"] = "rejected"
+        summary = f"已拒绝首次发布新 skill 的删除回退票据 `{ticket}`。"
+        next_actions = ["如需继续推进，请确认删除风险后重新申请审批。"]
+
+    proposal["delete_approval_record"] = approval_payload
+    record["approval_record"] = approval_payload
+    write_candidate_delete_approval(candidate_dir, proposal, approval_payload)
+
+    records[index] = record
+    save_delete_approval_records(records)
+    write_delete_approval_views(records)
+    append_log_line(
+        factory_workspace_root() / EXECUTION_LOG_RELATIVE,
+        f"- {datetime.now().strftime('%Y-%m-%d')}: skill 删除回退审批票据 `{ticket}` 执行 `{decision}`，候选 `{record.get('candidate_name', '')}`，审批人 `{owner}`。",
+    )
+
+    payload = {
+        "status": record["status"],
+        "summary": summary,
+        "ticket": ticket,
+        "record": record,
+        "artifacts": [
+            record["candidate_dir"] + "/delete-approval.json",
+            record["candidate_dir"] + "/proposal.json",
+            ".factory/process/skill-delete-approvals.json",
+        ],
+        "next_actions": next_actions,
+    }
+    payload["reply_summary"] = build_reply_summary("skill-delete-approval", payload)
+    return payload
+
+
+def render_markdown(payload: dict) -> str:
+    status = payload.get("status", "unknown")
+    if "pending" in payload and "recent" in payload:
+        lines = [
+            "# Skill 删除回退审批票据",
+            "",
+            f"- 状态：`{status}`",
+            f"- 摘要：{payload.get('summary', '无')}",
+            "",
+            "## 待审批",
+            "",
+        ]
+        pending = payload.get("pending", [])
+        if pending:
+            for item in pending:
+                lines.append(
+                    f"- `{item.get('id', '')}` | 候选：`{item.get('candidate_name', '')}` | 正式目标：`{item.get('official_skill_path', '')}`"
+                )
+        else:
+            lines.append("- 当前没有待审批票据。")
+        lines.extend(["", "## 最近已处理", ""])
+        recent = payload.get("recent", [])
+        if recent:
+            for item in recent:
+                lines.append(
+                    f"- `{item.get('id', '')}` | 状态：`{item.get('status', '')}` | 候选：`{item.get('candidate_name', '')}` | 审批人：{item.get('decision_owner', '') or '无'}"
+                )
+        else:
+            lines.append("- 当前还没有已处理票据。")
+        items = (payload.get("reply_summary") or {}).get("items") or []
+        if items:
+            lines.extend(["", "## 对话摘要", ""])
+            for item in items:
+                lines.append(f"- {item.get('label', item.get('path', ''))}：{item.get('value')}")
+        return "\n".join(lines).rstrip() + "\n"
+
+    if "candidate" in payload:
+        candidate = payload["candidate"]
+        lines = [
+            "# Skill 删除回退审批检查",
+            "",
+            f"- 状态：`{status}`",
+            f"- 摘要：{payload.get('summary', '无')}",
+            f"- 候选：`{candidate.get('candidate_name', '')}`",
+            f"- 目录：`{candidate.get('candidate_dir', '')}`",
+            f"- 正式目标：`{candidate.get('official_skill_path', '')}`",
+            f"- 删除模式：`{candidate.get('delete_mode', 'first_publish')}`",
+            f"- 是否就绪：`{'是' if candidate.get('ready') else '否'}`",
+        ]
+        blockers = candidate.get("blockers") or []
+        if blockers:
+            lines.extend(["", "## 阻断项", ""])
+            lines.extend(f"- {item}" for item in blockers)
+        items = (payload.get("reply_summary") or {}).get("items") or []
+        if items:
+            lines.extend(["", "## 对话摘要", ""])
+            for item in items:
+                lines.append(f"- {item.get('label', item.get('path', ''))}：{item.get('value')}")
+        return "\n".join(lines).rstrip() + "\n"
+
+    record = payload.get("record") or {}
+    lines = [
+        "# Skill 删除回退审批票据",
+        "",
+        f"- 状态：`{status}`",
+        f"- 摘要：{payload.get('summary', '无')}",
+        f"- 票据：`{payload.get('ticket', record.get('id', ''))}`",
+        f"- 候选：`{record.get('candidate_name', '')}`",
+        f"- 正式目标：`{record.get('official_skill_path', '')}`",
+        f"- 删除模式：`{record.get('delete_mode', 'first_publish')}`",
+        f"- 审批策略：`{record.get('approval', 'explicit_confirm')}`",
+    ]
+    next_actions = payload.get("next_actions") or []
+    if next_actions:
+        lines.extend(["", "## 下一步", ""])
+        lines.extend(f"- {item}" for item in next_actions)
+    items = (payload.get("reply_summary") or {}).get("items") or []
+    if items:
+        lines.extend(["", "## 对话摘要", ""])
+        for item in items:
+            lines.append(f"- {item.get('label', item.get('path', ''))}：{item.get('value')}")
+    return "\n".join(lines).rstrip() + "\n"
+
+
+def main() -> int:
+    args = parse_args()
+    try:
+        if sum(1 for flag in (args.list, args.request, args.approve, args.reject) if flag) > 1:
+            raise RuntimeError("`--list`、`--request`、`--approve`、`--reject` 只能选择一个。")
+
+        if args.list or (not args.target and not args.request and not args.approve and not args.reject):
+            payload = list_payload()
+        elif args.request:
+            if not args.target:
+                raise RuntimeError("申请 skill 删除回退审批票据时必须提供候选 skill 名称或目录。")
+            payload = request_ticket(args.target, owner=args.owner.strip(), note=args.note)
+        elif args.approve:
+            if not args.target:
+                raise RuntimeError("批准 skill 删除回退审批票据时必须提供 ticket。")
+            payload = decide_ticket(args.target, decision="approve", owner=args.owner.strip(), note=args.note)
+        elif args.reject:
+            if not args.target:
+                raise RuntimeError("拒绝 skill 删除回退审批票据时必须提供 ticket。")
+            payload = decide_ticket(args.target, decision="reject", owner=args.owner.strip(), note=args.note)
+        else:
+            if not args.target:
+                raise RuntimeError("请提供候选 skill 名称/目录或审批票据 ID。")
+            payload = inspect_target(args.target)
+    except Exception as exc:
+        print(f"skill 删除回退审批失败：{exc}", file=sys.stderr)
+        return 1
+
+    if args.json:
+        print(json.dumps(payload, ensure_ascii=False, indent=2))
+        return 0
+
+    print(render_markdown(payload))
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

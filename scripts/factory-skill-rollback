@@ -1,0 +1,483 @@
+#!/usr/bin/env python3
+
+from __future__ import annotations
+
+import argparse
+from datetime import datetime
+import json
+from pathlib import Path
+import re
+import sys
+import uuid
+
+from factory_core import (
+    EXECUTION_LOG_RELATIVE,
+    append_log_line,
+    build_reply_summary,
+    factory_workspace_root,
+    load_json_document,
+    skill_change_governance,
+    write_text,
+)
+
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description="将已晋升 skill 安全回退到候选目录中的旧版本备份。")
+    parser.add_argument("target", nargs="?", help="候选 skill 名称/目录，或回退记录 ID。")
+    parser.add_argument("--list", action="store_true", help="列出当前 skill 回退记录。")
+    parser.add_argument("--check", action="store_true", help="只检查当前候选 skill 是否满足回退条件。")
+    parser.add_argument("--owner", default="技能回退者", help="当前回退责任人。")
+    parser.add_argument("--note", default="", help="回退备注。")
+    parser.add_argument("--json", action="store_true", help="以 JSON 输出。")
+    return parser.parse_args()
+
+
+def skill_slug(value: str) -> str:
+    normalized = re.sub(r"[^a-z0-9]+", "-", str(value or "").strip().lower()).strip("-")
+    return normalized or "candidate-skill"
+
+
+def candidate_root() -> Path:
+    governance = skill_change_governance()
+    root = str(governance.get("candidate_root", "skills-drafts")).strip() or "skills-drafts"
+    return factory_workspace_root() / root
+
+
+def skill_rollback_state_path() -> Path:
+    return factory_workspace_root() / ".factory" / "process" / "skill-rollbacks.json"
+
+
+def skill_rollback_report_path() -> Path:
+    return factory_workspace_root() / ".factory" / "process" / "skill-rollbacks.md"
+
+
+def skill_rollback_summary_path() -> Path:
+    return factory_workspace_root() / ".factory" / "memory" / "skill-rollbacks.summary.md"
+
+
+def load_skill_rollback_records() -> list[dict]:
+    payload = load_json_document(skill_rollback_state_path())
+    if not isinstance(payload, dict):
+        return []
+    records = payload.get("records", [])
+    if not isinstance(records, list):
+        return []
+    return [dict(item) for item in records if isinstance(item, dict)]
+
+
+def save_skill_rollback_records(records: list[dict]) -> None:
+    payload = {
+        "version": 1,
+        "updated_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        "records": records,
+    }
+    write_text(skill_rollback_state_path(), json.dumps(payload, ensure_ascii=False, indent=2))
+
+
+def new_skill_rollback_id(candidate_name: str) -> str:
+    stamp = datetime.now().strftime("%Y%m%d%H%M%S")
+    short = uuid.uuid4().hex[:6]
+    return f"SR-{stamp}-{skill_slug(candidate_name)[:12]}-{short}"
+
+
+def ordered_records(records: list[dict]) -> list[dict]:
+    return sorted(records, key=lambda item: str(item.get("rolled_back_at", item.get("updated_at", ""))), reverse=True)
+
+
+def render_skill_rollback_report(records: list[dict]) -> str:
+    ordered = ordered_records(records)
+    recent = ordered[:10]
+    lines = [
+        "# Skill 回退记录",
+        "",
+        f"- 更新时间：{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
+        f"- 全部记录：{len(ordered)}",
+        "",
+        "## 最近回退",
+        "",
+    ]
+    if recent:
+        for item in recent:
+            lines.append(
+                f"- `{item.get('id', '')}` | 候选：`{item.get('candidate_name', '')}` | 正式目标：`{item.get('official_skill_path', '')}` | 回退者：{item.get('owner', '') or '无'}"
+            )
+    else:
+        lines.append("- 当前还没有 skill 回退记录。")
+    return "\n".join(lines).rstrip() + "\n"
+
+
+def write_skill_rollback_views(records: list[dict]) -> None:
+    ordered = ordered_records(records)
+    write_text(skill_rollback_report_path(), render_skill_rollback_report(records))
+    write_text(
+        skill_rollback_summary_path(),
+        "\n".join(
+            [
+                "# Skill 回退摘要",
+                "",
+                f"- 时间：{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
+                f"- 总记录：{len(ordered)}",
+                f"- 最近回退：{ordered[0].get('candidate_name', '无') if ordered else '无'}",
+            ]
+        ),
+    )
+
+
+def resolve_candidate_dir(target: str) -> Path:
+    raw = str(target or "").strip()
+    if not raw:
+        raise RuntimeError("必须提供候选 skill 名称或目录。")
+    direct = Path(raw).expanduser()
+    if direct.exists():
+        return direct.resolve()
+    workspace_relative = (factory_workspace_root() / raw).resolve()
+    if workspace_relative.exists():
+        return workspace_relative
+    return (candidate_root() / skill_slug(raw)).resolve()
+
+
+def load_candidate_record(target: str) -> tuple[Path, dict]:
+    candidate_dir = resolve_candidate_dir(target)
+    proposal_path = candidate_dir / "proposal.json"
+    if not proposal_path.exists():
+        raise RuntimeError(f"候选 skill 提案不存在：{proposal_path}")
+    payload = load_json_document(proposal_path)
+    if not isinstance(payload, dict):
+        raise RuntimeError(f"候选 skill 提案无效：{proposal_path}")
+    return candidate_dir, payload
+
+
+def load_promotion_record(candidate_dir: Path) -> dict:
+    payload = load_json_document(candidate_dir / "promotion.json")
+    return dict(payload) if isinstance(payload, dict) else {}
+
+
+def load_delete_approval_record(candidate_dir: Path) -> dict:
+    payload = load_json_document(candidate_dir / "delete-approval.json")
+    return dict(payload) if isinstance(payload, dict) else {}
+
+
+def official_skill_path(proposal: dict, promotion: dict) -> Path:
+    official_relative = (
+        str(promotion.get("official_skill_path", "")).strip()
+        or str(proposal.get("official_skill_path", "")).strip()
+    )
+    if not official_relative:
+        raise RuntimeError("候选 skill 缺少正式目标路径，无法回退。")
+    return (factory_workspace_root() / official_relative).resolve()
+
+
+def backup_path(candidate_dir: Path, promotion: dict) -> Path | None:
+    relative = str(promotion.get("backup_path", "")).strip()
+    if not relative:
+        return None
+    return (factory_workspace_root() / relative).resolve()
+
+
+def readiness_payload(candidate_dir: Path, proposal: dict) -> dict:
+    promotion = load_promotion_record(candidate_dir)
+    delete_approval = load_delete_approval_record(candidate_dir)
+    promoted = str(proposal.get("promotion_status", "")).strip() == "promoted"
+    official_path = official_skill_path(proposal, promotion) if promotion else None
+    backup = backup_path(candidate_dir, promotion) if promotion else None
+    rollback_mode = ""
+    governance = skill_change_governance()
+    require_delete_approval = bool(governance.get("require_first_publish_delete_approval", True))
+
+    blockers: list[str] = []
+    if not promotion:
+        blockers.append("候选 skill 不存在 promotion.json，尚未进入可回退状态。")
+    if not promoted:
+        blockers.append("候选 skill 当前不是已晋升状态。")
+    if backup and not backup.exists():
+        blockers.append(f"旧版本备份不存在：{backup}")
+    if official_path is not None and not official_path.exists():
+        blockers.append(f"正式 skill 文件不存在：{official_path}")
+    if not backup:
+        delete_decision = str(delete_approval.get("decision", "")).strip()
+        if require_delete_approval and delete_decision == "approve":
+            rollback_mode = "delete_first_publish"
+        else:
+            blockers.append(
+                "当前候选没有旧版本备份；首次发布的新 skill 需要先通过 `skill-delete-approval` 明确批准后才能执行删除回退。"
+            )
+    else:
+        rollback_mode = "restore_backup"
+
+    return {
+        "candidate_name": str(proposal.get("name", "")).strip(),
+        "candidate_dir": str(candidate_dir.resolve().relative_to(factory_workspace_root().resolve())),
+        "official_skill_path": (
+            str(official_path.relative_to(factory_workspace_root().resolve())) if official_path is not None else ""
+        ),
+        "backup_path": str(backup.relative_to(factory_workspace_root().resolve())) if backup and backup.exists() else "",
+        "rollback_mode": rollback_mode,
+        "delete_approval": delete_approval,
+        "promotion": promotion,
+        "ready": not blockers,
+        "blockers": blockers,
+    }
+
+
+def list_payload() -> dict:
+    records = ordered_records(load_skill_rollback_records())
+    payload = {
+        "status": "success",
+        "summary": f"当前共有 {len(records)} 条 skill 回退记录。",
+        "recent": records[:10],
+        "total": len(records),
+    }
+    payload["reply_summary"] = build_reply_summary("skill-rollback", payload)
+    return payload
+
+
+def inspect_target(target: str) -> dict:
+    if str(target).startswith("SR-"):
+        for item in load_skill_rollback_records():
+            if item.get("id") == target:
+                payload = {
+                    "status": "success",
+                    "summary": f"已读取 skill 回退记录 `{target}`。",
+                    "record": item,
+                    "rollback": item,
+                }
+                payload["reply_summary"] = build_reply_summary("skill-rollback", payload)
+                return payload
+        raise RuntimeError(f"未找到 skill 回退记录：{target}")
+
+    candidate_dir, proposal = load_candidate_record(target)
+    readiness = readiness_payload(candidate_dir, proposal)
+    payload = {
+        "status": "ready" if readiness["ready"] else "blocked",
+        "summary": f"已检查候选 skill `{readiness['candidate_name']}` 的回退条件。",
+        "candidate": readiness,
+    }
+    payload["reply_summary"] = build_reply_summary("skill-rollback", payload)
+    return payload
+
+
+def write_candidate_rollback(candidate_dir: Path, proposal: dict, record: dict) -> None:
+    write_text(candidate_dir / "rollback.json", json.dumps(record, ensure_ascii=False, indent=2))
+    write_text(candidate_dir / "proposal.json", json.dumps(proposal, ensure_ascii=False, indent=2))
+
+
+def rollback_candidate(target: str, *, owner: str, note: str) -> dict:
+    candidate_dir, proposal = load_candidate_record(target)
+    if str(proposal.get("rollback_status", "")).strip() == "rolled_back":
+        existing = load_json_document(candidate_dir / "rollback.json")
+        payload = {
+            "status": "already_rolled_back",
+            "summary": f"候选 skill `{proposal.get('name', '')}` 已完成回退。",
+            "rollback": dict(existing) if isinstance(existing, dict) else {},
+        }
+        payload["reply_summary"] = build_reply_summary("skill-rollback", payload)
+        return payload
+
+    readiness = readiness_payload(candidate_dir, proposal)
+    if not readiness["ready"]:
+        raise RuntimeError("候选 skill 未满足回退条件：" + "；".join(readiness["blockers"]))
+
+    promotion = readiness["promotion"]
+    official_path = (factory_workspace_root().resolve() / readiness["official_skill_path"]).resolve()
+    delete_approval = readiness.get("delete_approval") or {}
+    records = load_skill_rollback_records()
+
+    current_backup_relative = ""
+    if official_path.exists():
+        mode_suffix = "delete-rollback" if readiness["rollback_mode"] == "delete_first_publish" else "rollback"
+        current_backup_name = f"official-SKILL.before-{mode_suffix}-{datetime.now().strftime('%Y%m%d%H%M%S')}.md"
+        current_backup_path = candidate_dir / "backups" / current_backup_name
+        write_text(current_backup_path, official_path.read_text(encoding="utf-8"))
+        current_backup_relative = str(current_backup_path.resolve().relative_to(factory_workspace_root().resolve()))
+
+    restored_from_backup = ""
+    if readiness["rollback_mode"] == "restore_backup":
+        backup = (factory_workspace_root().resolve() / readiness["backup_path"]).resolve()
+        write_text(official_path, backup.read_text(encoding="utf-8"))
+        restored_from_backup = readiness["backup_path"]
+    else:
+        official_path.unlink()
+
+    rolled_back_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    rollback_id = new_skill_rollback_id(readiness["candidate_name"])
+    record = {
+        "version": 1,
+        "id": rollback_id,
+        "status": "rolled_back",
+        "rollback_mode": readiness["rollback_mode"],
+        "candidate_name": readiness["candidate_name"],
+        "candidate_dir": readiness["candidate_dir"],
+        "official_skill_path": readiness["official_skill_path"],
+        "restored_from_backup": restored_from_backup,
+        "delete_approval_ticket": delete_approval.get("ticket", ""),
+        "current_live_backup_path": current_backup_relative,
+        "owner": owner,
+        "note": note.strip(),
+        "rolled_back_at": rolled_back_at,
+        "promotion_id": promotion.get("id", ""),
+    }
+    records.append(record)
+    save_skill_rollback_records(records)
+    write_skill_rollback_views(records)
+
+    proposal["status"] = "rolled_back_candidate"
+    proposal["promotion_status"] = "rolled_back"
+    proposal["rollback_status"] = "rolled_back"
+    proposal["rolled_back_at"] = rolled_back_at
+    proposal["rollback_record"] = record
+    write_candidate_rollback(candidate_dir, proposal, record)
+
+    append_log_line(
+        factory_workspace_root() / EXECUTION_LOG_RELATIVE,
+        f"- {datetime.now().strftime('%Y-%m-%d')}: 执行 skill 回退 `{rollback_id}`，模式 `{readiness['rollback_mode']}`，候选 `{readiness['candidate_name']}` -> `{readiness['official_skill_path']}`，回退者 `{owner}`。",
+    )
+
+    artifacts = [
+        readiness["candidate_dir"] + "/rollback.json",
+        ".factory/process/skill-rollbacks.json",
+        ".factory/process/skill-rollbacks.md",
+        ".factory/memory/skill-rollbacks.summary.md",
+    ]
+    if readiness["rollback_mode"] == "restore_backup":
+        artifacts.append(readiness["official_skill_path"])
+    else:
+        artifacts.append(readiness["candidate_dir"] + "/delete-approval.json")
+    if current_backup_relative:
+        artifacts.append(current_backup_relative)
+
+    if readiness["rollback_mode"] == "restore_backup":
+        summary = f"已将候选 skill `{readiness['candidate_name']}` 回退到旧版本 `{readiness['backup_path']}`。"
+        next_actions = [
+            "若仍需再次发布，请从候选目录重新完成评估与批准后再晋升。",
+            "如需再次回退，优先复用候选目录中的备份与审批记录，不要手工覆盖正式 skill。",
+        ]
+    else:
+        summary = f"已删除首次发布的新 skill `{readiness['candidate_name']}` 的正式文件 `{readiness['official_skill_path']}`。"
+        next_actions = [
+            "若仍需重新发布，请从候选目录重新完成评估与批准后再晋升。",
+            "后续如需复盘本次删除回退，优先查看 delete-approval 与 rollback 记录，而不是手工追溯。",
+        ]
+
+    payload = {
+        "status": "rolled_back",
+        "summary": summary,
+        "rollback": record,
+        "artifacts": artifacts,
+        "next_actions": next_actions,
+    }
+    payload["reply_summary"] = build_reply_summary("skill-rollback", payload)
+    return payload
+
+
+def render_markdown(payload: dict) -> str:
+    status = payload.get("status", "unknown")
+    if "recent" in payload:
+        lines = [
+            "# Skill 回退记录",
+            "",
+            f"- 状态：`{status}`",
+            f"- 摘要：{payload.get('summary', '无')}",
+            f"- 总记录：`{payload.get('total', 0)}`",
+            "",
+            "## 最近记录",
+            "",
+        ]
+        recent = payload.get("recent", [])
+        if recent:
+            for item in recent:
+                lines.append(
+                    f"- `{item.get('id', '')}` | 候选：`{item.get('candidate_name', '')}` | 正式目标：`{item.get('official_skill_path', '')}` | 回退者：{item.get('owner', '') or '无'}"
+                )
+        else:
+            lines.append("- 当前还没有 skill 回退记录。")
+        items = (payload.get("reply_summary") or {}).get("items") or []
+        if items:
+            lines.extend(["", "## 对话摘要", ""])
+            for item in items:
+                lines.append(f"- {item.get('label', item.get('path', ''))}：{item.get('value')}")
+        return "\n".join(lines).rstrip() + "\n"
+
+    if "candidate" in payload:
+        candidate = payload["candidate"]
+        lines = [
+            "# Skill 回退检查",
+            "",
+            f"- 状态：`{status}`",
+            f"- 摘要：{payload.get('summary', '无')}",
+            f"- 候选：`{candidate.get('candidate_name', '')}`",
+            f"- 目录：`{candidate.get('candidate_dir', '')}`",
+            f"- 正式目标：`{candidate.get('official_skill_path', '')}`",
+            f"- 旧版本备份：`{candidate.get('backup_path', '') or '无'}`",
+            f"- 回退模式：`{candidate.get('rollback_mode', '') or 'blocked'}`",
+            f"- 是否就绪：`{'是' if candidate.get('ready') else '否'}`",
+        ]
+        blockers = candidate.get("blockers") or []
+        if blockers:
+            lines.extend(["", "## 阻断项", ""])
+            lines.extend(f"- {item}" for item in blockers)
+        items = (payload.get("reply_summary") or {}).get("items") or []
+        if items:
+            lines.extend(["", "## 对话摘要", ""])
+            for item in items:
+                lines.append(f"- {item.get('label', item.get('path', ''))}：{item.get('value')}")
+        return "\n".join(lines).rstrip() + "\n"
+
+    rollback = payload.get("rollback") or {}
+    lines = [
+        "# Skill 回退结果",
+        "",
+        f"- 状态：`{status}`",
+        f"- 摘要：{payload.get('summary', '无')}",
+        f"- 回退记录：`{rollback.get('id', '')}`",
+        f"- 候选：`{rollback.get('candidate_name', '')}`",
+        f"- 正式目标：`{rollback.get('official_skill_path', '')}`",
+        f"- 回退模式：`{rollback.get('rollback_mode', '') or 'restore_backup'}`",
+        f"- 回退者：`{rollback.get('owner', '')}`",
+    ]
+    if rollback.get("restored_from_backup"):
+        lines.append(f"- 恢复来源：`{rollback.get('restored_from_backup', '')}`")
+    if rollback.get("delete_approval_ticket"):
+        lines.append(f"- 删除审批票据：`{rollback.get('delete_approval_ticket', '')}`")
+    if rollback.get("current_live_backup_path"):
+        lines.append(f"- 当前版本备份：`{rollback.get('current_live_backup_path', '')}`")
+    next_actions = payload.get("next_actions") or []
+    if next_actions:
+        lines.extend(["", "## 下一步", ""])
+        lines.extend(f"- {item}" for item in next_actions)
+    items = (payload.get("reply_summary") or {}).get("items") or []
+    if items:
+        lines.extend(["", "## 对话摘要", ""])
+        for item in items:
+            lines.append(f"- {item.get('label', item.get('path', ''))}：{item.get('value')}")
+    return "\n".join(lines).rstrip() + "\n"
+
+
+def main() -> int:
+    args = parse_args()
+    try:
+        if args.list and args.check:
+            raise RuntimeError("`--list` 与 `--check` 不能同时使用。")
+        if args.list or (not args.target and not args.check):
+            payload = list_payload()
+        elif args.check:
+            if not args.target:
+                raise RuntimeError("检查回退条件时必须提供候选 skill 名称或目录。")
+            payload = inspect_target(args.target)
+        else:
+            if not args.target:
+                raise RuntimeError("执行 skill 回退时必须提供候选 skill 名称或目录。")
+            payload = rollback_candidate(args.target, owner=args.owner.strip(), note=args.note)
+    except Exception as exc:
+        print(f"skill 回退失败：{exc}", file=sys.stderr)
+        return 1
+
+    if args.json:
+        print(json.dumps(payload, ensure_ascii=False, indent=2))
+        return 0
+
+    print(render_markdown(payload))
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

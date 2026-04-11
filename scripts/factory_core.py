@@ -2611,6 +2611,15 @@ def frontend_prompt_examples(tool: str, role_title: str, focus: str) -> list[str
     prompts.append(
         "如果用户直接输入 `/gitcommitzh`，立即检查当前 Git 工作区与暂存区变化，输出结构化中文变更说明和中文提交信息草案；只有同条消息明确包含“提交”或“commit”时才继续执行本地提交。真正提交前，先显式列出“最终写入 Git 的提交信息原文”，提交时逐字复用这段原文；若用户已明确要求提交、暂存区为空、且未指定文件子集，则默认自动执行 `git add .` 纳入当前工作区改动，而不是中止。"
     )
+    prompts.append(
+        "如果 `gitcommitzh` 已经成功提交，必须再读取一次 Git 中实际写入的提交信息，并把完整标题和完整正文回显给用户，不能只返回提交号和标题。"
+    )
+    prompts.append(
+        "只有在拿到真实 commit short hash 之后，才能把状态写成“已提交”；禁止用 `[正在执行提交...]` 或其他占位文本冒充提交号。"
+    )
+    prompts.append(
+        "如果用户原始消息已经明确要求提交，则在同一轮内完成提交和回显；不要先输出一轮中间态摘要，再等待用户下一轮重复说“提交”。"
+    )
     if prompts:
         return prompts
     fallback = []

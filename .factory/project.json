@@ -819,7 +819,7 @@
   ],
   "last_project_compress_at": "2026-04-09 13:35:50",
   "last_project_compress_owner": "Codex",
-  "last_chat_bootstrap_at": "2026-04-12 01:39:52",
+  "last_chat_bootstrap_at": "2026-04-12 01:55:05",
   "last_chat_bootstrap_tool": "opencode",
   "last_chat_bootstrap_role": "coordinator",
   "chat_bootstraps": [
@@ -854,6 +854,14 @@
       "focus": "验证明确提交即授权",
       "output": ".factory/memory/chat-bootstrap.opencode.coordinator.md",
       "created_at": "2026-04-12 01:39:52"
+    },
+    {
+      "tool": "opencode",
+      "role": "coordinator",
+      "owner": "Codex",
+      "focus": "验证暂存区为空自动 git add",
+      "output": ".factory/memory/chat-bootstrap.opencode.coordinator.md",
+      "created_at": "2026-04-12 01:55:05"
     }
   ]
 }

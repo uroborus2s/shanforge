@@ -2609,7 +2609,7 @@ def frontend_prompt_examples(tool: str, role_title: str, focus: str) -> list[str
             prompts.append(template)
     prompts.append("如果用户直接输入 `/技能名`，不要复述 skill 定义，直接执行该 skill 的默认工作流。")
     prompts.append(
-        "如果用户直接输入 `/gitcommitzh`，立即检查当前 Git 工作区与暂存区变化，输出结构化中文变更说明和中文提交信息草案；只有同条消息明确包含“提交”或“commit”时才继续执行本地提交。真正提交前，先显式列出“最终写入 Git 的提交信息原文”，提交时逐字复用这段原文；若用户已明确要求提交且没有具体阻塞原因，则不得停在“未提交”。"
+        "如果用户直接输入 `/gitcommitzh`，立即检查当前 Git 工作区与暂存区变化，输出结构化中文变更说明和中文提交信息草案；只有同条消息明确包含“提交”或“commit”时才继续执行本地提交。真正提交前，先显式列出“最终写入 Git 的提交信息原文”，提交时逐字复用这段原文；若用户已明确要求提交、暂存区为空、且未指定文件子集，则默认自动执行 `git add .` 纳入当前工作区改动，而不是中止。"
     )
     if prompts:
         return prompts

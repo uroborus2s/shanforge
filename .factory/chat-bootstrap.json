@@ -1,9 +1,9 @@
 {
-  "generated_at": "2026-04-12 01:39:52",
+  "generated_at": "2026-04-12 01:55:05",
   "tool": "opencode",
   "role": "coordinator",
   "owner": "Codex",
-  "focus": "验证明确提交即授权",
+  "focus": "验证暂存区为空自动 git add",
   "output": "/Users/uroborus/AiProject/shanforge/.factory/memory/chat-bootstrap.opencode.coordinator.md",
   "reads": [
     ".factory/project.json",
@@ -16,11 +16,11 @@
     ".factory/memory/current-state.md"
   ],
   "commands": [
-    "python3 /Users/uroborus/AiProject/shanforge/scripts/factory-dispatch session --project /Users/uroborus/AiProject/shanforge --owner Codex --focus '验证明确提交即授权'",
-    "python3 /Users/uroborus/AiProject/shanforge/scripts/factory-dispatch workbench --project /Users/uroborus/AiProject/shanforge --role coordinator --owner Codex --focus '验证明确提交即授权'",
+    "python3 /Users/uroborus/AiProject/shanforge/scripts/factory-dispatch session --project /Users/uroborus/AiProject/shanforge --owner Codex --focus '验证暂存区为空自动 git add'",
+    "python3 /Users/uroborus/AiProject/shanforge/scripts/factory-dispatch workbench --project /Users/uroborus/AiProject/shanforge --role coordinator --owner Codex --focus '验证暂存区为空自动 git add'",
     "python3 /Users/uroborus/AiProject/shanforge/scripts/factory-dispatch assign --project /Users/uroborus/AiProject/shanforge --role requirements-analyst --owner Codex",
-    "python3 /Users/uroborus/AiProject/shanforge/scripts/factory-dispatch board --project /Users/uroborus/AiProject/shanforge --owner Codex --focus '验证明确提交即授权'",
-    "python3 /Users/uroborus/AiProject/shanforge/scripts/factory-dispatch pr-board --project /Users/uroborus/AiProject/shanforge --owner Codex --focus '验证明确提交即授权'",
+    "python3 /Users/uroborus/AiProject/shanforge/scripts/factory-dispatch board --project /Users/uroborus/AiProject/shanforge --owner Codex --focus '验证暂存区为空自动 git add'",
+    "python3 /Users/uroborus/AiProject/shanforge/scripts/factory-dispatch pr-board --project /Users/uroborus/AiProject/shanforge --owner Codex --focus '验证暂存区为空自动 git add'",
     "python3 /Users/uroborus/AiProject/shanforge/scripts/factory-dispatch pr-remote-sync --project /Users/uroborus/AiProject/shanforge --owner Codex",
     "python3 /Users/uroborus/AiProject/shanforge/scripts/factory-dispatch pr-check --project /Users/uroborus/AiProject/shanforge --owner Codex --mode review-ready",
     "python3 /Users/uroborus/AiProject/shanforge/scripts/factory-dispatch doctor --project /Users/uroborus/AiProject/shanforge --owner Codex --scope full"

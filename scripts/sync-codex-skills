@@ -12,6 +12,7 @@ ROOT = Path(__file__).resolve().parent.parent
 DEFAULT_SOURCE = ROOT / "skills"
 DEFAULT_CODEX_DIR = Path.home() / ".codex" / "skills"
 DEFAULT_GEMINI_DIR = Path.home() / ".gemini" / "skills"
+DEFAULT_AGENTS_DIR = Path.home() / ".agents" / "skills"
 
 
 @dataclass
@@ -25,7 +26,7 @@ class SyncStats:
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="把 shanforge 的共享 skills 增量同步到 ~/.codex/skills 和 ~/.gemini/skills。"
+        description="把 shanforge 的共享 skills 增量同步到 ~/.codex/skills、~/.gemini/skills 和 ~/.agents/skills。"
     )
     parser.add_argument(
         "--source",
@@ -43,6 +44,11 @@ def parse_args() -> argparse.Namespace:
         help="Gemini skills 目录，默认 ~/.gemini/skills。",
     )
     parser.add_argument(
+        "--agents-dir",
+        default=str(DEFAULT_AGENTS_DIR),
+        help="Agents skills 目录，默认 ~/.agents/skills。",
+    )
+    parser.add_argument(
         "--skip-codex",
         action="store_true",
         help="跳过 Codex 目录，只同步 Gemini。",
@@ -51,6 +57,11 @@ def parse_args() -> argparse.Namespace:
         "--skip-gemini",
         action="store_true",
         help="跳过 Gemini 目录，只同步 Codex。",
+    )
+    parser.add_argument(
+        "--skip-agents",
+        action="store_true",
+        help="跳过 Agents 目录，只同步其他宿主。",
     )
     parser.add_argument(
         "--include-hidden",
@@ -65,7 +76,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--repair-broken-target-links",
         action="store_true",
-        help="若 ~/.codex/skills 或 ~/.gemini/skills 是损坏的软链接，则删除后重建目录。",
+        help="若 ~/.codex/skills、~/.gemini/skills 或 ~/.agents/skills 是损坏的软链接，则删除后重建目录。",
     )
     parser.add_argument(
         "--dry-run",
@@ -189,13 +200,14 @@ def main() -> int:
     source_root = Path(args.source).expanduser().resolve()
     codex_dir = Path(args.codex_dir).expanduser()
     gemini_dir = Path(args.gemini_dir).expanduser()
+    agents_dir = Path(args.agents_dir).expanduser()
 
     if not source_root.exists() or not source_root.is_dir():
         print(f"skills 源目录不存在或不可读：{source_root}", file=sys.stderr)
         return 1
 
-    if args.skip_codex and args.skip_gemini:
-        print("没有可同步的目标：--skip-codex 和 --skip-gemini 不能同时使用。", file=sys.stderr)
+    if args.skip_codex and args.skip_gemini and args.skip_agents:
+        print("没有可同步的目标：--skip-codex、--skip-gemini 和 --skip-agents 不能同时使用。", file=sys.stderr)
         return 1
 
     targets: list[tuple[str, Path]] = []
@@ -203,6 +215,8 @@ def main() -> int:
         targets.append(("codex", codex_dir))
     if not args.skip_gemini:
         targets.append(("gemini", gemini_dir))
+    if not args.skip_agents:
+        targets.append(("agents", agents_dir))
 
     exit_code = 0
     for label, target_root in targets:

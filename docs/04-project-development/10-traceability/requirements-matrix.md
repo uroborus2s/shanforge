@@ -34,6 +34,7 @@
 | `API-004` | 项目状态层 | 被管理项目、脚本、模型 | `.factory/project.json` | 状态结构有效性 | 项目协调者 |
 | `API-005` | 正式文档层 | 人类读者、维护者、`docs-stratego` | `docs/*` | 文档是否可发现和可追踪 | 文档维护者 |
 | `API-006` | `factory-historical-project-onboarding` / `factory-dispatch historical-project-onboarding` | 维护者、项目协调者 | `historical-project-onboarding-automation.md`, `scripts/factory-historical-project-onboarding`, `scripts/factory-dispatch` | 命令是否可在非空历史仓库中补齐最小骨架并生成 session/doctor | 脚本维护者 |
+| `API-007` | `sync-codex-skills` | 使用者、维护者 | `scripts/sync-codex-skills` | 仓库内共享 skills 是否能稳定增量同步到 Codex / Gemini / Agents 三端目录 | 脚本维护者 |
 | `API-008` | `docs-stratego source validate` | 文档维护者、项目协调者 | `docs-stratego` CLI | 源仓 docs 是否达到 `就绪` 状态 | 文档维护者 |
 | `API-009` | `docs-stratego source add/remove/scaffold-notify/sync/build/dev` | 平台维护者、项目协调者 | `docs-stratego` CLI | 聚合接入、构建和预览链路是否健康 | 平台维护者 |
 | `API-014` | `factory-intent-resolver` / `factory-dispatch intent-resolver` | 使用者、维护者 | `scripts/factory-intent-resolver`, `scripts/factory-dispatch`, `config/action-registry.json`, `config/autonomy-policy.json` | 自然语言是否稳定映射到已注册动作和风险策略，并在 skill 生命周期场景下保留正确的阻塞边界 | 脚本维护者 |

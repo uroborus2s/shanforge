@@ -2,29 +2,35 @@
 
 本文件是 `software-factory-cli` 的默认运行时协议，面向 Codex、Gemini CLI 等大模型。
 
-不要把人类说明文档当作默认运行时输入。默认优先读取本文件和 `ai-role-charter.md`，只有在用户要求解释背景、需要方案原理，或当前任务确实依赖长文背景时，才按需读取正式 `docs/`。`workflows/` 不是软件工厂项目的人类说明层。
+默认运行时只应使用 AI 压缩入口、项目事实和当前任务直接相关的 summary。`docs/` 是正式事实源，但不是默认运行时输入。只有在压缩层不足、需要核对正式事实、用户要求解释方案背景，或当前任务明确依赖正式文档时，才允许按需单文件回源 `docs/`。`workflows/` 不是软件工厂项目的人类说明层。
 
 ## 1. 读取顺序
 
 每次进入项目时，按以下顺序读取，且只读当前任务必需的内容：
 
-1. 项目规则：
+1. 压缩入口：
    - `AGENTS.md` 或 `GEMINI.md`
+   - `.factory/memory/runtime-brief.md`（若存在）
+   - `.factory/memory/role-charter.project.md`（若存在）
+   - `.factory/memory/doc-map.md`（若存在）
+2. 项目事实：
    - `.factory/project.json`
-2. 会话与状态：
-   - `.factory/memory/agent-session.md`（若存在）
    - `.factory/memory/current-state.md`
    - `.factory/memory/project-index.md`
-   - 若存在，再读：`.factory/memory/motivation-state.md`、`.factory/memory/autonomy-rules.md`、`.factory/memory/evolution-baseline.md`
-3. 当前阶段必需文档：
-   - `BRAINSTORM`：`docs/04-project-development/01-governance/project-charter.md`、`docs/04-project-development/02-discovery/input.md`、`docs/04-project-development/02-discovery/brainstorm-record.md`
-   - `REQUIREMENTS`：`docs/04-project-development/03-requirements/prd.md`、`docs/04-project-development/03-requirements/requirements-analysis.md`、`docs/04-project-development/03-requirements/requirements-verification.md`
-   - `DESIGN`：`docs/04-project-development/04-design/technical-selection.md`、`docs/04-project-development/04-design/system-architecture.md`、`docs/04-project-development/04-design/module-boundaries.md`、`docs/04-project-development/04-design/api-design.md`、`docs/04-project-development/04-design/backend-design.md`、`docs/04-project-development/04-design/ux-ui-design.md`
-   - `PLAN`：`docs/04-project-development/05-development-process/wbs.md`、`docs/04-project-development/05-development-process/task-breakdown.md`、`docs/04-project-development/05-development-process/implementation-plan.md`
-   - `IMPLEMENTATION`：当前 `TASK-*`、`.factory/process/execution-log.md`、`docs/04-project-development/06-testing-verification/test-plan.md`
-4. 当前技术画像与设计交付物摘要：
-   - `.factory/memory/tech-stack.summary.md`
-   - `.factory/memory/design-assets.summary.md`
+   - `.factory/memory/agent-session.md`（若存在）
+3. 约束与状态：
+   - `.factory/memory/motivation-state.md`（若存在）
+   - `.factory/memory/autonomy-rules.md`（若存在）
+   - `.factory/memory/evolution-baseline.md`（若存在）
+   - `.factory/memory/tech-stack.summary.md`（若存在）
+   - `.factory/memory/design-assets.summary.md`（若存在）
+   - `.factory/memory/tasks.summary.md`（若存在）
+   - `.factory/memory/change-summary.md`（若存在）
+4. 只有在以下条件命中时，才允许单文件回源正式文档：
+   - 当前任务要核对正式事实，而压缩层缺少该事实
+   - 当前阶段要进入实现，必须核对 `technical-selection.md`
+   - 用户明确要求解释方案、背景、培训材料或完整说明
+   - 当前任务直接修改的就是那份正式文档
 5. 仅当需要多人协作时，再读：
    - `ai-role-charter.md`
 
@@ -35,6 +41,16 @@
 - `docs/04-project-development/09-evolution/agent-motivation-autonomy-integration.md`
 
 这些文件属于人类说明层，不是运行时主协议。
+
+### 1.1 默认禁止行为
+
+- 禁止把 `docs/` 阶段文档整组塞进默认“先读”列表。
+- 禁止每次开工都去读 `project-charter.md`、`input.md`、`user-guide.md` 或其他人类长文。
+- 禁止跳过 `.factory/memory/*` 而直接回源正式文档。
+- 禁止一次性并行加载多个阶段的正式文档。
+- 禁止把“正式事实源”误当成“默认运行时输入”。
+- 禁止把 skill 当成动作注册表、命令目录或执行后端。
+- 禁止让未注册 shell 命令绕过 `factory-dispatch`、`action-registry` 和审批边界。
 
 ## 2. 生命周期协议
 
@@ -192,7 +208,7 @@
 
 统一通过 `factory-design-assets` 录入。
 
-## 9. 默认命令入口
+## 9. 默认命令入口与分层边界
 
 默认优先使用：
 
@@ -203,14 +219,33 @@
 
 先用这些高层入口；只有需要更细控制时，再直接调用底层 `factory-*` 命令。
 
+分层边界固定如下：
+
+- `skill`：负责阅读顺序、行为约束、思维协议和专业知识。
+- `action-registry`：负责声明“系统允许执行什么动作”。
+- `factory-dispatch` / `factory-*`：负责稳定执行、验证、审批和证据回写。
+
+禁止把 `skill` 与执行命令聚合成同一层。原因是：
+
+- `skill` 需要跨前台复用，天然偏说明与约束，不适合承载统一执行边界。
+- 动作执行需要风险分级、审批、验证和观测，这些应该落在注册表和脚本层。
+- 如果把命令藏进 `skill`，会削弱一致性、可审计性和多前台复用能力。
+
+允许的模式只有两种：
+
+- `skill` 指导模型何时使用某个已注册动作。
+- `skill` 自带的局部 helper script，只服务该 skill 自己的封闭工作流。
+
 ## 10. Token 纪律
 
 - 不要默认读取全部长文档
 - 不要重复读取已经在 `.factory/memory/` 中压缩过的内容
 - 不要同时加载“平台方案 + CLI 用法 + 团队演进 + 使用手册”四份长文
-- 运行时优先读项目事实、当前阶段文档、技术画像和本协议
+- 运行时优先读压缩入口、项目事实、summary 和本协议
+- 禁止为了“稳妥”而把整阶段 `docs/` 全读一遍
+- 禁止把“正式文档存在”推导成“运行时必须读取”
 
-当用户明确要求解释背景、输出方案、写介绍材料时，再读取人类长文档。
+当用户明确要求解释背景、输出方案、写介绍材料，或当前任务确实需要核对正式事实时，再按 `doc-map.md` 单文件读取人类长文档。
 
 ## 11. 高主动性协议
 

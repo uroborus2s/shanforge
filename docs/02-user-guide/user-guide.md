@@ -19,9 +19,9 @@
 你通常不是自己手敲一堆底层命令，而是：
 
 1. 用自然语言告诉 AI 当前项目状态和目标
-2. 让 AI 先读取项目规则与当前状态
+2. 让 AI 先按项目规则自行读取必要上下文
 3. 让 AI 调用合适的 `factory-*` 脚本
-4. 让结果回写到代码、`docs/`、`.factory/` 和工作项
+4. 让结果回写到代码、正式文档、内部控制面摘要和工作项
 
 ## 2. 使用前要准备什么
 
@@ -45,13 +45,18 @@
 
 ### 2.3 可选动作：同步共享 skills
 
-如果你希望把当前仓库里的共享 skills 同步到本地 `Codex` / `Gemini CLI` 技能目录，可以执行：
+如果你希望把当前仓库里的共享 skills 同步到本地 `Codex` / `Gemini CLI` / `Agents` 技能目录，可以执行：
 
 ```bash
 uv run python scripts/sync-codex-skills
 ```
 
 这一步不是必需，但第一次搭环境时通常值得做一次。
+
+补充约定：
+
+- 当你在支持 slash skill 的宿主里直接输入 `/技能名`，默认语义应是“立即调用该 skill 的默认工作流”。
+- `/技能名` 不应该只触发“读取 skill 定义”或“确认已加载 skill”。
 
 ### 2.4 最小可用性校验
 
@@ -113,9 +118,8 @@ uv run python scripts/factory-agent-session --help
 
 特征：
 
-- 根目录有 `AGENTS.md`
-- 根目录有 `GEMINI.md`
-- 有 `.factory/`
+- 根目录已有项目规则入口
+- 已有内部控制面
 - 有阶段化 `docs/`
 
 这类项目通常直接从当前阶段继续推进。
@@ -125,8 +129,8 @@ uv run python scripts/factory-agent-session --help
 特征：
 
 - 已经有 `docs/`
-- 已经有 `.factory/`
-- 但缺 `AGENTS.md` / `GEMINI.md`
+- 已经有部分运行痕迹
+- 但项目规则入口还不完整
 
 这类项目通常是补齐规则入口，而不是重新初始化。
 
@@ -146,44 +150,13 @@ uv run python scripts/factory-agent-session --help
 - AI 以为项目已经完整初始化，但其实规则入口缺失
 - 文档和项目状态越来越不一致
 
-## 6. 先看懂几个关键文件
+## 6. 先看懂几类资产
 
-第一次使用时，你不需要看懂所有目录，但一定要明白下面几个文件的边界。
+第一次使用时，你不需要看懂所有目录，但一定要明白下面几类资产的边界。
 
-### `AGENTS.md` / `GEMINI.md`
+### 正式文档
 
-这两个文件负责：
-
-- 告诉 AI 先读什么
-- 规定稳定协作规则
-- 规定长期边界
-
-不应该写进去的内容：
-
-- 当天构建失败
-- 临时依赖问题
-- 当前运行异常
-
-### `.factory/project.json`
-
-这个文件负责：
-
-- 当前阶段
-- 技术画像
-- 结构化项目状态
-
-### `.factory/memory/current-state.md`
-
-这个文件负责：
-
-- 最近真实状态
-- 当前阻塞
-- 最近验证结果
-- 临时但重要的现实结论
-
-### `docs/`
-
-这里放的是给人读的正式文档：
+`docs/` 放的是给人读的正式事实源：
 
 - 需求
 - 设计
@@ -193,12 +166,32 @@ uv run python scripts/factory-agent-session --help
 - 运维
 - 用户文档
 
+这是人类默认阅读入口。
+
+### 项目规则入口
+
+根目录的项目规则入口负责约束 AI 的协作方式、阅读顺序和长期边界。
+
+它的职责是“约束 AI 怎么工作”，不是“给人上手项目的教学文档”。
+
+不应该写进去的内容：
+
+- 当天构建失败
+- 临时依赖问题
+- 当前运行异常
+
+### 内部控制面
+
+项目还会维护一套 AI 自用的内部控制面，用来承载运行时状态、压缩摘要、最近阻塞和过程记录。
+
+它的职责是帮助 AI 低成本接手，不是给人类当阅读目录。
+
 一句话记忆：
 
-- 稳定规则进 `AGENTS.md` / `GEMINI.md`
-- 结构化状态进 `.factory/project.json`
-- 当前现实进 `.factory/memory/current-state.md`
-- 正式说明进 `docs/`
+- 人类默认看 `docs/`
+- AI 默认看项目规则入口和内部控制面
+- 正式事实写进 `docs/`
+- AI 摘要只做压缩和回放，不替代正式文档
 
 ## 7. 第一轮会话的标准开法
 
@@ -248,10 +241,10 @@ uv run python scripts/factory-agent-session --help
 
 你应该检查的产物：
 
-- `AGENTS.md`
-- `GEMINI.md`
-- `.factory/project.json`
-- `docs/`
+- 是否真的执行了初始化动作
+- `docs/` 下关键入口是否已经生成
+- 项目规则入口是否存在
+- 常用脚本入口是否可用
 
 ### 8.2 历史项目纳管
 
@@ -266,13 +259,13 @@ uv run python scripts/factory-agent-session --help
 
 - 当前真实状态摘要是否清楚
 - 当前阶段判断是否合理
-- `AGENTS.md` / `GEMINI.md` / `.factory/` / `docs/` 是否补齐
+- 正式文档、项目规则入口和内部控制面是否已经补齐
 
 ### 8.3 已纳入软件工厂的项目
 
 标准顺序：
 
-1. 先让 AI 读取 `AGENTS.md`、`GEMINI.md`、`.factory/project.json`、`.factory/memory/current-state.md` 和当前阶段文档
+1. 先让 AI 按项目规则入口、当前状态摘要和相关正式文档读取必要上下文
 2. 再进入当前阶段工作
 3. 如果不确定下一步，先做诊断
 
@@ -287,7 +280,7 @@ uv run python scripts/factory-agent-session --help
 
 标准顺序：
 
-1. 先读取已有 `.factory/project.json` 和 `docs/`
+1. 先检查已有正式文档、项目规则入口和当前状态摘要；只有判断缺口时再单文件回源受影响 `docs/`
 2. 判断是“规则入口缺失”还是“纳管未完成”
 3. 如果适用，优先使用 `factory-project-rules-refresh`
 4. 再执行 `factory-state-doctor` 和阶段检查
@@ -301,7 +294,7 @@ uv run python scripts/factory-agent-session --help
 
 标准顺序：
 
-1. 先确认项目已经被山海工枢接管，也就是已有 `AGENTS.md`、`GEMINI.md`、`.factory/project.json` 和 `docs/`
+1. 先确认项目已经被山海工枢接管，也就是已有正式文档、项目规则入口和内部控制面
 2. 激活 `document-templates` skill，按 4 大模块手工重构 `docs/`
 3. 完成后执行 `uvx --from docs-stratego docs-stratego source validate --repo-path "."`
 4. 再执行 `factory-state-doctor --scope docs`
@@ -349,7 +342,7 @@ uv run python scripts/factory-agent-session --help
 ### 会话结束时
 
 - 检查本轮改动是否同步到 `docs/`
-- 检查 `.factory/memory/` 是否更新
+- 检查内部控制面摘要是否更新
 - 必要时要求生成一次 `factory-state-doctor`
 - 发布前要求生成 `factory-stage-check` / `factory-quality-check`
 
@@ -361,7 +354,7 @@ uv run python scripts/factory-agent-session --help
 - 你不确定项目到底有没有纳入软件工厂
 - AI 读错上下文
 - 规则入口缺失
-- 项目已经有 `docs/` / `.factory/`，但你不确定该补还是该重建
+- 项目已经有 `docs/` 和部分运行痕迹，但你不确定该补还是该重建
 
 这时优先让 AI：
 
@@ -378,7 +371,7 @@ uv run python scripts/factory-agent-session --help
 
 后果是项目状态会越来越乱。
 
-### 错误 3：把临时状态写进 `AGENTS.md`
+### 错误 3：把临时状态写进项目规则入口
 
 后果是规则入口越来越脏，AI 每次都会读到过期信息。
 
@@ -397,7 +390,7 @@ uv run python scripts/factory-agent-session --help
 检查：
 
 - 是否真的执行了初始化动作
-- `AGENTS.md` / `GEMINI.md` / `.factory/` / `docs/` 是否存在
+- 项目规则入口、内部控制面和 `docs/` 是否存在
 
 ### 如果你刚完成纳管
 
@@ -428,7 +421,7 @@ uv run python scripts/factory-agent-session --help
 
 检查：
 
-- 代码、测试、文档、`.factory/memory/` 是否同步
+- 代码、测试、文档和内部控制面摘要是否同步
 - 是否明确关联了工作项
 
 ## 13. 下一步看什么

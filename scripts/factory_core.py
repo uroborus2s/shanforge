@@ -56,6 +56,9 @@ CURRENT_STATE_RELATIVE = memory_file("current-state.md")
 TASKS_SUMMARY_RELATIVE = memory_file("tasks.summary.md")
 CHANGE_SUMMARY_RELATIVE = memory_file("change-summary.md")
 AGENT_SESSION_RELATIVE = memory_file("agent-session.md")
+RUNTIME_BRIEF_RELATIVE = memory_file("runtime-brief.md")
+ROLE_CHARTER_PROJECT_RELATIVE = memory_file("role-charter.project.md")
+DOC_MAP_RELATIVE = memory_file("doc-map.md")
 TECH_STACK_SUMMARY_RELATIVE = memory_file("tech-stack.summary.md")
 DESIGN_ASSETS_SUMMARY_RELATIVE = memory_file("design-assets.summary.md")
 PR_SUMMARY_RELATIVE = memory_file("pr.summary.md")
@@ -1276,6 +1279,10 @@ MODERN_DOCS_BOOTSTRAP_PAGES = {
 
         用 3 到 5 条链接给出最常见的阅读路径。
 
+        ### 3.4 阅读边界
+
+        明确人类默认只从 `docs/` 进入项目；AI 内部控制面不作为人类阅读目录。
+
         ## 4. 变更记录
 
         | 日期 | 变更内容 | 变更人 |
@@ -1295,7 +1302,7 @@ MODERN_DOCS_BOOTSTRAP_PAGES = {
         ## 2. 最小启动步骤
 
         1. 获取仓库或部署环境访问权限。
-        2. 阅读入门说明和当前阶段文档。
+        2. 阅读入门说明和当前阶段文档，不把 AI 内部控制面列成人类先读清单。
         3. 准备本地工具链或运行环境。
         4. 执行最小验证动作并确认结果。
 
@@ -1308,6 +1315,8 @@ MODERN_DOCS_BOOTSTRAP_PAGES = {
         - 正式文档入口
         - 核心脚本入口
         - 对话或自动化入口
+
+        不要把 `AGENTS.md`、`GEMINI.md` 或 `.factory/*` 写成人类默认阅读路径。
         """
     ).strip()
     + "\n",
@@ -1362,7 +1371,7 @@ MODERN_DOCS_BOOTSTRAP_PAGES = {
 
         ### 2.3 第一轮会话怎么开始
 
-        说明“先读什么、先做什么、不要做什么”。
+        说明“先读什么、先做什么、不要做什么”，并明确人类默认不阅读 AI 内部控制面。
 
         ### 2.4 日常使用节奏
 
@@ -1372,6 +1381,8 @@ MODERN_DOCS_BOOTSTRAP_PAGES = {
 
         - [提示词速查](./prompt-templates.md)
         - [命令速查](./command-cheatsheet.md)
+
+        这类文档默认不要把 `AGENTS.md`、`GEMINI.md` 或 `.factory/*` 写成人类先读清单。
         """
     ).strip()
     + "\n",
@@ -1414,6 +1425,8 @@ MODERN_DOCS_BOOTSTRAP_PAGES = {
         - 什么时候用
         - Prompt 正文
         - 预期结果
+
+        不要要求人类手工指定 `AGENTS.md`、`GEMINI.md` 或 `.factory/*` 作为阅读清单；这属于 AI 自行处理的控制面。
         """
     ).strip()
     + "\n",
@@ -2532,7 +2545,7 @@ def default_frontend_profile() -> dict:
         },
         "bootstrap_prompts": [
             "读取 AGENTS.md、GEMINI.md、.factory/project.json 和 .factory/memory/agent-session.md，以{role_title}身份{current_focus}。",
-            "先确认当前阶段、角色职责和推荐动作，再开始执行。"
+            "当用户直接输入 /技能名 时，将其视为立即调用该 skill 的默认工作流，而不是展示技能定义；先确认当前阶段、角色职责和推荐动作，再开始执行。若用户明确写出“提交 / commit / 执行提交”，则视为已授权执行本地提交，不要无故停在摘要阶段。"
         ],
     }
 
@@ -2594,6 +2607,10 @@ def frontend_prompt_examples(tool: str, role_title: str, focus: str) -> list[str
             prompts.append(template.format(role_title=role_title, current_focus=current_focus))
         except Exception:
             prompts.append(template)
+    prompts.append("如果用户直接输入 `/技能名`，不要复述 skill 定义，直接执行该 skill 的默认工作流。")
+    prompts.append(
+        "如果用户直接输入 `/gitcommitzh`，立即检查当前 Git 工作区与暂存区变化，输出结构化中文变更说明和中文提交信息草案；只有同条消息明确包含“提交”或“commit”时才继续执行本地提交。真正提交前，先显式列出“最终写入 Git 的提交信息原文”，提交时逐字复用这段原文；若用户已明确要求提交且没有具体阻塞原因，则不得停在“未提交”。"
+    )
     if prompts:
         return prompts
     fallback = []
@@ -3662,11 +3679,13 @@ def role_document_reads(project_root: Path, config: dict, role_query: str | None
         ".factory/project.json",
         "AGENTS.md",
         "GEMINI.md",
-        "docs/04-project-development/04-design/technical-selection.md",
     ]
     if include_ai:
         ordered.extend(
             [
+                RUNTIME_BRIEF_RELATIVE,
+                ROLE_CHARTER_PROJECT_RELATIVE,
+                DOC_MAP_RELATIVE,
                 PROJECT_INDEX_RELATIVE,
                 CURRENT_STATE_RELATIVE,
                 TASKS_SUMMARY_RELATIVE,
@@ -3679,7 +3698,6 @@ def role_document_reads(project_root: Path, config: dict, role_query: str | None
                 EVOLUTION_BASELINE_RELATIVE,
             ]
         )
-    ordered.extend(stage_reference_docs(config.get("stage", "")))
     ordered.extend(
         [
             MULTI_AGENT_BOARD_RELATIVE,

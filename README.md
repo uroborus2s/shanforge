@@ -34,10 +34,10 @@
 
 ### 2. 同步共享 skills
 
-如果你希望把仓库内 skills 同步到本地 `Codex` 和 `Gemini CLI`：
+如果你希望把仓库内 skills 同步到本地 `Codex`、`Gemini CLI` 和 `Agents`：
 
 ```bash
-python3 scripts/sync-codex-skills
+uv run python scripts/sync-codex-skills
 ```
 
 ### 3. 常用入口

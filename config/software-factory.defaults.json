@@ -50,6 +50,11 @@
       "purpose": "通过迭代方式共同创作设计文档、提案和决策文档。"
     },
     {
+      "name": "gitcommitzh",
+      "path": "skills/gitcommitzh/SKILL.md",
+      "purpose": "总结 Git 变化、生成结构化中文提交说明，并在范围明确后执行本地提交。"
+    },
+    {
       "name": "api-design",
       "path": "skills/api-design/SKILL.md",
       "purpose": "设计资源导向的 API，包括状态码、校验、分页和错误契约。"

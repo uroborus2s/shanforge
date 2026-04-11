@@ -12,8 +12,8 @@
 
 ## 2. 最小启动步骤
 
-1. 在仓库根目录阅读 `README.md`、`AGENTS.md` 和 `GEMINI.md`。
-2. 让 AI 先读取 `.factory/project.json`、`.factory/memory/current-state.md` 和相关文档。
+1. 在仓库根目录阅读 `README.md`、[项目概览](./project-overview.md) 和 [使用指南](../02-user-guide/user-guide.md)。
+2. 用自然语言告诉 AI 项目路径、当前状态、第一优先动作和禁止事项；AI 会按项目规则自行读取必要上下文，人类不要手工把内部控制面文件列成阅读清单。
 3. 通过自然语言描述目标，优先使用 `factory-dispatch`、`factory-agent-session`、`factory-state-doctor` 等入口推进工作。
 
 ## 3. 常用命令

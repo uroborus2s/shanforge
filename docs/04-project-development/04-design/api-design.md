@@ -17,7 +17,7 @@
 | `API-004` | `.factory/project.json` | File Contract | `REQ-004`, `REQ-005` | 被管理项目的运行状态合同 |
 | `API-005` | `docs/*` | Document Contract | `REQ-001`, `REQ-002`, `REQ-006` | 正式人类文档合同 |
 | `API-006` | `factory-dispatch historical-project-onboarding` | CLI Command | `REQ-007` | 历史项目纳管自动化入口，支持 `legacy-onboard` 别名 |
-| `API-007` | `uv run python scripts/sync-codex-skills` | CLI Command | `REQ-003` | 把仓库内 `skills/` 增量同步到 `~/.codex/skills` 与 `~/.gemini/skills` |
+| `API-007` | `uv run python scripts/sync-codex-skills` | CLI Command | `REQ-003` | 把仓库内 `skills/` 增量同步到 `~/.codex/skills`、`~/.gemini/skills` 与 `~/.agents/skills` |
 | `API-008` | `docs-stratego source validate` | CLI Command | `REQ-001`, `REQ-002`, `REQ-006` | 校验源仓 `docs/` 是否符合 `docs-stratego` 标准 |
 | `API-009` | `docs-stratego source add/remove/scaffold-notify/sync/build/dev` | CLI Command | `REQ-001`, `REQ-002`, `REQ-006` | 接入聚合站点、通知脚手架、同步、构建和预览入口 |
 | `API-010` | `config/action-registry.json` | File Contract | `REQ-003`, `REQ-005`, `REQ-006` | 已实现的动作注册表契约，定义首批高层动作的 ID、风险、前置条件和验证规则 |
@@ -108,8 +108,8 @@
 
 ### `API-007` 全局 skills 同步入口
 
-- 请求：用户从当前仓库执行 `python3 scripts/sync-codex-skills`，可选指定源目录、Codex 目录、Gemini 目录、冲突前缀与 dry-run。
-- 响应：把仓库内 `skills/` 下的每个可见 skill 目录增量软链接到 `~/.codex/skills` 和 `~/.gemini/skills`，并输出逐项同步结果。
+- 请求：用户从当前仓库执行 `python3 scripts/sync-codex-skills`，可选指定源目录、Codex 目录、Gemini 目录、Agents 目录、冲突前缀与 dry-run。
+- 响应：把仓库内 `skills/` 下的每个可见 skill 目录增量软链接到 `~/.codex/skills`、`~/.gemini/skills` 和 `~/.agents/skills`，并输出逐项同步结果。
 - 校验规则：
   - 默认跳过 `.system` 一类隐藏目录，避免覆盖宿主工具保留目录。
   - 若目标目录已有同名项且不是指向当前 skill 的软链接，则回退到 `shanforge-<skill>` 形式的别名。
@@ -414,6 +414,7 @@
 | 2026-03-26 | 将 `API-006` 更新为已实现 MVP，并登记脚本与别名入口 | Codex |
 | 2026-03-27 | 将项目名称统一更新为“山海工枢 / shanforge”，并同步仓库路径 | Codex |
 | 2026-03-27 | 增加 `API-007`，支持把仓库内共享 skills 同步到 Codex / Gemini 全局目录 | Codex |
+| 2026-04-12 | 扩展 `API-007`，新增 `~/.agents/skills` 同步目标 | Codex |
 | 2026-04-03 | 将 `API-008` / `API-009` 重构为 `docs-stratego` CLI 校验与聚合站点操作入口，删除仓内旧 docs 升级链路 | Codex |
 | 2026-04-02 | 增加 `API-010` ~ `API-013`，登记动作注册、自治策略、前台能力画像和多代理协作入口 | Codex |
 | 2026-04-02 | 更新 `API-013` 为“显式写集声明 + 冲突默认阻断 + 看板冲突摘要”后的当前状态 | Codex |

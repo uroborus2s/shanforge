@@ -1,0 +1,75 @@
+# 文档压缩映射
+
+## 读取规则
+
+- 人类文档保留为正式说明层。
+- AI 默认先读压缩文档与 summary，再按需回看正式文档。
+- 禁止默认全文加载 `docs/`。
+- 禁止在没有事实缺口时回源人类长文档。
+- 禁止一次性并行加载多个阶段的正式文档。
+- 需要回源时，只允许按当前任务单文件回源。
+
+## 映射表
+
+- `docs/01-getting-started/document-map.md` -> `.factory/memory/runtime-brief.md`
+- `docs/01-getting-started/index.md` -> `.factory/memory/runtime-brief.md`
+- `docs/01-getting-started/project-overview.md` -> `.factory/memory/runtime-brief.md`
+- `docs/01-getting-started/quick-start.md` -> `.factory/memory/runtime-brief.md`
+- `docs/02-user-guide/command-cheatsheet.md` -> `.factory/memory/runtime-brief.md`
+- `docs/02-user-guide/index.md` -> `.factory/memory/runtime-brief.md`
+- `docs/02-user-guide/prompt-templates.md` -> `.factory/memory/runtime-brief.md`
+- `docs/02-user-guide/user-guide.md` -> `.factory/memory/runtime-brief.md`
+- `docs/03-developer-guide/application-development.md` -> `.factory/memory/runtime-brief.md`
+- `docs/03-developer-guide/development-setup.md` -> `.factory/memory/runtime-brief.md`
+- `docs/03-developer-guide/function-reference.md` -> `.factory/memory/runtime-brief.md`
+- `docs/03-developer-guide/index.md` -> `.factory/memory/runtime-brief.md`
+- `docs/03-developer-guide/interface-reference.md` -> `.factory/memory/runtime-brief.md`
+- `docs/03-developer-guide/plugin-development.md` -> `.factory/memory/runtime-brief.md`
+- `docs/04-project-development/01-governance/index.md` -> `.factory/memory/runtime-brief.md`
+- `docs/04-project-development/01-governance/project-charter.md` -> `.factory/memory/runtime-brief.md`
+- `docs/04-project-development/02-discovery/brainstorm-record.md` -> `.factory/memory/runtime-brief.md`
+- `docs/04-project-development/02-discovery/current-state-analysis.md` -> `.factory/memory/runtime-brief.md`
+- `docs/04-project-development/02-discovery/index.md` -> `.factory/memory/runtime-brief.md`
+- `docs/04-project-development/02-discovery/input.md` -> `.factory/memory/runtime-brief.md`
+- `docs/04-project-development/03-requirements/index.md` -> `.factory/memory/runtime-brief.md`
+- `docs/04-project-development/03-requirements/prd.md` -> `.factory/memory/prd.summary.md`, `.factory/memory/requirements-verification.summary.md`
+- `docs/04-project-development/03-requirements/requirements-analysis.md` -> `.factory/memory/requirements-verification.summary.md`
+- `docs/04-project-development/03-requirements/requirements-verification.md` -> `.factory/memory/runtime-brief.md`
+- `docs/04-project-development/04-design/action-registry-and-autonomy-policy.md` -> `.factory/memory/runtime-brief.md`
+- `docs/04-project-development/04-design/api-design.md` -> `.factory/memory/api.summary.md`
+- `docs/04-project-development/04-design/backend-design.md` -> `.factory/memory/architecture.summary.md`
+- `docs/04-project-development/04-design/database-design.md` -> `.factory/memory/architecture.summary.md`
+- `docs/04-project-development/04-design/deployment-architecture.md` -> `.factory/memory/runtime-brief.md`
+- `docs/04-project-development/04-design/evaluation-summary-and-approval-reporting.md` -> `.factory/memory/runtime-brief.md`
+- `docs/04-project-development/04-design/frontend-adapters-and-multi-agent-coordination.md` -> `.factory/memory/runtime-brief.md`
+- `docs/04-project-development/04-design/historical-project-onboarding-automation.md` -> `.factory/memory/runtime-brief.md`
+- `docs/04-project-development/04-design/index.md` -> `.factory/memory/runtime-brief.md`
+- `docs/04-project-development/04-design/module-boundaries.md` -> `.factory/memory/runtime-brief.md`
+- `docs/04-project-development/04-design/skill-evolution-mechanism.md` -> `.factory/memory/runtime-brief.md`
+- `docs/04-project-development/04-design/solution-overview.md` -> `.factory/memory/runtime-brief.md`
+- `docs/04-project-development/04-design/source-docs-standard-upgrade-analysis.md` -> `.factory/memory/runtime-brief.md`
+- `docs/04-project-development/04-design/system-architecture.md` -> `.factory/memory/architecture.summary.md`
+- `docs/04-project-development/04-design/technical-selection.md` -> `.factory/memory/tech-stack.summary.md`
+- `docs/04-project-development/04-design/ux-ui-design.md` -> `.factory/memory/ui.summary.md`, `.factory/memory/design-assets.summary.md`
+- `docs/04-project-development/05-development-process/historical-project-onboarding-checklist.md` -> `.factory/memory/runtime-brief.md`
+- `docs/04-project-development/05-development-process/implementation-plan.md` -> `.factory/memory/runtime-brief.md`
+- `docs/04-project-development/05-development-process/index.md` -> `.factory/memory/runtime-brief.md`
+- `docs/04-project-development/05-development-process/software-development-process.md` -> `.factory/memory/runtime-brief.md`
+- `docs/04-project-development/06-testing-verification/index.md` -> `.factory/memory/runtime-brief.md`
+- `docs/04-project-development/06-testing-verification/test-plan.md` -> `.factory/memory/tests.summary.md`
+- `docs/04-project-development/06-testing-verification/test-report.md` -> `.factory/memory/tests.summary.md`
+- `docs/04-project-development/07-release-delivery/index.md` -> `.factory/memory/runtime-brief.md`
+- `docs/04-project-development/07-release-delivery/release-notes.md` -> `.factory/memory/runtime-brief.md`
+- `docs/04-project-development/08-operations-maintenance/deployment-guide.md` -> `.factory/memory/runtime-brief.md`
+- `docs/04-project-development/08-operations-maintenance/index.md` -> `.factory/memory/runtime-brief.md`
+- `docs/04-project-development/08-operations-maintenance/operations-runbook.md` -> `.factory/memory/runtime-brief.md`
+- `docs/04-project-development/09-evolution/agent-motivation-autonomy-integration.md` -> `.factory/memory/runtime-brief.md`
+- `docs/04-project-development/09-evolution/index.md` -> `.factory/memory/runtime-brief.md`
+- `docs/04-project-development/09-evolution/retrospective.md` -> `.factory/memory/runtime-brief.md`
+- `docs/04-project-development/09-evolution/skill-evolution-plan.md` -> `.factory/memory/runtime-brief.md`
+- `docs/04-project-development/10-traceability/document-index.md` -> `.factory/memory/runtime-brief.md`
+- `docs/04-project-development/10-traceability/index.md` -> `.factory/memory/runtime-brief.md`
+- `docs/04-project-development/10-traceability/interface-matrix.md` -> `.factory/memory/runtime-brief.md`
+- `docs/04-project-development/10-traceability/requirements-matrix.md` -> `.factory/memory/traceability.summary.md`, `.factory/memory/graph/traceability.json`
+- `docs/04-project-development/index.md` -> `.factory/memory/runtime-brief.md`
+- `docs/index.md` -> `.factory/memory/runtime-brief.md`

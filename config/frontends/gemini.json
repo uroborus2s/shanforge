@@ -23,6 +23,6 @@
   },
   "bootstrap_prompts": [
     "读取 GEMINI.md、.factory/project.json 和 .factory/memory/agent-session.md，以{role_title}身份{current_focus}。",
-    "先补齐分析与文档，再给出本角色下一步最合适的命令。"
+    "当用户直接输入 /技能名 时，将其视为立即调用该 skill 的默认工作流，而不是展示技能定义；先补齐分析与文档，再给出本角色下一步最合适的命令。若用户明确写出“提交 / commit / 执行提交”，则视为已授权执行本地提交，不要无故停在摘要阶段。"
   ]
 }

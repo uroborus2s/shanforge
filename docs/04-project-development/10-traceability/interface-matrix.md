@@ -14,7 +14,7 @@
 | `API-004` | 项目状态接口 | `.factory/project.json` | 脚本、模型、维护者 | `REQ-004`, `REQ-007` | `.factory/project.json` | 字段兼容优先，语义变更需同步文档 | 结构校验测试 | 仓库维护者 |
 | `API-005` | 文档契约 | `docs/index.md` + 各级 `index.md` | `docs-stratego`、读者 | `REQ-001`, `REQ-004` | `docs/index.md` | 根导航稳定，子目录正文可定制 | `docs-stratego source validate` + 人工走查 | 文档维护者 |
 | `API-006` | CLI 命令接口 | `factory-historical-project-onboarding` | 维护者、项目协调者 | `REQ-007` | `scripts/factory-historical-project-onboarding`, `scripts/factory-dispatch` | 历史项目纳管入口稳定 | `unittest` + 人工走查 | 仓库维护者 |
-| `API-007` | CLI 命令接口 | `uv run python scripts/sync-codex-skills` | 使用者、维护者 | `REQ-003` | `scripts/sync-codex-skills` | 增量同步，避免覆盖宿主保留目录 | 人工走查 | 仓库维护者 |
+| `API-007` | CLI 命令接口 | `uv run python scripts/sync-codex-skills` | 使用者、维护者 | `REQ-003` | `scripts/sync-codex-skills` | 增量同步到 `~/.codex/skills`、`~/.gemini/skills`、`~/.agents/skills`，避免覆盖宿主保留目录 | 人工走查 | 仓库维护者 |
 | `API-008` | CLI 命令接口 | `docs-stratego source validate` | 文档维护者、项目协调者 | `REQ-001`, `REQ-002`, `REQ-006` | `docs-stratego` CLI | 源仓校验入口稳定 | CLI 校验 + 人工走查 | 文档维护者 |
 | `API-009` | CLI 命令接口 | `docs-stratego source add/remove/scaffold-notify/sync/build/dev` | 平台维护者、项目协调者 | `REQ-001`, `REQ-002`, `REQ-006` | `docs-stratego` CLI | 聚合站点接入、构建与预览入口稳定 | CLI 校验 + 站点构建验证 | 平台维护者 |
 | `API-010` | 内部文件契约 | `config/action-registry.json` | `factory-dispatch`、后续意图解析器、策略引擎、工作流编排层 | `REQ-003`, `REQ-005`, `REQ-006` | `config/action-registry.json` | MVP 已实现；动作 ID 与字段兼容演进 | `unittest` + 人工走查 | 仓库维护者 |

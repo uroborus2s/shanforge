@@ -75,3 +75,9 @@
 - 2026-04-03: 执行 intent 回放评估，结果：13/13 通过，命中率 100.00%。
 - 2026-04-03: 创建 intent 审批票据 `IA-20260403192712-commandprofi-e79541`，动作 `command-profiles`，项目 `/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmpf18eopm9/managed-project`。
 - 2026-04-03: 执行状态诊断，范围：docs，结果：未通过，负责人：项目医生。
+- 2026-04-07: 生成项目压缩入口文档并刷新 `AGENTS.md` / `GEMINI.md`，负责人：Codex，备注：tighten-ai-runtime-boundary。
+- 2026-04-07: 生成 `通用 CLI 模型` 的 `项目协调者` 对话启动入口，负责人：Codex。
+- 2026-04-09: 生成项目压缩入口文档并刷新 `AGENTS.md` / `GEMINI.md`，负责人：Codex，备注：separate-human-and-ai-reading-surfaces。
+- 2026-04-12: 生成 `通用 CLI 模型` 的 `项目协调者` 对话启动入口，负责人：Codex。
+- 2026-04-12: 生成 `通用 CLI 模型` 的 `项目协调者` 对话启动入口，负责人：Codex。
+- 2026-04-12: 生成 `OpenCode` 的 `项目协调者` 对话启动入口，负责人：Codex。

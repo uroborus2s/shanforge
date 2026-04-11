@@ -85,6 +85,18 @@ def readable_stage_docs(config: dict) -> list[str]:
     return mapping.get(stage, [])
 
 
+def stage_summary_candidates(stage_docs: list[str]) -> list[str]:
+    ordered: list[str] = []
+    seen: set[str] = set()
+    for relative in stage_docs:
+        for candidate in SUMMARY_MAP.get(relative, []):
+            if candidate in seen:
+                continue
+            seen.add(candidate)
+            ordered.append(candidate)
+    return ordered
+
+
 def build_runtime_brief(project_root: Path, config: dict, owner: str, note: str) -> str:
     dispatch_path = factory_dispatch_path(project_root)
     items = collect_items(project_root)
@@ -93,6 +105,7 @@ def build_runtime_brief(project_root: Path, config: dict, owner: str, note: str)
     open_risks, _ = read_risks(project_root)
     tech = current_tech_profile(config)
     stage_docs = readable_stage_docs(config)
+    stage_summaries = stage_summary_candidates(stage_docs)
     latest_release = latest_dir_id(project_root, "releases", "REL-")
     latest_handover = latest_dir_id(project_root, "handover", "HO-")
     latest_snapshot = latest_dir_id(project_root, "snapshots", "SNAP-")
@@ -118,14 +131,23 @@ def build_runtime_brief(project_root: Path, config: dict, owner: str, note: str)
         "",
         "1. 先读本文件 `/.factory/memory/runtime-brief.md`",
         "2. 再读 `/.factory/memory/role-charter.project.md`",
-        "3. 再读 `/.factory/project.json`",
-        "4. 再读 `/.factory/memory/motivation-state.md`、`/.factory/memory/autonomy-rules.md`、`/.factory/memory/evolution-baseline.md`",
-        "5. 再读当前阶段核心文档",
-        "6. 只有需要背景解释时，才读人类长文档",
+        "3. 再读 `/.factory/memory/doc-map.md`",
+        "4. 再读 `/.factory/project.json`、`/.factory/memory/project-index.md`、`/.factory/memory/current-state.md`",
+        "5. 再读 `/.factory/memory/motivation-state.md`、`/.factory/memory/autonomy-rules.md`、`/.factory/memory/evolution-baseline.md`",
+        "6. 再读当前阶段相关 summary；禁止默认直读阶段 `docs/`",
+        "7. 只有当 summary 不足以支撑当前任务时，才允许按 `doc-map.md` 单文件回源正式文档",
         "",
-        "## 当前阶段核心文档",
+        "## 当前阶段优先摘要",
         "",
     ]
+    lines.extend(f"- `{path}`" for path in stage_summaries or ["无"])
+    lines.extend(
+        [
+            "",
+            "## 必要时回源的正式文档",
+            "",
+        ]
+    )
     lines.extend(f"- `{path}`" for path in stage_docs or ["无"])
     lines.extend(
         [
@@ -133,12 +155,17 @@ def build_runtime_brief(project_root: Path, config: dict, owner: str, note: str)
             "## 必守规则",
             "",
             "- 不跳阶段。",
-        "- 代码类工作必须走 PR 闭环后再关单。",
-        "- 任何已接受变更都要同步代码、文档、测试、`.factory/memory/`。",
-        "- 遇到阻塞、空转或质量漂移时，优先执行 `factory-dispatch recovery`。",
-        "- 发现问题时优先做模式级修复，再把有效做法沉淀到 `evolution-baseline.md`。",
-        "- 实现前优先读取 `docs/04-project-development/04-design/technical-selection.md`。",
-        "- 任务单位是人天，最小精度 0.5，但不是默认拆分步长。",
+            "- 代码类工作必须走 PR 闭环后再关单。",
+            "- 任何已接受变更都要同步代码、文档、测试、`.factory/memory/`。",
+            "- 遇到阻塞、空转或质量漂移时，优先执行 `factory-dispatch recovery`。",
+            "- 发现问题时优先做模式级修复，再把有效做法沉淀到 `evolution-baseline.md`。",
+            "- 任务单位是人天，最小精度 0.5，但不是默认拆分步长。",
+            "- 禁止默认把阶段 `docs/` 列入“先读”。",
+            "- 禁止每次开工都全文读取 `docs/`、`user-guide`、演进长文或设计长文。",
+            "- 禁止跳过 `.factory/memory/*` 而直接回源人类文档。",
+            "- 禁止把正式文档回源候选理解为默认运行时输入。",
+            "- 禁止把 skill 当成动作注册表或命令目录；命令执行统一走 `factory-dispatch`、`action-registry` 和 `scripts/factory-*`。",
+            "- 进入实现前必须回源核对 `docs/04-project-development/04-design/technical-selection.md` 的正式事实。",
             "",
             "## 当前推荐动作",
             "",
@@ -169,18 +196,18 @@ def build_role_charter_project(project_root: Path, config: dict, owner: str) -> 
         "MAINTENANCE": ["coordinator", "requirements-analyst", "backend-engineer", "frontend-engineer", "qa-engineer"],
     }
     rules = {
-        "coordinator": ("推进阶段、看板、Gate、交接、团队动能", ".factory/memory/runtime-brief.md、motivation-state.md、阶段检查/质量报告"),
-        "product-manager": ("范围与优先级", "docs/04-project-development/02-discovery/*、docs/04-project-development/03-requirements/prd.md"),
-        "requirements-analyst": ("结构化 REQ/NFR、依赖、风险、建议测试点", "docs/04-project-development/03-requirements/prd.md、requirements-analysis.md、requirements-verification.md"),
-        "ux-designer": ("用户旅程、页面与交互、设计交付物", "docs/04-project-development/04-design/ux-ui-design.md、docs/04-project-development/03-requirements/*"),
-        "solution-architect": ("技术画像、系统边界、分层", "docs/04-project-development/04-design/technical-selection.md、system-architecture.md"),
-        "api-architect": ("接口契约", "docs/04-project-development/04-design/api-design.md"),
-        "backend-engineer": ("后端代码、测试、PR", "technical-selection.md、backend-design.md、api-design.md、TASK-*"),
-        "frontend-engineer": ("前端代码、测试、PR", "technical-selection.md、ux-ui-design.md、api-design.md、TASK-*"),
-        "qa-engineer": ("测试计划、回归、质量门禁", "docs/04-project-development/06-testing-verification/*、docs/04-project-development/07-release-delivery/*"),
-        "release-manager": ("发布、交付、上线检查", "release-notes.md、delivery-package.md、deployment-guide.md、user-guide.md"),
-        "documentation-librarian": ("文档同步与单文件版本演化", "所有受影响 docs/*"),
-        "memory-librarian": ("`.factory/memory/` 摘要、上下文压缩与基线沉淀", "所有最新正式文档、执行记录、motivation-state.md、evolution-baseline.md"),
+        "coordinator": ("推进阶段、看板、Gate、交接、团队动能", "先读 `.factory/memory/runtime-brief.md`、`doc-map.md`、当前 summaries；必要时回源阶段检查/质量报告"),
+        "product-manager": ("范围与优先级", "先读压缩入口和需求相关 summaries；必要时回源 `docs/04-project-development/02-discovery/*`、`docs/04-project-development/03-requirements/prd.md`"),
+        "requirements-analyst": ("结构化 REQ/NFR、依赖、风险、建议测试点", "先读压缩入口和需求相关 summaries；必要时回源 `prd.md`、`requirements-analysis.md`、`requirements-verification.md`"),
+        "ux-designer": ("用户旅程、页面与交互、设计交付物", "先读压缩入口和设计相关 summaries；必要时回源 `ux-ui-design.md` 与需求正式文档"),
+        "solution-architect": ("技术画像、系统边界、分层", "先读压缩入口和技术/架构 summaries；必要时回源 `technical-selection.md`、`system-architecture.md`"),
+        "api-architect": ("接口契约", "先读压缩入口和 API summary；必要时回源 `docs/04-project-development/04-design/api-design.md`"),
+        "backend-engineer": ("后端代码、测试、PR", "先读压缩入口和技术 summaries；进入实现前必须回源 `technical-selection.md`，再按需回源 `backend-design.md`、`api-design.md`、`TASK-*`"),
+        "frontend-engineer": ("前端代码、测试、PR", "先读压缩入口和技术/设计 summaries；进入实现前必须回源 `technical-selection.md`，再按需回源 `ux-ui-design.md`、`api-design.md`、`TASK-*`"),
+        "qa-engineer": ("测试计划、回归、质量门禁", "先读压缩入口和测试 summaries；必要时回源 `docs/04-project-development/06-testing-verification/*`、`docs/04-project-development/07-release-delivery/*`"),
+        "release-manager": ("发布、交付、上线检查", "先读压缩入口和发布相关 summaries；必要时回源 `release-notes.md`、`delivery-package.md`、`deployment-guide.md`、`user-guide.md`"),
+        "documentation-librarian": ("文档同步与单文件版本演化", "先读压缩入口与 `doc-map.md`，再按受影响范围单文件回源 `docs/*`"),
+        "memory-librarian": ("`.factory/memory/` 摘要、上下文压缩与基线沉淀", "先读全部压缩入口和执行记录；必要时回源最新正式文档核对事实"),
     }
     lines = [
         "# 项目角色压缩卡",
@@ -188,6 +215,11 @@ def build_role_charter_project(project_root: Path, config: dict, owner: str) -> 
         f"- 生成时间：{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
         f"- 负责人：{owner}",
         f"- 当前阶段：{stage}",
+        "",
+        "## 使用边界",
+        "",
+        "- 禁止把下列“必要时回源”候选理解成默认先读。",
+        "- 默认先读压缩入口和 summary，不足时再单文件回源正式文档。",
         "",
         "## 当前阶段主要角色",
         "",
@@ -214,6 +246,10 @@ def build_doc_map(project_root: Path) -> str:
         "",
         "- 人类文档保留为正式说明层。",
         "- AI 默认先读压缩文档与 summary，再按需回看正式文档。",
+        "- 禁止默认全文加载 `docs/`。",
+        "- 禁止在没有事实缺口时回源人类长文档。",
+        "- 禁止一次性并行加载多个阶段的正式文档。",
+        "- 需要回源时，只允许按当前任务单文件回源。",
         "",
         "## 映射表",
         "",
@@ -240,21 +276,27 @@ def build_agents_md(project_root: Path, config: dict) -> str:
             "优先读取顺序：",
             "- `.factory/memory/runtime-brief.md`",
             "- `.factory/memory/role-charter.project.md`",
+            "- `.factory/memory/doc-map.md`",
+            "- `.factory/project.json`",
+            "- `.factory/memory/current-state.md`",
             "- `.factory/memory/motivation-state.md`",
             "- `.factory/memory/autonomy-rules.md`",
             "- `.factory/memory/evolution-baseline.md`",
-            "- `.factory/project.json`",
-            "- `.factory/memory/current-state.md`",
-            "- 当前阶段核心文档",
+            "- 相关 summary 文档",
+            "- 必要时按 `doc-map.md` 单文件回源正式文档",
             "",
             "补充协议：",
             f"- `{runtime_protocol}`",
             f"- `{role_charter}`",
             "",
             "规则：",
-            "- 默认不全文加载人类长文档。",
+            "- 默认只读压缩入口、项目事实和 summary。",
+            "- 禁止默认把阶段 `docs/` 文档列入“先读”。",
+            "- 禁止每次开工都去读 `project-charter.md`、`input.md`、`user-guide.md` 或其他人类长文。",
+            "- 禁止跳过 `.factory/memory/*` 直接回源正式文档。",
+            "- 禁止把 skill 当成命令目录；命令执行统一走 `factory-dispatch`、`action-registry` 和 `scripts/factory-*`。",
             "- `AGENTS.md` / `GEMINI.md` 只保留稳定协作入口，不写安装结果、测试状态或当天运行结论。",
-            "- 只在解释背景、方案原理或用户明确要求时读取 `docs/*.md` 中的相关长文。",
+            "- 只在解释背景、方案原理、核对正式事实或用户明确要求时，才按 `doc-map.md` 单文件读取相关 `docs/*.md`。",
             "- 代码类工作必须走 PR 闭环。",
             "- 变更必须同步代码、文档、测试、`.factory/memory/`。",
         ]
@@ -276,11 +318,14 @@ def build_gemini_md(project_root: Path, config: dict) -> str:
             "优先读取顺序：",
             "- `.factory/memory/runtime-brief.md`",
             "- `.factory/memory/role-charter.project.md`",
+            "- `.factory/memory/doc-map.md`",
+            "- `.factory/project.json`",
+            "- `.factory/memory/current-state.md`",
             "- `.factory/memory/motivation-state.md`",
             "- `.factory/memory/autonomy-rules.md`",
             "- `.factory/memory/evolution-baseline.md`",
-            "- `.factory/project.json`",
-            "- 当前阶段核心文档",
+            "- 相关 summary 文档",
+            "- 必要时按 `doc-map.md` 单文件回源正式文档",
             "",
             "全局补充协议：",
             f"- `{runtime_protocol}`",
@@ -290,11 +335,15 @@ def build_gemini_md(project_root: Path, config: dict) -> str:
             "- 需求、分析、架构、影响分析、复核",
             "",
             "规则：",
-            "- 默认不要全文读取人类长文档。",
+            "- 默认只读压缩入口、项目事实和 summary。",
+            "- 禁止默认把阶段 `docs/` 文档列入“先读”。",
+            "- 禁止每次开工都去读 `project-charter.md`、`input.md`、`user-guide.md` 或其他人类长文。",
+            "- 禁止跳过 `.factory/memory/*` 直接回源正式文档。",
+            "- 禁止把 skill 当成命令目录；命令执行统一走 `factory-dispatch`、`action-registry` 和 `scripts/factory-*`。",
             "- `AGENTS.md` / `GEMINI.md` 只保留稳定协作入口，不写安装结果、测试状态或当天运行结论。",
-            "- 编写需求后先看 `requirements-verification.md`。",
-            "- 进入实现前先看 `technical-selection.md`。",
-            "- 需要视觉交付时优先看 `docs/04-project-development/04-design/ux-ui-design.md` 和 `docs/04-project-development/04-design/assets/`。",
+            "- 编写需求后，如 summary 不足，再单文件回源 `requirements-verification.md`。",
+            "- 进入实现前必须单文件回源 `technical-selection.md`。",
+            "- 需要视觉交付时，先读设计相关 summary，不足时再回源 `ux-ui-design.md` 和设计资产。",
         ]
     ).rstrip() + "\n"
 

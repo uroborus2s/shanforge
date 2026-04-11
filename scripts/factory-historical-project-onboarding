@@ -322,7 +322,7 @@ def build_tech_profile(scan: dict, owner: str, applied_at: str) -> dict:
         "rules": [
             "以当前真实实现状态、现有配置和最近可验证的运行结果为基线。",
             "后续缺陷统一走 BUG-*，新增需求统一走 CR-*，工程治理补齐走 TASK-*。",
-            "代码、正式文档、测试与 `.factory/memory/` 必须同步更新。",
+            "代码、正式文档、测试与内部控制面摘要必须同步更新。",
         ],
         "commands": normalize_list(scan["runtime_commands"] + scan["build_commands"] + scan["test_commands"]),
         "guides": [],
@@ -351,8 +351,8 @@ def build_project_charter(project_name: str, owner: str, goal: str, now_date: st
         ## 本次纳管范围
 
         - 以当前代码、配置、现有文档和最近可验证状态为事实基线。
-        - 补齐 `AGENTS.md`、`GEMINI.md`、`docs/`、`.factory/` 和维护阶段最小文档。
-        - 生成首轮 AI 记忆、会话入口和状态诊断报告。
+        - 补齐项目规则入口、正式文档、内部控制面和维护阶段最小文档。
+        - 生成首轮 AI 摘要、会话入口和状态诊断报告。
 
         ## 当前已识别事实
 
@@ -439,7 +439,7 @@ def build_current_state_analysis(project_root: Path, project_name: str, goal: st
 
         - 先保持现状可运行，再做缺陷修复和需求变更。
         - 新需求回写 `docs/04-project-development/03-requirements/` 和 `docs/04-project-development/04-design/`。
-        - 变更完成后同步更新 `.factory/memory/current-state.md` 与执行记录。
+        - 变更完成后同步更新内部控制面摘要与执行记录。
         """
     ).strip()
 
@@ -541,7 +541,7 @@ def build_technical_selection(project_name: str, scan: dict) -> str:
 
         - 先沿用现有构建与运行方式，不在纳管第一步强制迁移技术栈。
         - 对外行为、配置格式和部署方式变更前，先补齐设计和风险说明。
-        - 任何维护动作都要回写正式文档和 `.factory/memory/`。
+        - 任何维护动作都要回写正式文档和内部控制面摘要。
 
         ## 已识别命令
 
@@ -622,15 +622,19 @@ def build_user_guide(project_name: str, goal: str) -> str:
 
         ## 新协作者先读什么
 
-        1. `AGENTS.md` / `GEMINI.md`
-        2. `.factory/project.json`
-        3. `.factory/memory/agent-session.md`
-        4. `.factory/memory/current-state.md`
-        5. 本目录下的运维手册和追踪矩阵
+        1. `docs/01-getting-started/` 下的入门说明
+        2. `docs/02-user-guide/` 下的使用指南、提示词速查和命令速查
+        3. 当前运维手册、发布说明和追踪矩阵
+        4. 需要系统原理时，再读设计与治理文档
+
+        补充说明：
+
+        - AI 会自行读取项目规则入口和内部控制面。
+        - 人类默认不要把 AI 内部控制面当成阅读目录。
 
         ## 后续怎么和 AI 协作
 
-        - 修缺陷时说：`新增一个 BUG，先分析影响，再同步代码、测试、文档和 AI 记忆。`
+        - 修缺陷时说：`新增一个 BUG，先分析影响，再同步代码、测试、文档和内部摘要。`
         - 加需求时说：`新增一个 CR，先补需求和设计，再进入实现。`
         - 不确定下一步时说：`先生成 agent session 和 state doctor，再告诉我最合适的下一步。`
 
@@ -892,7 +896,7 @@ def build_onboarding_report(project_name: str, owner: str, goal: str, now_text: 
 
         ## 下一步建议
 
-        - 先阅读 `.factory/memory/agent-session.md` 和 `.factory/process/state-doctor-report.md`。
+        - 先阅读维护者快速使用说明、当前运维手册和本次纳管报告。
         - 若已有线上问题，优先创建 `BUG-*`。
         - 若已有新增需求，优先创建 `CR-*` 并补齐需求与设计文档。
         """

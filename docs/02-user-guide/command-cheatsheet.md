@@ -67,10 +67,11 @@ uv run python scripts/<command> --project /path/to/project --owner "<name>" --no
 
 | 命令 | 常见写法 | 作用 | 什么时候使用 | 预期 |
 |---|---|---|---|---|
-| `factory-init` | `uv run python scripts/factory-init --path <dir> --name <name> --idea "<idea>" --stack "<stack>"` | 初始化空目录新项目 | 目标目录为空，准备创建全新软件工厂项目 | 创建 `AGENTS.md`、`GEMINI.md`、`.factory/`、`docs/` |
+| `factory-init` | `uv run python scripts/factory-init --path <dir> --name <name> --idea "<idea>" --stack "<stack>"` | 初始化空目录新项目 | 目标目录为空，准备创建全新软件工厂项目 | 创建项目规则入口、内部控制面和 `docs/` |
 | `factory-historical-project-onboarding` | `uv run python scripts/factory-historical-project-onboarding --project <path> --owner <name> --goal "<goal>"` | 历史项目纳管 | 已有代码仓库，但还没纳入软件工厂 | 建立当前真实状态基线并补齐最小治理骨架 |
-| `factory-project-rules-refresh` | `uv run python scripts/factory-project-rules-refresh --project <path> --owner <name>` | 刷新规则入口文件 | 项目已有 `.factory/` / `docs/`，但 `AGENTS.md` / `GEMINI.md` 需要补齐或刷新 | 重新生成项目规则入口 |
-| `factory-project-compress` | `uv run python scripts/factory-project-compress --project <path> --owner <name>` | 生成更短的 AI 入口文档 | 项目文档过大，想压缩 AI 读取入口 | 刷新压缩入口和规则文件 |
+| `factory-project-rules-refresh` | `uv run python scripts/factory-project-rules-refresh --project <path> --owner <name>` | 刷新规则入口文件 | 项目已有正式文档和运行痕迹，但项目规则入口需要补齐或刷新 | 重新生成项目规则入口 |
+| `factory-project-compress` | `uv run python scripts/factory-project-compress --project <path> --owner <name>` | 刷新 AI 压缩入口 | 项目文档过大，想压缩 AI 读取入口 | 刷新 AI 运行时压缩入口和规则文件 |
+| `sync-codex-skills` | `uv run python scripts/sync-codex-skills` | 同步共享 skills 到宿主目录 | 你要把仓库内 `skills/` 增量链接到 `~/.codex/skills`、`~/.gemini/skills` 和 `~/.agents/skills` | 输出三端同步结果，并仅为缺失项创建软链接 |
 | `docs-stratego source validate` | `uvx --from docs-stratego docs-stratego source validate --repo-path <path>` | 校验源仓 docs 合规性 | 你已经用 `document-templates` skill 改完文档，想确认目录、导航、权限和契约页是否符合标准 | 输出源仓文档状态与缺口 |
 | `docs-stratego source scaffold-notify` | `uvx --from docs-stratego docs-stratego source scaffold-notify --repo-path <path>` | 生成源仓通知 workflow | 你希望源仓在 `docs/**` 更新后自动通知聚合站点同步 | 生成或删除通知 workflow |
 | `docs-stratego source add/remove` | `uvx --from docs-stratego docs-stratego source add/remove ...` | 管理聚合站点源仓登记 | 你要把一个项目接入或移出 `docs-stratego` 聚合站点 | 更新聚合仓配置，并按需登记/移除 source |
@@ -130,8 +131,8 @@ uv run python scripts/<command> --project /path/to/project --owner "<name>" --no
 | `factory-intent-resolver` | `uv run python scripts/factory-intent-resolver 继续下一步 --project <path> --tool codex|gemini|opencode [--execute-safe|--request-approval]` | 解析自然语言到高层动作 | 只知道目标，不确定该用 `doctor`、`docs-upgrade` 还是 `onboarding` | 输出主推荐动作、候选动作和风险策略；如主推荐动作为 `L0/L1`，可用 `--execute-safe` 直接执行；如为 `L2/L3`，可用 `--request-approval` 生成票据 |
 | `factory-intent-approval` | `uv run python scripts/factory-intent-approval <ticket> --approve --owner <name>` | 查看或处理审批票据 | `intent-resolver` 已经为高风险动作生成票据 | 批准后先校验冻结 ownership，再执行计划；拒绝后把状态写回控制面 |
 | `factory-state-doctor` | `uv run python scripts/factory-state-doctor --project <path> --owner <name>` | 诊断项目状态 | 不确定当前缺什么、卡在哪里、规则是否健康 | 输出诊断结果与建议动作 |
-| `factory-refresh-memory` | `uv run python scripts/factory-refresh-memory --project <path>` | 刷新 AI 记忆 | 做完一轮变更后，想同步记忆层 | 更新 `.factory/memory/` 摘要与快照 |
-| `factory-daily-status` | `uv run python scripts/factory-daily-status --project <path> --owner <name> --focus "<focus>"` | 生成每日报告 | 日终收尾或阶段汇报 | 更新日报并同步文档与 `.factory` |
+| `factory-refresh-memory` | `uv run python scripts/factory-refresh-memory --project <path>` | 刷新 AI 记忆 | 做完一轮变更后，想同步内部控制面摘要 | 更新 AI 运行时摘要与快照 |
+| `factory-daily-status` | `uv run python scripts/factory-daily-status --project <path> --owner <name> --focus "<focus>"` | 生成每日报告 | 日终收尾或阶段汇报 | 更新日报并同步正式文档与内部控制面 |
 | `factory-project-snapshot` | `uv run python scripts/factory-project-snapshot --project <path> --owner <name>` | 生成项目快照 | 想冻结当前阶段状态，便于回溯或交接 | 生成项目内部快照 |
 | `factory-release-pack` | `uv run python scripts/factory-release-pack --project <path> --owner <name>` | 生成发布包 | 发布前准备交付材料 | 生成发布交付包 |
 | `factory-handover-pack` | `uv run python scripts/factory-handover-pack --project <path> --owner <name>` | 生成交接包 | 换人、换 Agent、准备交接 | 生成交接材料 |

@@ -1,51 +1,40 @@
 # Gemini 项目说明
 
-你正在一个共享的软件工厂工作区中工作。
-当前版本只落地 `Codex / Gemini CLI` 直接使用方式。
+默认先读压缩入口，不要全文加载长篇说明。
 
 项目根目录：`.`
 项目名称：`shanforge`
 
-优先阅读（运行时）：
+优先读取顺序：
+- `.factory/memory/runtime-brief.md`
+- `.factory/memory/role-charter.project.md`
+- `.factory/memory/doc-map.md`
+- `.factory/project.json`
+- `.factory/memory/current-state.md`
+- `.factory/memory/motivation-state.md`
+- `.factory/memory/autonomy-rules.md`
+- `.factory/memory/evolution-baseline.md`
+- 相关 summary 文档
+- 必要时按 `doc-map.md` 单文件回源正式文档
+
+全局补充协议：
 - `skills/software-factory-cli/references/ai-runtime-protocol.md`
 - `skills/software-factory-cli/references/ai-role-charter.md`
-- `docs/04-project-development/01-governance/project-charter.md`
-- `docs/04-project-development/02-discovery/input.md`
-- `.factory/project.json`
 
-共享 skill 引用：
-- `brainstorming`: skills/brainstorming/SKILL.md
-- `document-templates`: skills/document-templates/SKILL.md
-- `requirements-engineering`: skills/requirements-engineering/SKILL.md
-- `doc-coauthoring`: skills/doc-coauthoring/SKILL.md
-- `api-design`: skills/api-design/SKILL.md
-- `backend-patterns`: skills/backend-patterns/SKILL.md
-- `python-uv-project`: skills/python-uv-project/SKILL.md
-- `crawler4j-model-project`: skills/crawler4j-model-project/SKILL.md
-- `frontend-patterns`: skills/frontend-patterns/SKILL.md
-- `ui-ux-pro-max`: skills/ui-ux-pro-max/SKILL.md
-- `tdd-workflow`: skills/tdd-workflow/SKILL.md
-- `webapp-testing`: skills/webapp-testing/SKILL.md
-
-Gemini CLI 推荐职责：
-- 头脑风暴和方案探索
-- PRD 与需求分析
-- 架构设计与 API 设计
-- 变更影响分析
-- 发布说明与验收复查
+Gemini 默认职责：
+- 需求、分析、架构、影响分析、复核
 
 规则：
-- 默认先按 AI 运行时协议工作，不要默认全文加载长篇工作流说明。
-- `AGENTS.md` / `GEMINI.md` 不是现状快照；当前安装、构建、测试和运行结论应写入 `.factory/project.json`、`.factory/memory/current-state.md` 和阶段文档。
-- 把 Markdown 文档当成事实来源
-- 当前 V1 以本地 CLI 协作为主，不以 API 平台作为执行入口
-- 需求和设计未获批准前，不要进入代码实现
-- 进入实现前先读取 `docs/04-project-development/04-design/technical-selection.md`，确认当前技术栈、模块清单和后台要求
-- 默认补读 `/.factory/memory/motivation-state.md`、`/.factory/memory/autonomy-rules.md`、`/.factory/memory/evolution-baseline.md`，维持高主动性但不越界
-- 遇到阻塞、空转、证据不足或质量漂移时，优先执行恢复教练，不要重复同一路径
-- 发现问题后优先做模式级修复，再把有效做法沉淀到自进化基线
-- UX/UI 文档允许包含图片、HTML 原型、流程图和外部原型链接等设计交付物，必要时用 `factory-design-assets` 录入并引用
-- 编写需求文档时尽量详细，完成后执行 `factory-requirements-verify` 反复比对 PRD 与需求分析，避免遗漏需求
-- 代码类工作项在关单前需要完成 PR 创建、评审和合并
-- 如果项目接入了远程仓库，优先用 `factory-pr-remote-open / sync / merge` 把远端状态同步回本地文档
-- 任何已接受内容变更后，都要同步更新 `/.factory/memory/` 摘要
+- 默认只读压缩入口、项目事实和 summary。
+- 当用户直接输入 `/技能名` 或消息以 `/技能名` 开头时，禁止把它理解成“查看技能定义”；必须把它理解成“立即使用该 skill 执行默认工作流”。
+- 对 slash 触发的 skill，禁止只回复“已收到 skill”或“如果需要再告诉我”；必须直接进入该 skill 的首个可执行步骤。
+- 若 slash 触发的 skill 涉及潜在破坏性动作，且用户未明确授权，则先执行该 skill 的非破坏性默认步骤，再在真正执行高风险动作前确认。
+- 当用户明确写出“提交 / commit / 执行提交”时，视为已授权执行本地 `git commit`；禁止在没有具体阻塞原因的情况下停在摘要阶段。
+- 禁止默认把阶段 `docs/` 文档列入“先读”。
+- 禁止每次开工都去读 `project-charter.md`、`input.md`、`user-guide.md` 或其他人类长文。
+- 禁止跳过 `.factory/memory/*` 直接回源正式文档。
+- 禁止把 skill 当成命令目录；命令执行统一走 `factory-dispatch`、`action-registry` 和 `scripts/factory-*`。
+- `AGENTS.md` / `GEMINI.md` 只保留稳定协作入口，不写安装结果、测试状态或当天运行结论。
+- 编写需求后，如 summary 不足，再单文件回源 `requirements-verification.md`。
+- 进入实现前必须单文件回源 `technical-selection.md`。
+- 需要视觉交付时，先读设计相关 summary，不足时再回源 `ux-ui-design.md` 和设计资产。

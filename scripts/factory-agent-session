@@ -54,17 +54,20 @@ def recommended_reads(project_root: Path, stage: str) -> list[str]:
     fixed = [
         ".factory/memory/runtime-brief.md",
         ".factory/memory/role-charter.project.md",
+        ".factory/memory/doc-map.md",
         ".factory/project.json",
+        ".factory/memory/project-index.md",
         ".factory/memory/current-state.md",
+        ".factory/memory/agent-session.md",
         ".factory/memory/motivation-state.md",
         ".factory/memory/autonomy-rules.md",
         ".factory/memory/evolution-baseline.md",
         ".factory/memory/tech-stack.summary.md",
         ".factory/memory/design-assets.summary.md",
         ".factory/memory/tasks.summary.md",
+        ".factory/memory/change-summary.md",
     ]
-    stage_docs = stage_reference_docs(stage)
-    ordered = fixed + stage_docs
+    ordered = fixed
     seen = set()
     result = []
     for relative in ordered:
@@ -237,6 +240,11 @@ def build_session_markdown(
         "",
         *role_lines,
         *tech_skill_lines,
+        "- 默认只读 `.factory/memory/*`、`.factory/project.json` 和规则入口。",
+        "- 当用户直接输入 `/技能名` 时，将其视为立即调用该 skill 的默认工作流，而不是展示 skill 定义。",
+        "- slash 触发的 skill 禁止只回复“已收到 skill”之类的占位文本，必须直接进入首个可执行步骤。",
+        "- 禁止把 `docs/` 阶段文档当作默认先读清单。",
+        "- 只有当 `.factory/memory/` 无法支撑当前任务时，才允许按 `doc-map.md` 单文件回源正式文档。",
         "- 当前默认补充读取：`.factory/memory/motivation-state.md`、`.factory/memory/autonomy-rules.md`、`.factory/memory/evolution-baseline.md`",
         lock_line,
         "",
@@ -246,7 +254,7 @@ def build_session_markdown(
         *blocked_lines,
         *risk_lines,
         "",
-        "## 阶段文档就绪度",
+        "## 正式事实回源候选",
         "",
         *doc_lines,
         "",

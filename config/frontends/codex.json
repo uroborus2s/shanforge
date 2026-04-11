@@ -22,6 +22,6 @@
   },
   "bootstrap_prompts": [
     "读取 AGENTS.md、.factory/project.json 和 .factory/memory/agent-session.md，以{role_title}身份{current_focus}。",
-    "先检查当前相关工作项和推荐命令，再直接推进{role_title}负责的动作。"
+    "当用户直接输入 /技能名 时，将其视为立即调用该 skill 的默认工作流，而不是展示技能定义；先检查当前相关工作项和推荐命令，再直接推进{role_title}负责的动作。若用户明确写出“提交 / commit / 执行提交”，则视为已授权执行本地提交，不要无故停在摘要阶段。"
   ]
 }

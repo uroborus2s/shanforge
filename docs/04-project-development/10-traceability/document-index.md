@@ -11,6 +11,7 @@
 | `docs/01-getting-started/project-overview.md` | 入门说明 | 新读者、协作者 | 仓库维护者 | 已发布 | DOC-START-001 |
 | `docs/02-user-guide/user-guide.md` | 用户指南 | 使用者、协作者 | 仓库维护者 | 已发布 | REQ-006 |
 | `docs/03-developer-guide/interface-reference.md` | 开发者指南 | 开发者、集成方 | 仓库维护者 | 已发布 | API-* |
+| `docs/04-project-development/02-discovery/hermes-agent-source-analysis-report.md` | 调研报告 / 需求方案输入 | 项目协调者、产品、架构、维护者 | 仓库维护者 | 已确认 | DISC-HERMES-001 |
 | `docs/04-project-development/03-requirements/prd.md` | 需求文档 | 产品、研发、测试 | 仓库维护者 | 已确认基线 | REQ-* |
 | `docs/04-project-development/04-design/solution-overview.md` | 总体设计 | 架构、维护者 | 仓库维护者 | 已确认基线 | MOD-* |
 | `docs/04-project-development/04-design/action-registry-and-autonomy-policy.md` | 架构设计 | 架构、脚本维护者、平台维护者 | 仓库维护者 | 已发布 | API-010, API-011, ADR-004, ADR-005 |

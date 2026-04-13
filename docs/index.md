@@ -78,6 +78,9 @@ mkdocs:
             - title: 历史项目现状基线模板
               path: 04-project-development/02-discovery/current-state-analysis.md
               access: private
+            - title: Hermes Agent 源码调研报告
+              path: 04-project-development/02-discovery/hermes-agent-source-analysis-report.md
+              access: private
         - title: 需求
           children:
             - title: 概览

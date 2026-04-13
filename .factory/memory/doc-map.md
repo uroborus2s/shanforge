@@ -29,6 +29,7 @@
 - `docs/04-project-development/01-governance/project-charter.md` -> `.factory/memory/runtime-brief.md`
 - `docs/04-project-development/02-discovery/brainstorm-record.md` -> `.factory/memory/runtime-brief.md`
 - `docs/04-project-development/02-discovery/current-state-analysis.md` -> `.factory/memory/runtime-brief.md`
+- `docs/04-project-development/02-discovery/hermes-agent-source-analysis-report.md` -> `.factory/memory/runtime-brief.md`
 - `docs/04-project-development/02-discovery/index.md` -> `.factory/memory/runtime-brief.md`
 - `docs/04-project-development/02-discovery/input.md` -> `.factory/memory/runtime-brief.md`
 - `docs/04-project-development/03-requirements/index.md` -> `.factory/memory/runtime-brief.md`

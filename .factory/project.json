@@ -3,7 +3,7 @@
   "project_name": "shanforge",
   "project_root": ".",
   "owner": "Codex",
-  "idea": "历史项目纳管：以当前代码、配置、现有文档和最近可验证状态为基线，由软件工厂接手后续维护。当前目标：将 shanforge 自身纳入软件工厂治理，建立后续命令、docs 标准升级与历史项目接管的正式维护基线。",
+  "idea": "构建一个以 Hermes 核心思想为输入的抽象 Agent 平台。平台通过 Agent App Manifest、Workflow DSL、ModelPolicy、Capability Registry、Context Engine、LLM Runtime、Approval / Sandbox 和 AgentResponse 形成业务装配闭环；遗留脚本、文件合同和外部流程只作为基础设施适配器存在，不再作为产品定义中心。",
   "stack": "待人工确认",
   "created_at": "2026-04-01T02:43:46.034422+00:00",
   "active_mode": "cli_direct",
@@ -11,8 +11,8 @@
     "cli_direct",
     "api_platform"
   ],
-  "v1_scope_note": "当前版本只落地 Codex 或 Gemini CLI 直接使用方式，API Agent 平台作为后续演进目标保留。",
-  "stage": "MAINTENANCE",
+  "v2_scope_note": "当前产品范围是抽象 Agent 平台。业务通过 Agent App Manifest、Workflow DSL、ModelPolicy、Platform Ports 和 Capability Registry 接入平台内核。",
+  "stage": "PLAN",
   "ai_runtime_docs": [
     "skills/software-factory-cli/references/ai-runtime-protocol.md",
     "skills/software-factory-cli/references/ai-role-charter.md"
@@ -337,7 +337,6 @@
       ],
       "docs": [
         "docs/04-project-development/04-design/technical-selection.md",
-        "docs/04-project-development/04-design/ux-ui-design.md",
         "docs/04-project-development/04-design/system-architecture.md",
         "docs/04-project-development/04-design/module-boundaries.md",
         "docs/04-project-development/05-development-process/wbs.md"
@@ -437,7 +436,6 @@
       ],
       "docs": [
         "docs/04-project-development/04-design/technical-selection.md",
-        "docs/04-project-development/04-design/ux-ui-design.md",
         "docs/04-project-development/04-design/system-architecture.md",
         "docs/04-project-development/05-development-process/implementation-plan.md",
         ".factory/process/execution-log.md",
@@ -614,13 +612,13 @@
   ],
   "technical_profile": {
     "preset": "custom",
-    "title": "历史项目纳管基线画像",
+    "title": "抽象 Agent 平台规划画像",
     "stack": "待人工确认",
-    "summary": "基于仓库现状自动识别的维护画像，后续应结合真实运行方式继续细化。",
+    "summary": "基于当前文档与实现状态整理的平台规划画像，用于承载后续 `v2` 实施。",
     "projects": [
-      "历史项目维护",
-      "缺陷修复",
-      "需求变更纳管"
+      "抽象 Agent 平台",
+      "业务 Agent App",
+      "多模型工作流装配"
     ],
     "modules": [
       "agents",
@@ -632,14 +630,14 @@
       "workflows"
     ],
     "rules": [
-      "以当前真实实现状态、现有配置和最近可验证的运行结果为基线。",
-      "后续缺陷统一走 BUG-*，新增需求统一走 CR-*，工程治理补齐走 TASK-*。",
+      "平台需求、设计、测试和 `.factory/memory/` 必须同步更新。",
+      "业务 Agent App 不直接依赖基础设施实现。",
       "代码、正式文档、测试与 `.factory/memory/` 必须同步更新。"
     ],
     "commands": [],
     "guides": [],
     "owner": "Codex",
-    "note": "自动纳管生成，建议在第一次需求或缺陷处理前人工复核。",
+    "note": "已切换为 `v2` 平台规划画像，后续应围绕平台契约与运行时实现持续细化。",
     "applied_at": "2026-04-01 10:43:45"
   },
   "technical_profile_history": [],
@@ -667,70 +665,6 @@
   "recovery_cases": [],
   "pattern_fix_reports": [],
   "evolution_baselines": [],
-  "historical_onboarding": {
-    "enabled": true,
-    "goal": "将 shanforge 自身纳入软件工厂治理，建立后续命令、docs 标准升级与历史项目接管的正式维护基线。",
-    "fact_sources": [
-      "README.md",
-      "agents/code-reviewer.md",
-      "docs/01-getting-started/document-map.md",
-      "docs/01-getting-started/index.md",
-      "docs/01-getting-started/project-overview.md",
-      "docs/01-getting-started/quick-start.md",
-      "docs/02-user-guide/command-cheatsheet.md",
-      "docs/02-user-guide/index.md",
-      "docs/02-user-guide/prompt-templates.md",
-      "docs/02-user-guide/user-guide.md",
-      "docs/03-developer-guide/application-development.md",
-      "docs/03-developer-guide/development-setup.md"
-    ],
-    "unknowns": [
-      "未自动识别出明确启动命令，需要人工确认本地运行方式。",
-      "未自动识别出明确构建命令，需要人工确认构建入口。",
-      "未自动识别出明确测试命令，需要人工确认测试与回归方式。",
-      "未自动识别出明确部署线索，需要人工补充部署与上线方式。"
-    ],
-    "onboarded_at": "2026-04-01T02:43:45.996139+00:00",
-    "onboarded_by": "Codex",
-    "tool": "factory-historical-project-onboarding",
-    "created_files": [
-      "AGENTS.md",
-      "GEMINI.md",
-      ".factory/project.json",
-      "docs/04-project-development/09-evolution/retrospective.md",
-      ".factory/process/execution-log.md",
-      ".factory/process/daily-status.md",
-      ".factory/process/risk-register.md",
-      ".factory/memory/motivation-state.md",
-      ".factory/memory/autonomy-rules.md",
-      ".factory/memory/evolution-baseline.md",
-      ".factory/workitems/implementation/README.md",
-      ".factory/workitems/changes/README.md",
-      ".factory/workitems/bugs/README.md",
-      ".factory/design-assets.json",
-      ".factory/memory/graph/traceability.json",
-      ".factory/memory/traceability.summary.md"
-    ],
-    "preserved_files": [
-      "docs/04-project-development/01-governance/project-charter.md",
-      "docs/04-project-development/02-discovery/input.md",
-      "docs/04-project-development/02-discovery/current-state-analysis.md",
-      "docs/04-project-development/03-requirements/prd.md",
-      "docs/04-project-development/04-design/system-architecture.md",
-      "docs/04-project-development/04-design/module-boundaries.md",
-      "docs/04-project-development/04-design/technical-selection.md",
-      "docs/04-project-development/04-design/api-design.md",
-      "docs/04-project-development/08-operations-maintenance/operations-runbook.md",
-      "docs/02-user-guide/user-guide.md",
-      "docs/04-project-development/10-traceability/requirements-matrix.md"
-    ],
-    "updated_files": [
-      "docs/index.md"
-    ],
-    "report": ".factory/process/historical-project-onboarding-report.md",
-    "session": ".factory/memory/agent-session.md",
-    "doctor_report": ".factory/process/state-doctor-report.md"
-  },
   "last_agent_session_at": "2026-04-12 01:10:24",
   "last_agent_session_owner": "Codex",
   "last_agent_session_focus": "验证 /gitcommitzh 直执行语义",
@@ -741,7 +675,7 @@
       "scope": "full",
       "result": "关注",
       "owner": "Codex",
-      "note": "历史项目纳管首轮诊断",
+      "note": "平台重置前首轮诊断",
       "checked_at": "2026-04-01 10:43:46"
     },
     {
@@ -773,9 +707,9 @@
       "checked_at": "2026-04-03 20:15:24"
     }
   ],
-  "last_multi_agent_board_at": "2026-04-02 15:19:02",
+  "last_multi_agent_board_at": "2026-04-13 23:05:24",
   "last_multi_agent_board_owner": "Codex",
-  "last_multi_agent_board_focus": "写集冲突治理",
+  "last_multi_agent_board_focus": "v2 开发进度",
   "multi_agent_boards": [
     {
       "stage": "MAINTENANCE",
@@ -809,6 +743,20 @@
         "memory-manager"
       ],
       "created_at": "2026-04-02 15:19:02"
+    },
+    {
+      "stage": "PLAN",
+      "owner": "Codex",
+      "focus": "v2 开发进度",
+      "active_roles": [
+        "coordinator",
+        "solution-architect",
+        "ux-designer",
+        "backend-engineer",
+        "frontend-engineer",
+        "memory-manager"
+      ],
+      "created_at": "2026-04-13 23:05:24"
     }
   ],
   "current_role_assignments": {},

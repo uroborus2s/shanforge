@@ -68,7 +68,7 @@ uv run python scripts/<command> --project /path/to/project --owner "<name>" --no
 | 命令 | 常见写法 | 作用 | 什么时候使用 | 预期 |
 |---|---|---|---|---|
 | `factory-init` | `uv run python scripts/factory-init --path <dir> --name <name> --idea "<idea>" --stack "<stack>"` | 初始化空目录新项目 | 目标目录为空，准备创建全新软件工厂项目 | 创建项目规则入口、内部控制面和 `docs/` |
-| `factory-historical-project-onboarding` | `uv run python scripts/factory-historical-project-onboarding --project <path> --owner <name> --goal "<goal>"` | 历史项目纳管 | 已有代码仓库，但还没纳入软件工厂 | 建立当前真实状态基线并补齐最小治理骨架 |
+| `factory-state-doctor` | `uv run python scripts/factory-state-doctor --project <path> --owner <name>` | 项目诊断与接入判断 | 已有代码仓库，但还没完成平台接入，或者不确定当前治理状态 | 输出真实状态基线、缺口与建议接入动作 |
 | `factory-project-rules-refresh` | `uv run python scripts/factory-project-rules-refresh --project <path> --owner <name>` | 刷新规则入口文件 | 项目已有正式文档和运行痕迹，但项目规则入口需要补齐或刷新 | 重新生成项目规则入口 |
 | `factory-project-compress` | `uv run python scripts/factory-project-compress --project <path> --owner <name>` | 刷新 AI 压缩入口 | 项目文档过大，想压缩 AI 读取入口 | 刷新 AI 运行时压缩入口和规则文件 |
 | `sync-codex-skills` | `uv run python scripts/sync-codex-skills` | 同步共享 skills 到宿主目录 | 你要把仓库内 `skills/` 增量链接到 `~/.codex/skills`、`~/.gemini/skills` 和 `~/.agents/skills` | 输出三端同步结果，并仅为缺失项创建软链接 |
@@ -128,7 +128,7 @@ uv run python scripts/<command> --project /path/to/project --owner "<name>" --no
 |---|---|---|---|---|
 | `factory-agent-session` | `uv run python scripts/factory-agent-session --project <path> --owner <name> --focus "<focus>"` | 生成会话入口 | 重新进入项目上下文、开始新一轮会话前 | 生成当前会话应该先读什么、先做什么 |
 | `factory-chat-bootstrap` | `uv run python scripts/factory-chat-bootstrap --project <path> --tool codex|gemini|opencode --role <role>` | 生成角色化对话入口 | 想让不同角色或不同工具快速接手 | 生成角色化启动入口文档 |
-| `factory-intent-resolver` | `uv run python scripts/factory-intent-resolver 继续下一步 --project <path> --tool codex|gemini|opencode [--execute-safe|--request-approval]` | 解析自然语言到高层动作 | 只知道目标，不确定该用 `doctor`、`docs-upgrade` 还是 `onboarding` | 输出主推荐动作、候选动作和风险策略；如主推荐动作为 `L0/L1`，可用 `--execute-safe` 直接执行；如为 `L2/L3`，可用 `--request-approval` 生成票据 |
+| `factory-intent-resolver` | `uv run python scripts/factory-intent-resolver 继续下一步 --project <path> --tool codex|gemini|opencode [--execute-safe|--request-approval]` | 解析自然语言到高层动作 | 只知道目标，不确定该用 `doctor`、`rules-refresh` 还是 `docs-upgrade` | 输出主推荐动作、候选动作和风险策略；如主推荐动作为 `L0/L1`，可用 `--execute-safe` 直接执行；如为 `L2/L3`，可用 `--request-approval` 生成票据 |
 | `factory-intent-approval` | `uv run python scripts/factory-intent-approval <ticket> --approve --owner <name>` | 查看或处理审批票据 | `intent-resolver` 已经为高风险动作生成票据 | 批准后先校验冻结 ownership，再执行计划；拒绝后把状态写回控制面 |
 | `factory-state-doctor` | `uv run python scripts/factory-state-doctor --project <path> --owner <name>` | 诊断项目状态 | 不确定当前缺什么、卡在哪里、规则是否健康 | 输出诊断结果与建议动作 |
 | `factory-refresh-memory` | `uv run python scripts/factory-refresh-memory --project <path>` | 刷新 AI 记忆 | 做完一轮变更后，想同步内部控制面摘要 | 更新 AI 运行时摘要与快照 |
@@ -205,7 +205,7 @@ uv run python scripts/<command> --project /path/to/project --owner "<name>" --no
 uv run python scripts/factory-intent-resolver 继续下一步 --project <path>
 uv run python scripts/factory-intent-resolver 开始设计阶段并生成会话入口 --project <path> --execute-safe --owner "<name>"
 uv run python scripts/factory-intent-resolver 执行 daily close workflow --project <path>
-uv run python scripts/factory-intent-resolver 接管这个历史项目 --project <path> --request-approval --owner "<name>"
+uv run python scripts/factory-intent-resolver 诊断这个已有项目并告诉我如何接入平台 --project <path> --execute-safe --owner "<name>"
 uv run python scripts/factory-intent-resolver 继续推进这个 skill intent-governance-coach --project <path>
 uv run python scripts/factory-intent-resolver 撤回刚发布的新 skill intent-governance-coach --project <path>
 uv run python scripts/factory-intent-approval IA-<ticket> --approve --owner "<name>"
@@ -232,7 +232,7 @@ uv run python scripts/factory-intent-approval IA-<ticket> --approve --owner "<na
 | 只会说目标，不知道该选哪个动作 | `factory-intent-resolver` |
 | 不知道当前缺什么 | `factory-agent-session` + `factory-state-doctor` |
 | 新建空目录项目 | `factory-init` |
-| 接手老项目 | `factory-historical-project-onboarding` |
+| 接手已有项目 | `factory-state-doctor` |
 | 补齐规则入口 | `factory-project-rules-refresh` |
 | 继续需求 | `factory-prd-bootstrap` + `factory-requirements-verify` |
 | 继续设计 | `factory-design-bootstrap` + `factory-tech-profile` |

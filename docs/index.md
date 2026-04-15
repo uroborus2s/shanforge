@@ -75,9 +75,6 @@ mkdocs:
             - title: 头脑风暴记录
               path: 04-project-development/02-discovery/brainstorm-record.md
               access: private
-            - title: 历史项目现状基线模板
-              path: 04-project-development/02-discovery/current-state-analysis.md
-              access: private
             - title: Hermes Agent 源码调研报告
               path: 04-project-development/02-discovery/hermes-agent-source-analysis-report.md
               access: private
@@ -89,12 +86,15 @@ mkdocs:
             - title: 产品需求文档（PRD）
               path: 04-project-development/03-requirements/prd.md
               access: private
-            - title: 需求分析文档
-              path: 04-project-development/03-requirements/requirements-analysis.md
-              access: private
-            - title: 需求一致性校验报告
-              path: 04-project-development/03-requirements/requirements-verification.md
-              access: private
+        - title: 需求分析文档
+          path: 04-project-development/03-requirements/requirements-analysis.md
+          access: private
+        - title: 记忆系统业务需求文档
+          path: 04-project-development/03-requirements/memory-system-business-requirements.md
+          access: private
+        - title: 需求一致性校验报告
+          path: 04-project-development/03-requirements/requirements-verification.md
+          access: private
         - title: 设计文档
           children:
             - title: 概览
@@ -109,49 +109,40 @@ mkdocs:
             - title: 系统架构设计
               path: 04-project-development/04-design/system-architecture.md
               access: private
+            - title: 抽象 Agent 平台架构
+              path: 04-project-development/04-design/agent-platform-architecture.md
+              access: private
+            - title: 记忆运行时设计
+              path: 04-project-development/04-design/memory-runtime-design.md
+              access: private
+            - title: 记忆系统详细设计方案
+              path: 04-project-development/04-design/memory-system-detailed-design.md
+              access: private
+            - title: 记忆系统对外界面
+              path: 04-project-development/04-design/memory-runtime-interfaces.md
+              access: private
+            - title: 子设计一：Session Ledger
+              path: 04-project-development/04-design/memory-session-ledger-design.md
+              access: private
+            - title: 子设计二：Candidate 与 Promotion
+              path: 04-project-development/04-design/memory-promotion-design.md
+              access: private
+            - title: 子设计三：Recall 与 Context Consumption
+              path: 04-project-development/04-design/memory-recall-design.md
+              access: private
+            - title: 子设计四：Distillation 与 Learning Dataset
+              path: 04-project-development/04-design/memory-distillation-learning-design.md
+              access: private
             - title: 模块边界文档
               path: 04-project-development/04-design/module-boundaries.md
               access: private
             - title: API 设计文档
               path: 04-project-development/04-design/api-design.md
               access: private
-            - title: 后端设计文档
-              path: 04-project-development/04-design/backend-design.md
-              access: private
-            - title: 数据库设计文档
-              path: 04-project-development/04-design/database-design.md
-              access: private
-            - title: 部署与 CI/CD 设计
-              path: 04-project-development/04-design/deployment-architecture.md
-              access: private
-            - title: UX/UI 设计文档
-              path: 04-project-development/04-design/ux-ui-design.md
-              access: private
-            - title: 历史项目纳管自动化入口设计
-              path: 04-project-development/04-design/historical-project-onboarding-automation.md
-              access: private
-            - title: 源文档标准升级分析
-              path: 04-project-development/04-design/source-docs-standard-upgrade-analysis.md
-              access: private
-            - title: 动作注册与分级自治策略设计
-              path: 04-project-development/04-design/action-registry-and-autonomy-policy.md
-              access: private
-            - title: 多前台适配与多代理协作设计
-              path: 04-project-development/04-design/frontend-adapters-and-multi-agent-coordination.md
-              access: private
-            - title: Skill 进化机制设计
-              path: 04-project-development/04-design/skill-evolution-mechanism.md
-              access: private
-            - title: 评估摘要与审批回报契约
-              path: 04-project-development/04-design/evaluation-summary-and-approval-reporting.md
-              access: private
         - title: 开发过程文档
           children:
             - title: 概览
               path: 04-project-development/05-development-process/index.md
-              access: private
-            - title: 历史项目纳管 Checklist
-              path: 04-project-development/05-development-process/historical-project-onboarding-checklist.md
               access: private
             - title: 软件开发流程
               path: 04-project-development/05-development-process/software-development-process.md

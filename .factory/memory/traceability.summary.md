@@ -1,16 +1,17 @@
 # 追踪摘要
 
-        - 更新时间：2026-04-01 10:43:45
-        - 节点数：11
-        - 关系数：8
+- 更新时间：2026-04-15 00:10:00
+- 当前版本线：`v2` / `0.2.0.dev0`
+- 追踪焦点：抽象 Agent 平台需求、契约、实现任务和测试覆盖
 
-        ## 最新追踪关系
+## 最新追踪关系
 
-        - `REQ-001` --落点--> `docs/04-project-development/02-discovery/current-state-analysis.md`
-- `REQ-001` --落点--> `docs/04-project-development/03-requirements/prd.md`
-- `REQ-001` --落点--> `docs/04-project-development/04-design/system-architecture.md`
-- `REQ-001` --落点--> `docs/04-project-development/04-design/module-boundaries.md`
-- `REQ-001` --落点--> `docs/04-project-development/04-design/technical-selection.md`
-- `REQ-001` --落点--> `docs/04-project-development/04-design/api-design.md`
-- `REQ-002` --落点--> `docs/04-project-development/08-operations-maintenance/operations-runbook.md`
-- `REQ-003` --落点--> `docs/02-user-guide/user-guide.md`
+- `REQ-001` --任务--> `TASK-001`, `TASK-007`
+- `REQ-006` --设计--> `memory-system-detailed-design.md`
+- `REQ-006` --任务--> `TASK-007`
+- `REQ-003` --任务--> `TASK-003`, `TASK-011`
+- `REQ-004` --任务--> `TASK-004`, `TASK-005`
+- `REQ-005` --任务--> `TASK-006`
+- `REQ-007` --任务--> `TASK-008`
+- `REQ-009` --任务--> `TASK-009`
+- `REQ-010` --任务--> `TASK-011`, `TASK-012`

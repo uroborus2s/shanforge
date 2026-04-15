@@ -9,7 +9,6 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 FACTORY_CORE = REPO_ROOT / "scripts" / "factory_core.py"
-FACTORY_HISTORICAL_PROJECT_ONBOARDING = REPO_ROOT / "scripts" / "factory-historical-project-onboarding"
 FACTORY_TECH_PROFILE = REPO_ROOT / "scripts" / "factory-tech-profile"
 SKILL_CREATOR_SCRIPTS = REPO_ROOT / "skills" / "skill-creator" / "scripts"
 DEFAULTS_CONFIG = REPO_ROOT / "config" / "software-factory.defaults.json"
@@ -32,10 +31,6 @@ class Crawler4jModelSkillIntegrationTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.factory_core = load_script_module("factory_core_crawler4j_skill", FACTORY_CORE)
-        cls.onboarding = load_script_module(
-            "factory_historical_project_onboarding_crawler4j_skill",
-            FACTORY_HISTORICAL_PROJECT_ONBOARDING,
-        )
         cls.factory_tech_profile = load_script_module(
             "factory_tech_profile_crawler4j_skill",
             FACTORY_TECH_PROFILE,
@@ -91,51 +86,6 @@ class Crawler4jModelSkillIntegrationTests(unittest.TestCase):
 
         self.assertTrue(any("uvx --from crawler4j-sdk crawler4j init-model" in item for item in merged["commands"]))
         self.assertFalse(any("crawler4j-sdk==" in item for item in merged["commands"]))
-
-    def test_detect_stack_identifies_generated_crawler4j_model_project(self):
-        with tempfile.TemporaryDirectory() as temp_dir:
-            project_root = Path(temp_dir)
-            (project_root / "README.md").write_text("# hotel_demo\n", encoding="utf-8")
-            (project_root / "module.yaml").write_text("name: hotel_demo\nversion: 1.0.0\n", encoding="utf-8")
-            (project_root / "pyproject.toml").write_text(
-                "\n".join(
-                    [
-                        "[project]",
-                        'name = "hotel-demo"',
-                        'dependencies = ["crawler4j-sdk"]',
-                    ]
-                )
-                + "\n",
-                encoding="utf-8",
-            )
-
-            scan = self.onboarding.detect_stack(project_root, "auto")
-
-        self.assertEqual(scan["preset"], "crawler4j-model")
-        self.assertIn("crawler4j", scan["stack_label"].lower())
-        self.assertTrue(any("model/模块项目" in line for line in scan["findings"]))
-
-    def test_detect_stack_identifies_crawler4j_core_repo(self):
-        with tempfile.TemporaryDirectory() as temp_dir:
-            project_root = Path(temp_dir)
-            (project_root / "README.md").write_text("# crawler4j\n", encoding="utf-8")
-            (project_root / "pyproject.toml").write_text("[project]\nname = \"crawler4j\"\n", encoding="utf-8")
-            (project_root / "crawler4j_sdk").mkdir()
-            (project_root / "crawler4j_contracts").mkdir()
-            (project_root / "crawler4j_sdk" / "pyproject.toml").write_text(
-                "[project]\nname = \"crawler4j-sdk\"\n",
-                encoding="utf-8",
-            )
-            (project_root / "crawler4j_contracts" / "pyproject.toml").write_text(
-                "[project]\nname = \"crawler4j-contracts\"\n",
-                encoding="utf-8",
-            )
-
-            scan = self.onboarding.detect_stack(project_root, "auto")
-
-        self.assertEqual(scan["preset"], "crawler4j-model")
-        self.assertIn("crawler4j", scan["stack_label"].lower())
-        self.assertTrue(any("Core + SDK" in line for line in scan["findings"]))
 
     def test_crawler4j_model_skill_definition_is_valid(self):
         valid, message = self.quick_validate.validate_skill(REPO_ROOT / "skills" / "crawler4j-model-project")

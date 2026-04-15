@@ -1,69 +1,136 @@
 # 后端设计文档
 
+**项目名称：** 山海工枢 / shanforge  
+**文档状态：** `v2` 后端分层基线  
+**负责人：** 仓库维护者  
+**主要读者：** 架构 | 平台开发 | 测试 | 运维  
+**上游输入：** 系统架构 | 平台架构设计 | 模块边界 | API 设计  
+**下游输出：** 实现计划 | 测试计划 | 契约测试  
+**最后更新：** 2026-04-15
+
 ## 1. 文档目标
 
-说明 `shanforge` 在仓库内如何组织脚本执行、共享核心逻辑、状态持久化和错误处理。
+说明 `shanforge` 当前仓内后端如何按六层架构组织网关、用例编排、领域逻辑、技术能力和设置实现。
 
-## 2. 当前后端实现结构
+这里的“后端”不再指旧脚本集合，而是指本仓承载的 5 个仓内层次：
 
-### 2.1 命令入口层
+- 接口/网关层
+- 业务调度层
+- 业务模型层
+- 基础能力层
+- 基础设置层
 
-`scripts/` 下的 `factory-*` 命令是对外稳定入口，负责：
+## 2. 后端总体结构
 
-- 解析参数
-- 读取项目根目录
-- 调用 `factory_core.py` 中的共享逻辑
-- 输出面向人类的检查结果或执行结果
+| 层 | 当前代码落点 | 主要职责 |
+|---|---|---|
+| 接口/网关层 | `src/access/` | API、CLI、HTTP、MCP、Chat、Automation 入口收口 |
+| 业务调度层 | `src/application/` | 打开 session、选择 workflow、组织一次完整执行 |
+| 业务模型层 | `src/domain/` | workflow、memory、capability、approval、delegation、response 等业务规则 |
+| 基础能力层 | `src/runtime/` | Context Engine、LLM Runtime、Capability Registry、Approval/Sandbox、Delegation 等技术能力 |
+| 基础设置层 | `src/adapters/` + `src/storage/` + `src/bootstrap/` | provider、持久化、Hermes bridge、容器装配 |
 
-### 2.2 共享核心层
+正式边界：
 
-`scripts/factory_core.py` 是当前仓库的核心实现层，负责：
+- `application` 只做薄编排。
+- `domain` 是业务逻辑 owner。
+- `runtime` 只提供通用技术能力。
+- `adapters / storage / bootstrap` 只负责实现和接线。
 
-- 文档目录规范与索引生成
-- 历史项目 `docs/` 迁移与链接重写
-- `.factory` 状态文件读写
-- 路径归一化、发布策略更新和校验逻辑
-- 不同高层脚本的共享数据结构与公共函数
+## 3. 主执行链
 
-### 2.3 状态与数据层
+当前正式主链已经明确为：
 
-当前项目没有传统数据库，状态主要落在仓库文件中：
+```text
+RuntimeAPI / CLI Gateway
+  -> ExecutionService
+  -> SessionDomainService + MemoryDomainService + WorkflowDomainService
+  -> AgentKernel
+  -> ContextEngine + ExecutionEngine + LLMRuntime / CapabilityRegistry / Approval / Delegation
+  -> storage / adapter / bootstrap implementations
+```
 
-- 正式人类文档：`docs/`
-- 项目运行状态：`.factory/project.json`
-- AI 记忆与过程记录：`.factory/memory/`、`.factory/process/`
-- 默认配置：`config/software-factory.defaults.json`
+对应到代码：
 
-### 2.4 错误处理与降级
+| 环节 | 代码位置 | 说明 |
+|---|---|---|
+| 网关入口 | `src/access/api/`, `src/access/cli/`, `src/access/http/`, `src/access/mcp/`, `src/access/chat/`, `src/access/automation/` | 绑定协议、归一化请求 |
+| 应用用例 | `src/access/ports/application_use_cases.py` | access 定义它依赖的应用接口 |
+| 执行编排 | `src/application/execution/service.py` | `prepare -> run -> complete -> distill -> persist` 主链 |
+| 领域服务接口 | `src/application/ports/domain_services.py` | application 定义它依赖的领域服务 |
+| 领域实现 | `src/domain/*/service.py` | 业务语义 owner |
+| 内核与运行时 | `src/runtime/agent_kernel/`, `src/runtime/context/`, `src/runtime/capability/`, `src/runtime/llm/`, `src/runtime/approval/`, `src/runtime/delegation/` | 技术能力编排 |
+| 持久化与 provider | `src/storage/*`, `src/adapters/*`, `src/bootstrap/container/default.py` | 真实实现和装配 |
 
-当前实现优先采用“明确失败，不静默兜底”的策略：
+## 4. 关键专题链路
 
-- 目录结构非法时直接在检查输出中报异常
-- 迁移目标冲突时拒绝覆盖，除非显式 `--force`
-- 旧结构残留时阻断 `docs-stratego source validate` 并提示先按 `document-templates` skill 迁移
-- 对于已存在的自定义 `index.md`，刷新逻辑保留人工正文，避免误覆盖
+### 4.1 记忆链路
 
-### 2.5 可观测性
+```text
+ExecutionService
+  -> MemoryDomainService
+  -> domain/memory ports
+  -> runtime/store/search/source capability
+  -> storage/evidence + storage/memory + storage/memory_dataset
+```
 
-当前项目的主要观测点不是服务指标，而是：
+正式结论：
 
-- `unittest` 回归结果
-- `docs-stratego source validate` 结果
-- Markdown 链接与路径重写结果
-- 迁移脚本是否正确识别旧结构和新结构
+- `domain/memory` 是业务 owner。
+- `runtime/memory` 只是基础能力层中的技术模块或兼容实现，不再是正式主链 owner。
+- `storage/*` 只保存事实和派生资产，不决定业务语义。
 
-## 3. 推荐表格
+### 4.2 能力执行链路
 
-| 模块 | 职责 | 输入 | 输出 | 依赖 | 风险点 |
-|---|---|---|---|---|---|
-| `scripts/factory-*` | 对外 CLI 入口 | 参数、项目路径 | 执行结果、检查结果 | `factory_core.py` | 参数歧义、入口漂移 |
-| `scripts/factory_core.py` | 共享核心逻辑 | 仓库文件、配置、文档 | 迁移、刷新、校验结果 | `docs/`、`.factory/` | 路径兼容和覆盖风险 |
-| `.factory/*` | 运行状态与记忆 | 命令执行结果 | 状态文件、过程记录 | 项目执行流程 | 状态失真 |
-| `docs/*` | 正式事实源 | 需求、设计、发布信息 | 人类可读文档 | 文档维护流程 | 文档与实现脱节 |
+```text
+gateway request
+  -> ExecutionService / AgentKernel
+  -> domain/capability
+  -> runtime/capability executor + approval/sandbox
+  -> adapter-backed capability registry / tool backends
+```
 
-## 4. 关联文档
+能力执行的治理规则由 `domain/capability`、`domain/approval` 和 `domain/delegation` 定义；真正的执行资源由 `runtime` 和 `settings` 提供。
+
+### 4.3 模型调用链路
+
+```text
+step model policy
+  -> domain/model
+  -> runtime/llm runtime
+  -> adapters/model_providers/*
+```
+
+模型策略归 `domain/model` owner，供应商差异只允许留在基础设置层。
+
+## 5. 错误处理与状态管理
+
+当前后端遵循“错误标准化、状态显式化、证据可追溯”三条规则：
+
+- gateway 只返回结构化失败，不向上泄漏 SDK 原始异常。
+- session 生命周期必须显式经历 `open / complete / fail / persist`。
+- approval、sandbox、delegation 和 response 都应有独立领域语义，而不是散落在 runtime 细节里。
+- 关键执行步骤必须留下 `session event / evidence / artifact / memory candidate`。
+
+## 6. 当前实现状态
+
+当前已经明确落地的部分：
+
+- `ExecutionService` 保持薄编排，只依赖领域服务和 `AgentKernelPort`。
+- `src/access/ports/application_use_cases.py`、`src/application/ports/domain_services.py`、`src/domain/*/ports.py`、`src/runtime/ports/*.py` 已形成四级接口 owner 结构。
+- 默认容器已支持 `in-memory`、`JSONL-backed` 和 Hermes-backed scaffold 的组合装配。
+- `tests/test_application_execution.py` 已覆盖“应用层只做薄编排”的核心事实。
+
+当前仍需继续补齐的部分：
+
+- `session_application`、`memory_application`、`approval_application` 等更细粒度应用层模块还需要从 `application/` 根下继续拆清。
+- access 层已有 `chat/http/mcp/automation` 目录，但网关契约和读接口还需要继续补齐。
+- hosted / external database / archive query 等场景仍在基础设置层和记忆专项中继续细化。
+
+## 7. 关联文档
 
 - [系统架构设计](./system-architecture.md)
-- [模块边界文档](./module-boundaries.md)
-- [API 设计文档](./api-design.md)
-- [部署与 CI/CD 设计](./deployment-architecture.md)
+- [分层领域与接口总表](./layered-domain-interface-catalog.md)
+- [架构分层与代码映射说明](./architecture-layer-code-mapping.md)
+- [基础设置层与外部资源设计](./infrastructure-layer-design.md)
+- [记忆系统详细设计方案](./memory-system-detailed-design.md)

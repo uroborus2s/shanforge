@@ -2,16 +2,16 @@
 
 - 项目名称：shanforge
 - 当前模式：cli_direct
-- 当前阶段：MAINTENANCE
+- 当前阶段：PLAN
 - 项目负责人：Codex
 - 技术栈：待人工确认
-- 当前技术画像：历史项目纳管基线画像
-- 设计交付物数：0
-- 当前阶段主要角色：项目协调者、发布经理、文档与记忆管理员
+- 当前技术画像：抽象 Agent 平台规划画像
+- 设计交付物数：1
+- 当前阶段主要角色：项目协调者、解决方案架构师、UX/UI 设计师、后端工程师、前端工程师、文档与记忆管理员
 
 ## 项目创意摘要
 
-历史项目纳管：以当前代码、配置、现有文档和最近可验证状态为基线，由软件工厂接手后续维护。当前目标：将 shanforge 自身纳入软件工厂治理，建立后续命令、docs 标准升级与历史项目接管的正式维护基线。
+构建一个以 Hermes 核心思想为输入的抽象 Agent 平台。平台通过 Agent App Manifest、Workflow DSL、ModelPolicy、Capability Registry、Context Engine、LLM Runtime、Approval / Sandbox 和 AgentResponse 形成业务装配闭环；遗留脚本、文件合同和外部流程只作为基础设施适配器存在，不再作为产品定义中心。
 
 ## 项目概况
 

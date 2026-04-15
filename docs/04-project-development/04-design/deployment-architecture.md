@@ -1,67 +1,143 @@
 # 部署与 CI/CD 设计
 
+**项目名称：** 山海工枢 / shanforge  
+**文档状态：** `v2` 运行模式与部署基线  
+**负责人：** 仓库维护者  
+**主要读者：** 架构 | 平台开发 | 测试 | 运维  
+**上游输入：** 系统架构 | 基础设置层设计 | 技术选型  
+**下游输出：** 部署手册 | 运维手册 | 发布说明  
+**最后更新：** 2026-04-15
+
 ## 1. 文档目标
 
-说明 `shanforge` 自身如何分发、验证和回滚共享脚本与文档能力。
+说明平台当前如何装配、运行、验证和回滚。
 
-## 2. 当前交付与部署模型
+当前项目不是“必须先上云才能运行”的在线服务，而是一个以本地可开发、可测试、可审计为第一优先级的抽象 Agent 平台主仓。
 
-### 2.1 环境分层
+## 2. 部署视图
 
-当前项目不是在线服务，主要有三类环境：
+平台部署时需要区分 3 类单位：
 
-- 当前仓库开发环境：维护脚本、docs 和测试
-- 被纳管项目环境：消费共享脚本并执行迁移、刷新、检查
-- 文档聚合环境：由章略·墨衡读取 `docs/index.md` 和各级 `index.md` 构建站点
+| 单位 | 责任 | 当前形态 |
+|---|---|---|
+| UI 宿主 | 人机交互或上游系统接入 | 仓外 Web、外部 CLI 前台、自动化宿主 |
+| 平台运行时 | access/application/domain/runtime 五层逻辑 | 本仓 `src/` + 默认容器 |
+| 设置资源 | provider、store、Hermes bridge、配置 | `src/adapters/`, `src/storage/`, `src/bootstrap/` |
 
-### 2.2 构建与发布流程
+正式原则：
 
-当前没有独立二进制或容器制品，发布流程以仓库变更为主：
+- UI 宿主可以更换，但必须消费统一网关契约。
+- 平台运行时负责稳定业务语义和执行主链。
+- 设置资源决定“用什么实现”，不决定“平台怎么思考”。
 
-1. 修改脚本和正式文档
-2. 执行 `unittest`
-3. 执行 `docs-stratego source validate`
-4. 在目标项目验证迁移和检查逻辑
-5. 通过仓库提交或分发方式交付
+## 3. 当前支持的运行模式
 
-### 2.3 CI/CD 触发条件
+### 3.1 本地开发模式
 
-当前关键触发条件是：
+默认模式面向开发和单测：
 
-- `factory_core.py`、`factory-init`、迁移脚本变化
-- `docs/` 结构和索引规则变化
-- 默认配置和发布策略变化
+- `build_default_container()` 使用 `InMemory*Store`
+- LLM 默认可使用 mock provider
+- session、memory、evidence 生命周期跟随进程
 
-阻断门禁至少包括单元测试和文档结构检查。
+适合：
 
-### 2.4 发布检查点
+- 用例开发
+- 契约测试
+- 分层边界验证
 
-发布前至少确认：
+### 3.2 本地持久化模式
 
-- 旧结构迁移不会破坏链接
-- 自定义 `index.md` 不会被误判或误覆盖
-- 新项目初始化能生成最新模板
-- 本仓库 `docs/` 已按最新方式完成重构
+当 `memory_store_root` 被配置后，默认容器切换到 `JSONL-backed` evidence/memory/dataset store：
 
-### 2.5 回滚路径
+- 保留 local-first
+- 支持跨进程回放
+- 支持记忆和蒸馏回归验证
 
-回滚以 Git 为主：
+这是当前最重要的可持续运行模式。
 
-- 回退相关脚本变更
-- 回退文档模板或索引规则
-- 重跑测试与 `docs-stratego source validate`
-- 在受影响项目重新验证迁移链路
+### 3.3 Hermes 增强模式
 
-## 3. 当前部署矩阵
+当设置中开启 Hermes bridge 且指定 adapter 集合时，可切换部分基础设置实现：
 
-| 环境 | 部署目标 | 触发方式 | 门禁 | 回滚方式 | 负责人 |
-|---|---|---|---|---|---|
-| 当前仓库 | 更新共享脚本与文档 | 本地开发与提交 | `unittest` + docs 检查 | Git 回退 | 仓库维护者 |
-| 被纳管项目 | 执行 docs 迁移与索引刷新 | 维护者手工执行命令 | 目标项目 `--check` | 回退目标项目变更 | 项目维护者 |
-| 文档聚合站点 | 读取 `docs/index.md` 构建导航 | 文档收录 / 站点刷新 | 目录与导航合法 | 恢复前一版文档源 | 文档维护者 |
+- `capability_registry`
+- `approval`
+- `delegation`
 
-## 4. 关联文档
+正式约束：
 
-- [发布说明](../07-release-delivery/release-notes.md)
+- Hermes 只允许在基础设置层实现区被复用。
+- Hermes 不能反向主导 `application / domain / runtime` 的边界。
+
+### 3.4 未来托管模式
+
+后续可演进到：
+
+- 外部数据库或索引服务
+- hosted API gateway
+- 外部 approval/delegation backend
+- 更完整的 Web console
+
+但这些都必须建立在当前六层架构和 provider port 基线之上。
+
+## 4. 装配入口
+
+当前默认装配入口是：
+
+- `src/bootstrap/settings/`
+- `src/bootstrap/container/default.py`
+
+装配时至少要完成：
+
+1. 读取 settings
+2. 选择 store/provider/backend 实现
+3. 绑定 `runtime ports`
+4. 组装 application/domain/runtime 服务图
+5. 暴露 API/CLI 等 access 入口
+
+## 5. 部署门禁
+
+任何影响平台运行模式的变更，至少需要覆盖：
+
+- 分层契约检查：接口 owner 和依赖方向是否仍正确
+- 单元测试：domain/runtime/storage 的核心行为
+- 集成测试：默认容器是否还能跑通主执行链
+- 文档同步：`04-design`、`06-testing-verification`、`.factory/memory` 是否已同步
+
+当前最关键的验证对象包括：
+
+- `tests/test_application_execution.py`
+- `tests/test_context_engine.py`
+- `tests/test_memory_runtime.py`
+- `tests/test_platform_scaffold.py`
+- `tests/test_infrastructure_scaffold.py`
+
+## 6. 发布与回滚
+
+当前发布以 Git 版本为主，回滚路径也以 Git 为主：
+
+1. 回退对应代码与配置变更
+2. 重新装配默认容器
+3. 重跑关键测试
+4. 验证 access 入口、session、memory、provider 绑定恢复正常
+
+若问题来自基础设置层：
+
+- 优先切回 `in-memory` 或 `JSONL-backed` 保守实现
+- 再定位具体 adapter / provider / backend
+
+## 7. 环境矩阵
+
+| 模式 | UI 宿主 | 持久化 | Provider | 适用阶段 |
+|---|---|---|---|---|
+| `dev-local` | CLI / API 调试 | `in-memory` | mock / local | 开发、单测 |
+| `local-persistent` | CLI / API / automation | `JSONL-backed` | mock / real provider | 联调、回归 |
+| `hybrid-hermes` | CLI / API / automation | local store + Hermes-backed adapter | Hermes bridge + real provider | 能力增强验证 |
+| `future-hosted` | Web + API | external DB / index | hosted providers | 后续演进 |
+
+## 8. 关联文档
+
+- [基础设置层与外部资源设计](./infrastructure-layer-design.md)
+- [后端设计文档](./backend-design.md)
+- [测试计划](../06-testing-verification/test-plan.md)
 - [部署手册](../08-operations-maintenance/deployment-guide.md)
-- [运维手册](../08-operations-maintenance/operations-runbook.md)

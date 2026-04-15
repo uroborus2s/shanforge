@@ -263,14 +263,14 @@ class FactoryRelativePathAndDocsIndexTests(unittest.TestCase):
         self.assertEqual(result["primary"]["action"], "init")
         self.assertEqual(result["primary"]["policy"]["risk_level"], "L2")
 
-    def test_intent_resolver_recommends_onboarding_for_unmanaged_project(self):
+    def test_intent_resolver_recommends_state_doctor_for_unmanaged_project(self):
         with tempfile.TemporaryDirectory() as temp_dir:
             project_root = Path(temp_dir)
             (project_root / "README.md").write_text("# Legacy Project\n", encoding="utf-8")
 
             result = self.intent_resolver.resolve_intent("先接管这个历史项目", project_root, tool="codex")
 
-        self.assertEqual(result["primary"]["action"], "historical-project-onboarding")
+        self.assertEqual(result["primary"]["action"], "state-doctor")
         self.assertFalse(result["primary"]["blocked"])
 
     def test_intent_resolver_prefers_state_doctor_for_managed_docs_request(self):
@@ -417,7 +417,7 @@ class FactoryRelativePathAndDocsIndexTests(unittest.TestCase):
         self.assertEqual(plan["arguments"][0], "design-kickoff")
         self.assertIn("--strict", plan["arguments"])
 
-    def test_intent_resolver_safe_execution_blocks_non_auto_policy(self):
+    def test_intent_resolver_safe_execution_reports_error_for_unmanaged_project(self):
         with tempfile.TemporaryDirectory() as temp_dir:
             project_root = Path(temp_dir)
             (project_root / "README.md").write_text("# Legacy Project\n", encoding="utf-8")
@@ -431,8 +431,8 @@ class FactoryRelativePathAndDocsIndexTests(unittest.TestCase):
                 strict=False,
             )
 
-        self.assertEqual(result["primary"]["action"], "historical-project-onboarding")
-        self.assertEqual(execution["status"], "policy_denied")
+        self.assertEqual(result["primary"]["action"], "state-doctor")
+        self.assertEqual(execution["status"], "error")
 
     def test_intent_resolver_request_approval_for_workflow_backed_profile(self):
         with tempfile.TemporaryDirectory() as control_dir:

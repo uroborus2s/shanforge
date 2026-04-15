@@ -4,8 +4,7 @@
     "cli_direct",
     "api_platform"
   ],
-  "v1_active_mode": "cli_direct",
-  "v1_scope_note": "当前版本只落地 Codex 或 Gemini CLI 直接使用方式，API Agent 平台作为后续演进目标保留。",
+  "default_active_mode": "cli_direct",
   "ai_runtime_docs": [
     "skills/software-factory-cli/references/ai-runtime-protocol.md",
     "skills/software-factory-cli/references/ai-role-charter.md"

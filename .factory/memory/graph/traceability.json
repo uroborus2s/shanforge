@@ -1,123 +1,233 @@
 {
-  "updated_at": "2026-04-01 10:43:45",
+  "updated_at": "2026-04-14 00:10:00",
   "nodes": [
-    {
-      "id": "REQ-001",
-      "type": "REQ"
-    },
-    {
-      "id": "REQ-002",
-      "type": "REQ"
-    },
-    {
-      "id": "REQ-003",
-      "type": "REQ"
-    },
-    {
-      "id": "docs/04-project-development/02-discovery/current-state-analysis.md",
-      "type": "ARTIFACT"
-    },
-    {
-      "id": "docs/04-project-development/03-requirements/prd.md",
-      "type": "ARTIFACT"
-    },
-    {
-      "id": "docs/04-project-development/04-design/system-architecture.md",
-      "type": "ARTIFACT"
-    },
-    {
-      "id": "docs/04-project-development/04-design/module-boundaries.md",
-      "type": "ARTIFACT"
-    },
-    {
-      "id": "docs/04-project-development/04-design/technical-selection.md",
-      "type": "ARTIFACT"
-    },
-    {
-      "id": "docs/04-project-development/04-design/api-design.md",
-      "type": "ARTIFACT"
-    },
-    {
-      "id": "docs/04-project-development/08-operations-maintenance/operations-runbook.md",
-      "type": "ARTIFACT"
-    },
-    {
-      "id": "docs/02-user-guide/user-guide.md",
-      "type": "ARTIFACT"
-    }
+    { "id": "REQ-001", "type": "REQ" },
+    { "id": "REQ-002", "type": "REQ" },
+    { "id": "REQ-003", "type": "REQ" },
+    { "id": "REQ-004", "type": "REQ" },
+    { "id": "REQ-005", "type": "REQ" },
+    { "id": "REQ-006", "type": "REQ" },
+    { "id": "REQ-007", "type": "REQ" },
+    { "id": "REQ-008", "type": "REQ" },
+    { "id": "REQ-009", "type": "REQ" },
+    { "id": "REQ-010", "type": "REQ" },
+    { "id": "NFR-001", "type": "NFR" },
+    { "id": "NFR-002", "type": "NFR" },
+    { "id": "NFR-003", "type": "NFR" },
+    { "id": "NFR-004", "type": "NFR" },
+    { "id": "NFR-005", "type": "NFR" },
+    { "id": "TASK-001", "type": "TASK" },
+    { "id": "TASK-002", "type": "TASK" },
+    { "id": "TASK-003", "type": "TASK" },
+    { "id": "TASK-004", "type": "TASK" },
+    { "id": "TASK-005", "type": "TASK" },
+    { "id": "TASK-006", "type": "TASK" },
+    { "id": "TASK-007", "type": "TASK" },
+    { "id": "TASK-008", "type": "TASK" },
+    { "id": "TASK-009", "type": "TASK" },
+    { "id": "TASK-010", "type": "TASK" },
+    { "id": "TASK-011", "type": "TASK" },
+    { "id": "TASK-012", "type": "TASK" },
+    { "id": "docs/04-project-development/03-requirements/prd.md", "type": "ARTIFACT" },
+    { "id": "docs/04-project-development/03-requirements/requirements-analysis.md", "type": "ARTIFACT" },
+    { "id": "docs/04-project-development/04-design/system-architecture.md", "type": "ARTIFACT" },
+    { "id": "docs/04-project-development/04-design/agent-platform-architecture.md", "type": "ARTIFACT" },
+    { "id": "docs/04-project-development/04-design/module-boundaries.md", "type": "ARTIFACT" },
+    { "id": "docs/04-project-development/04-design/memory-runtime-design.md", "type": "ARTIFACT" },
+    { "id": "docs/04-project-development/04-design/api-design.md", "type": "ARTIFACT" },
+    { "id": "docs/04-project-development/05-development-process/implementation-plan.md", "type": "ARTIFACT" },
+    { "id": "docs/04-project-development/06-testing-verification/test-plan.md", "type": "ARTIFACT" },
+    { "id": ".factory/memory/runtime-brief.md", "type": "MEMORY" }
   ],
   "edges": [
-    {
-      "source": "REQ-001",
-      "relation": "落点",
-      "target": "docs/04-project-development/02-discovery/current-state-analysis.md",
-      "status": "有效",
-      "owner": "Codex",
-      "note": "历史项目纳管基线",
-      "updated_at": "2026-04-01 10:43:45"
-    },
-    {
-      "source": "REQ-001",
-      "relation": "落点",
-      "target": "docs/04-project-development/03-requirements/prd.md",
-      "status": "有效",
-      "owner": "Codex",
-      "note": "历史项目纳管基线",
-      "updated_at": "2026-04-01 10:43:45"
-    },
     {
       "source": "REQ-001",
       "relation": "落点",
       "target": "docs/04-project-development/04-design/system-architecture.md",
       "status": "有效",
       "owner": "Codex",
-      "note": "历史项目纳管基线",
-      "updated_at": "2026-04-01 10:43:45"
+      "note": "统一 Agent Platform Kernel",
+      "updated_at": "2026-04-13 16:10:00"
     },
     {
       "source": "REQ-001",
-      "relation": "落点",
-      "target": "docs/04-project-development/04-design/module-boundaries.md",
-      "status": "有效",
+      "relation": "任务",
+      "target": "TASK-001",
+      "status": "待开始",
       "owner": "Codex",
-      "note": "历史项目纳管基线",
-      "updated_at": "2026-04-01 10:43:45"
-    },
-    {
-      "source": "REQ-001",
-      "relation": "落点",
-      "target": "docs/04-project-development/04-design/technical-selection.md",
-      "status": "有效",
-      "owner": "Codex",
-      "note": "历史项目纳管基线",
-      "updated_at": "2026-04-01 10:43:45"
-    },
-    {
-      "source": "REQ-001",
-      "relation": "落点",
-      "target": "docs/04-project-development/04-design/api-design.md",
-      "status": "有效",
-      "owner": "Codex",
-      "note": "历史项目纳管基线",
-      "updated_at": "2026-04-01 10:43:45"
+      "note": "领域模型与核心 ID 体系",
+      "updated_at": "2026-04-13 16:10:00"
     },
     {
       "source": "REQ-002",
       "relation": "落点",
-      "target": "docs/04-project-development/08-operations-maintenance/operations-runbook.md",
+      "target": "docs/04-project-development/04-design/agent-platform-architecture.md",
       "status": "有效",
       "owner": "Codex",
-      "note": "缺陷维护说明",
-      "updated_at": "2026-04-01 10:43:45"
+      "note": "业务 App 与平台内核隔离",
+      "updated_at": "2026-04-13 16:10:00"
+    },
+    {
+      "source": "REQ-002",
+      "relation": "任务",
+      "target": "TASK-002",
+      "status": "待开始",
+      "owner": "Codex",
+      "note": "Agent App Manifest schema 与 loader",
+      "updated_at": "2026-04-13 16:10:00"
     },
     {
       "source": "REQ-003",
       "relation": "落点",
-      "target": "docs/02-user-guide/user-guide.md",
+      "target": "docs/04-project-development/04-design/api-design.md",
       "status": "有效",
       "owner": "Codex",
-      "note": "新增需求协作说明",
-      "updated_at": "2026-04-01 10:43:45"
+      "note": "Workflow DSL 契约",
+      "updated_at": "2026-04-13 16:10:00"
+    },
+    {
+      "source": "REQ-003",
+      "relation": "任务",
+      "target": "TASK-003",
+      "status": "待开始",
+      "owner": "Codex",
+      "note": "Workflow DSL schema 与 runtime skeleton",
+      "updated_at": "2026-04-13 16:10:00"
+    },
+    {
+      "source": "REQ-004",
+      "relation": "落点",
+      "target": "docs/04-project-development/04-design/api-design.md",
+      "status": "有效",
+      "owner": "Codex",
+      "note": "ModelPolicy 与 LLMProviderPort",
+      "updated_at": "2026-04-13 16:10:00"
+    },
+    {
+      "source": "REQ-004",
+      "relation": "任务",
+      "target": "TASK-004",
+      "status": "待开始",
+      "owner": "Codex",
+      "note": "ModelPolicyResolver 与 MockModelProvider",
+      "updated_at": "2026-04-13 16:10:00"
+    },
+    {
+      "source": "REQ-005",
+      "relation": "落点",
+      "target": "docs/04-project-development/04-design/module-boundaries.md",
+      "status": "有效",
+      "owner": "Codex",
+      "note": "Capability Registry 与 ExecutionPort",
+      "updated_at": "2026-04-13 16:10:00"
+    },
+    {
+      "source": "REQ-005",
+      "relation": "任务",
+      "target": "TASK-006",
+      "status": "待开始",
+      "owner": "Codex",
+      "note": "Capability Registry 与 tool runtime",
+      "updated_at": "2026-04-13 16:10:00"
+    },
+    {
+      "source": "REQ-006",
+      "relation": "落点",
+      "target": ".factory/memory/runtime-brief.md",
+      "status": "有效",
+      "owner": "Codex",
+      "note": "Session、Memory 与 Context Engine",
+      "updated_at": "2026-04-13 16:10:00"
+    },
+    {
+      "source": "REQ-006",
+      "relation": "落点",
+      "target": "docs/04-project-development/04-design/memory-runtime-design.md",
+      "status": "有效",
+      "owner": "Codex",
+      "note": "Memory Runtime 专项设计",
+      "updated_at": "2026-04-14 00:10:00"
+    },
+    {
+      "source": "REQ-006",
+      "relation": "任务",
+      "target": "TASK-007",
+      "status": "待开始",
+      "owner": "Codex",
+      "note": "Session Ledger、Memory Runtime、Recall / Context Engine",
+      "updated_at": "2026-04-14 00:10:00"
+    },
+    {
+      "source": "REQ-007",
+      "relation": "落点",
+      "target": "docs/04-project-development/04-design/system-architecture.md",
+      "status": "有效",
+      "owner": "Codex",
+      "note": "Policy、Approval 与 Sandbox",
+      "updated_at": "2026-04-13 16:10:00"
+    },
+    {
+      "source": "REQ-007",
+      "relation": "任务",
+      "target": "TASK-008",
+      "status": "待开始",
+      "owner": "Codex",
+      "note": "Policy / Approval / Execution Sandbox",
+      "updated_at": "2026-04-13 16:10:00"
+    },
+    {
+      "source": "REQ-008",
+      "relation": "落点",
+      "target": "docs/04-project-development/04-design/system-architecture.md",
+      "status": "有效",
+      "owner": "Codex",
+      "note": "Delegation、Gateway 与多入口适配",
+      "updated_at": "2026-04-13 16:10:00"
+    },
+    {
+      "source": "REQ-008",
+      "relation": "任务",
+      "target": "TASK-010",
+      "status": "待开始",
+      "owner": "Codex",
+      "note": "Delegation Runtime 与 Gateway 边界",
+      "updated_at": "2026-04-13 16:10:00"
+    },
+    {
+      "source": "REQ-009",
+      "relation": "落点",
+      "target": "docs/04-project-development/04-design/agent-platform-architecture.md",
+      "status": "有效",
+      "owner": "Codex",
+      "note": "AgentResponse 与 Evidence",
+      "updated_at": "2026-04-13 16:10:00"
+    },
+    {
+      "source": "REQ-009",
+      "relation": "任务",
+      "target": "TASK-009",
+      "status": "待开始",
+      "owner": "Codex",
+      "note": "Response Normalizer、Parser、Schema Validator",
+      "updated_at": "2026-04-13 16:10:00"
+    },
+    {
+      "source": "REQ-010",
+      "relation": "落点",
+      "target": "docs/04-project-development/05-development-process/implementation-plan.md",
+      "status": "有效",
+      "owner": "Codex",
+      "note": "快速构建业务工作流",
+      "updated_at": "2026-04-13 16:10:00"
+    },
+    {
+      "source": "REQ-010",
+      "relation": "任务",
+      "target": "TASK-011",
+      "status": "待开始",
+      "owner": "Codex",
+      "note": "Demo Agent Apps：编码流、写作流",
+      "updated_at": "2026-04-13 16:10:00"
     }
   ]
 }

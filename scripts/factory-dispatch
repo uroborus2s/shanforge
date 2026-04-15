@@ -8,7 +8,6 @@ from factory_core import action_policy, load_action_registry, run_script
 
 LEGACY_ACTIONS = {
     "init": ("factory-init", "初始化项目"),
-    "historical-project-onboarding": ("factory-historical-project-onboarding", "纳管非软件工厂历史项目"),
     "prd-bootstrap": ("factory-prd-bootstrap", "初始化需求阶段文档"),
     "requirements-upgrade": ("factory-requirements-upgrade", "升级历史需求文档到新版结构"),
     "requirements-verify": ("factory-requirements-verify", "执行需求一致性校验"),
@@ -78,8 +77,6 @@ LEGACY_ACTIONS = {
 }
 
 LEGACY_ALIASES = {
-    "legacy-onboard": "historical-project-onboarding",
-    "historical-onboard": "historical-project-onboarding",
     "prd": "prd-bootstrap",
     "requirements": "prd-bootstrap",
     "upgrade-req": "requirements-upgrade",

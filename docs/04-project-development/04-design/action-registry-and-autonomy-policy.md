@@ -1,223 +1,151 @@
 # 动作注册与分级自治策略设计
 
-**文档状态：** MVP 已实现  
-**主要读者：** 架构师 | 脚本维护者 | 平台维护者 | 项目协调者  
+**文档状态：** `v2` 主题专项基线  
+**主要读者：** 架构 | 平台维护者 | 治理规则维护者 | 集成开发者  
 **负责人：** 仓库维护者  
-**关联 ID：** `REQ-003`, `REQ-005`, `REQ-006`, `API-001`, `API-002`, `API-010`, `API-011`, `API-014`, `API-015`, `API-016`, `API-018`, `API-019`, `API-020`, `API-021`, `API-022`, `API-023`
-**最后更新：** 2026-04-07
+**关联 ID：** `REQ-005`, `REQ-007`, `REQ-008`, `API-005`, `API-008`, `API-009`, `API-010`, `API-011`  
+**最后更新：** 2026-04-15
 
 ## 1. 设计目标
 
-为山海工枢建立一层位于自然语言和 `factory-*` 执行入口之间的“动作注册与自治策略层”，让项目负责人只需要表达意图，系统即可在受控边界内自动完成软件工程动作。
+文件名沿用“动作注册”是为了兼容旧讨论，当前正式语义已经收口为：
 
-当前确认的目标形态：
+```text
+能力注册 + 执行治理 + 分级自治策略
+```
 
-- 前台继续保持 `CLI-first`
-- 以 `Codex`、`Gemini CLI` 为主要宿主
-- 长期扩展更多前台工具，如 `opencode`
-- 采用“分级自治”，逐步向更高自动化演进
+目标是在平台内回答三件事：
 
-当前已落地的 MVP：
+1. 系统能执行哪些能力，以及能力的输入输出和风险边界是什么。
+2. 某个动作在当前上下文下是否允许执行，是否需要审批或沙箱。
+3. 多代理或外部宿主调用时，如何保持一致的自治等级和证据要求。
 
-- `config/action-registry.json`
-- `config/autonomy-policy.json`
-- `factory-dispatch` 优先从动作注册表解析首批高层动作
-- `factory-dispatch --list-actions` 会显示已登记动作的风险级别和默认策略
-- `config/frontends/*.json` 和 `factory-frontend-capabilities`
-- `factory-intent-resolver` 与 `factory-dispatch intent-resolver`
-- `factory-intent-resolver --execute-safe` 已可自动执行 `L0/L1` 主推荐动作
-- `factory-intent-resolver --request-approval` 已可为 `L2/L3` 主推荐动作生成冻结审批票据
-- `factory-intent-resolver` 已可选择 `command-profiles` / `workflow-runner` 的具体子目标
-- `factory-intent-resolver` 已完成一轮 skill 生命周期解析重构，可按候选状态把自然语言映射到 `skill-eval` / `skill-approval` / `skill-promote` / `skill-delete-approval` / `skill-rollback`
-- `command-profiles` 已支持子目标风险覆盖，`pre-gate` / `daily-close` / `release-ready` / `handover-ready` 会提升到 `L2`
-- `factory-intent-eval` 与 `config/evals/intent-resolver-cases.json`
-- `factory-intent-approval` 与控制面审批队列视图
-- 审批票据已可冻结建议 ownership 角色与写入集合，并在批准执行前再次校验显式写集冲突
-- `config/reply-policy.json` 已固定 `reply_summary`、`approval_guidance` 和 skill 正式变更批准边界
+## 2. 分层定位
 
-当前仍未落地的部分：
-
-- 面向 UI / 远程协作者的审批 hook 接入
-- 工作流和多代理的正式策略接入
-- 基于回放与历史成功率的意图排序优化
-
-## 2. 为什么主骨架不能只靠 skill
-
-`skill` 负责行为协议、阅读顺序和思维约束，但不适合单独承担整套运行时骨架。
-
-如果主架构完全以 `skill` 为中心，会出现这些问题：
-
-- 高风险动作缺少稳定的执行边界
-- 相同自然语言请求在不同前台上的行为不够一致
-- 无法统一统计成功率、误判率、人工介入率
-- 多代理协作难以形成明确的动作 ownership 和恢复协议
-
-因此，主骨架应当转为：
-
-- `Action Registry`：定义系统能做什么
-- `Policy Engine`：定义什么情况下允许自动做
-- `Workflow Orchestrator`：定义多个动作如何组合
-- `Skill`：定义每个阶段和角色应该怎样理解问题、读取上下文和保持约束
-
-### 2.1 为什么不把 `scripts/factory-*` 并入 skill
-
-这里的分层是刻意设计，不是拆散过度：
-
-- `skill` 解决“模型该怎么想、先读什么、不要做什么”。
-- `scripts/factory-*` 解决“系统实际怎么执行、怎么验证、怎么留痕”。
-- `config/action-registry.json` 解决“哪些执行入口是正式注册动作、风险等级是什么”。
-
-如果把脚本命令并入 skill，会出现这些问题：
-
-- 技能文本既承担协议又承担执行目录，边界会变得含混。
-- 不同前台会更难共享同一套动作注册、审批和风险策略。
-- 执行证据、失败恢复、观测统计会退回到分散状态。
-- 高风险动作更容易绕过注册表和策略层。
-
-因此固定原则如下：
-
-- 禁止把 skill 当成动作注册表。
-- 禁止把 repo 级正式命令入口隐藏进 skill 文本。
-- 允许 skill 调用已注册脚本动作。
-- 允许 skill 自带只服务于该 skill 的局部 helper script，但它不是平台级动作入口。
-
-## 3. 方案比较
-
-### 方案 A：继续以 skill 为主骨架
-
-- 优点：改动最小，延续当前技能组织方式
-- 缺点：执行层自由度过高，风险治理和观测性不足
-
-### 方案 B：以工作流图为主骨架
-
-- 优点：阶段型流程稳定，适合审批和 Gate
-- 缺点：对开放式工程任务过于刚性，难覆盖探索性工作
-
-### 方案 C：以动作注册表为主骨架，工作流作为编排层
-
-- 优点：兼顾自然语言入口、执行确定性、风险治理和多前台复用
-- 缺点：需要新增统一动作契约和策略层
-
-### 当前推荐方案
-
-采用方案 C。
-
-它最符合山海工枢的约束：
-
-- 保留 `CLI-first`
-- 不推翻现有 `factory-*` 资产
-- 可以把自然语言、skill、script、workflow 和多代理协作纳入同一套运行时
-
-## 4. 核心概念
-
-| 概念 | 定义 | 作用 |
+| 层 | 责任 | 当前或目标落点 |
 |---|---|---|
-| `intent` | 用户自然语言表达的目标 | 作为动作选择和工作流编排的起点 |
-| `action` | 一个已注册、可执行、可验证的标准动作 | 系统的最小执行单元 |
-| `workflow` | 多个动作按时序和条件组合的流程模板 | 把高层任务拆成可执行序列 |
-| `policy` | 动作的风险等级、前置条件和审批规则 | 决定动作能否自动执行 |
-| `evidence` | 证明动作已完成的文件、测试、日志和检查结果 | 防止“口头完成” |
-| `recovery` | 失败后的安全重试、降级和停止规则 | 提升系统恢复能力 |
+| 接口/网关层 | 把用户请求映射成运行请求 | `src/access/` |
+| 业务调度层 | 编排执行、审批、委派和结果收口 | `src/application/` |
+| 业务模型层 | 定义 capability、approval、delegation 的业务语义 | `src/domain/capability/`, `src/domain/approval/`, `src/domain/delegation/` |
+| 基础能力层 | 提供 capability registry、approval gate、sandbox、delegation coordinator | `src/runtime/capability/`, `src/runtime/approval/`, `src/runtime/delegation/` |
+| 基础设置层 | 提供 registry backend、approval backend、delegation backend 实现 | `src/adapters/capability_registry/`, `src/adapters/approval/`, `src/adapters/delegation/` |
 
-## 5. 目标运行时结构
+正式边界：
+
+- capability 的语义 owner 在 `domain/capability`。
+- approval / sandbox 的业务判断入口在 `domain/approval`。
+- 具体执行资源、provider 和 backend 只在 `runtime` / `settings`。
+
+## 3. 核心对象
+
+| 对象 | 作用 |
+|---|---|
+| `CapabilityDescriptor` | 声明能力 ID、输入输出、风险、写集和证据要求 |
+| `CapabilityResult` | 标准化能力执行结果 |
+| `ApprovalDecision` | 审批判定结果 |
+| `SandboxDecision` | 写集与工作区安全判定 |
+| `DelegationPlan` / `DelegationTicket` / `DelegationResult` | 子任务委派和回收语义 |
+| `AgentResponse` | 最终统一响应结构 |
+
+这些对象共同保证平台不会把“执行什么”“能不能执行”“谁来执行”“如何返回”混成一层。
+
+## 4. 执行治理链路
 
 ```mermaid
 flowchart LR
-    User["项目负责人自然语言请求"] --> Frontend["CLI 前台适配器"]
-    Frontend --> Intent["Intent Resolver"]
-    Intent --> Context["Context Compiler"]
-    Intent --> Registry["Action Registry"]
-    Registry --> Policy["Policy Engine"]
-    Policy --> Workflow["Workflow Orchestrator"]
-    Workflow --> Skills["Skills"]
-    Workflow --> Scripts["factory-* / tools / shell"]
-    Scripts --> Evidence["Evidence & Verification"]
-    Evidence --> State["docs/ + .factory/ + workitems"]
-    Evidence --> Recovery["Recovery Loop"]
+    HOST["UI Host / Gateway Request"]
+    ACCESS["Access Gateway"]
+    APP["ExecutionService / Application Use Cases"]
+    CAP_DOMAIN["Capability / Approval / Delegation Domain"]
+    RUNTIME["Registry / ApprovalGate / Sandbox / DelegationCoordinator"]
+    SETTINGS["Adapter / Backend / Provider"]
+    EVIDENCE["Event / Evidence / Response"]
+
+    HOST --> ACCESS
+    ACCESS --> APP
+    APP --> CAP_DOMAIN
+    CAP_DOMAIN --> RUNTIME
+    RUNTIME --> SETTINGS
+    SETTINGS --> EVIDENCE
 ```
 
-## 6. Action Registry 契约
+当前正式规则：
 
-每个动作都必须具备稳定且可机器消费的元数据；系统不应允许未注册动作直接进入自动执行路径。
+- access 只绑定协议，不做能力风险判断。
+- application 只编排，不直接决定 provider 或后端。
+- capability/approval/delegation 的业务规则在 `domain`。
+- runtime 负责把这些规则落成可执行技术能力。
+- settings 只实现，不越权改写治理语义。
 
-### 6.1 最小字段
+## 5. 注册模型
+
+平台级能力注册至少要描述下面这些字段：
 
 | 字段 | 说明 |
 |---|---|
-| `id` | 动作唯一标识，如 `docs.standard_upgrade` |
-| `aliases` | 自然语言和历史命令别名 |
-| `purpose` | 这个动作解决什么问题 |
-| `inputs_schema` | 参数结构和必填项 |
-| `preconditions` | 项目类型、阶段、文件存在性等前置条件 |
-| `risk_level` | `L0` 到 `L3` |
-| `frontend_requirements` | 是否需要 shell、文件编辑、子代理、MCP |
-| `artifacts` | 预期产物 |
-| `success_criteria` | 什么算完成 |
-| `verification` | 如何验证完成 |
-| `recovery_hints` | 出错后的安全恢复提示 |
-| `subtargets` | 可选的子目标策略覆盖，例如某些 profile 单独提高风险等级 |
+| `id` | 能力唯一标识 |
+| `input_schema` | 输入契约 |
+| `output_schema` | 输出契约 |
+| `risk_level` | 风险等级 |
+| `approval_required` | 是否需要审批 |
+| `writeset` | 可能写入的资源边界 |
+| `evidence_required` | 是否必须留下证据 |
+| `timeout / budget hints` | 运行预算建议 |
 
-### 6.2 建议的注册样例
+这些字段是平台正式能力契约的一部分，不应散落在宿主侧或某个 provider 里。
 
-| 动作 ID | 现有实现或目标实现 | 说明 |
+## 6. 分级自治策略
+
+### 6.1 风险等级
+
+建议统一为 4 级：
+
+| 等级 | 含义 | 默认策略 |
 |---|---|---|
-| `session.refresh` | `factory-agent-session` | 编译当前会话最小上下文包 |
-| `state.doctor` | `factory-state-doctor` | 诊断项目状态和缺口 |
-| `project.historical_onboarding` | `factory-historical-project-onboarding` | 历史项目纳管 |
-| `docs.validation` | `docs-stratego source validate` | 校验源仓 docs 是否合规 |
-| `workflow.pre_gate` | `factory-command-profiles pre-gate` 或 `factory-dispatch workflow` | Gate 前组合动作 |
-| `board.multi_agent` | `factory-multi-agent-board` | 多代理协作看板 |
+| `L0` | 纯读取、无副作用 | 自动执行 |
+| `L1` | 低风险局部写入 | 自动执行并留证据 |
+| `L2` | 中风险变更或跨边界动作 | 需要用户确认或明确审批 |
+| `L3` | 高风险动作、敏感资源或不可逆副作用 | 必须显式批准 |
 
-### 6.3 当前 MVP 覆盖范围
+### 6.2 治理原则
 
-当前注册表已经覆盖首批高层动作：
+- 风险等级不是宿主 UI 决定的，而是能力契约的一部分。
+- approval 和 sandbox 必须与 capability 执行解耦。
+- delegation 不能绕过 approval / sandbox。
+- 没有证据的执行结果不能被标记为“完成”。
 
-- `init`
-- `agent-session`
-- `state-doctor`
-- `historical-project-onboarding`
-- `project-rules-refresh`
-- `multi-agent-board`
-- `frontend-capabilities`
-- `intent-resolver`
-- `intent-eval`
-- `skill-draft`
-- `skill-eval`
-- `skill-approval`
+## 7. 当前代码映射
 
-文档维护不再登记为山海工枢动作注册表中的专用 docs 动作，统一改由 `document-templates` skill + `docs-stratego` CLI 处理。
-- `skill-delete-approval`
-- `skill-promote`
-- `skill-rollback`
-- `workflow-runner`
-- `command-profiles`
+| 能力 | 当前代码 |
+|---|---|
+| capability 领域模型 | `src/domain/capability/` |
+| approval 领域模型 | `src/domain/approval/` |
+| delegation 领域模型 | `src/domain/delegation/` |
+| capability registry port | `src/runtime/ports/capability_registry.py` |
+| approval policy port | `src/runtime/ports/approval_policy.py` |
+| sandbox policy port | `src/runtime/ports/sandbox_policy.py` |
+| delegation transport port | `src/runtime/ports/delegation_transport.py` |
+| capability registry adapter | `src/adapters/capability_registry/` |
+| approval adapter | `src/adapters/approval/` |
+| delegation adapter | `src/adapters/delegation/` |
 
-其余历史动作仍由 `factory-dispatch` 的 legacy 映射兼容承载，后续逐步迁移入注册表。
+## 8. 当前缺口
 
-## 7. 分级自治策略
+当前还需要继续补齐：
 
-### 7.1 风险等级
+- capability catalog 的更完整查询面和 explainability 视图
+- approval state bridge 和宿主侧交互流程
+- writeset 规则与 workspace 规则的更细粒度表达
+- delegation ticket / result 的更系统化测试
+- 自治等级和历史成功率的长期策略调优
 
-| 等级 | 典型动作 | 默认策略 |
-|---|---|---|
-| `L0` 只读 | session、doctor、读取文档、状态分析 | 自动执行 |
-| `L1` 低风险写入 | 刷新索引、补齐说明文档、生成摘要 | 自动执行 |
-| `L2` 中风险变更 | 结构迁移、批量修复、任务分解、部分代码改动 | 执行前给出摘要并确认 |
-| `L3` 高风险动作 | 删除、覆盖、发布、迁移数据库、强制回退 | 必须显式批准 |
+## 9. 一句话定稿
 
-### 7.2 自治收口规则
+当前平台的正式口径不是“skill 驱动所有动作”，而是：
 
-- 不允许自然语言直接映射到任意 shell 命令
-- 不允许未注册动作进入 `L1` 以上自动执行路径
-- 不允许没有验证证据的动作被标记为“完成”
-- 不允许缺少项目识别、阶段识别或目标路径时直接实施
-
-### 7.3 长期向更高自治演进的条件
-
-只有满足下面条件，动作才能从更高风险门槛逐步降级：
-
-- 该动作有稳定输入输出结构
-- 历史成功率持续较高
+```text
+能力先注册，风险先建模，审批与沙箱独立判定，委派显式交接，执行结果统一留证据。
+```
 - 人工打断率和回退率持续较低
 - 已有明确恢复剧本
 - 已具备回放评估和回归样本

@@ -1,53 +1,42 @@
 # 项目概览
 
-**项目名称：** 山海工枢 / shanforge  
-**文档状态：** 已建立基线  
-**主要读者：** 项目维护者 | 协作者 | 最终使用者 | 开发者  
-**最后更新：** 2026-03-28
+**项目名称：** 山海工枢 / shanforge
+**文档状态：** `v2` 产品概览
+**主要读者：** 项目维护者 | 协作者 | 业务 Agent 开发者 | 平台开发者
+**最后更新：** 2026-04-13
 
 ## 1. 项目定位
 
-山海工枢是一个面向 `Codex` 与 `Gemini CLI` 的 `CLI-first` 软件工厂仓库。
+山海工枢 `v2` 是一个面向业务装配的抽象 Agent 平台。
 
-它的目标不是做一个“自由发挥式代码生成器”，而是把需求、设计、实现、测试、发布、交接和持续维护收敛到一套可追踪、可交接、可复用的工程化协作体系里。
+它的目标不是堆叠命令或脚本入口，而是建立一套统一的运行时、工作流 DSL、模型策略、能力注册和证据闭环，让不同业务可以通过 Agent App 低成本构建自己的工作流。
 
-## 2. 文档组织方式
+## 2. 平台核心
 
-当前项目文档只保留 4 个顶层模块：
-
-1. 入门说明
-2. 用户指南
-3. 开发者指南
-4. 项目开发文档（内）
-
-设计原则：
-
-- 对外阅读入口和对内过程文档彻底分开。
-- 用户文档、开发者文档、项目过程文档不混写。
-- 软件开发流程相关过程文档只放在 `项目开发文档（内）` 中。
-- 根 `docs/index.md` 负责章略·墨衡读取所需的全站导航；各子目录 `index.md` 只负责正文概览。
+- 统一 Agent Platform Kernel
+- Business Agent App 与平台内核隔离
+- Workflow DSL 与 step 级模型策略
+- LLM Runtime 与 Provider 解耦
+- Capability Registry 与 Approval / Sandbox
+- AgentResponse 与 Evidence 标准化
 
 ## 3. 推荐阅读顺序
 
-首次接触本项目，建议按下面顺序阅读：
-
 1. [快速开始](./quick-start.md)
 2. [文档地图](./document-map.md)
-3. [用户指南](../02-user-guide/user-guide.md)
-4. [应用开发](../03-developer-guide/application-development.md)
-5. [总体方案与协作总览](../04-project-development/04-design/solution-overview.md)
+3. [总体方案与协作总览](../04-project-development/04-design/solution-overview.md)
+4. [系统架构设计](../04-project-development/04-design/system-architecture.md)
+5. [抽象 Agent 平台架构](../04-project-development/04-design/agent-platform-architecture.md)
 
 ## 4. 与其他资产的边界
 
-- `docs/`：正式的人类文档事实源，也是人类默认阅读入口。
-- `scripts/`：可重复执行的流程和自动化命令。
-- `skills/`：AI 协作规则、方法论和专项能力。
-- AI 内部控制面目录：承载运行时状态、压缩摘要和过程记录，不作为人类阅读目录。
-
-人类默认只从 `docs/` 进入项目；AI 默认只从内部控制面进入上下文。两者职责分离，不互相充当阅读入口。
+- `docs/`：正式的人类文档事实源
+- `scripts/`：当前可复用的执行与适配能力
+- `skills/`：AI 协作规则和专项方法
+- `.factory/`：运行时状态、压缩记忆和过程资产
 
 ## 5. 变更记录
 
 | 日期 | 变更内容 | 变更人 |
 |---|---|---|
-| 2026-03-28 | 按 4 大模块重构项目文档入口，拆分用户、开发者和内部项目文档 | Codex |
+| 2026-04-13 | 按 `v2` 抽象 Agent 平台方向重写项目概览 | Codex |

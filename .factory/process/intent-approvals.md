@@ -1,11 +1,59 @@
 # Intent 审批记录
 
-- 更新时间：2026-04-03 19:27:12
-- 待审批票据：19
-- 全部票据：19
+- 更新时间：2026-04-15 13:51:18
+- 待审批票据：31
+- 全部票据：31
 
 ## 待审批
 
+- `IA-20260415135118-commandprofi-72b342` | 动作：`command-profiles` | 审批：`summary_confirm` | 项目：`/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmpjbujs0lq/managed-project`
+  - 意图：今天收尾并生成会话入口
+  - 理由：检测到 `daily-close` 子目标语义。；该 profile 会附带生成会话入口。
+  - ownership：`发布经理` | 写集：`.factory, docs` | 冲突：0
+- `IA-20260415134132-commandprofi-769a59` | 动作：`command-profiles` | 审批：`summary_confirm` | 项目：`/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmpdotljlbt/managed-project`
+  - 意图：今天收尾并生成会话入口
+  - 理由：检测到 `daily-close` 子目标语义。；该 profile 会附带生成会话入口。
+  - ownership：`发布经理` | 写集：`.factory, docs` | 冲突：0
+- `IA-20260415013559-commandprofi-3f0683` | 动作：`command-profiles` | 审批：`summary_confirm` | 项目：`/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmp1dse95ff/managed-project`
+  - 意图：今天收尾并生成会话入口
+  - 理由：检测到 `daily-close` 子目标语义。；该 profile 会附带生成会话入口。
+  - ownership：`发布经理` | 写集：`.factory, docs` | 冲突：0
+- `IA-20260415013023-commandprofi-b49056` | 动作：`command-profiles` | 审批：`summary_confirm` | 项目：`/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmp9boouho2/managed-project`
+  - 意图：今天收尾并生成会话入口
+  - 理由：检测到 `daily-close` 子目标语义。；该 profile 会附带生成会话入口。
+  - ownership：`发布经理` | 写集：`.factory, docs` | 冲突：0
+- `IA-20260414182356-commandprofi-119523` | 动作：`command-profiles` | 审批：`summary_confirm` | 项目：`/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmpk9t64pl7/managed-project`
+  - 意图：今天收尾并生成会话入口
+  - 理由：检测到 `daily-close` 子目标语义。；该 profile 会附带生成会话入口。
+  - ownership：`发布经理` | 写集：`.factory, docs` | 冲突：0
+- `IA-20260414161851-commandprofi-01f8a2` | 动作：`command-profiles` | 审批：`summary_confirm` | 项目：`/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmpl_xkxyy8/managed-project`
+  - 意图：今天收尾并生成会话入口
+  - 理由：检测到 `daily-close` 子目标语义。；该 profile 会附带生成会话入口。
+  - ownership：`发布经理` | 写集：`.factory, docs` | 冲突：0
+- `IA-20260413222952-commandprofi-0ddf1c` | 动作：`command-profiles` | 审批：`summary_confirm` | 项目：`/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmp9q53abqz/managed-project`
+  - 意图：今天收尾并生成会话入口
+  - 理由：检测到 `daily-close` 子目标语义。；该 profile 会附带生成会话入口。
+  - ownership：`发布经理` | 写集：`.factory, docs` | 冲突：0
+- `IA-20260413221233-commandprofi-5bec70` | 动作：`command-profiles` | 审批：`summary_confirm` | 项目：`/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmp14zue9fg/managed-project`
+  - 意图：今天收尾并生成会话入口
+  - 理由：检测到 `daily-close` 子目标语义。；该 profile 会附带生成会话入口。
+  - ownership：`发布经理` | 写集：`.factory, docs` | 冲突：0
+- `IA-20260413173436-commandprofi-2fd579` | 动作：`command-profiles` | 审批：`summary_confirm` | 项目：`/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmpmub3qi0r/managed-project`
+  - 意图：今天收尾并生成会话入口
+  - 理由：检测到 `daily-close` 子目标语义。；该 profile 会附带生成会话入口。
+  - ownership：`发布经理` | 写集：`.factory, docs` | 冲突：0
+- `IA-20260413172421-commandprofi-9320d0` | 动作：`command-profiles` | 审批：`summary_confirm` | 项目：`/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmp__yuy9yk/managed-project`
+  - 意图：今天收尾并生成会话入口
+  - 理由：检测到 `daily-close` 子目标语义。；该 profile 会附带生成会话入口。
+  - ownership：`发布经理` | 写集：`.factory, docs` | 冲突：0
+- `IA-20260413172243-commandprofi-6f310f` | 动作：`command-profiles` | 审批：`summary_confirm` | 项目：`/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmpnooh99ah/managed-project`
+  - 意图：今天收尾并生成会话入口
+  - 理由：检测到 `daily-close` 子目标语义。；该 profile 会附带生成会话入口。
+  - ownership：`发布经理` | 写集：`.factory, docs` | 冲突：0
+- `IA-20260413160251-commandprofi-4d68e7` | 动作：`command-profiles` | 审批：`summary_confirm` | 项目：`/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmp2qlot6om/managed-project`
+  - 意图：今天收尾并生成会话入口
+  - 理由：检测到 `daily-close` 子目标语义。；该 profile 会附带生成会话入口。
+  - ownership：`发布经理` | 写集：`.factory, docs` | 冲突：0
 - `IA-20260403192712-commandprofi-e79541` | 动作：`command-profiles` | 审批：`summary_confirm` | 项目：`/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmpf18eopm9/managed-project`
   - 意图：今天收尾并生成会话入口
   - 理由：检测到 `daily-close` 子目标语义。；该 profile 会附带生成会话入口。

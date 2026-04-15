@@ -1,7 +1,7 @@
 [project]
 name = "shanforge"
-version = "0.1.0"
-description = "CLI-first software factory workspace for Codex and Gemini CLI."
+version = "0.2.0.dev0"
+description = "Abstract agent platform workspace for business-oriented Agent Apps and workflows."
 readme = "README.md"
 requires-python = ">=3.14"
 dependencies = []

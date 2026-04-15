@@ -1,0 +1,49 @@
+<mxfile host="app.diagrams.net">
+  <diagram id="subsystems" name="08-子系统定义图">
+    <mxGraphModel dx="1600" dy="900" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="2000" pageHeight="1200" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="t1" value="shanforge v2 子系统定义图" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontSize=24;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="640" y="20" width="720" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="t2" value="只把“对外内聚、对内分层”的能力定义为子系统；普通 runtime 模块不单独升格为子系统" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontSize=12;fontColor=#666666;" vertex="1" parent="1">
+          <mxGeometry x="420" y="55" width="1160" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="s1" value="记忆系统&lt;br/&gt;Memory System&lt;br/&gt;&lt;br/&gt;business owner: src/domain/memory&lt;br/&gt;application facade: src/application/ports/domain_services.py&lt;br/&gt;动作: prepare_session / recall / distill_session" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#efe9fb;strokeColor=#9673a6;fontSize=16;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="120" y="140" width="500" height="170" as="geometry" />
+        </mxCell>
+        <mxCell id="s2" value="模型网关&lt;br/&gt;Model Gateway&lt;br/&gt;&lt;br/&gt;owner: src/runtime/llm&lt;br/&gt;门面: LLMRuntime.invoke(...)&lt;br/&gt;下游: src/runtime/ports/llm_provider.py + src/adapters/model_providers" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=16;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="750" y="140" width="500" height="170" as="geometry" />
+        </mxCell>
+        <mxCell id="s3" value="能力系统&lt;br/&gt;Capability System&lt;br/&gt;&lt;br/&gt;owner: src/runtime/capability&lt;br/&gt;门面: CapabilityRegistryPort.invoke(...)&lt;br/&gt;下游: registry adapter + capability handler" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d9ead3;strokeColor=#82b366;fontSize=16;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="1380" y="140" width="500" height="170" as="geometry" />
+        </mxCell>
+        <mxCell id="a1" value="共同特征" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=18;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="760" y="380" width="480" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="a2" value="1. 上层只看到一个稳定门面&lt;br/&gt;2. 子系统内部跨多层协作&lt;br/&gt;3. 有独立状态 / 策略 / 治理逻辑&lt;br/&gt;4. 消费者定义 port，下层按 port 实现" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fffaf2;strokeColor=#d79b00;fontSize=16;align=left;spacingLeft=10;" vertex="1" parent="1">
+          <mxGeometry x="660" y="450" width="680" height="150" as="geometry" />
+        </mxCell>
+        <mxCell id="n1" value="当前不单独算子系统" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=18;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="120" y="690" width="350" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="n2" value="ContextEngine&lt;br/&gt;ResponseNormalizer&lt;br/&gt;ApprovalGate&lt;br/&gt;SandboxGate&lt;br/&gt;DelegationCoordinator&lt;br/&gt;SessionStore / ArtifactStore" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff5f5;strokeColor=#cc6666;fontSize=16;" vertex="1" parent="1">
+          <mxGeometry x="120" y="760" width="350" height="220" as="geometry" />
+        </mxCell>
+        <mxCell id="n3" value="原因" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fce5cd;strokeColor=#d79b00;fontSize=18;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="560" y="690" width="240" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="n4" value="这些能力现在仍然更适合作为 runtime / storage 内部模块存在。它们很重要，但还没有形成“对外统一门面 + 对内跨层协作”的独立能力单元。" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff9f0;strokeColor=#d79b00;fontSize=16;align=left;spacingLeft=10;" vertex="1" parent="1">
+          <mxGeometry x="560" y="760" width="610" height="220" as="geometry" />
+        </mxCell>
+        <mxCell id="n5" value="代码骨架原则" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d0e0e3;strokeColor=#76a5af;fontSize=18;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="1270" y="690" width="300" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="n6" value="src 第一层文件夹就是层&lt;br/&gt;第二层文件夹就是模块&lt;br/&gt;模块本身就是内聚领域&lt;br/&gt;port 跟着消费者所在层走" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f4fbfc;strokeColor=#76a5af;fontSize=16;" vertex="1" parent="1">
+          <mxGeometry x="1270" y="760" width="460" height="220" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

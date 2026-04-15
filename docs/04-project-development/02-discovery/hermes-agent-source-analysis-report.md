@@ -791,7 +791,101 @@ Hermes 已完成 CLI、gateway、ACP、cron 的统一，但这是一条高投入
 4. 不要把所有 orchestrator 逻辑都堆在一个文件里。
 5. 在入口扩张之前，先保证主循环、状态层和压缩层稳定。
 
-## 10. 结论
+## 10. 记忆系统专题补充（2026-04-15）
+
+本节基于对子仓 `/Users/uroborus/AiProject/hermes-agent` 的专题精读，专门回答“哪些记忆系统设计精华值得 `shanforge` 吸收”。
+
+### 10.1 记忆系统的真实分层
+
+Hermes 的记忆能力不是一个单独 store，而是四层协作：
+
+1. `agent/memory_provider.py`
+   定义 provider 生命周期与扩展点：`initialize / prefetch / queue_prefetch / sync_turn / on_session_end / on_pre_compress / on_delegation`。
+2. `agent/memory_manager.py`
+   统一编排 built-in provider 与 external provider，并强约束“最多只激活 1 个 external provider”。
+3. `tools/memory_tool.py`
+   提供 bounded built-in memory，管理 `MEMORY.md` / `USER.md` 双仓和 session-start frozen snapshot。
+4. `tools/session_search_tool.py`
+   把历史会话回查单独做成 session archive search，而不是塞进 memory store。
+
+这套分层对 `shanforge` 的意义是：长期记忆、历史档案、外部增强和子 Agent 摘要必须分开建模。
+
+### 10.2 领域建模精华
+
+Hermes 最关键的运行时作用域不是“某条 memory entry”，而是：
+
+- `session_id`
+- `agent_context`
+- `agent_identity`
+- `agent_workspace`
+- `user_id`
+- `parent_session_id`
+
+也就是说，记忆系统的业务关键不是先设计“条目长什么样”，而是先设计“这条信息属于谁、在哪个会话、哪个身份、哪个工作空间、是否来自子任务”。这正是 `shanforge` 需要把 `ProfileMemoryDomain`、`SessionAssemblyManifest`、`SubAgentDigest` 做成一等对象的原因。
+
+### 10.3 存储系统精华
+
+Hermes 给出两条很有价值的本地优先路径：
+
+- 低成本路径：
+  `tools/memory_tool.py` 的 `MEMORY.md + USER.md` 双文件、bounded char budget、file lock、atomic replace、frozen snapshot。
+- 结构化路径：
+  Holographic provider 的 `SQLite + FTS5 + 分桶(bank/category) + trust/retrieval` 组合。
+
+对 `shanforge` 的启发不是去照搬 `MEMORY.md` 工具，而是：
+
+- session-start 注入必须有稳定 snapshot
+- mid-session durable write 不应隐式改写当前 prompt
+- archive search 与 long-term memory search 应分离
+- recall augmentation block 应带 context fence / system note，并在注入前做 sanitize
+- 本地结构化索引优先考虑 `SQLite FTS5`，而不是一开始就接第三方云 memory SDK
+
+### 10.4 对外服务界面精华
+
+Hermes 的对外面主要是三类：
+
+- model-facing：
+  `memory` 工具与 provider tool schemas
+- runtime-facing：
+  `MemoryManager` 调用 provider 生命周期钩子
+- human-facing：
+  `hermes memory setup/status` 等 CLI 运维入口
+
+`shanforge` 不适合复制它的工具直写模式，但非常适合吸收“统一 manager + typed provider port + 调试运维入口”这一组织方式。
+
+### 10.5 子 Agent 隔离精华
+
+`tools/delegate_tool.py` 明确禁止 child agent 使用共享 `memory` 工具写入全局记忆。父 Agent 只消费子 Agent 的摘要结果，不消费其中间轨迹。
+
+这对 `shanforge` 是一个直接设计约束：
+
+- child agent 默认只写自己的 session ledger
+- 对主会话的共享长期记忆回写必须经过 `SubAgentDigest`
+- memory absorb 只能由主 Agent 或显式治理流程触发
+
+### 10.6 采用与不采用清单
+
+建议采用：
+
+- `MemoryProvider` 抽象
+- `MemoryManager` 单点编排
+- built-in bounded local memory
+- frozen snapshot
+- session archive search 与 long-term memory 分离
+- child-isolated memory write policy
+
+建议适配采用：
+
+- Holographic 的 `SQLite + FTS5 + trust` 结构
+- provider lifecycle hooks
+
+不建议直接采用：
+
+- Honcho / Hindsight / Mem0 / OpenViking / ByteRover / Supermemory 的 vendor-specific 适配器
+- `run_agent.py` 式的 monolithic runtime 绑定方式
+- 让模型通过工具直接操作 prompt-facing memory 文件的产品接口
+
+## 11. 结论
 
 Hermes Agent 的技术价值不在于“它支持多少平台”，而在于它已经把 Agent 系统中最难工程化的部分组合到一起：
 

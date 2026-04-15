@@ -654,7 +654,6 @@ DOCS_STRATEGO_DIRECTORY_SPECS = {
         "order": [
             "input.md",
             "brainstorm-record.md",
-            "current-state-analysis.md",
             "business-flow.md",
             "scope-outline.md",
         ],
@@ -686,7 +685,6 @@ DOCS_STRATEGO_DIRECTORY_SPECS = {
             "security-design.md",
             "deployment-architecture.md",
             "ux-ui-design.md",
-            "historical-project-onboarding-automation.md",
             "source-docs-standard-upgrade-analysis.md",
             "assets",
             "adr",
@@ -698,7 +696,6 @@ DOCS_STRATEGO_DIRECTORY_SPECS = {
         "title": "开发过程文档",
         "description": "本目录收纳实施计划、任务拆分、执行节奏和交付组织材料。",
         "order": [
-            "historical-project-onboarding-checklist.md",
             "software-development-process.md",
             "wbs.md",
             "implementation-plan.md",
@@ -4098,7 +4095,7 @@ def normalize_project_config(config: dict) -> dict:
     if not normalized.get("stage") and normalized.get("current_stage"):
         normalized["stage"] = normalized["current_stage"]
     if not normalized.get("active_mode"):
-        legacy_mode = normalized.get("current_mode") or normalized.get("v1_active_mode")
+        legacy_mode = normalized.get("current_mode") or normalized.get("default_active_mode")
         if legacy_mode:
             normalized["active_mode"] = legacy_mode
     normalized["docs_profile"] = normalize_docs_profile(normalized.get("docs_profile"))

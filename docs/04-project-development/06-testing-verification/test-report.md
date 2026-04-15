@@ -13,7 +13,7 @@
 ### 2.1 执行范围
 
 - `factory-state-doctor` 的文档校验入口
-- `factory-init` / `factory-historical-project-onboarding` 的根索引与顶层 index 生成逻辑
+- `factory-init` / `factory-state-doctor` 的根索引与顶层 index 生成逻辑
 - 当前仓库 `docs/` 的入口页、设计页、测试页、发布页、运维页和追踪矩阵
 
 ### 2.2 测试结果

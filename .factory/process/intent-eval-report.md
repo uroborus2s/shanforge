@@ -10,7 +10,7 @@
 ## 结果
 
 - `intent-empty-init`：通过 | 动作：`init` | 工具：`codex` | safe：`policy_denied`
-- `intent-historical-onboarding`：通过 | 动作：`historical-project-onboarding` | 工具：`codex` | safe：`policy_denied`
+- `intent-unmanaged-project-diagnosis`：通过 | 动作：`state-doctor` | 工具：`codex` | safe：`error`
 - `intent-managed-docs-upgrade`：通过 | 动作：`state-doctor` | 工具：`opencode` | safe：`success`
 - `intent-managed-next-step`：通过 | 动作：`state-doctor` | 工具：`gemini` | safe：`success`
 - `intent-managed-design-kickoff`：通过 | 动作：`command-profiles` | 工具：`codex` | profile：`design-kickoff`

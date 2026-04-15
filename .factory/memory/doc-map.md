@@ -28,31 +28,34 @@
 - `docs/04-project-development/01-governance/index.md` -> `.factory/memory/runtime-brief.md`
 - `docs/04-project-development/01-governance/project-charter.md` -> `.factory/memory/runtime-brief.md`
 - `docs/04-project-development/02-discovery/brainstorm-record.md` -> `.factory/memory/runtime-brief.md`
-- `docs/04-project-development/02-discovery/current-state-analysis.md` -> `.factory/memory/runtime-brief.md`
 - `docs/04-project-development/02-discovery/hermes-agent-source-analysis-report.md` -> `.factory/memory/runtime-brief.md`
 - `docs/04-project-development/02-discovery/index.md` -> `.factory/memory/runtime-brief.md`
 - `docs/04-project-development/02-discovery/input.md` -> `.factory/memory/runtime-brief.md`
 - `docs/04-project-development/03-requirements/index.md` -> `.factory/memory/runtime-brief.md`
 - `docs/04-project-development/03-requirements/prd.md` -> `.factory/memory/prd.summary.md`, `.factory/memory/requirements-verification.summary.md`
 - `docs/04-project-development/03-requirements/requirements-analysis.md` -> `.factory/memory/requirements-verification.summary.md`
+- `docs/04-project-development/03-requirements/memory-system-business-requirements.md` -> `.factory/memory/runtime-brief.md`
 - `docs/04-project-development/03-requirements/requirements-verification.md` -> `.factory/memory/runtime-brief.md`
-- `docs/04-project-development/04-design/action-registry-and-autonomy-policy.md` -> `.factory/memory/runtime-brief.md`
+- `docs/04-project-development/04-design/agent-platform-architecture.md` -> `.factory/memory/architecture.summary.md`, `.factory/memory/runtime-brief.md`
+- `docs/04-project-development/04-design/infrastructure-layer-design.md` -> `.factory/memory/architecture.summary.md`, `.factory/memory/api.summary.md`
+- `docs/04-project-development/04-design/memory-system-detailed-design.md` -> `.factory/memory/architecture.summary.md`, `.factory/memory/api.summary.md`
+- `docs/04-project-development/04-design/memory-runtime-design.md` -> `.factory/memory/architecture.summary.md`
+- `docs/04-project-development/04-design/memory-runtime-interfaces.md` -> `.factory/memory/api.summary.md`
+- `docs/04-project-development/04-design/memory-session-ledger-design.md` -> `.factory/memory/architecture.summary.md`
+- `docs/04-project-development/04-design/memory-promotion-design.md` -> `.factory/memory/architecture.summary.md`
+- `docs/04-project-development/04-design/memory-recall-design.md` -> `.factory/memory/architecture.summary.md`, `.factory/memory/api.summary.md`
+- `docs/04-project-development/04-design/memory-distillation-learning-design.md` -> `.factory/memory/architecture.summary.md`
 - `docs/04-project-development/04-design/api-design.md` -> `.factory/memory/api.summary.md`
 - `docs/04-project-development/04-design/backend-design.md` -> `.factory/memory/architecture.summary.md`
 - `docs/04-project-development/04-design/database-design.md` -> `.factory/memory/architecture.summary.md`
 - `docs/04-project-development/04-design/deployment-architecture.md` -> `.factory/memory/runtime-brief.md`
 - `docs/04-project-development/04-design/evaluation-summary-and-approval-reporting.md` -> `.factory/memory/runtime-brief.md`
-- `docs/04-project-development/04-design/frontend-adapters-and-multi-agent-coordination.md` -> `.factory/memory/runtime-brief.md`
-- `docs/04-project-development/04-design/historical-project-onboarding-automation.md` -> `.factory/memory/runtime-brief.md`
 - `docs/04-project-development/04-design/index.md` -> `.factory/memory/runtime-brief.md`
 - `docs/04-project-development/04-design/module-boundaries.md` -> `.factory/memory/runtime-brief.md`
-- `docs/04-project-development/04-design/skill-evolution-mechanism.md` -> `.factory/memory/runtime-brief.md`
 - `docs/04-project-development/04-design/solution-overview.md` -> `.factory/memory/runtime-brief.md`
-- `docs/04-project-development/04-design/source-docs-standard-upgrade-analysis.md` -> `.factory/memory/runtime-brief.md`
 - `docs/04-project-development/04-design/system-architecture.md` -> `.factory/memory/architecture.summary.md`
 - `docs/04-project-development/04-design/technical-selection.md` -> `.factory/memory/tech-stack.summary.md`
 - `docs/04-project-development/04-design/ux-ui-design.md` -> `.factory/memory/ui.summary.md`, `.factory/memory/design-assets.summary.md`
-- `docs/04-project-development/05-development-process/historical-project-onboarding-checklist.md` -> `.factory/memory/runtime-brief.md`
 - `docs/04-project-development/05-development-process/implementation-plan.md` -> `.factory/memory/runtime-brief.md`
 - `docs/04-project-development/05-development-process/index.md` -> `.factory/memory/runtime-brief.md`
 - `docs/04-project-development/05-development-process/software-development-process.md` -> `.factory/memory/runtime-brief.md`

@@ -1,19 +1,18 @@
 # 项目压缩运行卡
 
-- 生成时间：2026-04-09 13:35:50
+- 生成时间：2026-04-13 14:20:45
 - 负责人：Codex
 - 项目：shanforge
-- 当前阶段：MAINTENANCE
+- 当前阶段：PLAN
 - 当前模式：cli_direct
-- 技术画像：历史项目纳管基线画像
-- 技术栈：待人工确认
-- 活跃工作项：0
+- 技术画像：抽象 Agent 平台规划画像
+- 技术栈：Python 3.14+ / uv / Markdown docs / .factory memory / typed contracts / adapters
+- 活跃工作项：1
 - 阻塞项：0
 - 开放风险：0
-- 最近发布包：无
 - 最近交接包：无
-- 最近快照：无
-- 备注：separate-human-and-ai-reading-surfaces
+- 最近快照：`v2` 平台需求与设计基线已重写
+- 备注：Hermes-inspired abstract agent platform
 
 ## AI 最小读取顺序
 
@@ -29,6 +28,14 @@
 
 - `.factory/memory/traceability.summary.md`
 - `.factory/memory/graph/traceability.json`
+
+## 当前焦点
+
+- `v2` 被定义为全新的抽象 Agent 平台，不再继承旧版本需求叙事。
+- Hermes 核心能力：Agent 主循环、Capability Registry、Session / Memory、Context Engine、Delegation、Gateway。
+- 业务目标：通过 Business Agent App、Workflow DSL、ModelPolicy 和 Capability Registry 快速装配业务流。
+- 大模型解耦：模型交互统一通过 LLM Runtime、LLMProviderPort、Response Normalizer 完成。
+- 当前交付优先级：先完成平台契约和运行时主闭环，再进入代码实现。
 
 ## 必要时回源的正式文档
 

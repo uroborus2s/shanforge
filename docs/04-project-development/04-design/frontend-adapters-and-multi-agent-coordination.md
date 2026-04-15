@@ -1,189 +1,155 @@
 # 多前台适配与多代理协作设计
 
-**文档状态：** MVP 部分已实现  
-**主要读者：** 架构师 | 平台维护者 | 脚本维护者 | 协作负责人  
+**文档状态：** `v2` 主题专项基线  
+**主要读者：** 架构 | 平台维护者 | 集成开发者 | 协作负责人  
 **负责人：** 仓库维护者  
-**关联 ID：** `REQ-003`, `REQ-005`, `API-002`, `API-012`, `API-013`  
-**最后更新：** 2026-04-02  
+**关联 ID：** `REQ-003`, `REQ-005`, `REQ-008`, `API-010`, `API-012`, `API-013`  
+**最后更新：** 2026-04-15  
 
 ## 1. 设计目标
 
-在保持 `CLI-first` 的前提下，让山海工枢能够稳定支撑多个前台宿主，并把多代理协作从“临时并行”升级成“可分工、可观测、可恢复”的正式运行模式。
+在六层架构下，平台需要同时满足两件事：
 
-确认的前提：
+1. 能被多个前台宿主复用，而不把协议耦合进某个特定工具。
+2. 能支持多代理协作，但不牺牲 session 隔离、写集治理和审批边界。
 
-- 当前主要前台：`Codex`、`Gemini CLI`
-- 长期需要支持更多工具，如 `opencode`
-- 多代理协作应服务于工程分工，而不是为了并行而并行
+这份文档只回答：
 
-当前已落地的 MVP：
+- UI 宿主和 access 层之间的边界如何稳定
+- 多代理协作如何在平台内建成正式能力，而不是临时并行
 
-- `config/frontends/codex.json`
-- `config/frontends/gemini.json`
-- `config/frontends/opencode.json`
-- `factory-frontend-capabilities`
-- `factory-dispatch frontend-capabilities`
-- `factory-chat-bootstrap` 已改为通过前台画像支持 `opencode`
-- `factory-multi-agent-board` 已开始展示待审批票据、高风险推荐动作和未分派工作项提醒
+## 2. 多前台宿主模型
 
-当前仍未落地的部分：
+### 2.1 分层定位
 
-- 前台适配层与工作流编排的正式联动
-- 多前台回放评估
-- 多代理 ownership 与冲突控制的运行时强约束接入
-
-## 2. 前台适配原则
-
-- 不为某个前台重写整套工程协议
-- 统一抽象前台能力，而不是统一 prompt 文风
-- 前台差异通过 `adapter` 和能力画像解决
-- 同一动作在不同前台上尽量保持语义一致
-
-## 3. Frontend Adapter 契约
-
-每个前台适配器都应提供统一能力画像。
-
-### 3.1 最小能力集
-
-| 能力 | 说明 |
-|---|---|
-| `file_read` | 能读取仓内文件 |
-| `file_write` | 能修改仓内文件 |
-| `command_exec` | 能运行命令并拿到结构化结果 |
-| `tool_call` | 能调用结构化工具或函数 |
-| `context_compaction` | 能在长会话中做压缩或摘要 |
-
-### 3.2 可选能力集
-
-| 能力 | 说明 |
-|---|---|
-| `subagent` | 能派生子代理并接收结果 |
-| `mcp` | 能访问 MCP server 或外部工具源 |
-| `stream_observation` | 能持续返回中间观察结果 |
-| `approval_hook` | 能在高风险动作前等待用户批准 |
-
-### 3.3 能力降级规则
-
-- 如果没有 `subagent`，则退化为单代理串行执行
-- 如果没有 `mcp`，则退化为本地文件、脚本和 shell 路径
-- 如果没有 `context_compaction`，则加强 `Context Compiler` 的最小上下文策略
-- 如果没有 `approval_hook`，则高风险动作只能停在建议状态，不自动执行
-
-## 4. 目标支持的前台
-
-| 前台 | 当前角色 | 长期定位 |
+| 层 | 当前形态 | 责任 |
 |---|---|---|
-| `Codex` | 主前台 | 标准前台之一 |
-| `Gemini CLI` | 主前台 | 标准前台之一 |
-| `opencode` | 规划接入 | 新前台适配器目标 |
+| 用户界面层 | 仓外 Web、外部 CLI 前台、自动化宿主 | 人机交互、展示、输入组织 |
+| 接口/网关层 | `src/access/api/`, `cli/`, `http/`, `mcp/`, `chat/`, `automation/` | 协议绑定、出入参归一化、统一入口 |
+| 业务调度层以下 | `src/application/` 及下层 | 保持与宿主无关的稳定运行语义 |
 
-这里的设计不依赖某个前台的私有实现细节，只依赖它是否能暴露前述能力契约。
+正式原则：
 
-当前 MVP 状态：
+- UI 宿主不直接碰 `domain`、`runtime`、`storage`。
+- 所有宿主统一消费 access 层暴露的稳定网关契约。
+- 宿主差异只允许存在于输入绑定、输出渲染和能力降级策略中。
 
-- `Codex`：已登记画像
-- `Gemini CLI`：已登记画像
-- `opencode`：已登记画像，状态为 `planned`，用于先定义能力边界和降级策略
+### 2.2 当前宿主面
 
-## 5. 多代理协作模型
+本仓已经预留或落地了 6 类接入面：
 
-### 5.1 角色划分
+- `api`
+- `cli`
+- `http`
+- `mcp`
+- `chat`
+- `automation`
+
+它们都属于接口/网关层，不代表额外架构层。
+
+## 3. 宿主契约
+
+前台宿主统一消费下面这些应用用例接口：
+
+| 契约 | 作用 |
+|---|---|
+| `RuntimeExecutionUseCase` | 发起运行请求 |
+| `WorkflowDescriptionUseCase` | 查看 workflow 描述 |
+| `SessionInspectionUseCase` | 查询 session、回放、诊断 |
+| `MemoryInspectionUseCase` | recall / explainability 查询 |
+| `CapabilityCatalogUseCase` | 查看 capability 目录与风险信息 |
+| `PlatformHealthUseCase` | 健康与就绪性检查 |
+
+对应文件：
+
+- `src/access/ports/application_use_cases.py`
+
+### 3.1 宿主最小能力
+
+无论是 Web、CLI 还是自动化宿主，至少应支持：
+
+- 发起结构化请求
+- 接收结构化响应
+- 报告失败原因
+- 展示审批状态或阻塞原因
+
+### 3.2 可选增强能力
+
+根据宿主能力不同，可选支持：
+
+- 流式输出
+- 交互式审批
+- 长会话压缩或上下文截断提示
+- 子代理执行状态展示
+- capability catalog 浏览和筛选
+
+## 4. 多代理协作模型
+
+### 4.1 正式定义
+
+子代理不是“共享同一运行时对象的并行线程”，而是：
+
+```text
+独立 session + 独立上下文包 + 独立预算 + 独立能力边界 + 显式结果回传
+```
+
+这意味着：
+
+- 子代理必须通过 `delegation` 语义被计划、派发、收集。
+- 子代理默认不直接写入父级长期记忆。
+- 子代理结果先以 `digest` 或结构化结果回传，再由父级决定是否吸收。
+
+### 4.2 协作角色
+
+逻辑上可拆成下列协作职责：
 
 | 角色 | 主要职责 |
 |---|---|
-| `planner` | 规划、分解任务、确定关键路径 |
-| `explorer` | 收集上下文、定位代码和文档事实 |
-| `worker` | 执行具体改动，持有明确写入 ownership |
-| `reviewer` | 独立审查变更、发现风险和回归 |
-| `qa` | 做验证、复查证据和回归结果 |
+| `planner` | 规划、拆解、界定关键路径 |
+| `explorer` | 收集事实、定位上下文缺口 |
+| `worker` | 承担明确写集或模块边界 |
+| `reviewer` | 独立做风险与回归审查 |
+| `qa` | 验证行为、证据和测试结果 |
 
-### 5.2 协作原则
+这些是协作语义，不意味着一定要落成固定 UI 身份。
 
-- 只有可拆分、可隔离的任务才并行
-- 写入集合必须明确 ownership
-- 审查角色尽量与实现角色分离
-- 关键路径任务优先本地主代理处理，不盲目下发
-- 多代理结果必须回收到统一证据层
+### 4.3 冲突控制
 
-## 6. Ownership 与冲突控制
+多代理协作至少要满足：
 
-多代理协作的最低约束：
+- 写入 ownership 明确
+- 高风险动作仍经过 approval / sandbox
+- 子代理返回结果必须可追溯到 session 和 evidence
+- 写集冲突优先升级为串行或重新拆分，而不是强行合并
 
-- 每个 worker 必须声明负责的文件或模块边界
-- 不允许多个 worker 无约束地改同一写集
-- 若发现写集冲突，应升级为串行或由 planner 重新拆分
-- 若子代理返回结果与主线上下文冲突，应优先保守收敛，而不是强行合并
+## 5. 分层落点
 
-## 7. 多代理观测面
-
-建议把现有 `factory-multi-agent-board` 升级为正式协调面，至少可展示：
-
-- 当前任务分解
-- 每个代理的 ownership
-- 当前阻塞项
-- 最近验证结果
-- 待合并风险
-- 恢复建议
-
-当前 MVP 状态：
-
-- 已展示当前项目的待审批票据
-- 已标记推荐动作中需要主代理审批的高风险注册动作
-- 已提醒未分派工作项，避免并行协作时 ownership 漏空
-- 已支持在 `factory-role-assign` 中声明显式写入集合，并默认阻断与现有角色分派的写集冲突
-- `factory-multi-agent-board` 已开始展示角色 ownership、写集冲突和并行阻断状态
-- 尚未覆盖真实子代理提交阶段的隐式写集探测，也不会自动拆分角色职责
-
-## 8. 示例流程
-
-### 8.1 单项目 docs 升级
-
-- `planner`：确认是否已纳管、判断是否需要结构迁移
-- `worker`：执行 docs 标准升级动作
-- `reviewer`：检查导航、权限和契约页纳入情况
-- `qa`：执行最终 `--check`
-
-### 8.2 新前台接入
-
-- `explorer`：识别前台能力是否满足最小契约
-- `planner`：选择适配策略和降级路径
-- `worker`：补适配器与能力画像
-- `qa`：回放关键场景，检查与现有前台是否语义一致
-
-## 9. 安全与恢复
-
-- 多代理协作不应绕过分级自治策略
-- 高风险动作仍由主代理持有审批边界
-- 子代理失败后必须返回结构化失败模式和恢复建议
-- 若前台能力不足，应降级，而不是假装支持
-
-## 10. 与现有山海工枢资产的衔接
-
-| 现有资产 | 新定位 |
-|---|---|
-| `factory-multi-agent-board` | 多代理调度和观测面的现有入口 |
-| `factory-role-sync` / `factory-team-sync` | 团队协作辅助入口 |
-| `factory-agent-session` | 主代理的上下文编译入口 |
-| `factory-state-doctor` | 多代理收口时的统一健康检查器 |
-
-## 11. 验收标准
-
-- 同一类自然语言请求可以在不同前台宿主中映射到一致的动作语义
-- 前台缺失某项能力时，系统能明确降级而不是静默失败
-- 多代理协作时能明确写入 ownership 和风险边界
-- 多代理输出能统一回收到证据层和项目状态层
-
-## 12. 外部参考
-
-- [claw-code](https://github.com/ultraworkers/claw-code)
-- [CLAW.md](https://github.com/ultraworkers/claw-code/blob/main/CLAW.md)
-- [Prompt Engineering Guide - Function Calling](https://www.promptingguide.ai/agents/function-calling)
-
-## 13. 变更记录
-
-| 日期 | 变更内容 | 变更人 |
+| 能力 | owner 层 | 当前或目标代码落点 |
 |---|---|---|
-| 2026-04-02 | 初始版本，定义多前台适配契约、降级策略和多代理协作约束 | Codex |
-| 2026-04-02 | 落地前台能力画像配置、查询入口，并让 chat-bootstrap 支持 opencode | Codex |
-| 2026-04-02 | 增强 `factory-multi-agent-board`，开始暴露待审批票据、高风险推荐动作和未分派工作项提醒 | Codex |
-| 2026-04-02 | 增加显式写集声明、分派冲突默认阻断，以及看板中的 ownership/冲突摘要 | Codex |
+| 多前台网关契约 | 接口/网关层 | `src/access/ports/application_use_cases.py` |
+| 运行/查询用例编排 | 业务调度层 | `src/application/` |
+| 子任务语义、digest 合并规则 | 业务模型层 | `src/domain/delegation/`, `src/domain/session/` |
+| 派发与回收技术能力 | 基础能力层 | `src/runtime/delegation/` |
+| 具体 worker/backend 实现 | 基础设置层 | `src/adapters/delegation/` |
+
+## 6. 当前状态与缺口
+
+当前已具备的基础事实：
+
+- `src/access/` 已按多入口宿主预留目录。
+- `domain/delegation`、`runtime/delegation`、`adapters/delegation` 的主分层已建立。
+- 当前主架构已经明确“子代理 = 独立 session + 显式结果回传”。
+
+仍需继续补齐：
+
+- 不同宿主的统一网关契约测试
+- delegation ticket / digest / child session 的读模型
+- 宿主侧对 approval、writeset、subagent 状态的更标准展示
+- 多代理回放与 explainability 视图
+
+## 7. 验收标准
+
+- 同一类运行请求在不同宿主中映射到一致的 access 契约
+- 前台能力不足时，系统能明确降级而不是假装支持
+- 子代理结果具备 session、scope、证据和写集边界
+- 多代理协作不绕过 approval、sandbox 和 memory 隔离规则

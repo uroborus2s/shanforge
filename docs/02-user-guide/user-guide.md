@@ -105,16 +105,16 @@ uv run python scripts/factory-agent-session --help
 
 这类项目通常先做初始化。
 
-### 类型 B：已有代码仓库，但还不是软件工厂项目
+### 类型 B：已有代码仓库，但还没完成平台接入
 
 特征：
 
 - 已经有代码、配置、README、部署方式
 - 但没有完整的软件工厂骨架
 
-这类项目通常先纳管，再进入正式维护。
+这类项目通常先诊断真实状态，再补齐平台接入骨架。
 
-### 类型 C：已经纳入软件工厂的项目
+### 类型 C：已经接入平台的项目
 
 特征：
 
@@ -139,8 +139,8 @@ uv run python scripts/factory-agent-session --help
 因为不同类型的项目，第一步完全不同：
 
 - 新项目：通常先 `factory-init`
-- 历史项目：通常先建立当前真实状态基线，再纳管
-- 已纳入项目：通常先读取规则和当前状态
+- 已有项目：通常先建立当前真实状态基线，再判断接入动作
+- 已接入项目：通常先读取规则和当前状态
 - 半初始化项目：通常先补齐规则入口
 
 如果这一步判断错了，后面很容易出现下面这些问题：
@@ -246,14 +246,14 @@ uv run python scripts/factory-agent-session --help
 - 项目规则入口是否存在
 - 常用脚本入口是否可用
 
-### 8.2 历史项目纳管
+### 8.2 已有项目接入
 
 标准顺序：
 
 1. 不要把它当空目录新项目
 2. 先让 AI 基于当前代码、配置、现有文档、运行方式建立真实状态基线
-3. 再补齐软件工厂骨架
-4. 纳管完成后再进入 BUG / CR / TASK
+3. 再补齐平台规则入口和必要文档
+4. 接入完成后再进入 BUG / CR / TASK
 
 你应该检查的结果：
 
@@ -261,7 +261,7 @@ uv run python scripts/factory-agent-session --help
 - 当前阶段判断是否合理
 - 正式文档、项目规则入口和内部控制面是否已经补齐
 
-### 8.3 已纳入软件工厂的项目
+### 8.3 已接入平台的项目
 
 标准顺序：
 
@@ -272,7 +272,7 @@ uv run python scripts/factory-agent-session --help
 推荐开场：
 
 ```text
-这个项目已经纳入软件工厂。
+这个项目已经接入平台。
 请先读取规则入口和当前状态，然后继续处理下面这件事：……
 ```
 
@@ -281,7 +281,7 @@ uv run python scripts/factory-agent-session --help
 标准顺序：
 
 1. 先检查已有正式文档、项目规则入口和当前状态摘要；只有判断缺口时再单文件回源受影响 `docs/`
-2. 判断是“规则入口缺失”还是“纳管未完成”
+2. 判断是“规则入口缺失”还是“平台接入未完成”
 3. 如果适用，优先使用 `factory-project-rules-refresh`
 4. 再执行 `factory-state-doctor` 和阶段检查
 
@@ -303,7 +303,7 @@ uv run python scripts/factory-agent-session --help
 推荐开场：
 
 ```text
-这个项目已经纳入软件工厂。
+这个项目已经接入平台。
 请使用 `document-templates` skill 按最新山海工枢源文档标准重构 `docs/`，并在完成后执行 `docs-stratego source validate`，告诉我最终是否为 `就绪`。
 ```
 

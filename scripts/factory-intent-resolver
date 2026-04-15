@@ -86,7 +86,6 @@ ROLE_TITLES = {
 }
 ACTION_OWNERSHIP_ROLES = {
     "init": "coordinator",
-    "historical-project-onboarding": "coordinator",
     "workflow-runner": "release-manager",
     "skill-eval": "coordinator",
     "skill-approval": "coordinator",
@@ -111,7 +110,6 @@ WORKFLOW_OWNERSHIP_ROLES = {
 }
 ACTION_OWNERSHIP_TARGETS = {
     "init": ["AGENTS.md", "GEMINI.md", ".factory", "docs"],
-    "historical-project-onboarding": ["AGENTS.md", "GEMINI.md", ".factory", "docs"],
     "workflow-runner": [".factory", "docs"],
     "skill-eval": [".factory", "skills-drafts"],
     "skill-approval": [".factory", "skills-drafts"],
@@ -472,22 +470,15 @@ def evaluate_action(
             reasons.append("目标目录接近空目录。")
         else:
             blocked.append("目录非空，当前不适合直接初始化。")
-    elif action_id == "historical-project-onboarding":
-        if contains_keyword(intent_text, intent_key, ONBOARDING_KEYWORDS):
-            score += 12
-            reasons.append("检测到接管或历史项目纳管语义。")
-        if facts["project_kind"] == "historical":
-            score += 8
-            reasons.append("目标项目尚未纳管且目录非空。")
-        if facts["managed"]:
-            blocked.append("项目已被山海工枢接管。")
-        if facts["project_kind"] == "empty":
-            blocked.append("空目录应优先初始化，而不是历史项目纳管。")
     elif action_id == "state-doctor":
         docs_hit = contains_keyword(intent_text, intent_key, DOCS_KEYWORDS)
+        onboarding_hit = contains_keyword(intent_text, intent_key, ONBOARDING_KEYWORDS)
         if contains_keyword(intent_text, intent_key, DIAGNOSTIC_KEYWORDS):
             score += 10
             reasons.append("检测到诊断、检查或下一步建议语义。")
+        if onboarding_hit and facts["project_kind"] == "historical":
+            score += 12
+            reasons.append("检测到已有仓库接入语义，先以诊断方式确认当前结构。")
         if docs_hit:
             score += 8
             reasons.append("检测到 docs 维护语义；当前 docs 流程改由 `document-templates` skill 配合 `docs-stratego` CLI 完成，先做状态诊断与缺口确认。")
@@ -511,7 +502,7 @@ def evaluate_action(
             score += 12
             reasons.append("检测到会话启动或上下文整理语义。")
         if not facts["managed"] and not facts["docs_exists"]:
-            blocked.append("项目未纳管且缺少 docs 入口，先走纳管或初始化更稳妥。")
+            blocked.append("项目缺少平台骨架和 docs 入口，先执行 state-doctor 更稳妥。")
     elif action_id == "project-rules-refresh":
         if contains_keyword(intent_text, intent_key, RULE_KEYWORDS):
             score += 12
@@ -562,8 +553,6 @@ def evaluate_action(
     if contains_keyword(intent_text, intent_key, DIAGNOSTIC_KEYWORDS):
         if facts["project_kind"] == "empty" and action_id == "init":
             score += 4
-        elif facts["project_kind"] == "historical" and action_id == "historical-project-onboarding":
-            score += 4
         elif facts["managed"] and action_id == "state-doctor":
             score += 4
 
@@ -596,16 +585,13 @@ def fallback_action(facts: dict) -> tuple[str, str]:
     if facts["project_kind"] == "empty":
         return "init", "目标目录接近空目录，默认推荐初始化项目。"
     if facts["project_kind"] == "historical":
-        return "historical-project-onboarding", "目标目录非空但未纳管，默认推荐历史项目接管。"
+        return "state-doctor", "目标目录非空，默认先诊断当前结构并确认接入方式。"
     return "state-doctor", "项目已纳管或已有明确骨架，默认先做状态诊断。"
 
 
 def command_hint(action_id: str, project_root: Path, intent_text: str, candidate: Optional[dict] = None) -> str:
     dispatch = factory_workspace_root() / "scripts" / "factory-dispatch"
     selected_skill_candidate = (candidate or {}).get("selected_skill_candidate", "").strip()
-    if action_id == "historical-project-onboarding":
-        goal = intent_text.strip() or "纳入软件工厂治理"
-        return f"python3 {dispatch} {action_id} --project \"{project_root}\" --owner \"<owner>\" --goal \"{goal}\""
     if action_id == "init":
         return f"python3 {dispatch} {action_id} --path \"{project_root}\" --name \"{project_root.name}\" --idea \"{intent_text.strip()}\""
     if action_id == "state-doctor":
@@ -740,12 +726,6 @@ def build_execution_plan(result: dict, *, owner: str, note: str, focus: str, str
             script_name="factory-init",
             arguments=["--path", str(project_root), "--name", project_name, "--idea", note_text, "--stack", "auto", "--owner", owner],
             label="按意图初始化项目骨架",
-        )
-    elif action_id == "historical-project-onboarding":
-        plan.update(
-            script_name="factory-historical-project-onboarding",
-            arguments=["--project", str(project_root), "--owner", owner, "--goal", note_text, "--name", project_name, "--stack", "auto"],
-            label="按意图接管历史项目",
         )
     elif action_id == "agent-session":
         plan.update(

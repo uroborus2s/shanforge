@@ -1,209 +1,123 @@
 # 总体方案与协作总览
 
 **项目名称：** 山海工枢 / shanforge  
-**文档状态：** 已确认基线  
+**文档状态：** `v2` 总览基线  
 **负责人：** 仓库维护者  
-**主要读者：** 维护者 | 架构 | 协作者 | 项目负责人  
-**上游输入：** 项目章程 | PRD | 需求分析  
-**下游输出：** 系统架构 | 技术选型 | 模块边界 | 用户指南  
-**最后更新：** 2026-03-27  
+**主要读者：** 架构 | 平台开发 | 业务 Agent 开发 | 项目协调者  
+**上游输入：** PRD | 需求分析 | Hermes Agent 源码调研报告  
+**下游输出：** 系统架构 | 模块边界 | API 设计 | 实施计划  
+**最后更新：** 2026-04-15
 
-## 1. 这份文档的作用
+## 1. 方案结论
 
-这份文档是软件工厂项目的人类总览文档，用来快速回答四个问题：
+山海工枢 `v2` 的产品中心已经明确收口为一个面向业务装配的抽象 Agent 平台，而不是旧脚本集合，也不是单一 CLI 工具。
 
-- 这套系统到底是什么
-- 当前版本做到哪里
-- 由哪些层和哪些角色共同工作
-- 日常推进时应遵守哪些总规则
+平台对业务暴露的不是底层 SDK，而是四类稳定装配面：
 
-它不替代更细的 `PRD`、系统架构、技术选型、模块边界或用户指南，而是作为这些文档之间的总导航。
+- `Agent App Manifest`：声明业务身份、输入输出和能力需求。
+- `Workflow DSL`：声明步骤、流转条件和执行顺序。
+- `ModelPolicy`：声明模型选择、预算和推理约束。
+- `Capability Registry`：声明工具能力、风险级别、证据要求和写集边界。
 
-## 2. 产品定位
+平台对内则统一承载三条主闭环：
 
-软件工厂的定位是“AI 驱动的软件交付操作系统”，不是单一模型的自由发挥式代码生成器。
+- 运行闭环：`session -> context -> workflow step -> model/capability -> response`
+- 治理闭环：`capability -> approval/sandbox -> delegation -> evidence`
+- 记忆闭环：`session/event/artifact -> evidence -> candidate -> promotion -> recall`
 
-在当前版本中：
+## 2. 六层平台视图
 
-- 宿主环境是 `Codex` 和 `Gemini CLI`
-- 正式人类文档统一在 `docs/`
-- 被管理项目中的 `.factory/` 保存状态、工作项、过程文档和 AI 记忆
-- 本地 `factory-*` 脚本承担低自由度、可重复、可校验的执行动作
-- 共享 `skills/` 为不同阶段和不同角色提供方法与约束
+```mermaid
+flowchart LR
+    UI["用户界面层<br/>仓外 Web / 外部 CLI 前台 / 自动化宿主"]
+    ACCESS["接口 / 网关层<br/>API / CLI / HTTP / MCP / Chat / Automation"]
+    APP["业务调度层<br/>Use Cases / Session 编排"]
+    DOMAIN["业务模型层<br/>AgentApp / Workflow / Session / Memory / Context / Model / Capability / Approval / Delegation / Response"]
+    RUNTIME["基础能力层<br/>LLM / Capability / Context / Approval / Delegation / Search / Storage / Rule / Skill / Profile"]
+    SETTINGS["基础设置层<br/>Adapters / Storage / Bootstrap"]
 
-## 3. 当前版本范围
-
-当前版本明确是 `CLI-first`：
-
-- 支持从创意初始化一个软件工厂项目
-- 支持构思、需求、设计、计划、实施、测试、验收、发布、维护全生命周期
-- 支持 `TASK`、`CR`、`BUG` 三类工作项
-- 支持角色协作、PR 闭环、阶段 Gate、交接、复盘与快照
-- 支持人类文档与 AI 记忆双轨治理
-
-当前不把独立 API 平台作为实现边界，也不把完整 DevOps 平台化作为当前阻塞项。
-
-## 4. 核心分层
-
-```text
-+----------------------------------------------------+
-| 使用与协作层                                       |
-| Codex / Gemini CLI / 审批 / 人类查看 docs          |
-+----------------------------------------------------+
-| 工作流与治理层                                     |
-| Stage / Gate / Profile / Workflow / PR / Handover  |
-+----------------------------------------------------+
-| 执行层                                             |
-| Role Agents / Local Scripts / Git / Tests          |
-+----------------------------------------------------+
-| 文档与追踪层                                       |
-| docs / traceability / process docs / workitems     |
-+----------------------------------------------------+
-| 规则与记忆层                                       |
-| AGENTS / GEMINI / skills / .factory / summaries    |
-+----------------------------------------------------+
+    UI --> ACCESS
+    ACCESS --> APP
+    APP --> DOMAIN
+    DOMAIN --> RUNTIME
+    RUNTIME --> SETTINGS
 ```
 
-对人类来说，最需要记住的是：
+当前正式原则只有一套：
 
-- `docs/` 负责正式说明
-- `skills/` 负责方法和约束
-- `scripts/` 负责确定性动作
-- `.factory/` 负责项目运行事实和 AI 记忆
+- 依赖只允许单向向下。
+- 平台业务逻辑 owner 在 `domain`。
+- `runtime` 只提供通用技术能力，不承担业务 owner。
+- `adapters / storage / bootstrap` 是基础设置层实现分区，不是额外层次。
+- 谁调用下层，谁定义接口。
 
-## 5. 资产模型
+## 3. 仓库职责边界
 
-软件工厂相关项目至少有四类核心资产：
+本仓不是“前后端一体 UI 仓”，而是平台主仓。当前重点承载下面 5 个仓内区域：
 
-1. 项目规则
-   - `AGENTS.md`
-   - `GEMINI.md`
-   - `.factory/project.json`
-2. 正式人类文档
-   - `docs/04-project-development/01-governance/*`
-   - `docs/04-project-development/02-discovery/*`
-   - `docs/04-project-development/03-requirements/*`
-   - `docs/04-project-development/04-design/*`
-   - `docs/04-project-development/05-development-process/*`
-   - `docs/04-project-development/06-testing-verification/*`
-   - `docs/04-project-development/07-release-delivery/*`
-   - `docs/04-project-development/08-operations-maintenance/*`
-   - `docs/02-user-guide/*`
-   - `docs/04-project-development/09-evolution/*`
-   - `docs/04-project-development/10-traceability/*`
-3. 过程与执行资产
-   - `.factory/process/*`
-   - `.factory/workitems/*`
-4. AI 压缩记忆
-   - `.factory/memory/*`
-
-正式事实始终先进入 `docs/`，再压缩进入 `.factory/memory/`。
-
-## 6. 生命周期与角色分工
-
-当前生命周期固定为：
-
-`BRAINSTORM -> REQUIREMENTS -> ANALYSIS -> DESIGN -> PLAN -> IMPLEMENTATION -> TESTING -> ACCEPTANCE -> RELEASE -> MAINTENANCE`
-
-默认角色包括：
-
-- 项目协调者
-- 需求分析师
-- 解决方案架构师
-- UX/UI 设计师
-- 后端工程师
-- 前端工程师
-- QA 工程师
-- 发布经理
-- 文档与记忆管理员
-- 学习与演进职责
-
-默认模型分工建议：
-
-- `Gemini` 偏创意澄清、PRD、需求分析、架构设计、影响分析、长文综合
-- `Codex` 偏代码实现、测试补齐、重构、缺陷修复、仓库内修改
-- 评审与总结角色用于交叉复核、摘要收敛和阶段报告
-
-## 7. 运行控制原理
-
-真正约束大模型行为的不是“模型自己知道该怎么做”，而是下面这组边界共同生效：
-
-- 宿主 CLI 的系统规则
-- 项目根目录下的 `AGENTS.md`、`GEMINI.md`
-- `.factory/project.json` 里的阶段、角色和状态
-- `.factory/memory/agent-session.md`、`.factory/memory/current-state.md` 等压缩上下文
-- 本地 `factory-*` 脚本限制可执行动作和输出落点
-
-因此，软件工厂的核心设计不是“让模型自由发挥”，而是“让模型在规则、文档和脚本边界内工作”。
-
-## 8. 总体治理规则
-
-### 8.1 文档治理
-
-- `docs/` 是软件工厂项目的人类正式文档唯一入口
-- 与软件工厂项目本身相关的人类说明文档不再保留在 `workflows/`
-- 每类正式文档采用单文件演化，不额外维护 `v2/final` 副本
-
-### 8.2 任务治理
-
-- 工作项分为 `TASK`、`CR`、`BUG`
-- 估算单位是 `人天`
-- 最小精度是 `0.5 人天`
-- 默认保持粗粒度，不做机械拆分
-
-### 8.3 变更治理
-
-任何已接受的变更都必须同步：
-
-1. 代码
-2. 人类文档 `docs/`
-3. 测试与测试文档
-4. AI 记忆 `.factory/memory/`
-
-### 8.4 代码治理
-
-代码类工作项必须经过：
-
-1. `factory-pr-start`
-2. `factory-pr-review`
-3. `factory-pr-merge`
-4. `factory-close-workitem`
-
-没有 PR 闭环，不应关单，也不应推进相关代码阶段 Gate。
-
-### 8.5 高主动性治理
-
-系统鼓励 Agent 主动推进、主动补证据、主动扩查同类问题，但不得：
-
-- 跳阶段
-- 越过审批
-- 擅自改写正式事实
-- 用羞辱或情绪压迫代替工程方法
-
-## 9. 自我进化机制
-
-当出现以下任一情况时，应优先修流程、协议或脚本，而不是只修当前项目：
-
-- 检查失败是流程缺陷造成的
-- 历史项目无法通过新治理规则
-- 同类问题在多个项目中重复出现
-- 运行时默认读取过多无关长文，造成明显 token 浪费
-
-推荐闭环：
-
-`观察输出 -> 归纳模式 -> 修流程/脚本/协议 -> 回归验证 -> 更新基线`
-
-## 10. 与其他文档的关系
-
-- 看正式需求边界：读 [prd.md](../03-requirements/prd.md)
-- 看详细系统分层和数据流：读 [system-architecture.md](./system-architecture.md)
-- 看工程规则和技术画像：读 [technical-selection.md](./technical-selection.md)
-- 看模块职责和禁止耦合：读 [module-boundaries.md](./module-boundaries.md)
-- 看实际使用方式：读 [user-guide.md](../../02-user-guide/user-guide.md)
-- 看高主动性、自主性和恢复机制：读 [agent-motivation-autonomy-integration.md](../09-evolution/agent-motivation-autonomy-integration.md)
-
-## 11. 变更记录
-
-| 日期 | 变更内容 | 变更人 |
+| 架构层 | 当前宿主或代码落点 | 责任 |
 |---|---|---|
-| 2026-03-25 | 初始版本，承接原合并版需求与设计主文档中的人类总览内容，迁入 `docs/` | Codex |
+| 用户界面层 | 仓外 Web 项目、外部 CLI 前台 | 最终人机交互，不在本仓完整实现 |
+| 接口/网关层 | `src/access/` | API、CLI、HTTP、MCP、Chat、Automation 收口 |
+| 业务调度层 | `src/application/` | 用例编排、会话生命周期、流程协同 |
+| 业务模型层 | `src/domain/` | 平台业务对象、策略、规则、契约 |
+| 基础能力层 | `src/runtime/` | 上下文、模型、能力、审批、委派、检索、存储等技术能力 |
+| 基础设置层 | `src/adapters/` + `src/storage/` + `src/bootstrap/` | provider、持久化、桥接、容器装配 |
+
+## 4. 业务开发方式
+
+业务开发的最小路径已经收敛为：
+
+1. 定义 `Agent App Manifest`
+2. 声明业务 `workflow`
+3. 为每个 step 绑定 `capability` 或 `model_policy`
+4. 声明 `output_schema`
+5. 通过 mock provider 或本地持久化完成契约测试
+
+因此，业务流不再通过直接调用 shell、Git 或供应商 SDK 来实现，而是通过平台定义好的声明式装配面进入运行闭环。
+
+## 5. 运行闭环
+
+当前正式运行链路如下：
+
+1. 用户或上游系统经 UI 宿主发起请求。
+2. `src/access/` 把请求绑定到统一网关入口。
+3. `src/application/` 打开 session、选择 workflow、组织 prepare/run/persist。
+4. `src/domain/` 负责 workflow、memory、approval、delegation、response 等业务规则。
+5. `src/runtime/` 通过 Context Engine、Execution Engine、LLM Runtime、Capability Registry 等提供技术能力。
+6. `src/adapters/`、`src/storage/`、`src/bootstrap/` 提供 provider、store 和装配实现。
+7. 结果统一收口为 `AgentResponse`，并留下事件、证据和记忆蒸馏产物。
+
+## 6. 方案边界
+
+### 做什么
+
+- 建立统一平台内核和声明式业务装配协议
+- 允许不同入口复用同一套用例、领域模型和治理规则
+- 允许不同 step 采用不同模型策略、能力策略和审批策略
+- 保留 local-first、可审计、可回放的实现基线
+
+### 不做什么
+
+- 不把旧脚本或遗留入口继续当作产品定义中心
+- 不让业务层直接依赖 SDK、数据库驱动或外部协议对象
+- 不把 `runtime`、`adapters`、`storage` 混成一个“基础设施大层”
+- 不把记忆、审批、委派等业务规则继续放在技术层 owner 位置
+
+## 7. 推荐阅读顺序
+
+1. [技术选型与工程规则](./technical-selection.md)
+2. [系统架构设计](./system-architecture.md)
+3. [抽象 Agent 平台架构](./agent-platform-architecture.md)
+4. [分层领域与接口总表](./layered-domain-interface-catalog.md)
+5. [模块边界文档](./module-boundaries.md)
+6. [架构分层与代码映射说明](./architecture-layer-code-mapping.md)
+7. [基础设置层与外部资源设计](./infrastructure-layer-design.md)
+8. [API 设计文档](./api-design.md)
+
+## 8. 版本记录
+
+| 版本 | 日期 | 变更内容 |
+|---|---|---|
+| `v2.0` | 2026-04-13 | 按全新抽象 Agent 平台重写总体总览，移除旧版本边界叙事 |
+| `v2.1` | 2026-04-15 | 统一到六层架构、消费者定义接口和 domain owner 口径 |

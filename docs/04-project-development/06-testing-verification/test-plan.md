@@ -1,61 +1,68 @@
 # 测试计划
 
-## 1. 文档目标
+**项目名称：** 山海工枢 / shanforge
+**文档状态：** `v2` 测试基线
+**负责人：** 仓库维护者
+**主要读者：** QA | 架构 | 平台开发 | 业务 Agent 开发
+**上游输入：** PRD | API 设计 | 实施计划
+**下游输出：** 测试报告 | 发布说明
+**最后更新：** 2026-04-14
 
-说明当前项目如何验证脚本、目录结构、文档入口和迁移逻辑没有回归。
+## 1. 测试目标
 
-## 2. 当前测试范围
+- 验证平台契约是否稳定
+- 验证 workflow、模型和 capability 运行时是否闭环
+- 验证业务 App 是否真的只依赖平台契约
+- 验证高风险执行和证据记录是否可控
 
-### 2.1 覆盖目标
+## 2. 测试层次
 
-当前重点覆盖：
+| 层次 | 范围 | 重点 |
+|---|---|---|
+| Schema / Contract 测试 | Manifest、Workflow DSL、ModelPolicy、Capability、AgentResponse | 字段完整性、约束、一致性 |
+| Domain / Use Case 测试 | Session、workflow step、state transition | 运行逻辑和状态迁移 |
+| Provider / Capability Mock 测试 | mock LLM、mock capability | 可替换性和离线验证 |
+| Memory Distillation 测试 | candidate extraction、promotion gate、recall bundle | 二级资产保真与治理正确性 |
+| Integration 测试 | Kernel + workflow + response pipeline | 主闭环可运行 |
+| Policy / Sandbox 测试 | approval、writeset、execution gates | 风险控制是否生效 |
+| Demo App 验收测试 | 编码流、写作流 | 业务装配是否可用 |
 
-- `factory_core.py` 的路径归一化、索引生成和迁移逻辑
-- `factory-init` 的初始化目录与文件生成逻辑
-- `docs-stratego source validate` 的结构校验逻辑
-- 自定义 `index.md` 保留策略
+## 3. 关键测试项
 
-### 2.2 测试层次
+| 用例 | 目标 |
+|---|---|
+| `TC-001` Manifest 校验 | Agent App schema 可校验 |
+| `TC-002` Workflow DSL 校验 | step、条件、输出契约有效 |
+| `TC-003` ModelPolicy fallback | 模型不可用时执行 fallback |
+| `TC-004` Capability 风险控制 | 高风险能力触发审批 |
+| `TC-005` Context Package 生成 | 上下文最小集可复现 |
+| `TC-006` AgentResponse 标准化 | 模型与工具输出均可归一化 |
+| `TC-007` 写集冲突 | 委派合并前可识别冲突 |
+| `TC-008` Demo 编码流 | 编码工作流可跑通 |
+| `TC-009` Demo 写作流 | 写作工作流可跑通 |
+| `TC-010` Session Ledger 保真 | 原始 event/evidence 不被蒸馏层覆盖 |
+| `TC-011` Promotion Gate | 无 evidence 或冲突 candidate 不能晋升长期记忆 |
+| `TC-012` Recall Bundle | recall 只返回 accepted memory，并带 diagnostics 与 source refs |
 
-当前采用四层验证：
+## 4. 质量门
 
-- 单元 / 回归测试：`unittest`
-- 文档结构检查：`docs-stratego source validate`
-- 迁移回归：测试用临时项目目录验证旧结构升级
-- 人工走查：检查站点入口和关键文档可读性
+- `docs-stratego source validate --repo-path .`
+- `.factory/project.json` 与 `traceability.json` JSON 校验
+- schema / contract 测试通过
+- `uv run pytest`
+- `git diff --check`
 
-### 2.3 回归范围
+## 5. 发布前检查
 
-本轮必须回归的模块包括：
+- 所有 P0 需求有对应测试覆盖
+- demo Agent Apps 可在 mock provider 下稳定运行
+- 关键 API 契约未出现未登记变更
+- 响应结构、审批事件和 evidence 可回放
+- memory candidate、promotion decision 与 recall bundle 可追溯
 
-- `docs` 迁移脚本
-- 根 `docs/index.md` 导航校验
-- 子目录 `index.md` 自定义正文保留
-- 新项目初始化的模板生成
+## 6. 版本记录
 
-### 2.4 风险重点
-
-高风险点包括：
-
-- 旧目录链接重写错误
-- 刷新脚本误覆盖人工正文
-- 新旧结构混用导致检查误判
-- 模板升级后本仓库文档没有同步
-
-### 2.5 质量门槛
-
-当前发布前最小门槛：
-
-- `unittest` 全绿
-- `docs-stratego source validate` 为 `就绪`
-- 关键变更页无旧路径和明显占位内容
-- 迁移链路在样例项目上可复现
-
-## 3. 推荐表格
-
-| 测试层次 | 覆盖对象 | 负责角色 | 准入条件 | 准出条件 |
-|---|---|---|---|---|
-| 单元 / 回归测试 | `factory_core.py`、`factory-init` | 仓库维护者 | 代码完成 | 26 项通过 |
-| 结构检查 | `docs/index.md` 与各级 `index.md` | 文档维护者 | 文档变更完成 | `docs-stratego source validate` 返回 `就绪` |
-| 迁移回归 | 旧 `docs/` 到新 4 模块结构 | 仓库维护者 | 迁移逻辑变更 | 样例迁移通过 |
-| 人工走查 | 文档可读性与入口一致性 | 维护者 / 协作者 | 模板更新完成 | 主要入口可读 |
+| 版本 | 日期 | 变更内容 |
+|---|---|---|
+| `v2.0` | 2026-04-13 | 重写测试计划，围绕平台契约、运行时闭环和 demo Agent App 校验 |
+| `v2.1` | 2026-04-14 | 新增记忆蒸馏、promotion gate 和 recall bundle 的测试方向 |

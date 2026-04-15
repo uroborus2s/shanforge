@@ -13,7 +13,7 @@
       "artifacts": ["AGENTS.md", "GEMINI.md", ".factory/project.json", "docs/"],
       "success_criteria": ["项目骨架生成成功", "阶段初始化为 BRAINSTORM"],
       "verification": ["核心骨架文件存在", "命令返回码为 0"],
-      "recovery_hints": ["若目录已包含既有项目内容，改走 historical-project-onboarding"]
+      "recovery_hints": ["若目录已包含既有项目内容，先执行 state-doctor 诊断当前结构"]
     },
     "agent-session": {
       "script_name": "factory-agent-session",
@@ -26,7 +26,7 @@
       "artifacts": [".factory/memory/agent-session.md"],
       "success_criteria": ["生成最新会话入口", "推荐阅读和下一步动作可供当前协作者使用"],
       "verification": ["输出文件存在", "命令返回码为 0"],
-      "recovery_hints": ["若项目未纳管，先改走 historical-project-onboarding"]
+      "recovery_hints": ["若项目缺少平台骨架，先执行 state-doctor 或 project-rules-refresh"]
     },
     "state-doctor": {
       "script_name": "factory-state-doctor",
@@ -39,25 +39,7 @@
       "artifacts": [".factory/process/state-doctor-report.md"],
       "success_criteria": ["生成状态诊断结果", "返回缺口和推荐动作"],
       "verification": ["输出文件存在或标准输出包含诊断结果", "命令返回码为 0"],
-      "recovery_hints": ["若缺少软件工厂骨架，先执行 historical-project-onboarding"]
-    },
-    "historical-project-onboarding": {
-      "script_name": "factory-historical-project-onboarding",
-      "description": "纳管非软件工厂历史项目",
-      "aliases": ["legacy-onboard", "historical-onboard"],
-      "risk_level": "L2",
-      "purpose": "为已有代码仓库建立当前真实状态基线并补齐软件工厂最小骨架。",
-      "preconditions": ["目标目录非空", "目标项目尚未被山海工枢接管"],
-      "frontend_requirements": ["file_read", "file_write", "command_exec"],
-      "artifacts": [
-        "AGENTS.md",
-        "GEMINI.md",
-        ".factory/project.json",
-        ".factory/process/historical-project-onboarding-report.md"
-      ],
-      "success_criteria": ["项目建立最小治理骨架", "生成首轮 session 与 state doctor"],
-      "verification": ["核心文件存在", "命令返回码为 0"],
-      "recovery_hints": ["若项目已纳管，改走 session 或 state-doctor"]
+      "recovery_hints": ["若缺少平台骨架，先执行 state-doctor 诊断并补齐规则入口"]
     },
     "project-rules-refresh": {
       "script_name": "factory-project-rules-refresh",
@@ -70,7 +52,7 @@
       "artifacts": ["AGENTS.md", "GEMINI.md"],
       "success_criteria": ["规则入口文件与当前基线一致"],
       "verification": ["命令返回码为 0", "目标文件存在"],
-      "recovery_hints": ["若项目未纳管，先执行 historical-project-onboarding"]
+      "recovery_hints": ["若项目缺少平台骨架，先执行 state-doctor 或 project-rules-refresh"]
     },
     "multi-agent-board": {
       "script_name": "factory-multi-agent-board",
@@ -83,7 +65,7 @@
       "artifacts": [".factory/process/multi-agent-board.md"],
       "success_criteria": ["生成多代理协作看板", "包含活跃任务、角色和风险"],
       "verification": ["输出文件存在", "命令返回码为 0"],
-      "recovery_hints": ["若项目未纳管，先执行 session 或 historical-project-onboarding"]
+      "recovery_hints": ["若项目缺少平台骨架，先执行 state-doctor"]
     },
     "frontend-capabilities": {
       "script_name": "factory-frontend-capabilities",

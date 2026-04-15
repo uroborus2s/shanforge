@@ -14,14 +14,14 @@
       }
     },
     {
-      "id": "intent-historical-onboarding",
+      "id": "intent-unmanaged-project-diagnosis",
       "intent": "先接管这个历史项目",
       "fixture": "historical_project",
       "tool": "codex",
       "expected": {
-        "action": "historical-project-onboarding",
-        "approval": "summary_confirm",
-        "safe_status": "policy_denied"
+        "action": "state-doctor",
+        "approval": "auto",
+        "safe_status": "error"
       }
     },
     {

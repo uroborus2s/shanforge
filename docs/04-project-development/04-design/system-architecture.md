@@ -1,135 +1,137 @@
 # 系统架构设计
 
-**项目名称：** 山海工枢 / shanforge  
-**文档状态：** 已确认基线  
-**负责人：** 仓库维护者  
-**主要读者：** 架构 | 开发 | 测试 | 运维  
-**上游输入：** PRD | `NFR-001` ~ `NFR-003` | 风险登记册  
-**下游输出：** 模块边界 | 接口契约 | 实施计划 | 测试计划  
-**关联 ID：** `REQ-001` ~ `REQ-006`, `NFR-001` ~ `NFR-003`, `ADR-001` ~ `ADR-006`, `MOD-001` ~ `MOD-006`, `API-001` ~ `API-016`  
-**最后更新：** 2026-04-02  
+**项目名称：** 山海工枢 / shanforge
+**文档状态：** `v2` 架构基线
+**负责人：** 仓库维护者
+**主要读者：** 架构 | 平台开发 | 测试 | 运维
+**上游输入：** PRD | 需求分析 | Hermes Agent 源码调研报告
+**下游输出：** 模块边界 | API 设计 | 实施计划 | 测试计划
+**关联 ID：** `REQ-001` ~ `REQ-010`, `NFR-001` ~ `NFR-005`, `ADR-001` ~ `ADR-007`, `MOD-001` ~ `MOD-014`, `API-001` ~ `API-013`
+**最后更新：** 2026-04-15
 
 ## 1. 架构概览
 
-- 系统目标：把共享 rules、skills、动作注册、脚本、工作流和文档组织成一套可执行、可治理、可进化的软件工厂体系。
-- 总体思路：把“人类文档”“AI 运行时协议”“前台适配”“动作治理”“命令入口”和“项目状态/追踪”拆成分层协作结构。
-- 架构风格：CLI-first、本地文件驱动、文档与脚本双轨协同、分级自治。
+系统正式采用单向六层分层架构。
+
+- 正式依赖链只有一条：`用户界面层 -> 接口/网关层 -> 业务调度层 -> 业务模型层 -> 基础能力层 -> 基础设置层`。
+- 每一层内部再按业务领域内聚建模，例如 `memory`、`session`、`workflow`、`capability`、`approval`。
+- `adapters / storage / bootstrap` 不是附加架构层，而是基础设置层的实现分区。
+- 不再使用“跨层子系统 owner”作为正式架构口径。
 
 ```mermaid
 flowchart LR
-    User["用户/维护者"] --> CLI["Codex / Gemini CLI"]
-    CLI --> Adapter["Frontend Adapter"]
-    Adapter --> Rules["AGENTS / GEMINI / skills"]
-    Adapter --> Intent["Intent Resolver"]
-    Intent --> Session["Context Compiler / factory-agent-session"]
-    Intent --> Registry["Action Registry / Policy"]
-    Registry --> Workflow["Workflow Orchestrator"]
-    Workflow --> Scripts["factory-* scripts / tools"]
-    Session --> Docs["docs/ 正式文档"]
-    Session --> State[".factory / project state"]
-    Scripts --> Docs
-    Scripts --> State
-    Scripts --> Evidence["Evidence / Recovery / Eval"]
+    UI["用户界面层<br/>外部 Web / 外部 CLI 前台"] --> GW["接口 / 网关层<br/>API / CLI Gateway"]
+    GW --> APP["业务调度层<br/>Use Cases / Orchestration"]
+    APP --> DOMAIN["业务模型层<br/>AgentApp / Workflow / Session / Memory / Context / Model / Capability / Approval / Delegation / Response"]
+    DOMAIN --> RUNTIME["基础能力层<br/>File / Store / Search / Vector / LLM / Embedding / Tool / Workspace / Rule / Skill / Profile / Approval Channel / Delegation Transport"]
+    RUNTIME --> SETTING["基础设置层<br/>文件系统 / 外部数据库 / Provider SDK / 外部系统 / 本地持久化 / 装配配置"]
 ```
 
-## 2. 设计驱动因素
+## 2. 层职责
 
-| 类型 | 条目 | 影响 |
+| 层 | 职责 | 当前代码或宿主 |
 |---|---|---|
-| 功能需求 | `REQ-001` | 必须提供清晰的人类文档入口 |
-| 功能需求 | `REQ-003` | 当前架构必须以 CLI-first 为主 |
-| 功能需求 | `REQ-004` | 必须拆分正式文档层与 AI 记忆层 |
-| 功能需求 | `REQ-005` | 需要支撑角色化和多代理协作理解 |
-| 功能需求 | `REQ-006` | 需要让使用者通过自然语言稳定进入高层入口 |
-| 非功能需求 | `NFR-001` | 需要低成本发现关键文档和入口 |
-| 非功能需求 | `NFR-002` | 配置与文档入口必须一致 |
-| 风险 | `RISK-002` | 需要防止正式人类文档入口出现双轨或过期路径 |
-| 风险 | `RISK-003` | 需要防止自然语言直接越过审批边界进入高风险执行 |
-| 风险 | `RISK-004` | 需要防止多前台和多代理带来不一致执行 |
+| 用户界面层 | 面向最终用户交互、展示和操作 | 仓外 Web 项目、外部 CLI 前台 |
+| 接口/网关层 | 提供 API 接口、CLI 命令网关和协议收口 | `src/access/` |
+| 业务调度层 | 编排一次完整业务执行和会话生命周期 | `src/application/` |
+| 业务模型层 | 持有平台业务逻辑、稳定领域对象和领域规则 | `src/domain/` |
+| 基础能力层 | 提供通用技术能力抽象，并实现领域所需的统一能力 | `src/runtime/` |
+| 基础设置层 | 提供文件、数据库、provider、外部系统和装配实现 | `src/adapters/` + `src/storage/` + `src/bootstrap/` |
 
-## 3. 逻辑分层与关键组件
+## 3. 层内领域建模
 
-| 组件/模块 | 职责 | 输入 | 输出 | 依赖 |
-|---|---|---|---|---|
-| `MOD-001` 文档层 | 管理正式需求、设计、使用和追踪文档 | Markdown 文档、项目决策 | 结构化人类文档 | `MOD-002`, `MOD-004` |
-| `MOD-002` 规则与技能层 | 定义运行时协议、角色职责和阶段能力 | `AGENTS.md`, `GEMINI.md`, `skills/` | 行为约束、阅读顺序、能力边界 | 无 |
-| `MOD-003` 前台适配层 | 适配不同 CLI 宿主和能力画像 | 宿主能力、用户请求 | 统一前台能力契约 | `MOD-002`, `MOD-004` |
-| `MOD-004` 动作治理层 | 解析意图、选择动作、应用自治策略和编排工作流 | 用户请求、项目路径、配置、上下文 | 标准动作执行计划 | `MOD-002`, `MOD-003`, `MOD-005` |
-| `MOD-005` 执行层 | 暴露统一脚本入口和阶段动作 | 执行计划、参数、项目状态 | 执行动作、更新文档与状态 | `MOD-004`, `MOD-006` |
-| `MOD-006` 状态与追踪层 | 保存项目状态、AI 记忆、工作项和评估结果 | 配置、执行结果、阶段事实 | `.factory/`、配置、追踪关系、评估信号 | `MOD-001`, `MOD-004`, `MOD-005` |
+模块不是简单按目录切碎，而是先按层，再在层内按领域内聚建模。
 
-## 4. 关键数据流与时序
+| 层 | 领域组 | 说明 |
+|---|---|---|
+| 用户界面层 | `web_console`、`cli_frontend`、`automation_host` | 宿主交互，不承载平台业务逻辑 |
+| 接口/网关层 | `runtime_gateway`、`workflow_gateway`、`session_gateway`、`memory_gateway`、`capability_gateway` | 协议绑定、出入参归一化、入口收口 |
+| 业务调度层 | `app_application`、`workflow_application`、`session_application`、`memory_application`、`execution_application` | 薄编排层，只调领域服务 |
+| 业务模型层 | `agent_app`、`workflow`、`session`、`memory`、`context`、`model`、`capability`、`approval`、`delegation`、`response` | 平台业务规则 owner |
+| 基础能力层 | `file_access`、`structured_storage`、`search_index`、`vector_index`、`llm_gateway`、`tool_execution`、`rule_source`、`skill_source`、`profile_source` 等 | 统一技术能力抽象与实现编排 |
+| 基础设置层 | `provider_adapters`、`storage_backends`、`container_bootstrap` | 真实文件、数据库、SDK、外部系统和装配实现 |
 
-### 场景 1：初始化或接手一个软件工厂项目
+## 4. 模块到层的正式归属
 
-1. 用户在 `Codex`、`Gemini CLI` 或其他兼容前台中描述目标。
-2. 前台适配层识别宿主能力，并向下暴露统一能力画像。
-3. 模型先读取项目规则、当前状态和当前阶段文档。
-4. 动作治理层把自然语言请求解析为已注册动作或工作流。
-5. 自治策略判断是否可自动执行，必要时停在审批边界。
-6. 执行层通过 `factory-*` 脚本、工具和 shell 更新 `docs/`、`.factory/`、工作项或项目配置。
-7. 证据、恢复记录和评估信号回写到状态与追踪层。
-8. 用户通过正式文档和结果输出继续推进下一阶段。
-
-### 场景 2：维护这套软件工厂自身文档
-
-1. 维护者识别脚本、规则或使用路径发生变化。
-2. 先更新 `docs/` 中对应的需求、设计或用户说明。
-3. 再同步调整默认配置和 skill 入口说明。
-4. 所有与软件工厂项目本身相关的人类说明文档统一维护在 `docs/`，专项 workflow 文档不再承担正式入口。
-
-## 5. 数据设计摘要
-
-- 关键实体：
-  - `config/software-factory.defaults.json`
-  - `docs/*`
-  - 被管理项目中的 `.factory/project.json`、`.factory/memory/*`、`.factory/workitems/*`
-- 数据生命周期：
-  - 全局规则与模板常驻当前仓库。
-  - 被管理项目的状态数据由脚本按阶段生成和更新。
-- 一致性要求：
-  - 文档入口、配置入口和运行时协议要保持一致。
-  - 正式文档与 AI 记忆职责清晰分层。
-- 当前治理状态：
-  - `docs/` 已成为唯一正式人类文档入口。
-  - 默认人类文档引用已经切换到 `docs/`。
-  - 与软件工厂项目本身相关的 `workflows/` 文档副本已经删除。
-
-## 6. 部署与运行拓扑
-
-- 环境：本地开发机 / CLI 宿主环境。
-- 运行节点：`Codex`、`Gemini CLI`、未来兼容前台（如 `opencode`）、本地 Python 脚本、本地文件系统。
-- 外部依赖：Git、本地 shell、Python 运行环境。
-- 高可用/扩展策略：当前不依赖常驻服务；通过清晰文档、动作注册和确定性脚本降低恢复成本。
-
-## 7. 安全与可靠性设计
-
-- 认证与授权：当前主要依赖本地仓库权限和 CLI 宿主环境，不提供独立鉴权系统。
-- 审计与日志：通过 Git 历史、正式文档变更记录和被管理项目中的 `.factory/process/*` 保留审计轨迹。
-- 故障隔离：高风险动作尽量通过低自由度脚本执行，并受分级自治策略控制，减少模型随意修改范围。
-- 降级与恢复：即使 AI 记忆层不可用，正式 `docs/` 仍可作为人类理解和恢复工作的事实入口。
-
-## 8. 架构决策记录
-
-| `ADR` | 决策 | 备选方案 | 结论 |
+| 模块 | 主归属层 | 次级落点 | 说明 |
 |---|---|---|---|
-| `ADR-001` | 当前版本以 CLI-first 为主 | 直接建设 API 编排平台 | 先保持 CLI-first，降低建设成本 |
-| `ADR-002` | 正式人类文档使用 `docs/` 管理 | 继续保留 `workflows/` 作为项目说明层 | `docs/` 成为唯一正式入口，相关 `workflows/` 文档被收敛删除 |
-| `ADR-003` | 优先通过统一命令入口组织动作 | 让用户直接记忆并调用大量零散脚本 | 使用 `factory-dispatch` 等高层入口降低认知负担 |
-| `ADR-004` | 主骨架转向“动作注册 + 自治策略 + 工作流编排” | 继续以 skill 或工作流图单独承载主运行时 | 动作注册负责执行骨架，skill 退回认知协议层 |
-| `ADR-005` | 默认采用分级自治 | 全自动执行或完全手工确认 | 先做 `L0` ~ `L3` 分级自治，再逐步向更高自治演进 |
-| `ADR-006` | 通过前台适配层支持多个 CLI 宿主 | 为每个前台分别写一套 prompt / 命令指南 | 统一能力契约，允许 `Codex`、`Gemini CLI` 和未来工具共用后端能力 |
+| `MOD-001` Business Agent Apps | 业务模型层 | 无 | 业务声明面 |
+| `MOD-002` Application Use Cases | 业务调度层 | 无 | 薄编排层 |
+| `MOD-003` Agent Domain Model | 业务模型层 | 无 | 稳定领域对象 |
+| `MOD-004` Workflow Support | 业务模型层 | 基础能力层 | 业务工作流规则由领域 owner，运行辅助能力由基础能力层承载 |
+| `MOD-005` Model Policy & Invocation | 业务模型层 | 基础能力层 + 基础设置层 | 策略归领域，调用能力走下层 |
+| `MOD-006` Capability | 业务模型层 | 基础能力层 + 基础设置层 | 声明与风险规则归领域，执行依赖下层 |
+| `MOD-007` Memory | 业务模型层 | 业务调度层 + 基础能力层 + 基础设置层 | 记忆业务逻辑 owner 在领域层 |
+| `MOD-008` Approval | 业务模型层 | 基础能力层 + 基础设置层 | 审批语义归领域，通道与实现走下层 |
+| `MOD-009` Delegation | 业务模型层 | 基础能力层 + 基础设置层 | 委派业务语义归领域 |
+| `MOD-010` Session & Evidence | 业务模型层 | 基础能力层 + 基础设置层 | 会话与证据模型归领域，存储实现走下层 |
+| `MOD-011` Interface & Gateway Entry | 接口/网关层 | 无 | API / CLI Gateway |
+| `MOD-012` Consumer-Owned Ports | 跟随消费者 | 无 | 不构成单独层 |
+| `MOD-013` Base Setting Implementations | 基础设置层 | 无 | provider、store、bridge、container |
+| `MOD-014` Response | 业务模型层 | 基础能力层 | 输出语义归领域，验证和统计能力走下层 |
 
-## 9. 未决问题
+## 5. 运行时主时序
 
-- 动作注册表、自治策略和前台能力画像采用何种正式配置格式。
-- `factory-agent-session` 如何演进为更强的 `Context Compiler`。
-- 多代理编排何时从“看板”升级为“正式调度面”。
+```mermaid
+sequenceDiagram
+    participant UI as 外部 UI / CLI Host
+    participant GW as 接口 / 网关层
+    participant APP as 业务调度层
+    participant DOMAIN as 业务模型层
+    participant RT as 基础能力层
+    participant SET as 基础设置层
 
-## 10. 变更记录
+    UI->>GW: request
+    GW->>APP: normalized request
+    APP->>DOMAIN: invoke domain service
+    DOMAIN->>RT: call capability ports
+    RT->>SET: provider / store / bridge calls
+    SET-->>RT: normalized resource result
+    RT-->>DOMAIN: capability result
+    DOMAIN-->>APP: domain result
+    APP-->>GW: execution result
+    GW-->>UI: API response / CLI output
+```
 
-| 日期 | 变更内容 | 变更人 |
+## 6. 数据与状态原则
+
+- `session / event / evidence` 是第一事实源。
+- `memory` 是蒸馏得到的二级资产，不覆盖第一事实源。
+- 业务调度层不直接依赖基础能力层或基础设置层的具体实现。
+- 业务模型层通过自己拥有的能力接口消费基础能力层。
+- 基础能力层统一消费和产出领域对象，不泄漏底层 SDK 或数据库对象。
+- 基础设置层可以替换实现，但不能改写上层能力语义。
+- `ports` 跟随消费者所在层定义，所有实现都必须回到领域契约。
+
+## 7. 安全与可靠性
+
+- 高风险能力必须先经过审批和沙箱判断。
+- 委派任务必须以显式输入契约和结果契约交接。
+- Provider adapter 错误不能直接泄漏给业务调度层。
+- 所有关键步骤都必须留下结构化事件与证据。
+
+## 8. 架构决策
+
+| ADR | 决策 | 结论 |
 |---|---|---|
-| 2026-03-25 | 初始版本，形成软件工厂项目的总体架构基线 | Codex |
-| 2026-03-25 | 更新为 docs-only 人类文档架构，移除 workflows 作为正式说明层 | Codex |
-| 2026-04-02 | 增加动作注册、分级自治、前台适配和多代理协作的目标演进架构 | Codex |
+| `ADR-001` | `v2` 以抽象 Agent 平台为产品中心 | 保留 |
+| `ADR-002` | 业务逻辑放在 Business Agent App / Workflow 中 | 保留 |
+| `ADR-003` | 工作流采用声明式 DSL | 保留 |
+| `ADR-004` | 模型交互统一经过领域策略 + 基础能力层模型能力 | 保留并明确 owner |
+| `ADR-005` | 工具能力统一治理 | 保留，业务 owner 归领域层 |
+| `ADR-006` | 上下文、记忆和会话走统一平台闭环 | 保留，业务 owner 归领域层 |
+| `ADR-007` | 文件、数据库、外部系统属于基础设置层 | 定稿 |
+
+## 9. 当前未决问题
+
+- 外部 Web 项目与本仓 API 网关之间的契约粒度是否需要单独固化为网关规范。
+- 基础设置层的持久化实现首版是否维持 `JSONL + in-memory`，还是尽快补外部数据库适配。
+- UI 层是否需要为 CLI host 和 Web host 分别定义统一会话协议。
+
+## 10. 版本记录
+
+| 版本 | 日期 | 变更内容 |
+|---|---|---|
+| `v2.0` | 2026-04-13 | 重写系统架构，建立纯 `v2` 平台基线 |
+| `v2.1` | 2026-04-14 | 建立六层架构基线 |
+| `v2.2` | 2026-04-15 | 收口为单向依赖链，并把业务逻辑 owner 统一回业务模型层 |

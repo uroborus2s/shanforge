@@ -72,9 +72,8 @@ def build_project_config(
         "idea": idea,
         "stack": stack,
         "created_at": datetime.now(timezone.utc).isoformat(),
-        "active_mode": config["v1_active_mode"],
+        "active_mode": config["default_active_mode"],
         "supported_modes": config["supported_modes"],
-        "v1_scope_note": config["v1_scope_note"],
         "stage": "BRAINSTORM",
         "ai_runtime_docs": [relative_factory_path(target, ROOT / item) for item in config.get("ai_runtime_docs", [])],
         "human_workflow_docs": [

@@ -28,14 +28,14 @@
 | 业务调度层 | `src/application/` | 打开 session、选择 workflow、组织一次完整执行 |
 | 业务模型层 | `src/domain/` | workflow、memory、capability、approval、delegation、response 等业务规则 |
 | 基础能力层 | `src/runtime/` | Context Engine、LLM Runtime、Capability Registry、Approval/Sandbox、Delegation 等技术能力 |
-| 基础设置层 | `src/adapters/` + `src/storage/` + `src/bootstrap/` | provider、持久化、Hermes bridge、容器装配 |
+| 基础设置层 | `src/settings/` | provider、持久化、Hermes bridge、容器装配 |
 
 正式边界：
 
 - `application` 只做薄编排。
 - `domain` 是业务逻辑 owner。
 - `runtime` 只提供通用技术能力。
-- `adapters / storage / bootstrap` 只负责实现和接线。
+- `src/settings/` 只负责实现和接线；层内分域不改变六层架构。
 
 ## 3. 主执行链
 
@@ -47,7 +47,7 @@ RuntimeAPI / CLI Gateway
   -> SessionDomainService + MemoryDomainService + WorkflowDomainService
   -> AgentKernel
   -> ContextEngine + ExecutionEngine + LLMRuntime / CapabilityRegistry / Approval / Delegation
-  -> storage / adapter / bootstrap implementations
+  -> settings implementations
 ```
 
 对应到代码：
@@ -60,7 +60,7 @@ RuntimeAPI / CLI Gateway
 | 领域服务接口 | `src/application/ports/domain_services.py` | application 定义它依赖的领域服务 |
 | 领域实现 | `src/domain/*/service.py` | 业务语义 owner |
 | 内核与运行时 | `src/runtime/agent_kernel/`, `src/runtime/context/`, `src/runtime/capability/`, `src/runtime/llm/`, `src/runtime/approval/`, `src/runtime/delegation/` | 技术能力编排 |
-| 持久化与 provider | `src/storage/*`, `src/adapters/*`, `src/bootstrap/container/default.py` | 真实实现和装配 |
+| 持久化与 provider | `src/settings/**`, `src/settings/composition/container.py` | 真实实现和装配 |
 
 ## 4. 关键专题链路
 
@@ -71,7 +71,7 @@ ExecutionService
   -> MemoryDomainService
   -> domain/memory ports
   -> runtime/store/search/source capability
-  -> storage/evidence + storage/memory + storage/memory_dataset
+  -> settings/session + settings/memory
 ```
 
 正式结论：
@@ -87,7 +87,7 @@ gateway request
   -> ExecutionService / AgentKernel
   -> domain/capability
   -> runtime/capability executor + approval/sandbox
-  -> adapter-backed capability registry / tool backends
+  -> settings-backed capability registry / tool backends
 ```
 
 能力执行的治理规则由 `domain/capability`、`domain/approval` 和 `domain/delegation` 定义；真正的执行资源由 `runtime` 和 `settings` 提供。
@@ -98,7 +98,7 @@ gateway request
 step model policy
   -> domain/model
   -> runtime/llm runtime
-  -> adapters/model_providers/*
+  -> settings/model/*
 ```
 
 模型策略归 `domain/model` owner，供应商差异只允许留在基础设置层。

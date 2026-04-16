@@ -24,7 +24,7 @@
 ## 最近验证结果
 
 - 2026-04-14：`uv run pytest tests/test_memory_runtime.py tests/test_context_engine.py tests/test_platform_scaffold.py` 通过，覆盖 evidence 投影、candidate promotion gate、context long-term memory segment 和跨 session recall。
-- 2026-04-14：`uv run ruff check src/domain/memory src/runtime/memory src/infrastructure/persistence/memory_store.py src/domain/session/models.py src/application/ports.py src/application/execution_service.py src/bootstrap/container.py src/runtime/engine/context_engine.py tests/test_memory_runtime.py tests/test_context_engine.py tests/test_platform_scaffold.py` 通过。
+- 2026-04-14：记忆主链相关静态检查已通过；当前代码基线已在后续重构中统一迁移到 `src/application/`、`src/runtime/`、`src/settings/` 新口径。
 - 2026-04-14：新增验证点覆盖 summarizer 草案接入、`candidate -> decision` dataset 样本沉淀、以及 `JSONL-backed` store 的跨容器持久化 recall。
 - 2026-04-14：新增验证点覆盖自定义 `MemoryPromotionPolicy` 拒绝低置信 declarative candidate，以及容器在 mock provider 下启用 `LLMMemorySummarizer`。
 - 2026-04-14：新增验证点覆盖 `LLMMemorySummarizer` 对 invalid candidate schema 的拒绝，以及对模型 `kind/scope/confidence` override 的忽略。

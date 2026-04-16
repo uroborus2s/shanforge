@@ -34,7 +34,7 @@ flowchart LR
     APP["业务调度层<br/>Use Cases / Session 编排"]
     DOMAIN["业务模型层<br/>AgentApp / Workflow / Session / Memory / Context / Model / Capability / Approval / Delegation / Response"]
     RUNTIME["基础能力层<br/>LLM / Capability / Context / Approval / Delegation / Search / Storage / Rule / Skill / Profile"]
-    SETTINGS["基础设置层<br/>Adapters / Storage / Bootstrap"]
+    SETTINGS["基础设置层<br/>src/settings/ + 领域实现分组"]
 
     UI --> ACCESS
     ACCESS --> APP
@@ -48,7 +48,7 @@ flowchart LR
 - 依赖只允许单向向下。
 - 平台业务逻辑 owner 在 `domain`。
 - `runtime` 只提供通用技术能力，不承担业务 owner。
-- `adapters / storage / bootstrap` 是基础设置层实现分区，不是额外层次。
+- 基础设置层只有一个正式代码根：`src/settings/`；层内可以继续按实现领域分组，但不新增架构层次。
 - 谁调用下层，谁定义接口。
 
 ## 3. 仓库职责边界
@@ -62,7 +62,7 @@ flowchart LR
 | 业务调度层 | `src/application/` | 用例编排、会话生命周期、流程协同 |
 | 业务模型层 | `src/domain/` | 平台业务对象、策略、规则、契约 |
 | 基础能力层 | `src/runtime/` | 上下文、模型、能力、审批、委派、检索、存储等技术能力 |
-| 基础设置层 | `src/adapters/` + `src/storage/` + `src/bootstrap/` | provider、持久化、桥接、容器装配 |
+| 基础设置层 | `src/settings/` | provider、持久化、桥接、容器装配 |
 
 ## 4. 业务开发方式
 
@@ -85,7 +85,7 @@ flowchart LR
 3. `src/application/` 打开 session、选择 workflow、组织 prepare/run/persist。
 4. `src/domain/` 负责 workflow、memory、approval、delegation、response 等业务规则。
 5. `src/runtime/` 通过 Context Engine、Execution Engine、LLM Runtime、Capability Registry 等提供技术能力。
-6. `src/adapters/`、`src/storage/`、`src/bootstrap/` 提供 provider、store 和装配实现。
+6. `src/settings/` 提供 provider、store、Hermes bridge 和容器装配实现，并在层内按 `model / memory / session / skills / workspace / approval / delegation / gateway / capability_registry / hermes` 等领域分组。
 7. 结果统一收口为 `AgentResponse`，并留下事件、证据和记忆蒸馏产物。
 
 ## 6. 方案边界

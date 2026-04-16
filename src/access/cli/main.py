@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from access.cli.commands.run_demo import build_demo_manifest
-from bootstrap.container import build_default_container
+from settings.composition import build_default_container
 
 
 def main() -> None:

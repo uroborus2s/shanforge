@@ -52,16 +52,16 @@
         <mxCell id="c7" value="基础设置层持久化阶段" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d0e0e3;strokeColor=#76a5af;fontSize=18;fontStyle=1;" vertex="1" parent="1">
           <mxGeometry x="1360" y="700" width="260" height="50" as="geometry" />
         </mxCell>
-        <mxCell id="c8" value="src/storage/memory/store.py&lt;br/&gt;save(record)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f4fbfc;strokeColor=#76a5af;fontSize=16;" vertex="1" parent="1">
+        <mxCell id="c8" value="src/settings/memory/store.py&lt;br/&gt;save(record)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f4fbfc;strokeColor=#76a5af;fontSize=16;" vertex="1" parent="1">
           <mxGeometry x="1360" y="780" width="220" height="90" as="geometry" />
         </mxCell>
-        <mxCell id="c9" value="src/storage/evidence/store.py&lt;br/&gt;save_evidence(record)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f4fbfc;strokeColor=#76a5af;fontSize=16;" vertex="1" parent="1">
+        <mxCell id="c9" value="src/settings/memory/evidence_store.py&lt;br/&gt;save_evidence(record)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f4fbfc;strokeColor=#76a5af;fontSize=16;" vertex="1" parent="1">
           <mxGeometry x="1630" y="780" width="220" height="90" as="geometry" />
         </mxCell>
-        <mxCell id="c10" value="src/storage/memory_dataset/store.py&lt;br/&gt;save_entry(sample)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f4fbfc;strokeColor=#76a5af;fontSize=16;" vertex="1" parent="1">
+        <mxCell id="c10" value="src/settings/memory/dataset_store.py&lt;br/&gt;save_entry(sample)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f4fbfc;strokeColor=#76a5af;fontSize=16;" vertex="1" parent="1">
           <mxGeometry x="1495" y="900" width="220" height="90" as="geometry" />
         </mxCell>
-        <mxCell id="foot" value="核心原则：应用层接口 owner 在 src/application/ports，业务 owner 在 src/domain/memory；runtime 提供技术能力，最终持久化落到基础设置层的 src/storage 各模块" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fffaf2;strokeColor=#d79b00;fontSize=16;fontStyle=1;" vertex="1" parent="1">
+        <mxCell id="foot" value="核心原则：应用层接口 owner 在 src/application/ports，业务 owner 在 src/domain/memory；runtime 提供技术能力，最终持久化落到基础设置层的 src/settings 各分域模块" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fffaf2;strokeColor=#d79b00;fontSize=16;fontStyle=1;" vertex="1" parent="1">
           <mxGeometry x="330" y="1080" width="1540" height="70" as="geometry" />
         </mxCell>
       </root>

@@ -17,18 +17,20 @@ from domain.memory.models import (
 )
 from domain.model.models import ModelRef, ModelRequest, ModelResponse, TokenUsage
 from domain.session.models import AgentSession, SessionArtifact
-from adapters.model_providers.mock_provider import MockLLMProvider
 from runtime.ports.llm_provider import LLMProviderPort
 from runtime.llm.runtime import LLMRuntime
 from runtime.memory.policy import MemoryPromotionPolicy
 from runtime.memory.runtime import MemoryRuntime
 from runtime.memory.summarizer import LLMMemorySummarizer
-from storage.evidence.store import InMemoryEvidenceStore, JsonlEvidenceStore
-from storage.memory.store import InMemoryMemoryStore, JsonlMemoryStore
-from storage.memory_dataset.store import (
+from settings.memory import (
+    InMemoryEvidenceStore,
     InMemoryMemoryDatasetStore,
+    InMemoryMemoryStore,
+    JsonlEvidenceStore,
     JsonlMemoryDatasetStore,
+    JsonlMemoryStore,
 )
+from settings.model.mock_provider import MockLLMProvider
 
 
 class _StubSummarizer:

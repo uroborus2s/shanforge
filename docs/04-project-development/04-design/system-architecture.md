@@ -15,7 +15,7 @@
 
 - 正式依赖链只有一条：`用户界面层 -> 接口/网关层 -> 业务调度层 -> 业务模型层 -> 基础能力层 -> 基础设置层`。
 - 每一层内部再按业务领域内聚建模，例如 `memory`、`session`、`workflow`、`capability`、`approval`。
-- `adapters / storage / bootstrap` 不是附加架构层，而是基础设置层的实现分区。
+- 基础设置层只有一个正式根目录 `src/settings/`；层内按实现领域与支撑模块组织，不构成附加架构层。
 - 不再使用“跨层子系统 owner”作为正式架构口径。
 
 ```mermaid
@@ -36,7 +36,7 @@ flowchart LR
 | 业务调度层 | 编排一次完整业务执行和会话生命周期 | `src/application/` |
 | 业务模型层 | 持有平台业务逻辑、稳定领域对象和领域规则 | `src/domain/` |
 | 基础能力层 | 提供通用技术能力抽象，并实现领域所需的统一能力 | `src/runtime/` |
-| 基础设置层 | 提供文件、数据库、provider、外部系统和装配实现 | `src/adapters/` + `src/storage/` + `src/bootstrap/` |
+| 基础设置层 | 提供文件、数据库、provider、外部系统和装配实现 | `src/settings/` |
 
 ## 3. 层内领域建模
 
@@ -49,7 +49,7 @@ flowchart LR
 | 业务调度层 | `app_application`、`workflow_application`、`session_application`、`memory_application`、`execution_application` | 薄编排层，只调领域服务 |
 | 业务模型层 | `agent_app`、`workflow`、`session`、`memory`、`context`、`model`、`capability`、`approval`、`delegation`、`response` | 平台业务规则 owner |
 | 基础能力层 | `file_access`、`structured_storage`、`search_index`、`vector_index`、`llm_gateway`、`tool_execution`、`rule_source`、`skill_source`、`profile_source` 等 | 统一技术能力抽象与实现编排 |
-| 基础设置层 | `provider_adapters`、`storage_backends`、`container_bootstrap` | 真实文件、数据库、SDK、外部系统和装配实现 |
+| 基础设置层 | `model`、`memory`、`session`、`skills`、`workspace`、`approval`、`delegation`、`gateway`、`capability_registry`、`hermes`、`composition`、`shared` | 真实文件、数据库、SDK、外部系统和装配实现 |
 
 ## 4. 模块到层的正式归属
 

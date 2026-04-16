@@ -112,6 +112,24 @@ mkdocs:
             - title: 抽象 Agent 平台架构
               path: 04-project-development/04-design/agent-platform-architecture.md
               access: private
+            - title: 分层领域与接口总表
+              path: 04-project-development/04-design/layered-domain-interface-catalog.md
+              access: private
+            - title: 模块边界文档
+              path: 04-project-development/04-design/module-boundaries.md
+              access: private
+            - title: 架构分层与代码映射说明
+              path: 04-project-development/04-design/architecture-layer-code-mapping.md
+              access: private
+            - title: 基础能力层详细设计
+              path: 04-project-development/04-design/basic-capability-layer-design.md
+              access: private
+            - title: 基础设置层与外部资源设计
+              path: 04-project-development/04-design/infrastructure-layer-design.md
+              access: private
+            - title: 核心领域与能力清单
+              path: 04-project-development/04-design/core-subsystems.md
+              access: private
             - title: 记忆运行时设计
               path: 04-project-development/04-design/memory-runtime-design.md
               access: private
@@ -133,11 +151,23 @@ mkdocs:
             - title: 子设计四：Distillation 与 Learning Dataset
               path: 04-project-development/04-design/memory-distillation-learning-design.md
               access: private
-            - title: 模块边界文档
-              path: 04-project-development/04-design/module-boundaries.md
-              access: private
             - title: API 设计文档
               path: 04-project-development/04-design/api-design.md
+              access: private
+            - title: 后端分层与运行链设计
+              path: 04-project-development/04-design/backend-design.md
+              access: private
+            - title: 数据与持久化设计
+              path: 04-project-development/04-design/database-design.md
+              access: private
+            - title: 多前台宿主与多代理协作设计
+              path: 04-project-development/04-design/frontend-adapters-and-multi-agent-coordination.md
+              access: private
+            - title: 能力注册与分级自治治理设计
+              path: 04-project-development/04-design/action-registry-and-autonomy-policy.md
+              access: private
+            - title: 部署与运行模式设计
+              path: 04-project-development/04-design/deployment-architecture.md
               access: private
         - title: 开发过程文档
           children:

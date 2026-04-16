@@ -1,6 +1,6 @@
 # 架构摘要
 
-- 更新时间：2026-04-15 15:40:00
+- 更新时间：2026-04-15 16:30:00
 - 当前版本线：`v2` / `0.2.0.dev0`
 - 架构目标：建设面向业务装配的抽象 Agent 平台
 - 主架构风格：DDD / Hexagonal Architecture
@@ -30,11 +30,16 @@
 - Hermes 的 `MemoryManager + MemoryProvider + bounded built-in memory` 被确认适合作为 shanforge 的增强 provider 组织方式，但 built-in local evidence / memory stores 仍是第一事实源。
 - 下一阶段除装配治理外，还应补 `MemoryProviderPort`、`provider_manager`、`AssemblySnapshotPolicy` 与 child-isolated memory policy。
 - 基础能力层正式承载文件、存储、检索、向量、模型、规则源、技能源、profile 源、审批通道、委派通道等统一技术能力。
-- 基础设置层正式收口为 3 个实现分区：`adapters`、`storage`、`bootstrap`；它们不是额外层次，而是文件系统、外部数据库、provider、外部系统和装配配置的实现区。
+- 基础能力层现已补齐单独的详细设计：正式按“共享底座 + 直接桥接能力包 + 可选扩展能力包 + 只借鉴架构项”组织，而不再只停留在技术域名词层。
+- 基础能力层路线已从 `B` 切到 `C`：第一批能力仍是 `file`、`web`、`terminal`、`browser`、`session_search`、`skills_list/skill_view/skill_manage`，但现在明确改为“自研骨架先行，具体函数实现阶段再复用 Hermes”。
+- `browser_providers`、`tools/environments`、`plugins/memory`、MCP 动态适配和 `gateway/platforms` 路由已明确为只借鉴架构，不直接搬入基础能力层。
+- 基础设置层现已统一收口到 `src/settings/`；层内按 `model / memory / session / skills / workspace / approval / delegation / gateway / capability_registry / hermes` 等实现领域组织，`composition / shared` 作为层内支撑模块。
 - 基础设置层可以实现 `domain-owned` 持久化端口与 `runtime-owned` provider 接口，但这些接口的 owner 仍属于上层消费者。
 - 对上服务界面已明确分成四类：access 拥有应用用例接口，application 拥有领域服务接口，domain 拥有基础能力接口，runtime 拥有 provider 接口；基础设置层只负责实现，不拥有接口。
 - draw.io 架构视图的关键标签也已同步改为“基础能力层”“domain-owned 持久化端口 + runtime-owned provider 接口”等正式术语，不再保留旧的“平台核心能力层”或错误的接口实现归属。
 - Hermes 复用策略已收紧为“只在基础设置层实现区复用”，执行顺序固定为“封装复用 > 选择性迁入 > 新写实现”。
+- 基础能力层开发顺序已收口为：`统一信封与上下文 -> 能力包目录与类型骨架 -> 读平面函数签名 -> 行动平面函数签名 -> 具体函数实现(可复用 Hermes) -> 可选能力试验 -> 回归测试`。
+- `src/runtime/` 已新增第一批基础能力层骨架：`file_access`、`web_access`、`terminal`、`browser`、`session_search`、`skills`、`rule_source`、`profile_source`、`clock_identity`，并补齐统一 `CapabilityInvocationContext` / `CapabilityResourceEnvelope`。
 - 首轮基础设置实现骨架已落地：`domain/approval`、`domain/delegation`、`domain/gateway` 和对应 `ApprovalPolicyPort`、`SandboxPolicyPort`、`DelegationTransportPort`、`GatewayPort` 已进入源码；默认容器已支持切换到 Hermes-backed capability/approval/delegation scaffold。
 - `Context Builder` 被正式定义为平台级 `Context Engine` 核心，采用 `ContextRequest -> ContextSegment -> ContextEnvelope` 的预算驱动装配模型。
 - 首版 step 级 `Context Builder` 已落地到运行时，`AgentKernel` 会在每个 workflow step 前重新编译上下文。

@@ -1,2 +1,0 @@
-"""Dependency wiring and settings."""
-

@@ -37,6 +37,7 @@
 - `docs/04-project-development/03-requirements/memory-system-business-requirements.md` -> `.factory/memory/runtime-brief.md`
 - `docs/04-project-development/03-requirements/requirements-verification.md` -> `.factory/memory/runtime-brief.md`
 - `docs/04-project-development/04-design/agent-platform-architecture.md` -> `.factory/memory/architecture.summary.md`, `.factory/memory/runtime-brief.md`
+- `docs/04-project-development/04-design/basic-capability-layer-design.md` -> `.factory/memory/architecture.summary.md`, `.factory/memory/api.summary.md`
 - `docs/04-project-development/04-design/infrastructure-layer-design.md` -> `.factory/memory/architecture.summary.md`, `.factory/memory/api.summary.md`
 - `docs/04-project-development/04-design/memory-system-detailed-design.md` -> `.factory/memory/architecture.summary.md`, `.factory/memory/api.summary.md`
 - `docs/04-project-development/04-design/memory-runtime-design.md` -> `.factory/memory/architecture.summary.md`

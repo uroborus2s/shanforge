@@ -35,6 +35,25 @@ class HttpClientProviderPort(Protocol):
     ) -> Mapping[str, Any]: ...
 
 
+class WebSearchProviderPort(Protocol):
+    """Settings-provider contract owned by the basic capability layer for web search."""
+
+    def search(
+        self,
+        query: str,
+        limit: int = 10,
+        filters: Mapping[str, Any] | None = None,
+    ) -> tuple[Mapping[str, Any], ...]: ...
+
+
+class WebDocumentProviderPort(Protocol):
+    """Settings-provider contract owned by the basic capability layer for web documents."""
+
+    def fetch(self, url: str) -> Mapping[str, Any]: ...
+
+    def extract(self, url: str, mode: str = "readable") -> Mapping[str, Any]: ...
+
+
 class ShellCommandProviderPort(Protocol):
     """Settings-provider contract owned by the basic capability layer for shell commands."""
 
@@ -49,6 +68,47 @@ class GitProviderPort(Protocol):
     """Settings-provider contract owned by the basic capability layer for git access."""
 
     def run_git(self, cwd: str, argv: tuple[str, ...]) -> Mapping[str, Any]: ...
+
+
+class BrowserAutomationProviderPort(Protocol):
+    """Settings-provider contract owned by the basic capability layer for browser automation."""
+
+    def open_page(
+        self,
+        url: str,
+        session_id: str | None = None,
+    ) -> Mapping[str, Any]: ...
+
+    def inspect_dom(
+        self,
+        session_token: str,
+        selector: str | None = None,
+    ) -> Mapping[str, Any]: ...
+
+    def click(
+        self,
+        session_token: str,
+        target: str,
+    ) -> Mapping[str, Any]: ...
+
+    def type_text(
+        self,
+        session_token: str,
+        target: str,
+        value: str,
+    ) -> Mapping[str, Any]: ...
+
+    def wait_for(
+        self,
+        session_token: str,
+        condition: Mapping[str, Any],
+    ) -> Mapping[str, Any]: ...
+
+    def capture_screenshot(
+        self,
+        session_token: str,
+        label: str | None = None,
+    ) -> Mapping[str, Any]: ...
 
 
 class ApprovalBackendPort(Protocol):

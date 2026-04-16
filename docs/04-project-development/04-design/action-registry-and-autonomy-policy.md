@@ -28,7 +28,7 @@
 | 业务调度层 | 编排执行、审批、委派和结果收口 | `src/application/` |
 | 业务模型层 | 定义 capability、approval、delegation 的业务语义 | `src/domain/capability/`, `src/domain/approval/`, `src/domain/delegation/` |
 | 基础能力层 | 提供 capability registry、approval gate、sandbox、delegation coordinator | `src/runtime/capability/`, `src/runtime/approval/`, `src/runtime/delegation/` |
-| 基础设置层 | 提供 registry backend、approval backend、delegation backend 实现 | `src/adapters/capability_registry/`, `src/adapters/approval/`, `src/adapters/delegation/` |
+| 基础设置层 | 提供 registry backend、approval backend、delegation backend 实现 | `src/settings/capability_registry/`, `src/settings/approval/`, `src/settings/delegation/` |
 
 正式边界：
 
@@ -125,9 +125,9 @@ flowchart LR
 | approval policy port | `src/runtime/ports/approval_policy.py` |
 | sandbox policy port | `src/runtime/ports/sandbox_policy.py` |
 | delegation transport port | `src/runtime/ports/delegation_transport.py` |
-| capability registry adapter | `src/adapters/capability_registry/` |
-| approval adapter | `src/adapters/approval/` |
-| delegation adapter | `src/adapters/delegation/` |
+| capability registry adapter | `src/settings/capability_registry/` |
+| approval adapter | `src/settings/approval/` |
+| delegation adapter | `src/settings/delegation/` |
 
 ## 8. 当前缺口
 

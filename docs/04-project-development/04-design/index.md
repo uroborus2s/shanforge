@@ -5,7 +5,7 @@
 - 六层结构：用户界面层、接口/网关层、业务调度层、业务模型层、基础能力层、基础设置层。
 - 单向依赖链：`UI -> access -> application -> domain -> runtime/basic-capability -> settings`。
 - 接口 owner 规则：谁调用下层，谁定义接口；基础设置层只实现，不拥有上层逻辑。
-- 业务 owner 规则：平台业务逻辑统一收口到 `domain`；`runtime` 只提供通用技术能力；`adapters / storage / bootstrap` 只是基础设置层实现分区。
+- 业务 owner 规则：平台业务逻辑统一收口到 `domain`；`runtime` 只提供通用技术能力；基础设置层统一收口到 `src/settings/`，层内再按实现领域分组。
 
 ## 1. 核心事实链
 
@@ -18,15 +18,18 @@
 5. [分层领域与接口总表](./layered-domain-interface-catalog.md)
 6. [模块边界文档](./module-boundaries.md)
 7. [架构分层与代码映射说明](./architecture-layer-code-mapping.md)
-8. [基础设置层与外部资源设计](./infrastructure-layer-design.md)
-9. [核心领域与能力清单](./core-subsystems.md)
-10. [API 设计文档](./api-design.md)
+8. [基础能力层详细设计](./basic-capability-layer-design.md)
+9. [基础设置层与外部资源设计](./infrastructure-layer-design.md)
+10. [核心领域与能力清单](./core-subsystems.md)
+11. [API 设计文档](./api-design.md)
 
 说明：
 
 - `system-architecture.md` 负责回答“系统按什么层次组织”。
 - `agent-platform-architecture.md` 负责回答“平台核心能力如何协作、Hermes 如何吸收”。
 - `layered-domain-interface-catalog.md` 是当前唯一的“层 -> 领域 -> 接口 owner -> 下行依赖”细化入口。
+- `basic-capability-layer-design.md` 负责回答“基础能力层有哪些完整能力包、哪些能力直桥 Hermes、开发顺序如何安排”。
+- `infrastructure-layer-design.md` 负责回答“基础设置层如何通过 `src/settings/` 为这些能力包提供真实实现和桥接适配”。
 
 ## 2. 记忆系统专项
 

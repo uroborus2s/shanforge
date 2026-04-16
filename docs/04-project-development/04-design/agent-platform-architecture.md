@@ -41,7 +41,7 @@ flowchart TD
 | 业务调度层 | 组织一次完整业务执行 | `src/application/` |
 | 业务模型层 | 定义稳定业务对象、业务逻辑与领域规则 | `src/domain/` |
 | 基础能力层 | 提供可复用技术能力服务 | `src/runtime/` |
-| 基础设置层 | 提供文件、数据库、外部系统和装配实现 | `src/adapters/` + `src/storage/` + `src/bootstrap/` |
+| 基础设置层 | 提供文件、数据库、外部系统和装配实现 | `src/settings/` |
 
 ### 2.2 当前仓库的真实边界
 
@@ -66,8 +66,8 @@ flowchart TD
 
 因此：
 
-- `adapters / storage / bootstrap` 不是额外新增的架构层。
-- 它们只是基础设置层在代码里的 3 个实现分区。
+- 基础设置层只有一个正式代码根：`src/settings/`。
+- `src/settings/` 内部再按实现领域与支撑模块组织，不新增架构层次。
 - `ports/` 也不是独立层，而是消费者所在层拥有的依赖接口。
 
 ### 3.2 基础能力层与基础设置层必须分开
@@ -123,7 +123,7 @@ flowchart TD
 | 业务调度层 | `app_application`、`workflow_application`、`session_application`、`memory_application`、`execution_application` | `src/application/ports/domain_services.py` |
 | 业务模型层 | `agent_app`、`workflow`、`session`、`memory`、`context`、`model`、`capability`、`approval`、`delegation`、`response` | `src/domain/*/ports.py` |
 | 基础能力层 | `file_access`、`structured_storage`、`llm_gateway`、`tool_execution`、`rule_source`、`profile_source` 等 | `src/runtime/ports/*.py` |
-| 基础设置层 | `provider_adapters`、`storage_backends`、`container_bootstrap` | 不定义新的上层逻辑接口，可实现 domain-owned 持久化端口与 runtime-owned provider 接口 |
+| 基础设置层 | `model`、`memory`、`session`、`skills`、`workspace`、`approval`、`delegation`、`gateway`、`capability_registry`、`hermes`、`composition`、`shared` | 不定义新的上层逻辑接口，可实现 domain-owned 持久化端口与 runtime-owned provider 接口 |
 
 ## 5. 关键运行链路
 
@@ -145,7 +145,7 @@ flowchart TD
 3. `src/application/` 编排 session、workflow 和结果收口。
 4. `src/domain/` 执行业务规则，决定 recall、审批、委派、响应等语义。
 5. `src/runtime/` 为领域提供文件、存储、检索、模型、规则源、技能源等通用能力。
-6. `src/adapters/`、`src/storage/`、`src/bootstrap/` 提供 provider、持久化、桥接和装配实现。
+6. `src/settings/` 提供 provider、持久化、桥接和装配实现，并在层内按实现领域组织代码。
 
 ### 5.2 记忆领域链路
 
@@ -205,6 +205,6 @@ Hermes 对 `v2` 的真正启发，不是目录形态，而是能力切分方式�
 - `src/application/` 是薄业务调度层。
 - `src/domain/` 是业务模型层，也是平台业务逻辑 owner。
 - `src/runtime/` 是基础能力层，只提供通用技术能力。
-- `src/adapters/`、`src/storage/`、`src/bootstrap/` 是基础设置层的实现分区，而不是额外层次。
+- `src/settings/` 是基础设置层唯一正式代码根；`model / memory / session / skills / workspace / approval / delegation / gateway / capability_registry / hermes` 是层内实现领域，`composition / shared` 是层内支撑模块。
 
 后续所有系统架构、模块边界、代码映射和接口定义，都必须使用这套口径。

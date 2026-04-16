@@ -6,9 +6,8 @@ from pathlib import Path
 from unittest.mock import patch
 
 from access.cli.commands.run_demo import build_demo_manifest
-from bootstrap.container import build_default_container
-from bootstrap.settings import Settings
 from domain.gateway.models import GatewayResult
+from settings.composition import Settings, build_default_container
 
 HERMES_REPO_ROOT = "/Users/uroborus/AiProject/hermes-agent"
 
@@ -32,7 +31,7 @@ class InfrastructureScaffoldTests(unittest.TestCase):
         )
 
     def test_hermes_bridge_config_resolves_expected_module_paths(self):
-        from adapters.hermes.bridge import HermesBridgeConfig
+        from settings.hermes.bridge import HermesBridgeConfig
 
         bridge = HermesBridgeConfig.from_repo_root(HERMES_REPO_ROOT)
 
@@ -75,7 +74,7 @@ class InfrastructureScaffoldTests(unittest.TestCase):
         self.assertIn("Mock response generated", result.response.summary)
 
     def test_in_memory_gateway_adapter_round_trips_payload(self):
-        from adapters.gateway.local_gateway import InMemoryGatewayAdapter
+        from settings.gateway.local_gateway import InMemoryGatewayAdapter
 
         gateway = InMemoryGatewayAdapter(channel="cli")
         inbound = gateway.bind(

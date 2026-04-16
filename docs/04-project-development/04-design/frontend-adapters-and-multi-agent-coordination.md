@@ -30,7 +30,7 @@
 
 正式原则：
 
-- UI 宿主不直接碰 `domain`、`runtime`、`storage`。
+- UI 宿主不直接碰 `domain`、`runtime`、`settings`。
 - 所有宿主统一消费 access 层暴露的稳定网关契约。
 - 宿主差异只允许存在于输入绑定、输出渲染和能力降级策略中。
 
@@ -130,14 +130,14 @@
 | 运行/查询用例编排 | 业务调度层 | `src/application/` |
 | 子任务语义、digest 合并规则 | 业务模型层 | `src/domain/delegation/`, `src/domain/session/` |
 | 派发与回收技术能力 | 基础能力层 | `src/runtime/delegation/` |
-| 具体 worker/backend 实现 | 基础设置层 | `src/adapters/delegation/` |
+| 具体 worker/backend 实现 | 基础设置层 | `src/settings/delegation/` |
 
 ## 6. 当前状态与缺口
 
 当前已具备的基础事实：
 
 - `src/access/` 已按多入口宿主预留目录。
-- `domain/delegation`、`runtime/delegation`、`adapters/delegation` 的主分层已建立。
+- `domain/delegation`、`runtime/delegation`、`settings/delegation` 的主分层已建立。
 - 当前主架构已经明确“子代理 = 独立 session + 显式结果回传”。
 
 仍需继续补齐：

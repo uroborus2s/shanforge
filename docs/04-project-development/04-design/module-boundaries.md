@@ -13,7 +13,7 @@
 
 - 系统只有一套正式分层口径：用户界面层、接口/网关层、业务调度层、业务模型层、基础能力层、基础设置层。
 - `ports` 跟随消费者所在层定义，不构成额外层次。
-- `adapters / storage / bootstrap` 是基础设置层的实现分区，不构成额外层次。
+- 基础设置层统一收口到 `src/settings/`；层内可再按实现领域和支撑模块分组，但不构成额外层次。
 - 依赖只能单向向下：`access -> application -> domain -> runtime/basic-capability -> settings`。
 - 业务调度层只做编排，不吸收基础能力层和基础设置层细节。
 - 业务模型层拥有业务逻辑；基础能力层只提供通用技术能力；基础设置层只负责实现和装配。
@@ -43,7 +43,7 @@
 | 层 / 模块 | 允许依赖 | 禁止依赖 |
 |---|---|---|
 | 接口/网关层 | 业务调度层、自己拥有的 ports | 业务模型内部实现、基础能力实现、基础设置细节 |
-| 业务调度层 | 业务模型层、自己拥有的 ports | runtime provider、adapter / storage 实现 |
+| 业务调度层 | 业务模型层、自己拥有的 ports | runtime provider、settings 实现 |
 | 业务模型层 | 基础能力层能力接口、自己拥有的 ports | UI、gateway、adapter、store、SDK |
 | 基础能力层 | 基础设置 provider ports | 业务编排、业务规则判断、UI 协议 |
 | 基础设置层 | 业务模型层持久化 ports、基础能力层 provider ports | 业务编排、业务规则分支、UI 协议 |
@@ -82,7 +82,7 @@
 ## 6. 典型禁止耦合
 
 - 用户界面层或外部 Web 项目直接调用 `src/runtime/` 内部对象。
-- 接口/网关层直接调用 `src/adapters/` 或 `src/storage/` 具体实现。
+- 接口/网关层直接调用 `src/settings/` 具体实现。
 - 业务调度层直接选择 `JSONL`、`SQLite`、`OpenAIProvider` 之类的实现。
 - 业务模型层直接持有 SDK、数据库驱动或网关协议对象。
 - 基础能力层直接依赖外部 UI 协议。

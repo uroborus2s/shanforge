@@ -11,6 +11,24 @@ class SkillSourceProviderPort(Protocol):
     def load_skill(self, skill_id: str) -> Mapping[str, Any] | None: ...
 
 
+class SkillManagementProviderPort(Protocol):
+    """Settings-provider contract owned by the basic capability layer for skill management."""
+
+    def install_skill(
+        self,
+        source: str,
+        scope: str | None = None,
+    ) -> Mapping[str, Any]: ...
+
+    def set_skill_enabled(
+        self,
+        skill_id: str,
+        enabled: bool,
+    ) -> Mapping[str, Any]: ...
+
+    def remove_skill(self, skill_id: str) -> Mapping[str, Any]: ...
+
+
 class RuleSourceProviderPort(Protocol):
     """Settings-provider contract owned by the basic capability layer for rule sources."""
 

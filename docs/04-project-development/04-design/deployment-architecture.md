@@ -22,7 +22,7 @@
 |---|---|---|
 | UI 宿主 | 人机交互或上游系统接入 | 仓外 Web、外部 CLI 前台、自动化宿主 |
 | 平台运行时 | access/application/domain/runtime 五层逻辑 | 本仓 `src/` + 默认容器 |
-| 设置资源 | provider、store、Hermes bridge、配置 | `src/adapters/`, `src/storage/`, `src/bootstrap/` |
+| 设置资源 | provider、store、Hermes bridge、配置 | `src/settings/` |
 
 正式原则：
 
@@ -84,8 +84,8 @@
 
 当前默认装配入口是：
 
-- `src/bootstrap/settings/`
-- `src/bootstrap/container/default.py`
+- `src/settings/composition/settings.py`
+- `src/settings/composition/container.py`
 
 装配时至少要完成：
 

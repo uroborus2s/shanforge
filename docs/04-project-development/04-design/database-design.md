@@ -36,19 +36,19 @@
 |---|---|
 | `domain` | 定义会话、证据、记忆、样本等业务模型 |
 | `runtime` | 定义 store/provider ports，约束查询与写入语义 |
-| `storage` | 实现本地 `in-memory` / `JSONL-backed` 持久化 |
-| `bootstrap` | 选择并装配具体实现 |
+| `settings` | 实现本地 `in-memory` / `JSONL-backed` 持久化 |
+| `settings/composition` | 选择并装配具体实现 |
 
 ## 3. 当前持久化对象
 
 | 对象 | 业务含义 | 当前实现 |
 |---|---|---|
-| `AgentSession` / `SessionEvent` | 会话和事件第一事实源 | `src/storage/session/store.py` |
-| `SessionArtifact` | 会话附件和产物 | `src/storage/artifact/store.py` |
-| `EvidenceRecord` | 事实投影，供审计与记忆蒸馏使用 | `src/storage/evidence/store.py` |
-| `MemoryRecord` | 长期记忆资产 | `src/storage/memory/store.py` |
-| `MemoryDistillationSample` | 蒸馏样本链 | `src/storage/memory_dataset/store.py` |
-| 通用 JSONL 资源 | 共享本地资源序列化基础 | `src/storage/runtime_resource/jsonl.py` |
+| `AgentSession` / `SessionEvent` | 会话和事件第一事实源 | `src/settings/session/store.py` |
+| `SessionArtifact` | 会话附件和产物 | `src/settings/session/artifact_store.py` |
+| `EvidenceRecord` | 事实投影，供审计与记忆蒸馏使用 | `src/settings/memory/evidence_store.py` |
+| `MemoryRecord` | 长期记忆资产 | `src/settings/memory/store.py` |
+| `MemoryDistillationSample` | 蒸馏样本链 | `src/settings/memory/dataset_store.py` |
+| 通用 JSONL 资源 | 共享本地资源序列化基础 | `src/settings/shared/jsonl.py` |
 
 ## 4. 设计原则
 

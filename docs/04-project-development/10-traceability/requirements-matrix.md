@@ -11,11 +11,11 @@
 | `REQ-001` | 统一 Agent Platform Kernel | `system-architecture.md`, `agent-platform-architecture.md` | `MOD-002`, `MOD-003`, `MOD-010` | `API-007` | `TASK-001`, `TASK-007` | `TC-005`, Integration | 设计基线已建立 |
 | `REQ-002` | 业务 Agent App 与平台内核隔离 | `prd.md`, `agent-platform-architecture.md`, `module-boundaries.md` | `MOD-001`, `MOD-002` | `API-001` | `TASK-001`, `TASK-002` | Manifest contract | 设计基线已建立 |
 | `REQ-003` | Workflow DSL 与声明式编排 | `prd.md`, `agent-platform-architecture.md`, `api-design.md` | `MOD-004` | `API-002` | `TASK-003`, `TASK-011` | `TC-002`, `TC-008`, `TC-009` | 设计基线已建立 |
-| `REQ-004` | 多模型策略与供应商解耦 | `system-architecture.md`, `api-design.md` | `MOD-005`, `MOD-012` | `API-003`, `API-004` | `TASK-004`, `TASK-005` | `TC-003` | 设计基线已建立 |
-| `REQ-005` | Capability Registry 与工具执行契约 | `module-boundaries.md`, `api-design.md` | `MOD-006`, `MOD-012` | `API-005`, `API-009`, `API-013` | `TASK-006` | `TC-004` | 设计基线已建立 |
-| `REQ-006` | Session、Memory 与 Context Engine | `system-architecture.md`, `agent-platform-architecture.md`, `memory-runtime-design.md`, `memory-system-detailed-design.md` | `MOD-007`, `MOD-010` | `API-006`, `API-007` | `TASK-007` | `TC-005` | 设计基线已建立，已补业务驱动详细设计 |
-| `REQ-007` | Policy、Approval 与 Execution Sandbox | `system-architecture.md`, `api-design.md` | `MOD-008`, `MOD-012` | `API-008`, `API-009` | `TASK-008` | Policy / sandbox tests | 设计基线已建立 |
-| `REQ-008` | Delegation、Gateway 与多入口适配 | `system-architecture.md`, `module-boundaries.md`, `api-design.md` | `MOD-009`, `MOD-011` | `API-010`, `API-012` | `TASK-010` | `TC-007` | 规划中 |
+| `REQ-004` | 多模型策略与供应商解耦 | `system-architecture.md`, `basic-capability-layer-design.md`, `api-design.md` | `MOD-005`, `MOD-012` | `API-003`, `API-004` | `TASK-004`, `TASK-005`, `TASK-013`, `TASK-017`, `TASK-019` | `TC-003` | 设计基线已建立，已补基础能力层桥接策略 |
+| `REQ-005` | Capability Registry 与工具执行契约 | `module-boundaries.md`, `basic-capability-layer-design.md`, `api-design.md` | `MOD-006`, `MOD-012` | `API-005`, `API-009`, `API-013` | `TASK-006`, `TASK-013`, `TASK-014`, `TASK-015`, `TASK-017`, `TASK-018`, `TASK-019` | `TC-004` | 设计基线已建立，已补能力包实施计划 |
+| `REQ-006` | Session、Memory 与 Context Engine | `system-architecture.md`, `agent-platform-architecture.md`, `basic-capability-layer-design.md`, `memory-runtime-design.md`, `memory-system-detailed-design.md` | `MOD-007`, `MOD-010` | `API-006`, `API-007` | `TASK-007`, `TASK-014`, `TASK-016`, `TASK-017`, `TASK-019` | `TC-005` | 设计基线已建立，已补业务驱动详细设计与 session search 方案 |
+| `REQ-007` | Policy、Approval 与 Execution Sandbox | `system-architecture.md`, `basic-capability-layer-design.md`, `api-design.md` | `MOD-008`, `MOD-012` | `API-008`, `API-009` | `TASK-008`, `TASK-015`, `TASK-017`, `TASK-019` | Policy / sandbox tests | 设计基线已建立，待补行动平面闭环 |
+| `REQ-008` | Delegation、Gateway 与多入口适配 | `system-architecture.md`, `basic-capability-layer-design.md`, `module-boundaries.md`, `api-design.md` | `MOD-009`, `MOD-011` | `API-010`, `API-012` | `TASK-010`, `TASK-015`, `TASK-016`, `TASK-017`, `TASK-018`, `TASK-019` | `TC-007` | 规划中，已补基础能力层落地顺序 |
 | `REQ-009` | 标准化 AgentResponse 与 Evidence | `agent-platform-architecture.md`, `api-design.md` | `MOD-014`, `MOD-010` | `API-011` | `TASK-009` | `TC-006` | 设计基线已建立 |
 | `REQ-010` | 快速构建业务工作流 | `prd.md`, `implementation-plan.md`, `test-plan.md` | `MOD-001`, `MOD-004`, `MOD-005` | `API-001`, `API-002`, `API-003` | `TASK-002`, `TASK-003`, `TASK-011`, `TASK-012` | `TC-008`, `TC-009` | 设计基线已建立 |
 
@@ -40,6 +40,9 @@
 | `GAP-005` | Session ledger、memory promotion 与 recall pipeline 仍未实现 | `TASK-007` |
 | `GAP-006` | Approval / Sandbox / Evidence 仍缺代码闭环 | `TASK-008`, `TASK-009` |
 | `GAP-007` | Demo Agent Apps 仍未交付 | `TASK-011` |
+| `GAP-008` | file / web / terminal / browser / session_search / skills 仍未形成统一基础能力包 | `TASK-013`, `TASK-014`, `TASK-015`, `TASK-016`, `TASK-017` |
+| `GAP-009` | `todo / clarify / cronjob / execute_code` 仍未完成取舍与最小原型验证 | `TASK-018` |
+| `GAP-010` | 基础能力层 bridge contract 与回归测试仍未建立 | `TASK-019` |
 
 ## 4. 版本记录
 
@@ -47,3 +50,4 @@
 |---|---|---|
 | `v2.0` | 2026-04-13 | 重写需求矩阵，建立纯 `v2` 需求、接口、任务和测试映射 |
 | `v2.1` | 2026-04-15 | 为 `REQ-006` 补充 `memory-system-detailed-design.md` 的设计追踪 |
+| `v2.2` | 2026-04-15 | 为 `REQ-004` ~ `REQ-008` 补充 `basic-capability-layer-design.md` 及 `TASK-013` ~ `TASK-019` 的追踪 |

@@ -13,7 +13,7 @@
         <mxCell id="s1" value="记忆系统&lt;br/&gt;Memory System&lt;br/&gt;&lt;br/&gt;business owner: src/domain/memory&lt;br/&gt;application facade: src/application/ports/domain_services.py&lt;br/&gt;动作: prepare_session / recall / distill_session" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#efe9fb;strokeColor=#9673a6;fontSize=16;fontStyle=1;" vertex="1" parent="1">
           <mxGeometry x="120" y="140" width="500" height="170" as="geometry" />
         </mxCell>
-        <mxCell id="s2" value="模型网关&lt;br/&gt;Model Gateway&lt;br/&gt;&lt;br/&gt;owner: src/runtime/llm&lt;br/&gt;门面: LLMRuntime.invoke(...)&lt;br/&gt;下游: src/runtime/ports/llm_provider.py + src/adapters/model_providers" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=16;fontStyle=1;" vertex="1" parent="1">
+        <mxCell id="s2" value="模型网关&lt;br/&gt;Model Gateway&lt;br/&gt;&lt;br/&gt;owner: src/runtime/llm&lt;br/&gt;门面: LLMRuntime.invoke(...)&lt;br/&gt;下游: src/runtime/ports/llm_provider.py + src/settings/model" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=16;fontStyle=1;" vertex="1" parent="1">
           <mxGeometry x="750" y="140" width="500" height="170" as="geometry" />
         </mxCell>
         <mxCell id="s3" value="能力系统&lt;br/&gt;Capability System&lt;br/&gt;&lt;br/&gt;owner: src/runtime/capability&lt;br/&gt;门面: CapabilityRegistryPort.invoke(...)&lt;br/&gt;下游: registry adapter + capability handler" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d9ead3;strokeColor=#82b366;fontSize=16;fontStyle=1;" vertex="1" parent="1">
@@ -34,7 +34,7 @@
         <mxCell id="n3" value="原因" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fce5cd;strokeColor=#d79b00;fontSize=18;fontStyle=1;" vertex="1" parent="1">
           <mxGeometry x="560" y="690" width="240" height="50" as="geometry" />
         </mxCell>
-        <mxCell id="n4" value="这些能力现在仍然更适合作为 runtime / storage 内部模块存在。它们很重要，但还没有形成“对外统一门面 + 对内跨层协作”的独立能力单元。" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff9f0;strokeColor=#d79b00;fontSize=16;align=left;spacingLeft=10;" vertex="1" parent="1">
+        <mxCell id="n4" value="这些能力现在仍然更适合作为 runtime / settings 内部模块存在。它们很重要，但还没有形成“对外统一门面 + 对内跨层协作”的独立能力单元。" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff9f0;strokeColor=#d79b00;fontSize=16;align=left;spacingLeft=10;" vertex="1" parent="1">
           <mxGeometry x="560" y="760" width="610" height="220" as="geometry" />
         </mxCell>
         <mxCell id="n5" value="代码骨架原则" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d0e0e3;strokeColor=#76a5af;fontSize=18;fontStyle=1;" vertex="1" parent="1">

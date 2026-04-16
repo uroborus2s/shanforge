@@ -6,8 +6,8 @@
 **主要读者：** 项目协调者 | 架构 | 平台开发 | 测试
 **上游输入：** PRD | 系统架构 | 模块边界 | API 设计
 **下游输出：** 代码实现 | 测试报告 | 发布说明
-**关联 ID：** `TASK-001` ~ `TASK-012`
-**最后更新：** 2026-04-14
+**关联 ID：** `TASK-001` ~ `TASK-019`
+**最后更新：** 2026-04-15
 
 ## 1. 实施策略
 
@@ -15,8 +15,10 @@
 
 1. 先锁定领域模型、契约和用例
 2. 再实现 workflow、模型和 capability 运行时
-3. 再补审批、证据、委派和多入口适配
-4. 最后交付 demo Agent App 与回归测试
+3. 基础能力层改用 `C` 纯自研重写路线，先完成能力包骨架、类型对象和函数签名
+4. 再进入具体函数实现，并在实现阶段选择性复用 Hermes 的代码与行为
+5. 再补审批、证据、委派和多入口适配
+6. 最后交付 demo Agent App 与回归测试
 
 ## 2. 工作分解
 
@@ -35,6 +37,18 @@
 | `TASK-011` | Demo Agent Apps：编码流、写作流 | `REQ-003`, `REQ-010` | 两个示范业务 App |
 | `TASK-012` | 契约测试、回归测试、文档收口 | `NFR-*` | 测试套件、测试报告、发布说明 |
 
+## 2.1 基础能力层增量任务
+
+| TASK | 内容 | 对应需求 | 交付物 | 估算（人天） |
+|---|---|---|---|---|
+| `TASK-013` | 基础能力层统一信封与模块骨架 | `REQ-004`, `REQ-005`, `REQ-006`, `REQ-008` | `CapabilityInvocationContext`、`CapabilityResourceEnvelope`、能力包目录、公共结果对象 | `1.0` |
+| `TASK-014` | 文件 / 工作区 / 规则 / Profile / Skills 读平面框架 | `REQ-005`, `REQ-006`, `REQ-010` | `file_access`、`workspace_access`、`rule/profile source`、`skill catalog read` 的 `service / model / function signatures` | `1.5` |
+| `TASK-015` | Web / Terminal / Browser 行动平面框架 | `REQ-005`, `REQ-007`, `REQ-008` | `web_access`、`terminal`、`browser` 的 `service / model / function signatures` 与治理接线点 | `2.0` |
+| `TASK-016` | Session Search 与装配解释查询框架 | `REQ-006`, `REQ-008` | `SessionArchiveQueryPort`、`SessionTranscriptSlicePort`、`SessionAssemblyQueryPort` 对应读模型与查询服务签名 | `1.5` |
+| `TASK-017` | 具体函数实现阶段（可复用 Hermes） | `REQ-004`, `REQ-005`, `REQ-007`, `REQ-008` | 在保持 `shanforge` 自研骨架不变的前提下，逐个实现 `file/web/terminal/browser/session_search/skills` 的函数逻辑 | `2.0` |
+| `TASK-018` | `todo / clarify / cronjob / execute_code` 试验性设计与最小原型 | `REQ-003`, `REQ-005`, `REQ-008`, `REQ-010` | 试验文档、最小 workflow spike、正式纳管结论 | `1.0` |
+| `TASK-019` | 基础能力层契约、集成与回归测试 | `NFR-001`, `NFR-002`, `NFR-003`, `NFR-004` | contract fixtures、function regression、sandbox / approval / audit regression | `1.5` |
+
 ## 3. 阶段划分
 
 ### 阶段 A：核心契约
@@ -42,29 +56,29 @@
 - `TASK-001` ~ `TASK-004`
 - 输出：平台核心 schema、workflow skeleton、mock provider
 
-### 阶段 B：运行时闭环
+### 阶段 B：运行时闭环与基础能力骨架
 
-- `TASK-005` ~ `TASK-009`
-- 输出：LLM、capability、memory recall、context、approval、response 主闭环
+- `TASK-005` ~ `TASK-009`, `TASK-013`, `TASK-014`
+- 输出：LLM、capability、memory recall、context、approval、response 主闭环，以及 file / skills / profile / rule 等基础能力骨架
 
-### 阶段 C：扩展与业务验证
+### 阶段 C：行动能力与历史检索骨架
 
-- `TASK-010` ~ `TASK-011`
-- 输出：委派边界、多入口准备、示范业务流
+- `TASK-010`, `TASK-015`, `TASK-016`, `TASK-017`
+- 输出：委派边界、多入口准备、web / terminal / browser 行动平面骨架、session search 查询平面骨架，以及首轮函数实现
 
-### 阶段 D：质量与发布
+### 阶段 D：扩展验证、质量与发布
 
-- `TASK-012`
-- 输出：测试收口、文档同步、发布基线
+- `TASK-011`, `TASK-012`, `TASK-018`, `TASK-019`
+- 输出：示范业务流、可选能力试验结论、测试收口、文档同步、发布基线
 
 ## 4. 里程碑
 
 | 里程碑 | 完成条件 |
 |---|---|
 | `M1` 契约冻结 | `TASK-001` ~ `TASK-004` 完成并通过 schema 校验 |
-| `M2` 主闭环可运行 | `TASK-005` ~ `TASK-009` 完成并可输出标准 `AgentResponse` |
-| `M3` 业务装配成立 | 编码流和写作流 demo App 可运行 |
-| `M4` 发布候选就绪 | 所有契约测试与回归测试通过 |
+| `M2` 主闭环与基础能力骨架可运行 | `TASK-005` ~ `TASK-009`、`TASK-013`、`TASK-014` 完成并可输出标准 `AgentResponse`，且读平面能力包类型与函数签名已冻结 |
+| `M3` 行动平面与历史检索首轮实现成立 | `TASK-015` ~ `TASK-017` 完成，web / terminal / browser / session search 的函数骨架已完成，首轮实现可在治理闸门下运行 |
+| `M4` 发布候选就绪 | `TASK-011`、`TASK-012`、`TASK-018`、`TASK-019` 完成，所有契约测试与回归测试通过 |
 
 ## 5. 风险与缓解
 
@@ -75,6 +89,9 @@
 | provider 适配复杂 | 先完成 mock provider，再接真实 provider |
 | 记忆层膨胀或失真 | 先完成 session ledger 和二级资产蒸馏规则，再扩展外部 memory provider |
 | 过早训练导致方向跑偏 | 先积累 candidate/decision 样本，再评估是否训练专项小模型 |
+| Hermes 代码复用反向污染分层 | 坚持骨架先行，Hermes 只进入函数内部实现，不让 Hermes 对象或目录上浮 |
+| browser / terminal 能力风险过高 | 强制经 `sandbox + approval + audit` 三件套，先做最小动作集 |
+| session search 误伤长期记忆边界 | 历史会话查询只返回证据与引用，不直接写回长期记忆 |
 
 ## 6. 版本记录
 
@@ -82,3 +99,4 @@
 |---|---|---|
 | `v2.0` | 2026-04-13 | 重写实施计划，按平台内核和业务装配重新定义任务序列 |
 | `v2.1` | 2026-04-14 | 将 `TASK-007` 收口为 `Session Ledger + Memory Runtime + Recall / Context Engine` |
+| `v2.2` | 2026-04-15 | 增补基础能力层开发计划，明确 `TASK-013` ~ `TASK-019` 的自研骨架优先顺序 |

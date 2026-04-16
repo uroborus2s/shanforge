@@ -61,12 +61,12 @@ Hermes Agent 的源码结论进一步验证了这个分拆方向：它把 bounde
 | 业务调度层 | `src/application/` | 组织 `prepare -> run -> distill -> persist` 会话生命周期，并通过 `MemoryDomainService` 调用记忆领域 | 直接决定 store / provider 实现细节 |
 | 业务模型层 | `src/domain/memory/`、相关 assembly/archive 模型 | 定义 `RecallQuery`、`RecallBundle`、`MemoryRecord`、`SessionAssemblyManifest` 等稳定契约，并持有记忆业务逻辑 | 持有外部 SDK 或数据库驱动细节 |
 | 基础能力层 | `src/runtime/ports/` 及未来实现模块 | 提供 recall、assembly、promotion、archive query 所需的检索、规则、profile、skill、推理和存储能力 | 主导记忆业务语义 |
-| 基础设置层 | `src/storage/`、`src/adapters/`、`src/bootstrap/` | 提供 session ledger、evidence、memory、dataset、archive、provider 与装配实现 | 主导业务路由或改写领域规则 |
+| 基础设置层 | `src/settings/session/`、`src/settings/memory/`、`src/settings/model/`、`src/settings/composition/` | 提供 session ledger、evidence、memory、dataset、archive、provider 与装配实现 | 主导业务路由或改写领域规则 |
 
 补充约束：
 
 - `src/runtime/memory/assembly.py`、`provider_manager.py` 这类新增文件如果落地，仍然属于基础能力层内部模块，不是新的架构层。
-- `src/storage/`、`src/adapters/`、`src/bootstrap/` 都属于基础设置层的实现分区，不再单独作为层来描述。
+- `src/settings/` 是基础设置层唯一正式代码根；`session / memory / model / skills / workspace / approval / delegation / gateway / capability_registry / hermes` 是层内实现领域。
 
 ### 3.3 记忆系统主链路
 
@@ -255,10 +255,10 @@ SessionArchiveHit
 | `src/domain/memory/policy.py` | 已存在 | promotion policy 领域规则 |
 | `src/runtime/context/engine.py` | 已存在 | 消费 recalled memory 编译上下文 |
 | `src/runtime/ports/*.py` | 已存在 | provider、store、source、backend ports |
-| `src/storage/memory/store.py` | 已存在 | memory store 实现 |
-| `src/storage/evidence/store.py` | 已存在 | evidence store 实现 |
-| `src/storage/memory_dataset/store.py` | 已存在 | dataset store 实现 |
-| `src/bootstrap/container/default.py` | 已存在 | 默认容器装配 |
+| `src/settings/memory/store.py` | 已存在 | memory store 实现 |
+| `src/settings/memory/evidence_store.py` | 已存在 | evidence store 实现 |
+| `src/settings/memory/dataset_store.py` | 已存在 | dataset store 实现 |
+| `src/settings/composition/container.py` | 已存在 | 默认容器装配 |
 
 兼容说明：
 
@@ -286,9 +286,9 @@ SessionArchiveHit
 | `src/runtime/ports/session_assembly_store.py` | 新增 | assembly manifest 持久化 |
 | `src/runtime/ports/delegation_digest_store.py` | 新增 | 子 Agent digest 持久化 |
 | `src/runtime/ports/session_archive_query.py` | 新增 | 历史会话检索与摘要回查 |
-| `src/storage/session_assembly/store.py` | 新增 | assembly store 的 `in-memory / JSONL` 实现 |
-| `src/storage/delegation_digest/store.py` | 新增 | digest store 的 `in-memory / JSONL` 实现 |
-| `src/storage/session_archive/index.py` | 新增 | session archive query 的 `SQLite FTS / JSONL` 实现 |
+| `src/settings/session/assembly_store.py` | 新增 | assembly store 的 `in-memory / JSONL` 实现 |
+| `src/settings/delegation/digest_store.py` | 新增 | digest store 的 `in-memory / JSONL` 实现 |
+| `src/settings/session/archive_index.py` | 新增 | session archive query 的 `SQLite FTS / JSONL` 实现 |
 
 ### 6.3 与当前实现的关键对齐结论
 

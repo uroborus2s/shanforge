@@ -37,7 +37,7 @@
 | 层 | 回答的问题 | 当前代码 |
 |---|---|---|
 | 基础能力层 | “平台对上提供什么统一技术能力” | `src/runtime/` |
-| 基础设置层 | “这些能力背后由什么真实资源和实现来支撑” | `src/adapters/` + `src/storage/` + `src/bootstrap/` |
+| 基础设置层 | “这些能力背后由什么真实资源和实现来支撑” | `src/settings/` |
 
 正式定稿：
 
@@ -46,15 +46,19 @@
 
 ## 3. 代码边界
 
-基础设置层不是单一目录，而是 3 个实现分区共同组成：
+基础设置层现在只有一个正式代码根：`src/settings/`。
 
-| 分区 | 目录 | 作用 |
+层内再按实现领域与支撑模块组织：
+
+| 组别 | 目录 | 作用 |
 |---|---|---|
-| 外部系统实现分区 | `src/adapters/` | provider、approval、delegation、workspace、legacy bridge |
-| 持久化资源分区 | `src/storage/` | JSONL、DB、索引、blob 等资源实现 |
-| 装配与配置分区 | `src/bootstrap/` | settings、container、runtime binding |
+| 模型与 provider | `src/settings/model/` | 模型供应商实现与注册 |
+| 持久化与档案 | `src/settings/memory/`、`src/settings/session/` | memory、evidence、dataset、session、artifact、archive 实现 |
+| 本地资源与目录 | `src/settings/workspace/`、`src/settings/skills/` | 工作区、技能目录、本地源数据实现 |
+| 治理与桥接 | `src/settings/approval/`、`src/settings/delegation/`、`src/settings/gateway/`、`src/settings/capability_registry/`、`src/settings/hermes/` | approval、delegation、gateway、registry 与 Hermes bridge |
+| 装配与共享支撑 | `src/settings/composition/`、`src/settings/shared/` | settings、container、JSONL 等层内公共基础设施 |
 
-这 3 个分区都属于基础设置层，不是新增层次。
+这些都属于基础设置层的层内分域，不是新增层次。
 
 ## 4. 设计原则
 
@@ -115,8 +119,8 @@
 
 | 能力 | 上层接口 | 当前实现 |
 |---|---|---|
-| 模型生成 | `LLMProviderPort` | `src/adapters/model_providers/mock_provider.py`、`openai_provider.py`、`anthropic_provider.py` |
-| 向量生成 | `EmbeddingProviderPort` | `src/adapters/` 目标分区 |
+| 模型生成 | `LLMProviderPort` | `src/settings/model/mock_provider.py`、`openai_provider.py`、`anthropic_provider.py` |
+| 向量生成 | `EmbeddingProviderPort` | `src/settings/model/` 或未来 `src/settings/embedding/` |
 
 这里的 provider adapter 属于基础设置层，因为它们封装的是具体 SDK 与供应商差异。
 
@@ -124,29 +128,29 @@
 
 | 能力 | 上层接口 | 当前实现 |
 |---|---|---|
-| 规则源 | `RuleSourceProviderPort` | `src/adapters/` 目标分区 |
-| skill 源 | `SkillSourceProviderPort` | `src/adapters/` 目标分区 |
-| profile 源 | `ProfileSourceProviderPort` | `src/adapters/` 目标分区 |
-| 审批后端 | `ApprovalBackendPort` | `src/adapters/approval/` |
-| 委派后端 | `DelegationBackendPort` | `src/adapters/delegation/` |
-| workspace / shell / git / http | `WorkspaceProviderPort`、`ShellCommandProviderPort`、`GitProviderPort`、`HttpClientProviderPort` | `src/adapters/workspace/`、`src/adapters/legacy_bridge/` 及目标分区 |
+| 规则源 | `RuleSourceProviderPort` | `src/settings/workspace/` 或未来 `src/settings/rules/` |
+| skill 源 | `SkillSourceProviderPort` | `src/settings/skills/` |
+| profile 源 | `ProfileSourceProviderPort` | 未来 `src/settings/profiles/` 或 `src/settings/workspace/` |
+| 审批后端 | `ApprovalBackendPort` | `src/settings/approval/` |
+| 委派后端 | `DelegationBackendPort` | `src/settings/delegation/` |
+| workspace / shell / git / http | `WorkspaceProviderPort`、`ShellCommandProviderPort`、`GitProviderPort`、`HttpClientProviderPort` | `src/settings/workspace/`、`src/settings/gateway/` 及后续对应分域 |
 
 ### 5.3 持久化实现
 
 | 能力 | 上层接口 | 当前实现 |
 |---|---|---|
-| 文件系统 | `FileSystemProviderPort` | `src/storage/` 或 `src/adapters/` 目标实现 |
-| 结构化存储 | `StructuredStoreProviderPort` | `src/storage/` |
-| blob 存储 | `BlobStoreProviderPort` | `src/storage/` 目标实现 |
-| 搜索索引 | `SearchIndexProviderPort` | `src/storage/` 目标实现 |
-| 向量索引 | `VectorIndexProviderPort` | `src/storage/` 目标实现 |
+| 文件系统 | `FileSystemProviderPort` | `src/settings/workspace/` 或未来 `src/settings/file_access/` |
+| 结构化存储 | `StructuredStoreProviderPort` | `src/settings/shared/`、`src/settings/session/`、`src/settings/memory/` |
+| blob 存储 | `BlobStoreProviderPort` | 未来 `src/settings/session/` 或 `src/settings/artifacts/` |
+| 搜索索引 | `SearchIndexProviderPort` | `src/settings/session/` 或未来 `src/settings/search/` |
+| 向量索引 | `VectorIndexProviderPort` | 未来 `src/settings/search/` |
 
 ### 5.4 装配实现
 
 | 能力 | 代码位置 | 作用 |
 |---|---|---|
-| runtime settings | `src/bootstrap/settings/runtime.py` | 读取环境配置与实现开关 |
-| default container | `src/bootstrap/container/default.py` | 按配置装配基础能力层与基础设置层 |
+| runtime settings | `src/settings/composition/settings.py` | 读取环境配置与实现开关 |
+| default container | `src/settings/composition/container.py` | 按配置装配基础能力层与基础设置层 |
 
 ## 6. 对上服务方式
 
@@ -176,10 +180,10 @@ Hermes 的复用只允许发生在基础设置层实现区。
 
 | `shanforge` 目标 | 优先复用的 Hermes 位置 | 当前落点 |
 |---|---|---|
-| 规则 / skill / profile 源适配 | `gateway/session.py`、相关加载逻辑 | `src/adapters/` 目标分区 |
-| 审批后端 | `tools/approval.py` | `src/adapters/approval/hermes_policy.py` |
-| 委派后端 | `tools/delegate_tool.py` | `src/adapters/delegation/hermes_transport.py` |
-| 外部桥接适配 | `gateway/platforms/base.py`、`gateway/session_context.py` | `src/adapters/legacy_bridge/`、`src/adapters/gateway/` |
+| 规则 / skill / profile 源适配 | `gateway/session.py`、相关加载逻辑 | `src/settings/workspace/`、`src/settings/skills/` 及后续分域 |
+| 审批后端 | `tools/approval.py` | `src/settings/approval/hermes_policy.py` |
+| 委派后端 | `tools/delegate_tool.py` | `src/settings/delegation/hermes_transport.py` |
+| 外部桥接适配 | `gateway/platforms/base.py`、`gateway/session_context.py` | `src/settings/gateway/`、`src/settings/hermes/` |
 
 ### 7.3 明确禁止
 
@@ -210,8 +214,8 @@ Hermes 的复用只允许发生在基础设置层实现区。
 
 当前代码中：
 
-- `src/adapters/` 是外部系统实现分区
-- `src/storage/` 是持久化资源分区
-- `src/bootstrap/` 是装配与配置分区
+- `src/settings/` 是基础设置层唯一正式代码根
+- `src/settings/` 内部按实现领域和支撑模块分域
+- `src/settings/composition/` 负责 settings、container 与装配选择
 
-三者共同组成基础设置层；它们只服务于基础能力层，不反向主导业务调度层和业务模型层。
+基础设置层只服务于基础能力层和上层声明的端口，不反向主导业务调度层和业务模型层。

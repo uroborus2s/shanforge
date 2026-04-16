@@ -1,6 +1,6 @@
 # API 摘要
 
-- 更新时间：2026-04-15 00:10:00
+- 更新时间：2026-04-16 11:40:00
 - 当前版本线：`v2` / `0.2.0.dev0`
 - 摘要焦点：记忆系统独立化后的上下文与状态契约
 
@@ -17,6 +17,13 @@
 - promotion gate 已补为独立 `MemoryPromotionPolicy`；当设置显式给出 summarizer provider/model 时，容器可接入 `LLMMemorySummarizer`。
 - `LLMMemorySummarizer` 当前 schema 已收口为：summary 阶段读取 `summary`，candidate 阶段必须返回 `title/body`，而 `kind/scope/confidence` 由运行时配置掌控。
 - `MemoryPromotionPolicy` 已支持从 settings / env 注入；repeated distill 的写入链路已具备幂等更新约束。
+- 基础能力层详细设计已补“统一信封”口径：建议新增 `CapabilityInvocationContext` 与 `CapabilityResourceEnvelope`，统一 file/web/terminal/browser/session_search/skills 的执行上下文和结果形态。
+- 直接桥接能力包建议新增的 runtime provider 包括：`WebSearchProviderPort`、`WebDocumentProviderPort`、`BrowserAutomationProviderPort`、`SkillManagementProviderPort`；这些接口 owner 仍属于 runtime/basic-capability 层。
+- `session_search` 正式拆成 3 个查询口径：`SessionArchiveQueryPort`、`SessionTranscriptSlicePort`、`SessionAssemblyQueryPort`；历史会话查询返回证据与引用，不直接写回长期记忆。
+- 当前源码已先落 framework-first 骨架：新增 `FileAccessService`、`WebAccessService`、`TerminalService`、`BrowserService`、`SessionSearchService`、`SkillCatalogService`、`RuleSourceService`、`ProfileSourceService`、`ClockIdentityService`，各函数先定义签名，具体逻辑留到 `TASK-017`。
+- 当前源码已补能力包目录契约：`CapabilityPackageDescriptor`、`CapabilityOperationDescriptor`、`CapabilityProviderDependency` 与 `CapabilityPackageRegistry`；默认容器现在可统一枚举基础能力层骨架包。
+- `TASK-017` 的第一批 runtime 行为已落地：`FileAccessService` 已具备 `read_text / read_structured / list_paths / search_paths / plan_write / apply_write` 的本地最小实现；`SkillCatalogService` 已具备 `list / view / install / enable / disable / remove` 的本地 fs 实现；`SessionSearchService` 已具备 `recent/search archive/load slice/explain assembly/search artifacts` 的 in-memory 实现。
+- 基础能力层首批 settings 接入点已开始实装：`Settings` 新增 `workspace_root`、`project/global/managed skills root` 与 `skill_state_path`，默认容器会把这些设置装配进本地 workspace / skills / session archive provider。
 - 下一阶段建议新增的基础设施端口包括：`ProfileResolverPort`、`WorkspaceRuleBundlePort`、`SkillCatalogPort`、`RecallPlannerPort`、`RecallRankerPort`、`SessionAssemblyStorePort`、`DelegationDigestStorePort`。
 - 吸收 Hermes Agent 后，下一阶段建议新增的基础设施端口再扩为：`SessionArchiveQueryPort`、`MemoryProviderPort` 与 `provider_manager`。
 - external memory provider 的推荐边界已经明确：built-in local store 永远保留，同时最多只激活 1 个 external provider，且其结果只作为 augmentation。

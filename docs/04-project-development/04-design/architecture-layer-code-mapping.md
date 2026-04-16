@@ -4,7 +4,7 @@
 
 1. 六层架构在代码中怎么落位
 2. `ports` 到底属于哪一层
-3. `adapters / storage / bootstrap` 为什么不是额外层
+3. 为什么 `src/settings/` 不是额外层，而是基础设置层正式代码根
 4. 当前代码如何映射到正式架构
 5. 领域接口和 provider 接口如何在代码里落位
 
@@ -37,13 +37,13 @@
 | 业务调度层 | `src/application/` | 编排 session 和 use case |
 | 业务模型层 | `src/domain/` | 定义稳定领域模型、契约和规则 |
 | 基础能力层 | `src/runtime/` | 提供文件、存储、检索、向量、模型、规则源、技能源等统一能力 |
-| 基础设置层 | `src/adapters/` + `src/storage/` + `src/bootstrap/` | 提供 provider、store、外部系统桥接与装配 |
+| 基础设置层 | `src/settings/` | 提供 provider、store、外部系统桥接与装配 |
 
 一句话压缩：
 
 ```text
 src/access / src/application / src/domain / src/runtime 对应 4 个仓内主层，
-src/adapters / src/storage / src/bootstrap 共同组成基础设置层实现区。
+src/settings 对应基础设置层正式代码根。
 ```
 
 ---
@@ -73,43 +73,45 @@ src/adapters / src/storage / src/bootstrap 共同组成基础设置层实现区�
 
 ---
 
-## 4. 为什么 `adapters / storage / bootstrap` 不是额外层
+## 4. 为什么 `src/settings/` 不是额外层
 
 这是当前重构后的正式结论。
 
-### 4.1 `src/adapters/`
+### 4.1 `src/settings/`
 
 负责：
 
-- 对接模型供应商
-- 对接外部系统
-- 做 Hermes bridge 或其他反腐适配
+- 对接模型供应商、外部系统和 Hermes bridge
+- 提供 JSONL、本地文件、索引等持久化与资源实现
+- 读取 settings、选择实现并装配默认容器
 
-它属于基础设置层中的“外部系统实现分区”。
+它是基础设置层唯一正式代码根。
 
-### 4.2 `src/storage/`
+### 4.2 `src/settings/` 内部如何分域
 
-负责：
+当前已经落地或明确的层内实现领域包括：
 
-- 提供 JSONL、数据库、索引、blob 等资源实现
+- `model`
+- `memory`
+- `session`
+- `skills`
+- `workspace`
+- `approval`
+- `delegation`
+- `gateway`
+- `capability_registry`
+- `hermes`
 
-它属于基础设置层中的“持久化资源分区”。
+### 4.3 `composition` 与 `shared`
 
-### 4.3 `src/bootstrap/`
-
-负责：
-
-- 读取 settings
-- 选择实现
-- 进行依赖装配
-
-它属于基础设置层中的“装配与启动分区”。
+- `src/settings/composition/` 负责 settings、container 和装配选择
+- `src/settings/shared/` 负责 JSONL 等层内共享基础设施
 
 所以：
 
 ```text
-adapters / storage / bootstrap 是基础设置层的 3 个实现分区，
-不是系统架构中的第 7、8、9 层。
+基础设置层 = src/settings，
+层内再按实现领域和支撑模块组织，不存在额外的第 7、8、9 层。
 ```
 
 ---
@@ -146,14 +148,19 @@ src/
     llm/
     ports/
 
-  adapters/
-    ...
-
-  storage/
-    ...
-
-  bootstrap/
-    ...
+  settings/
+    model/
+    memory/
+    session/
+    skills/
+    workspace/
+    approval/
+    delegation/
+    gateway/
+    capability_registry/
+    hermes/
+    composition/
+    shared/
 ```
 
 ---
@@ -174,9 +181,7 @@ src/
 | 业务模型层 | Context / Model / Capability | `src/domain/context/`、`src/domain/model/`、`src/domain/capability/` | 上下文、模型策略、能力语义 |
 | 业务模型层 | 下行能力接口 | `src/domain/*/ports.py` | 领域向基础能力层声明需要什么 |
 | 基础能力层 | Provider 能力接口 | `src/runtime/ports/` | `LLMProviderPort`、`StructuredStoreProviderPort`、`RuleSourceProviderPort` 等 |
-| 基础设置层 | 外部 provider | `src/adapters/` | SDK、外部系统、桥接实现 |
-| 基础设置层 | 持久化资源 | `src/storage/` | JSONL、DB、索引、blob 等实现 |
-| 基础设置层 | 装配与设置 | `src/bootstrap/` | settings、container、binding |
+| 基础设置层 | 领域实现与装配 | `src/settings/` | SDK、外部系统、持久化、桥接、settings、container、binding |
 
 ---
 
@@ -212,7 +217,7 @@ src/
 | 业务调度层 | `src/application/ports/domain_services.py` + `ExecutionService` | 调用 `MemoryDomainService` |
 | 业务模型层 | `src/domain/memory/` + `src/domain/memory/ports.py` | 记忆模型与下行能力契约 owner |
 | 基础能力层 | `src/runtime/ports/data_access.py`、`source_backends.py`、`ai_backends.py` | 为记忆领域提供检索、规则、技能、profile、embedding 等能力 |
-| 基础设置层 | `src/storage/`、`src/adapters/`、`src/bootstrap/` | 实现文件、DB、索引、provider 和装配 |
+| 基础设置层 | `src/settings/session/`、`src/settings/memory/`、`src/settings/composition/` | 实现文件、DB、索引、provider 和装配 |
 
 结论：
 
@@ -230,7 +235,7 @@ src/
 |---|---|
 | 业务模型层 | `src/domain/model/`、`src/domain/agent_app/policies.py` |
 | 基础能力层 | `src/runtime/ports/llm_provider.py`、`src/runtime/ports/ai_backends.py` |
-| 基础设置层 | `src/adapters/model_providers/`、`src/bootstrap/` |
+| 基础设置层 | `src/settings/model/`、`src/settings/composition/` |
 
 ### 9.2 能力系统
 
@@ -238,7 +243,7 @@ src/
 |---|---|
 | 业务模型层 | `src/domain/capability/` |
 | 基础能力层 | `src/runtime/ports/execution_backends.py`、`src/runtime/ports/data_access.py` |
-| 基础设置层 | `src/adapters/`、`src/bootstrap/` |
+| 基础设置层 | `src/settings/capability_registry/`、`src/settings/approval/`、`src/settings/delegation/`、`src/settings/composition/` |
 
 ---
 
@@ -250,9 +255,9 @@ src/
 - `src/application` = 业务调度层
 - `src/domain` = 业务模型层
 - `src/runtime` = 基础能力层
-- `src/adapters + src/storage + src/bootstrap` = 基础设置层实现区
+- `src/settings` = 基础设置层
 
 补充约束：
 
 - 旧版独立 `memory_system.py` 等接口口径已经废弃；正式 owner 统一收口到 `application/ports/domain_services.py` 与 `domain/*/ports.py`。
-- 后续所有架构图、接口表和实现说明都必须沿用这套映射，不再把 `ports`、`adapters`、`storage`、`bootstrap` 写成额外架构层。
+- 后续所有架构图、接口表和实现说明都必须沿用这套映射，不再把 `ports`、`adapters`、`storage`、`bootstrap` 写成额外架构层或正式代码根。

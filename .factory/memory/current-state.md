@@ -20,10 +20,17 @@
 - 任务：无
 - 变更：无
 - 缺陷：无
+- 2026-04-16：已把 `v2` 的分层、接口 owner、`src/settings/` 归并边界、Hermes 复用规则与禁止耦合清单固化到 `AGENTS.md`，作为后续所有开发子 agent 的强制协作与编码规范入口。
 - 2026-04-15：已系统重构 `docs/04-project-development/04-design/` 的主入口与专题页；`solution-overview.md`、`backend-design.md`、`database-design.md`、`deployment-architecture.md`、`frontend-adapters-and-multi-agent-coordination.md`、`action-registry-and-autonomy-policy.md` 已统一到“六层架构 + consumer-owned ports + domain owner”口径，并同步修正 draw.io 关键标签。
-- 2026-04-15：已把主执行链正式改为 `ExecutionService -> SessionDomainService / MemoryDomainService -> domain ports -> storage/runtime capability`；`src/storage/*` 已直接实现领域层仓储端口，默认容器不再把记忆业务主链建立在 `runtime.memory.runtime` 上，并新增 `tests/test_application_execution.py` 验证应用层只做薄编排。
+- 2026-04-15：已重写 [basic-capability-layer-design.md](../../docs/04-project-development/04-design/basic-capability-layer-design.md) 为 `C` 纯自研重写路线：先把 `file / web / terminal / browser / session_search / skills` 的能力包骨架、类型对象和函数签名定义完整，再在具体函数实现阶段选择性复用 Hermes 代码。
+- 2026-04-15：`src/runtime/` 已新增基础能力层骨架模块：`file_access`、`web_access`、`terminal`、`browser`、`session_search`、`skills`、`rule_source`、`profile_source`、`clock_identity`；`src/settings/composition/container.py` 已把这些服务对象装配进默认容器；新增 `tests/test_basic_capability_scaffold.py` 验证骨架存在且容器可构建。
+- 2026-04-15：基础能力层骨架已进一步补齐“能力包目录事实源”：新增 `CapabilityPackageDescriptor` / `CapabilityPackageRegistry`，每个 service 现在都能声明自己的 package metadata、操作清单和 provider 依赖，默认容器可统一枚举全部基础能力骨架包。
+- 2026-04-16：`TASK-017` 已进入首轮实现：新增 `LocalWorkspaceProvider`、`LocalSkillCatalogProvider`、`InMemorySessionArchiveProvider` / `InMemorySearchIndexProvider`，`FileAccessService`、`SkillCatalogService`、`SessionSearchService` 已具备本地最小可用行为，默认容器现在可直接提供 `file / skills / session_search` 的第一批真实能力。
+- 2026-04-16：本轮实现按函数级复用 Hermes 思路收口：文件侧吸收路径越界与设备文件防护思路，skills 侧吸收 frontmatter 解析与目录发现思路，session search 侧吸收 recent mode、query window truncation 与 current lineage 排除思路；但运行时架构仍保持 `runtime/capability + ports + settings` 自研边界。
+- 2026-04-16：已完成基础设置层归并重构：原先分散的 provider、store、bridge、container 正式实现代码已统一迁入 `src/settings/`，并按 `model / memory / session / skills / workspace / approval / delegation / gateway / capability_registry / hermes` 分域，`composition / shared` 负责装配与共享支撑。
+- 2026-04-15：已把主执行链正式改为 `ExecutionService -> SessionDomainService / MemoryDomainService -> domain ports -> settings/runtime capability`；基础设置层实现现在承接领域层仓储端口与 provider 端口，默认容器不再把记忆业务主链建立在 `runtime.memory.runtime` 上，并新增 `tests/test_application_execution.py` 验证应用层只做薄编排。
 - 2026-04-15：已新增 [layered-domain-interface-catalog.md](../../docs/04-project-development/04-design/layered-domain-interface-catalog.md)，把六层架构细化为“层 -> 领域 -> 接口 owner -> 下行依赖”总表，并先落 access/application/domain/runtime 的接口骨架，不做实现。
-- 2026-04-15：已按“用户界面层 / 接口网关层 / 业务调度层 / 业务模型层 / 基础能力层 / 基础设置层”统一重构主架构文档；正式收口“`src/adapters` + `src/storage` + `src/bootstrap` 属于基础设置层实现分区，不是额外层次”。
+- 2026-04-15：已按“用户界面层 / 接口网关层 / 业务调度层 / 业务模型层 / 基础能力层 / 基础设置层”统一重构主架构文档；正式收口“`src/settings/` 属于基础设置层实现分区，不是额外层次”。
 - 2026-04-15：已把基础设施层第一批正式代码骨架落地到 `src/`：新增 `domain/approval`、`domain/delegation`、`domain/gateway`，补齐 `ApprovalPolicyPort`、`SandboxPolicyPort`、`DelegationTransportPort`、`GatewayPort`，并加入 Hermes-backed adapter scaffold 与容器开关。
 - 2026-04-15：已吸收 `/Users/uroborus/AiProject/hermes-agent` 的记忆系统设计精华，更新 [memory-system-detailed-design.md](../../docs/04-project-development/04-design/memory-system-detailed-design.md)、[memory-runtime-interfaces.md](../../docs/04-project-development/04-design/memory-runtime-interfaces.md) 与 [hermes-agent-source-analysis-report.md](../../docs/04-project-development/02-discovery/hermes-agent-source-analysis-report.md)，正式补齐 provider manager、archive query、snapshot policy 与 Hermes 可复用能力判断。
 - 2026-04-15：已将 [infrastructure-layer-design.md](../../docs/04-project-development/04-design/infrastructure-layer-design.md) 收紧为“设计先行、实现优先复用 Hermes”的口径，并补齐技术域到 Hermes 模块的复用映射、反腐适配边界和 Hermes-backed adapter 落地规则。
@@ -31,9 +38,9 @@
 - 2026-04-15：新增 [memory-system-detailed-design.md](../../docs/04-project-development/04-design/memory-system-detailed-design.md)，把 `memory-system-business-requirements.md` 的业务约束正式下沉为系统分层、领域模型、存储分桶、源代码骨架、对外服务界面和基础设施端口设计，并给出主 Agent 的业务评估与改进顺序。
 - 2026-04-15：新增 [memory-system-business-requirements.md](../../docs/04-project-development/03-requirements/memory-system-business-requirements.md)，固化本轮关于记忆分桶、混合技术栈项目装配、Skill 按需加载和多 Agent 协作的业务共识。
 - 2026-04-15：已新增 `08-子系统定义图` 与 `09-记忆系统跨层调用图`，并补充 `core-subsystems.md`、更新设计索引；当前正式子系统收口为记忆系统、模型网关、能力系统。
-- 2026-04-15：已把真实源码迁移到最终骨架：`src` 第一层文件夹就是层、第二层文件夹就是模块；完成 `access / application / runtime / adapters / storage / bootstrap` 重排，并将 application-owned ports、runtime-owned ports、memory/evidence/dataset store 拆到各自模块。
-- 2026-04-15：新增 [core-subsystems.md](../../docs/04-project-development/04-design/core-subsystems.md)，正式定义当前 3 个子系统：记忆系统、模型网关、能力系统，并补齐记忆系统从 access -> application -> runtime -> context -> storage 的跨层调用链。
-- 2026-04-15：已把代码骨架映射再收紧为“`src` 第一层文件夹就是层、第二层文件夹就是模块、模块本身就是内聚领域”；目录表达统一为 `src/access`、`src/domain`、`src/application`、`src/runtime`、`src/adapters`、`src/storage`、`src/bootstrap`。
+- 2026-04-15：已把真实源码迁移到层级骨架：`src` 第一层文件夹就是层、第二层文件夹就是模块；完成 `access / application / runtime / settings` 重排，并将 application-owned ports、runtime-owned ports、memory/evidence/dataset store 拆到各自模块。
+- 2026-04-15：新增 [core-subsystems.md](../../docs/04-project-development/04-design/core-subsystems.md)，正式定义当前 3 个子系统：记忆系统、模型网关、能力系统，并补齐记忆系统从 access -> application -> runtime -> context -> settings 的跨层调用链。
+- 2026-04-15：已把代码骨架映射再收紧为“`src` 第一层文件夹就是层、第二层文件夹就是模块、模块本身就是内聚领域”；当前正式目录表达统一为 `src/access`、`src/domain`、`src/application`、`src/runtime`、`src/settings`。
 - 2026-04-15：已按“消费者定义向下依赖接口、实现层负责实现”重写分层接口口径，并更新 `07-分层接口总表图`；明确业务定义层不是接口定义层，也不再保留统一 `ports_layer` 设计。
 - 2026-04-15：已把多页 `v2-architecture-views.drawio` 拆成 7 个单页 `drawio` 文件，兼容只显示第一页的预览场景，并新增单页清单入口。
 - 2026-04-14：已补齐 draw.io 的 `06-层间依赖图` 与 `07-分层接口总表图`，并把记忆系统明确表达为“对外内聚、对内分层”的统一子系统。
@@ -57,6 +64,9 @@
 
 ## 下一步建议
 
+- 优先按 `TASK-013` ~ `TASK-017` 推进基础能力层：先冻结统一信封和能力包骨架，再逐个填函数实现。
+- 先继续补强 `file / skills / session_search` 的治理细节、静态检查和回归测试，再接 `web / terminal / browser` 的治理闸门，不要同时并发所有能力包的具体实现。
+- 先把 `SessionArchiveQueryPort`、`SessionTranscriptSlicePort`、`SessionAssemblyQueryPort` 做成 explainability 查询面，再评估 `todo / clarify / cronjob / execute_code` 是否升级为正式能力包。
 - 检查任务人天估算是否真实合理，仅在必要时再细化到 0.5 人天精度
 - 若进入设计或实施阶段，先确认 `docs/04-project-development/04-design/technical-selection.md` 已明确框架、模块、后台范围和编码规则
 - 下一轮基础设施实现优先把 Hermes-backed `CapabilityRegistryPort` 从 wrapper scaffold 推进到真实 `tools/registry.py` / `model_tools.py` 桥接，再补 gateway session context 与 approval state bridge

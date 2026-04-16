@@ -4,13 +4,12 @@ import unittest
 from tempfile import TemporaryDirectory
 
 from access.cli.commands.run_demo import build_demo_manifest
-from bootstrap.container import build_default_container
-from bootstrap.settings import Settings
 from domain.agent_app.manifest import AgentAppManifest
 from domain.agent_app.models import AgentAppMetadata
 from domain.memory.models import MemoryScope
 from domain.workflow.models import WorkflowDefinition
 from domain.workflow.steps import StepKind, WorkflowStep
+from settings.composition import Settings, build_default_container
 
 
 class PlatformScaffoldTests(unittest.TestCase):

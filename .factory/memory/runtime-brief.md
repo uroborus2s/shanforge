@@ -6,7 +6,7 @@
 - 当前阶段：PLAN
 - 当前模式：cli_direct
 - 技术画像：抽象 Agent 平台规划画像
-- 技术栈：Python 3.14+ / uv / Markdown docs / .factory memory / typed contracts / adapters
+- 技术栈：Python 3.14+ / uv / Markdown docs / .factory memory / typed contracts / settings-layer composition
 - 活跃工作项：1
 - 阻塞项：0
 - 开放风险：0

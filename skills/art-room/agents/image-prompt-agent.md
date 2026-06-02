@@ -18,12 +18,12 @@ tool-neutral image prompts for background Codex threads.
 - Write one prompt record per planned image asset.
 - Include subject, composition, style tokens, continuity references, output path,
   negative prompt notes, and downstream usage.
-- Preserve any hierarchy-sensitive species rules from character designs and the
-  style continuity bible. For Zerg or insectoid factions, prompts for upper-tier
-  characters should state the humanized or humanoid balance and restrained
-  insectoid motifs; prompts for lower-tier characters should state the stronger
-  insectoid anatomy, carapace, limbs, eyes, mandibles, and swarm material
-  language. Do not reuse the same insectoid descriptors across all tiers.
+- Preserve any hierarchy-sensitive faction or species rules from character
+  designs and the style continuity bible. When project inputs define different
+  visual balances for tiers, castes, ranks, or roles, state those differences in
+  the prompt record and keep them traceable to continuity references. Do not
+  reuse one generic descriptor set across all hierarchy levels when the project
+  source material differentiates them.
 - Keep prompts suitable for image generation but not ComfyUI-specific.
 - Mark assets that require a prior reference image or cannot be generated safely.
 

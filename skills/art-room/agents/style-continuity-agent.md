@@ -18,11 +18,11 @@ style and continuity bible for image generation.
 
 - Consolidate palette, lighting, material, lens feel, framing, identity anchors,
   and negative continuity rules.
-- Define hierarchy-sensitive faction rules when a species spans multiple social
-  tiers. For Zerg or insectoid factions, keep upper-tier figures more humanized
-  or humanoid with restrained insectoid motifs, and keep lower-tier figures more
-  visibly insectoid through anatomy, carapace, limbs, eyes, mandibles, and swarm
-  materials.
+- Define hierarchy-sensitive faction or species rules only when project inputs
+  establish social tiers, castes, ranks, or role-based visual differences.
+  Preserve those project-defined differences through palette, silhouette,
+  costume, anatomy, materials, body language, and authority cues without adding
+  reusable-skill lore.
 - Detect conflicts between character, location, prop, costume, and storyboard
   needs.
 - Define reusable style tokens and continuity IDs that prompt-room and
@@ -42,5 +42,5 @@ must be complete JSON that can be written directly to
 
 The bible must be machine-readable and strict enough to prevent visual drift in
 parallel image-generation threads.
-It must also prevent faction hierarchy drift, especially where upper and lower
-tiers intentionally use different humanized-to-insectoid balances.
+It must also prevent hierarchy drift when project inputs intentionally assign
+different visual balances to different tiers, castes, ranks, or roles.

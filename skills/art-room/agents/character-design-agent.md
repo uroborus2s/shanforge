@@ -16,13 +16,12 @@ from the character bible, continuity locks, and asset manifest.
 
 - Define appearance, silhouette, face/hair details, wardrobe states, expression
   range, pose needs, and identity anchors for each character asset.
-- For non-human factions with internal hierarchy, explicitly record social tier,
-  authority role, humanization level, and species-trait level. For Zerg or
-  insectoid factions, upper-tier rulers, nobles, commanders, envoys, or
-  strategists should be more humanized or humanoid with subtle insectoid motifs
-  and readable expressions, while lower-tier workers, soldiers, guards, drones,
-  or expendable units should show stronger insectoid anatomy, carapace, limbs,
-  mandibles, compound eyes, and swarm material language.
+- When project inputs define social tier, caste, rank, or role-based visual
+  differences, explicitly record the tier or role and the project-defined visual
+  trait balance for each character asset. Preserve the input's stated cues
+  across silhouette, expression, costume, anatomy, materials, and body language;
+  do not invent species-specific traits that are not in the project bible or
+  continuity locks.
 - Specify required image outputs such as portrait, full-body, turnaround,
   expression sheet, or shot-specific reference.
 - Preserve continuity IDs and wardrobe state changes exactly.
@@ -41,6 +40,6 @@ must be complete JSON that can be written directly to
 
 Character specs must reduce identity drift across image and video generation.
 Avoid vague beauty descriptors that do not anchor repeatable features.
-Do not describe all members of an insectoid faction with the same monster or
-human silhouette; the design spec must preserve hierarchy-driven visual
+Do not describe all members of a hierarchical faction with the same silhouette
+or costume language; the design spec must preserve project-defined visual
 differences.

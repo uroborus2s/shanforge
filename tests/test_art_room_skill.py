@@ -153,7 +153,7 @@ class ArtRoomSkillTests(unittest.TestCase):
         self.assertIn('display_name: "Art Room"', content)
         self.assertIn("Use $art-room", content)
 
-    def test_insectoid_hierarchy_guidance_is_explicit(self) -> None:
+    def test_faction_hierarchy_guidance_is_generic(self) -> None:
         skill_content = (SKILL_ROOT / "SKILL.md").read_text(encoding="utf-8")
         character_content = (
             SKILL_ROOT / "agents" / "character-design-agent.md"
@@ -164,17 +164,21 @@ class ArtRoomSkillTests(unittest.TestCase):
         prompt_content = (
             SKILL_ROOT / "agents" / "image-prompt-agent.md"
         ).read_text(encoding="utf-8")
+        combined_content = "\n".join(
+            (skill_content, character_content, style_content, prompt_content)
+        )
 
         for content in (skill_content, character_content, style_content, prompt_content):
-            self.assertIn("Zerg or", content)
-            self.assertIn("insectoid factions", content)
-            self.assertIn("upper-tier", content)
-            self.assertIn("lower-tier", content)
+            self.assertIn("project inputs", content)
+            self.assertIn("visual", content)
 
-        self.assertIn("humanized-to-insectoid", skill_content)
-        self.assertIn("humanization level", character_content)
+        self.assertIn("project-specific anatomy, culture, or lore", skill_content)
+        self.assertIn("project-defined visual", character_content)
         self.assertIn("hierarchy drift", style_content)
-        self.assertIn("same insectoid descriptors across all tiers", prompt_content)
+        self.assertIn("generic descriptor set", prompt_content)
+
+        for project_specific_term in ("Zerg", "insectoid", "虫族"):
+            self.assertNotIn(project_specific_term, combined_content)
 
 
 if __name__ == "__main__":

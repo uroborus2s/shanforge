@@ -172,16 +172,14 @@ agents/asset-qc-agent.md
 - Preserve visual continuity over isolated asset beauty. Character identity,
   wardrobe, props, geography, lighting logic, and material language must match
   `{episode-id}/continuity/visual-continuity-bible.json`.
-- When a faction or species has internal hierarchy, encode that hierarchy in
-  the visual description instead of flattening all members into one look. For
-  Zerg or insectoid factions, upper-tier rulers, nobles, commanders, envoys, or
-  strategists should read as more humanized or humanoid with restrained
-  insectoid motifs, readable facial expression, costume language, and social
-  authority. By contrast, lower-tier workers, soldiers, guards, drones, or
-  expendable units should show stronger insectoid anatomy, carapace, limbs,
-  mandibles, compound eyes, and swarm material language. Character designs,
-  style rules, and image prompts must explicitly label the tier and the intended
-  humanized-to-insectoid balance.
+- When project inputs define internal hierarchy, caste, rank, or role-based
+  visual differences within a faction, species, or organization, preserve those
+  differences instead of flattening all members into one look. Do not encode
+  project-specific anatomy, culture, or lore in this reusable skill. Derive tier
+  labels, authority cues, body language, costume, anatomy, materials, and visual
+  trait balance from the project bible and continuity inputs. Character designs,
+  style rules, and image prompts must explicitly label the relevant tier or role
+  and the intended project-defined visual balance.
 - Do not rewrite the story, shot list, or generation strategy.
 - Every generated image must have an asset ID, source prompt ID, expected output
   path, continuity references, and downstream usage notes.

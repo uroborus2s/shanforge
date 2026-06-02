@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Art Room Asset Index",
+  "type": "object",
+  "additionalProperties": true,
+  "required": ["version", "assets"],
+  "properties": {
+    "version": {
+      "type": "string"
+    },
+    "assets": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": true,
+        "required": ["asset_id", "asset_type", "file_path", "status", "prompt_id"],
+        "properties": {
+          "asset_id": {
+            "type": "string"
+          },
+          "asset_type": {
+            "type": "string",
+            "enum": ["character", "location", "prop", "costume", "style", "reference_frame"]
+          },
+          "file_path": {
+            "type": "string",
+            "pattern": "^(assets/|[0-9]{2}/assets/)"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["ready", "warning", "missing", "blocked"]
+          },
+          "prompt_id": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}

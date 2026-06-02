@@ -1,0 +1,4 @@
+interface:
+  display_name: "Art Room"
+  short_description: "Create consistent visual assets"
+  default_prompt: "Use $art-room to create consistent character, scene, prop, and reference image assets from ./project/{project-name}/{episode-id} shot planning outputs."

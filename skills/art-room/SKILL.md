@@ -93,6 +93,34 @@ assets/style/
 {episode-id}/assets/temp/
 ```
 
+## Asset Versioning And History
+
+Generated art assets do not use version folders. Do not create directories such
+as `v1/`, `v2/`, `versions/`, or `drafts/` for image iterations.
+
+Each planned asset has one canonical `output_path`. That path is reserved for
+the final confirmed version only:
+
+```text
+assets/characters/hero__turnaround.png
+{episode-id}/assets/reference-frames/sc01_sh010__first_frame.png
+```
+
+Intermediate, rejected, or superseded images that should be retained must be
+moved into a sibling `history/` directory and renamed with a version suffix
+before the file extension:
+
+```text
+assets/characters/history/hero__turnaround.v001.png
+assets/characters/history/hero__turnaround.v002.png
+{episode-id}/assets/reference-frames/history/sc01_sh010__first_frame.v001.png
+```
+
+Planning artifacts must keep `output_path` pointed at the canonical final file,
+not at a history file. Thread results and QC artifacts may record retained
+intermediates in `history_files` for audit. Before handoff, no generated draft
+or alternate image should remain outside the relevant `history/` directory.
+
 ## Operating Model
 
 - Treat Codex as the runtime. Do not implement a Python agent loop and do not
@@ -109,8 +137,10 @@ assets/style/
   paths. Typical batches are characters, locations, props/costumes, style board,
   and shot reference frames.
 - In each thread prompt, instruct the worker Codex to use the available image
-  generation capability for raster assets, write images to the assigned project
-  paths, and return a compact manifest of files created.
+  generation capability for raster assets, write final confirmed images to the
+  assigned project paths, archive retained intermediates in `history/` with
+  `.v001`, `.v002`, etc. filename suffixes, and return a compact manifest of
+  final files and history files created.
 - If Codex thread tools or image generation are unavailable, still produce
   `{episode-id}/art/thread-plan.json` and
   `{episode-id}/prompts/art-image-prompts.json`, then mark image generation as
@@ -145,7 +175,8 @@ Load only what is needed:
    `{episode-id}/art/thread-plan.json`, one disjoint asset batch per thread
    when practical.
 9. Parent coordinator records thread IDs, statuses, generated file paths,
-   blocked items, and retry notes in `{episode-id}/art/thread-results.json`.
+   retained history file paths, blocked items, and retry notes in
+   `{episode-id}/art/thread-results.json`.
 10. Run `asset-qc-agent` to produce `{episode-id}/art/asset-index.json` and
     `{episode-id}/art/asset-qc-report.md`.
 11. Return the project root, generated asset directories, blocked image jobs,
@@ -183,6 +214,9 @@ agents/asset-qc-agent.md
 - Do not rewrite the story, shot list, or generation strategy.
 - Every generated image must have an asset ID, source prompt ID, expected output
   path, continuity references, and downstream usage notes.
+- Only the final confirmed version of an asset may live at its canonical
+  `output_path`; all retained intermediate versions must live in `history/` and
+  use filename suffixes such as `.v001`, never version directories.
 - Prefer reusable reference assets over one-off images unless the shot explicitly
   requires a unique first frame, last frame, redraw target, or reference frame.
 - Keep prompts specific but tool-neutral. Do not include ComfyUI node graphs,

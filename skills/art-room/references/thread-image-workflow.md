@@ -29,11 +29,17 @@ with `status="blocked"` and preserve the full
 5. Include in each thread prompt:
    - project root and episode ID;
    - batch ID;
-   - exact output paths;
+   - exact canonical final output paths;
    - prompt records from `{episode-id}/prompts/art-image-prompts.json`;
    - continuity references;
    - requirement to use available image generation capability;
-   - requirement to return a compact JSON manifest of created files.
+   - requirement that final confirmed images are written only to the canonical
+     output paths;
+   - requirement that retained intermediate, rejected, or superseded images are
+     moved to a sibling `history/` directory and named with filename suffixes
+     such as `.v001`, `.v002`, never placed in version folders;
+   - requirement to return a compact JSON manifest of final files and history
+     files created.
 
 ## Polling And Retry
 
@@ -57,6 +63,7 @@ Write `{episode-id}/art/thread-results.json` with:
       "thread_id": "thread-id",
       "status": "completed",
       "created_files": ["assets/characters/hero__turnaround.png"],
+      "history_files": ["assets/characters/history/hero__turnaround.v001.png"],
       "warnings": []
     }
   ],
@@ -76,3 +83,9 @@ assets/style/
 {episode-id}/assets/shot-overrides/
 {episode-id}/assets/temp/
 ```
+
+Only final confirmed images should remain at their canonical output paths.
+Retained intermediate versions belong in a `history/` directory inside the
+relevant asset directory, with the version number appended to the filename
+before the extension. Do not create `v1/`, `v2/`, `versions/`, or `drafts/`
+directories for generated art assets.

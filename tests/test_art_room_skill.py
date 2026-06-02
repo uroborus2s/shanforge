@@ -147,6 +147,59 @@ class ArtRoomSkillTests(unittest.TestCase):
         self.assertIn("codex_app.send_message_to_thread", content)
         self.assertIn("{episode-id}/assets/reference-frames/", content)
 
+    def test_asset_versioning_keeps_only_final_outputs_canonical(self) -> None:
+        skill_content = (SKILL_ROOT / "SKILL.md").read_text(encoding="utf-8")
+        workflow_content = (SKILL_ROOT / "references" / "thread-image-workflow.md").read_text(
+            encoding="utf-8"
+        )
+
+        for content in (skill_content, workflow_content):
+            self.assertIn("history/", content)
+            self.assertIn(".v001", content)
+            self.assertIn("version folders", content)
+
+        for filename in (
+            "asset-breakdown-agent.md",
+            "image-prompt-agent.md",
+            "thread-plan-agent.md",
+            "asset-qc-agent.md",
+        ):
+            with self.subTest(filename=filename):
+                content = (SKILL_ROOT / "agents" / filename).read_text(encoding="utf-8")
+                self.assertIn("history/", content)
+                self.assertIn(".v001", content)
+
+    def test_asset_path_schemas_separate_final_and_history_files(self) -> None:
+        asset_schema = json.loads(
+            (SKILL_ROOT / "schemas" / "asset-manifest.schema.json").read_text(encoding="utf-8")
+        )
+        thread_results_schema = json.loads(
+            (SKILL_ROOT / "schemas" / "thread-results.schema.json").read_text(encoding="utf-8")
+        )
+        asset_index_schema = json.loads(
+            (SKILL_ROOT / "schemas" / "asset-index.schema.json").read_text(encoding="utf-8")
+        )
+
+        output_path_schema = asset_schema["properties"]["assets"]["items"]["properties"][
+            "output_path"
+        ]
+        output_path_guards = output_path_schema["allOf"]
+        self.assertIn({"not": {"pattern": "(^|/)history/"}}, output_path_guards)
+        self.assertIn(
+            {"not": {"pattern": "(^|/)(v[0-9]+|versions?|drafts?)(/|$)"}},
+            output_path_guards,
+        )
+        self.assertIn({"not": {"pattern": "\\.v[0-9]{3}\\.[^/]+$"}}, output_path_guards)
+
+        thread_props = thread_results_schema["properties"]["threads"]["items"]["properties"]
+        self.assertIn("history_files", thread_props)
+        history_file_schema = thread_props["history_files"]["items"]
+        self.assertIn({"pattern": "(^|/)history/"}, history_file_schema["allOf"])
+        self.assertIn({"pattern": "\\.v[0-9]{3}\\.[^/]+$"}, history_file_schema["allOf"])
+
+        index_props = asset_index_schema["properties"]["assets"]["items"]["properties"]
+        self.assertIn("history_files", index_props)
+
     def test_openai_metadata_invokes_skill_name(self) -> None:
         content = (SKILL_ROOT / "agents" / "openai.yaml").read_text(encoding="utf-8")
 

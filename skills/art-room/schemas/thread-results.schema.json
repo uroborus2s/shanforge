@@ -33,7 +33,44 @@
             "type": "array",
             "items": {
               "type": "string",
-              "pattern": "^(assets/|[0-9]{2}/assets/)"
+              "pattern": "^(assets/|[0-9]{2}/assets/)",
+              "allOf": [
+                {
+                  "not": {
+                    "pattern": "(^|/)(v[0-9]+|versions?|drafts?)(/|$)"
+                  }
+                },
+                {
+                  "not": {
+                    "pattern": "(^|/)history/"
+                  }
+                },
+                {
+                  "not": {
+                    "pattern": "\\.v[0-9]{3}\\.[^/]+$"
+                  }
+                }
+              ]
+            }
+          },
+          "history_files": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "pattern": "^(assets/|[0-9]{2}/assets/)",
+              "allOf": [
+                {
+                  "pattern": "(^|/)history/"
+                },
+                {
+                  "pattern": "\\.v[0-9]{3}\\.[^/]+$"
+                },
+                {
+                  "not": {
+                    "pattern": "(^|/)(v[0-9]+|versions?|drafts?)(/|$)"
+                  }
+                }
+              ]
             }
           },
           "warnings": {

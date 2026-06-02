@@ -16,8 +16,8 @@ tool-neutral image prompts for background Codex threads.
 ## Work
 
 - Write one prompt record per planned image asset.
-- Include subject, composition, style tokens, continuity references, output path,
-  negative prompt notes, and downstream usage.
+- Include subject, composition, style tokens, continuity references, canonical
+  final output path, negative prompt notes, and downstream usage.
 - Preserve any hierarchy-sensitive faction or species rules from character
   designs and the style continuity bible. When project inputs define different
   visual balances for tiers, castes, ranks, or roles, state those differences in
@@ -26,6 +26,10 @@ tool-neutral image prompts for background Codex threads.
   source material differentiates them.
 - Keep prompts suitable for image generation but not ComfyUI-specific.
 - Mark assets that require a prior reference image or cannot be generated safely.
+- Keep `output_path` pointed at the final confirmed asset location. If a prompt
+  may produce multiple candidates, state that retained non-final candidates must
+  be archived under the sibling `history/` directory with filename suffixes such
+  as `.v001`, `.v002`; never use version folders.
 
 ## Required Artifacts
 
@@ -39,5 +43,5 @@ must be complete JSON that can be written directly to
 
 ## Quality Bar
 
-Every prompt must trace to an asset ID and expected output path. Avoid prompts
-that contradict continuity locks.
+Every prompt must trace to an asset ID and expected canonical final output path.
+Avoid prompts that contradict continuity locks.

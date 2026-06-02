@@ -17,6 +17,12 @@ whether the generated assets are ready for prompt-room.
 - Build an asset index of generated, missing, blocked, and retry-needed files.
 - Check each result for expected path, prompt traceability, continuity refs,
   downstream usage, and obvious mismatch risks.
+- Verify that each ready asset exists at its canonical final path, and that any
+  retained intermediate, rejected, or superseded images are listed as
+  `history_files` under a sibling `history/` directory with filename suffixes
+  such as `.v001`, `.v002`.
+- Flag any generated image left in a version folder such as `v1/`, `v2/`,
+  `versions/`, or `drafts/`, or any non-final draft left beside the final file.
 - Preserve thread IDs and warnings for audit.
 - Recommend next actions for prompt-room or a targeted art retry.
 
@@ -33,4 +39,5 @@ must be complete and writable to both required paths.
 ## Quality Bar
 
 QC must be honest. Do not mark a missing image as ready; record blocked assets
-explicitly.
+explicitly. Do not mark an asset as ready if retained intermediate files are
+outside the required `history/` layout.

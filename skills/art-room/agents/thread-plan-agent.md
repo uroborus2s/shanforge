@@ -14,10 +14,15 @@ Codex background thread jobs.
 ## Work
 
 - Group prompt records into safe background thread batches.
-- Assign batch IDs, output directories, prompt IDs, expected files, and retry
-  policy.
+- Assign batch IDs, output directories, prompt IDs, expected final files, and
+  retry policy.
 - Keep batches disjoint so parallel Codex threads do not write the same files.
 - Mark prerequisites and blocked jobs.
+- In each `thread_prompt`, instruct the worker that `output_paths` are final
+  confirmed asset paths. Retained intermediate versions must be moved to a
+  sibling `history/` directory and renamed with suffixes such as `.v001`,
+  `.v002` before the extension. The worker must not create version folders such
+  as `v1/`, `v2/`, `versions/`, or `drafts/`.
 
 ## Required Artifacts
 
@@ -32,4 +37,5 @@ must be complete JSON that can be written directly to
 ## Quality Bar
 
 The plan must be executable by the parent coordinator with
-`codex_app.create_thread`. Every job needs exact output paths.
+`codex_app.create_thread`. Every job needs exact canonical final output paths
+and explicit history handling instructions.

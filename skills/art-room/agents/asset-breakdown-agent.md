@@ -20,6 +20,8 @@ storyboard, continuity bible, and generation plan.
   reference-frame assets.
 - Assign stable asset IDs and expected output paths under `assets/` for shared
   project assets or `{episode-id}/assets/` for episode-specific references.
+  Each `output_path` is the canonical final confirmed file only; do not assign
+  paths inside `history/` or version folders.
 - Link each asset to source shot IDs, continuity references, and generation-plan
   dependencies.
 - Mark reusable assets versus one-off reference frames.
@@ -37,4 +39,6 @@ must be complete JSON that can be written directly to
 ## Quality Bar
 
 The manifest must be complete enough for prompt writing and background thread
-dispatch. Every asset needs a stable ID and output path.
+dispatch. Every asset needs a stable ID and canonical final output path. Do not
+create `v1/`, `v2/`, `versions/`, or `drafts/` directories; retained
+intermediate versions are recorded later as `history/filename.v001.ext` files.

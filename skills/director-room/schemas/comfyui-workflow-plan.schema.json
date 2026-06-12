@@ -1,0 +1,122 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Director Room ComfyUI Workflow Plan",
+  "type": "object",
+  "additionalProperties": true,
+  "required": ["version", "workflow_families", "shots"],
+  "properties": {
+    "version": {
+      "type": "string"
+    },
+    "workflow_families": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": true,
+        "required": [
+          "workflow_family",
+          "generation_method",
+          "required_inputs",
+          "node_binding_hints",
+          "parameter_defaults",
+          "config_status"
+        ],
+        "properties": {
+          "workflow_family": {
+            "type": "string",
+            "minLength": 1
+          },
+          "generation_method": {
+            "type": "string",
+            "enum": ["T2V", "I2V", "FLF2V", "REFERENCE_IMAGE", "REDRAW"]
+          },
+          "required_inputs": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "node_binding_hints": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "parameter_defaults": {
+            "type": "object",
+            "additionalProperties": true
+          },
+          "config_status": {
+            "type": "string",
+            "enum": ["ready", "needs_config", "blocked"]
+          }
+        }
+      }
+    },
+    "shots": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": true,
+        "required": ["shot_id", "workflow_family", "asset_inputs", "output_path", "status"],
+        "properties": {
+          "shot_id": {
+            "type": "string",
+            "pattern": "^SC[0-9]{3}-SH[0-9]{3}$"
+          },
+          "workflow_family": {
+            "type": "string"
+          },
+          "asset_inputs": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "control_inputs": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": true,
+              "required": ["role", "path", "node_binding_hint", "status"],
+              "properties": {
+                "role": {
+                  "type": "string",
+                  "enum": [
+                    "scene_master",
+                    "first_frame",
+                    "last_frame",
+                    "ipadapter_reference",
+                    "controlnet_depth",
+                    "controlnet_lineart",
+                    "controlnet_canny",
+                    "openpose",
+                    "mask",
+                    "redraw_reference"
+                  ]
+                },
+                "path": {
+                  "type": "string"
+                },
+                "node_binding_hint": {
+                  "type": "string"
+                },
+                "status": {
+                  "type": "string",
+                  "enum": ["ready", "planned", "needs_config", "missing_asset", "blocked"]
+                }
+              }
+            }
+          },
+          "output_path": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["ready", "needs_config", "missing_asset", "blocked"]
+          }
+        }
+      }
+    }
+  }
+}

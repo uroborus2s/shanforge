@@ -1,0 +1,64 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Director Room Bilingual ComfyUI Style Preset",
+  "type": "object",
+  "additionalProperties": true,
+  "required": ["version", "style_profiles"],
+  "properties": {
+    "version": {
+      "type": "string"
+    },
+    "style_profiles": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": true,
+        "required": [
+          "profile_id",
+          "global_positive_prefix_zh",
+          "global_positive_prefix_en",
+          "global_positive_suffix_zh",
+          "global_positive_suffix_en",
+          "global_negative_zh",
+          "global_negative_en",
+          "continuity_rules",
+          "config_status"
+        ],
+        "properties": {
+          "profile_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "global_positive_prefix_zh": {
+            "type": "string"
+          },
+          "global_positive_prefix_en": {
+            "type": "string"
+          },
+          "global_positive_suffix_zh": {
+            "type": "string"
+          },
+          "global_positive_suffix_en": {
+            "type": "string"
+          },
+          "global_negative_zh": {
+            "type": "string"
+          },
+          "global_negative_en": {
+            "type": "string"
+          },
+          "continuity_rules": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "config_status": {
+            "type": "string",
+            "enum": ["ready", "needs_config", "blocked"]
+          }
+        }
+      }
+    }
+  }
+}

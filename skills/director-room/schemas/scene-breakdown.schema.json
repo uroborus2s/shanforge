@@ -1,0 +1,74 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Director Room Scene Breakdown",
+  "type": "object",
+  "additionalProperties": true,
+  "required": ["version", "source_artifacts", "scenes"],
+  "properties": {
+    "version": {
+      "type": "string"
+    },
+    "source_artifacts": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "scenes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": true,
+        "required": [
+          "scene_id",
+          "source_reference",
+          "location",
+          "time_of_day",
+          "characters",
+          "visible_actions",
+          "continuity_anchors",
+          "risks"
+        ],
+        "properties": {
+          "scene_id": {
+            "type": "string",
+            "pattern": "^SC[0-9]{3}$"
+          },
+          "source_reference": {
+            "type": "string"
+          },
+          "location": {
+            "type": "string"
+          },
+          "time_of_day": {
+            "type": "string"
+          },
+          "characters": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "visible_actions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "continuity_anchors": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "risks": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    }
+  }
+}

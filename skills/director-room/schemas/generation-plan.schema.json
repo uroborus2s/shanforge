@@ -1,0 +1,121 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Director Room Generation Plan",
+  "type": "object",
+  "additionalProperties": true,
+  "required": ["version", "shots"],
+  "properties": {
+    "version": {
+      "type": "string"
+    },
+    "shots": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": true,
+        "required": [
+          "shot_id",
+          "segment_id",
+          "method",
+          "duration",
+          "fps",
+          "aspect_ratio",
+          "rationale",
+          "required_assets",
+          "continuity_locks",
+          "risks"
+        ],
+        "properties": {
+          "shot_id": {
+            "type": "string",
+            "pattern": "^SC[0-9]{3}-SH[0-9]{3}$"
+          },
+          "method": {
+            "type": "string",
+            "enum": ["T2V", "I2V", "FLF2V", "REFERENCE_IMAGE", "REDRAW"]
+          },
+          "segment_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "duration": {
+            "type": "string"
+          },
+          "fps": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "aspect_ratio": {
+            "type": "string"
+          },
+          "first_frame_ref": {
+            "type": "string"
+          },
+          "last_frame_ref": {
+            "type": "string"
+          },
+          "audio_refs": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "rationale": {
+            "type": "string"
+          },
+          "required_assets": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "continuity_locks": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "control_inputs": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": true,
+              "required": ["role", "path", "status"],
+              "properties": {
+                "role": {
+                  "type": "string",
+                  "enum": [
+                    "scene_master",
+                    "top_view",
+                    "camera_map",
+                    "shot_guide",
+                    "depth",
+                    "lineart",
+                    "mask",
+                    "openpose",
+                    "first_frame",
+                    "last_frame",
+                    "reference_image"
+                  ]
+                },
+                "path": {
+                  "type": "string"
+                },
+                "status": {
+                  "type": "string",
+                  "enum": ["ready", "planned", "needs_config", "missing_asset", "blocked"]
+                }
+              }
+            }
+          },
+          "risks": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    }
+  }
+}

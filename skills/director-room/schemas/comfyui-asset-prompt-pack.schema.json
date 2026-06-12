@@ -1,0 +1,147 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Director Room ComfyUI Asset Prompt Pack",
+  "type": "object",
+  "additionalProperties": true,
+  "required": ["version", "assets"],
+  "properties": {
+    "version": {
+      "type": "string"
+    },
+    "assets": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": true,
+        "required": [
+          "asset_id",
+          "asset_type",
+          "file_path",
+          "status",
+          "prompt_hint_zh",
+          "prompt_hint_en",
+          "comfyui_role",
+          "output_format",
+          "usage",
+          "continuity_refs"
+        ],
+        "properties": {
+          "asset_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "asset_type": {
+            "type": "string",
+            "enum": ["character", "location", "prop", "costume", "style", "reference_frame"]
+          },
+          "file_path": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["ready", "warning", "missing", "blocked"]
+          },
+          "prompt_hint_zh": {
+            "type": "string"
+          },
+          "prompt_hint_en": {
+            "type": "string"
+          },
+          "comfyui_role": {
+            "type": "string",
+            "enum": [
+              "reference_image",
+              "first_frame",
+              "last_frame",
+              "mask",
+              "controlnet",
+              "ipadapter",
+              "style_reference",
+              "none"
+            ]
+          },
+          "output_format": {
+            "$ref": "#/$defs/output_format"
+          },
+          "usage": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "continuity_refs": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "output_format": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "deliverable_kind",
+        "background_policy",
+        "alpha_policy",
+        "canvas_aspect_ratio",
+        "required_views",
+        "composition_layers"
+      ],
+      "properties": {
+        "deliverable_kind": {
+          "type": "string",
+          "enum": [
+            "neutral_master_card",
+            "episode_state_card",
+            "transparent_cutout",
+            "turnaround_sheet",
+            "detail_crop_sheet",
+            "location_scene_card",
+            "style_reference",
+            "video_reference_frame",
+            "shot_override_frame",
+            "precision_overlay"
+          ]
+        },
+        "background_policy": {
+          "type": "string",
+          "enum": ["neutral_plain", "transparent_alpha", "scene_context", "video_frame"]
+        },
+        "alpha_policy": {
+          "type": "string",
+          "enum": ["required", "forbidden", "optional"]
+        },
+        "canvas_aspect_ratio": {
+          "type": "string",
+          "enum": ["1:1", "4:5", "16:9", "project_defined"]
+        },
+        "required_views": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "composition_layers": {
+          "type": "object",
+          "additionalProperties": true,
+          "required": ["foreground", "midground", "background"],
+          "properties": {
+            "foreground": {
+              "type": "string"
+            },
+            "midground": {
+              "type": "string"
+            },
+            "background": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    }
+  }
+}

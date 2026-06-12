@@ -1,0 +1,78 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Director Room Shot List",
+  "type": "object",
+  "additionalProperties": true,
+  "required": ["version", "shots"],
+  "properties": {
+    "version": {
+      "type": "string"
+    },
+    "shots": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": true,
+        "required": [
+          "shot_id",
+          "scene_id",
+          "order",
+          "purpose",
+          "subject",
+          "visible_action",
+          "shot_size",
+          "camera_angle",
+          "camera_movement",
+          "duration_seconds",
+          "audio_note",
+          "continuity_refs"
+        ],
+        "properties": {
+          "shot_id": {
+            "type": "string",
+            "pattern": "^SC[0-9]{3}-SH[0-9]{3}$"
+          },
+          "scene_id": {
+            "type": "string",
+            "pattern": "^SC[0-9]{3}$"
+          },
+          "order": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "purpose": {
+            "type": "string"
+          },
+          "subject": {
+            "type": "string"
+          },
+          "visible_action": {
+            "type": "string"
+          },
+          "shot_size": {
+            "type": "string"
+          },
+          "camera_angle": {
+            "type": "string"
+          },
+          "camera_movement": {
+            "type": "string"
+          },
+          "duration_seconds": {
+            "type": "number",
+            "minimum": 0.1
+          },
+          "audio_note": {
+            "type": "string"
+          },
+          "continuity_refs": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,99 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Director Room Shot Prompts Draft",
+  "type": "object",
+  "additionalProperties": true,
+  "required": ["version", "prompts"],
+  "properties": {
+    "version": {
+      "type": "string"
+    },
+    "prompts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": true,
+        "required": [
+          "shot_id",
+          "generation_method",
+          "prompt_zh",
+          "prompt_en",
+          "negative_prompt_notes_zh",
+          "negative_prompt_notes_en",
+          "continuity_refs",
+          "required_assets"
+        ],
+        "properties": {
+          "shot_id": {
+            "type": "string",
+            "pattern": "^SC[0-9]{3}-SH[0-9]{3}$"
+          },
+          "generation_method": {
+            "type": "string",
+            "enum": ["T2V", "I2V", "FLF2V", "REFERENCE_IMAGE", "REDRAW"]
+          },
+          "prompt_zh": {
+            "type": "string",
+            "minLength": 1
+          },
+          "prompt_en": {
+            "type": "string",
+            "minLength": 1
+          },
+          "negative_prompt_notes_zh": {
+            "type": "string"
+          },
+          "negative_prompt_notes_en": {
+            "type": "string"
+          },
+          "prompt_layers": {
+            "type": "object",
+            "additionalProperties": true,
+            "properties": {
+              "subject": {
+                "type": "object",
+                "additionalProperties": true
+              },
+              "action": {
+                "type": "object",
+                "additionalProperties": true
+              },
+              "environment": {
+                "type": "object",
+                "additionalProperties": true
+              },
+              "camera": {
+                "type": "object",
+                "additionalProperties": true
+              },
+              "lighting_color": {
+                "type": "object",
+                "additionalProperties": true
+              },
+              "style_continuity": {
+                "type": "object",
+                "additionalProperties": true
+              },
+              "quality_intent": {
+                "type": "object",
+                "additionalProperties": true
+              }
+            }
+          },
+          "continuity_refs": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "required_assets": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    }
+  }
+}

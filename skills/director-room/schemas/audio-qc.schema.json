@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Director Room Audio QC",
+  "type": "object",
+  "additionalProperties": true,
+  "required": ["version", "items"],
+  "properties": {
+    "version": {"type": "string"},
+    "items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": true,
+        "required": ["audio_id", "status", "finding"],
+        "properties": {
+          "audio_id": {"type": "string"},
+          "status": {"type": "string", "enum": ["accepted", "needs_audio_fix", "blocked"]},
+          "finding": {"type": "string"}
+        }
+      }
+    }
+  }
+}

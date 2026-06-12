@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Director Room Delivery QC Report",
+  "type": "object",
+  "additionalProperties": true,
+  "required": ["version", "decision", "checks"],
+  "properties": {
+    "version": {"type": "string"},
+    "decision": {"type": "string", "enum": ["accepted", "warning", "blocked"]},
+    "checks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": true,
+        "required": ["check_id", "status", "owner_fix"],
+        "properties": {
+          "check_id": {"type": "string"},
+          "status": {
+            "type": "string",
+            "enum": [
+              "accepted",
+              "needs_redraw",
+              "needs_regenerate",
+              "needs_prompt_tuning",
+              "needs_asset_fix",
+              "needs_script_fix",
+              "needs_audio_fix",
+              "blocked"
+            ]
+          },
+          "owner_fix": {"type": "string", "enum": ["director-room", "art-room", "writer-room", "none"]}
+        }
+      }
+    }
+  }
+}

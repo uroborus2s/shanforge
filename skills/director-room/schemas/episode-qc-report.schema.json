@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Director Room Episode QC Report",
+  "type": "object",
+  "additionalProperties": true,
+  "required": ["version", "episode_status", "summary"],
+  "properties": {
+    "version": {"type": "string"},
+    "episode_status": {
+      "type": "string",
+      "enum": ["accepted", "warning", "blocked"]
+    },
+    "summary": {"type": "string"},
+    "blocked_items": {"type": "array", "items": {"type": "string"}}
+  }
+}

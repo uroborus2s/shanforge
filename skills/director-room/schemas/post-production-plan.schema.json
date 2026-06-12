@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Director Room Post Production Plan",
+  "type": "object",
+  "additionalProperties": true,
+  "required": ["version", "subtitle_plan", "sound_plan", "color_plan", "delivery_checks"],
+  "properties": {
+    "version": {"type": "string"},
+    "subtitle_plan": {"type": "string"},
+    "sound_plan": {"type": "string"},
+    "color_plan": {"type": "string"},
+    "delivery_checks": {"type": "array", "items": {"type": "string"}}
+  }
+}

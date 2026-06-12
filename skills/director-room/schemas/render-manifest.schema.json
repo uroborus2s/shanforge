@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Director Room Render Manifest",
+  "type": "object",
+  "additionalProperties": true,
+  "required": ["version", "renders"],
+  "properties": {
+    "version": {"type": "string"},
+    "renders": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": true,
+        "required": ["render_id", "shot_id", "source_prompt_id", "output_path", "status"],
+        "properties": {
+          "render_id": {"type": "string"},
+          "shot_id": {"type": "string"},
+          "source_prompt_id": {"type": "string"},
+          "output_path": {"type": "string"},
+          "status": {"type": "string", "enum": ["raw", "accepted", "rejected", "redraw", "blocked"]}
+        }
+      }
+    }
+  }
+}

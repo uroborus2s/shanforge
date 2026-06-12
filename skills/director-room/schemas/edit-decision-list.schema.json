@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Director Room Edit Decision List",
+  "type": "object",
+  "additionalProperties": true,
+  "required": ["version", "items"],
+  "properties": {
+    "version": {"type": "string"},
+    "items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": true,
+        "required": ["edit_id", "shot_id", "render_ref", "in", "out", "duration", "audio_refs"],
+        "properties": {
+          "edit_id": {"type": "string"},
+          "shot_id": {"type": "string"},
+          "render_ref": {"type": "string"},
+          "in": {"type": "string"},
+          "out": {"type": "string"},
+          "duration": {"type": "string"},
+          "transition": {"type": "string"},
+          "audio_refs": {"type": "array", "items": {"type": "string"}}
+        }
+      }
+    }
+  }
+}

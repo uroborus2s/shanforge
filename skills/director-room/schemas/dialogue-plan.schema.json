@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Director Room Dialogue Plan",
+  "type": "object",
+  "additionalProperties": true,
+  "required": ["version", "dialogue_lines"],
+  "properties": {
+    "version": {"type": "string"},
+    "dialogue_lines": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": true,
+        "required": [
+          "dialogue_id",
+          "speaker",
+          "text",
+          "emotion",
+          "target_duration",
+          "linked_shots",
+          "output_file"
+        ],
+        "properties": {
+          "dialogue_id": {"type": "string", "pattern": "^d[0-9]{3}$"},
+          "speaker": {"type": "string"},
+          "text": {"type": "string"},
+          "emotion": {"type": "string"},
+          "target_duration": {"type": "string"},
+          "linked_shots": {"type": "array", "items": {"type": "string"}},
+          "output_file": {
+            "type": "string",
+            "pattern": "^audio/dialogue/d[0-9]{3}\\.wav$"
+          }
+        }
+      }
+    }
+  }
+}

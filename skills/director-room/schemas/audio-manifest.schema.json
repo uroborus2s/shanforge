@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Director Room Audio Manifest",
+  "type": "object",
+  "additionalProperties": true,
+  "required": ["version", "files"],
+  "properties": {
+    "version": {"type": "string"},
+    "files": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": true,
+        "required": ["audio_id", "kind", "final_file", "linked_shots", "status"],
+        "properties": {
+          "audio_id": {"type": "string"},
+          "kind": {"type": "string", "enum": ["dialogue", "voiceover", "sfx", "music"]},
+          "final_file": {"type": "string"},
+          "takes": {"type": "array", "items": {"type": "string"}},
+          "linked_shots": {"type": "array", "items": {"type": "string"}},
+          "status": {"type": "string", "enum": ["ready", "needs_audio_fix", "blocked"]}
+        }
+      }
+    }
+  }
+}

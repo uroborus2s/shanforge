@@ -1,0 +1,69 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Director Room ComfyUI Tuning Log",
+  "type": "object",
+  "additionalProperties": true,
+  "required": ["version", "status", "iterations"],
+  "properties": {
+    "version": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["no_feedback", "in_progress", "completed", "blocked"]
+    },
+    "iterations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": true,
+        "required": [
+          "iteration_id",
+          "source_feedback",
+          "changed_shots",
+          "prompt_changes",
+          "parameter_changes",
+          "unresolved_issues"
+        ],
+        "properties": {
+          "iteration_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "source_feedback": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "changed_shots": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "prompt_changes": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "parameter_changes": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "unresolved_issues": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    }
+  }
+}

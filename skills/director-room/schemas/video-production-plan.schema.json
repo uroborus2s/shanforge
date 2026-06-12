@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Director Room Video Production Plan",
+  "type": "object",
+  "additionalProperties": true,
+  "required": ["version", "stage", "shots"],
+  "properties": {
+    "version": {"type": "string"},
+    "stage": {"type": "string", "enum": ["pre_asset", "post_asset"]},
+    "shots": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": true,
+        "required": ["shot_id", "generation_method", "asset_refs", "render_order", "status"],
+        "properties": {
+          "shot_id": {"type": "string"},
+          "generation_method": {
+            "type": "string",
+            "enum": ["T2V", "I2V", "FLF2V", "REFERENCE_IMAGE", "REDRAW"]
+          },
+          "asset_refs": {"type": "array", "items": {"type": "string"}},
+          "render_order": {"type": "integer", "minimum": 1},
+          "status": {"type": "string", "enum": ["ready", "needs_asset", "needs_config", "blocked"]}
+        }
+      }
+    }
+  }
+}

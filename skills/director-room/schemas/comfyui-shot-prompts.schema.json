@@ -1,0 +1,212 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Director Room Bilingual ComfyUI Shot Prompts",
+  "type": "object",
+  "additionalProperties": true,
+  "required": ["version", "shots"],
+  "properties": {
+    "version": {
+      "type": "string"
+    },
+    "shots": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": true,
+        "required": [
+          "production_metadata",
+          "model_visible_prompt",
+          "workflow_family",
+          "parameter_profile",
+          "status"
+        ],
+        "properties": {
+          "production_metadata": {
+            "type": "object",
+            "additionalProperties": true,
+            "required": [
+              "episode_id",
+              "shot_id",
+              "segment_id",
+              "generation_method",
+              "duration",
+              "fps",
+              "aspect_ratio",
+              "asset_refs",
+              "audio_refs",
+              "workflow_hint",
+              "source_refs",
+              "continuity_refs"
+            ],
+            "properties": {
+              "episode_id": {
+                "type": "string"
+              },
+              "shot_id": {
+                "type": "string",
+                "pattern": "^SC[0-9]{3}-SH[0-9]{3}$"
+              },
+              "segment_id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "generation_method": {
+                "type": "string",
+                "enum": ["T2V", "I2V", "FLF2V", "REFERENCE_IMAGE", "REDRAW"]
+              },
+              "duration": {
+                "type": "string"
+              },
+              "fps": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "aspect_ratio": {
+                "type": "string"
+              },
+              "asset_refs": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "first_frame_ref": {
+                "type": "string"
+              },
+              "last_frame_ref": {
+                "type": "string"
+              },
+              "audio_refs": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "workflow_hint": {
+                "type": "string"
+              },
+              "source_refs": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "continuity_refs": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "model_visible_prompt": {
+            "type": "object",
+            "additionalProperties": true,
+            "required": [
+              "visible_goal_zh",
+              "visible_goal_en",
+              "style_quality_zh",
+              "style_quality_en",
+              "subject_content_zh",
+              "subject_content_en",
+              "composition_motion_zh",
+              "composition_motion_en",
+              "visible_continuity_zh",
+              "visible_continuity_en",
+              "negative_prompt_zh",
+              "negative_prompt_en"
+            ],
+            "properties": {
+              "visible_goal_zh": {
+                "type": "string",
+                "minLength": 1
+              },
+              "visible_goal_en": {
+                "type": "string",
+                "minLength": 1
+              },
+              "style_quality_zh": {
+                "type": "string",
+                "minLength": 1
+              },
+              "style_quality_en": {
+                "type": "string",
+                "minLength": 1
+              },
+              "subject_content_zh": {
+                "type": "string",
+                "minLength": 1
+              },
+              "subject_content_en": {
+                "type": "string",
+                "minLength": 1
+              },
+              "composition_motion_zh": {
+                "type": "string",
+                "minLength": 1
+              },
+              "composition_motion_en": {
+                "type": "string",
+                "minLength": 1
+              },
+              "visible_continuity_zh": {
+                "type": "string",
+                "minLength": 1
+              },
+              "visible_continuity_en": {
+                "type": "string",
+                "minLength": 1
+              },
+              "negative_prompt_zh": {
+                "type": "string"
+              },
+              "negative_prompt_en": {
+                "type": "string"
+              }
+            }
+          },
+          "workflow_family": {
+            "type": "string",
+            "minLength": 1
+          },
+          "parameter_profile": {
+            "type": "object",
+            "additionalProperties": true,
+            "required": ["resolution", "sampler", "scheduler", "steps", "cfg", "seed_policy", "denoise"],
+            "properties": {
+              "resolution": {
+                "type": "string"
+              },
+              "sampler": {
+                "type": "string"
+              },
+              "scheduler": {
+                "type": "string"
+              },
+              "steps": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "cfg": {
+                "type": "number",
+                "minimum": 0
+              },
+              "seed_policy": {
+                "type": "string"
+              },
+              "denoise": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1
+              }
+            }
+          },
+          "status": {
+            "type": "string",
+            "enum": ["ready", "needs_config", "missing_asset", "blocked"]
+          }
+        }
+      }
+    }
+  }
+}

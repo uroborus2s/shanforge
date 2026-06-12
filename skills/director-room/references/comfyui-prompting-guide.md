@@ -133,7 +133,7 @@ global_negative_{lang}
 
 ## 美术资产输出格式
 
-存在 art-room 输出时，导演分镜部必须保留每个资产的 `output_format` 契约：
+存在图片资产输出时，导演分镜部必须保留每个资产的 `output_format` 契约：
 
 - 中性母卡、转面图和细节裁切图用于身份、尺度、材质和连续性参考；
 - 透明抠图用于 mask、叠加、合成或局部重绘控制；
@@ -171,7 +171,7 @@ JSON artifact 是持久交接文件，不表示每次模型调用都要粘贴整
 
 - 只有短小且直接相关的 JSON 才完整发送。
 - 长 JSON 只发送相关场景或镜头记录，加全局元数据、schema 和 source refs。
-- 父级协调器合并子代理输出后，返回完整目标 artifact。
+- 主协调代理合并员工输出后，返回完整目标 artifact。
 - 跨切片保持 `shot_id`、`generation_method`、`continuity_refs` 和 `source_refs` 完全一致。
 
 ## 反馈调优

@@ -1,41 +1,33 @@
 ---
 name: director-room
-description: 面向 Codex 的导演分镜部与 AI 视频生产规划技能。用于从 ./project/{project-name}/{episode-id} 的成稿剧本、角色圣经和场景圣经出发，生成导演阐述、场景拆解、分镜表、摄影方案、视觉连续性圣经、场景控制包、ComfyUI 双语提示词包、工作流参数计划、渲染登记、质检报告、剪辑计划、AI 配音与后期交付方案。当用户提到导演分镜部、Director Room、分镜说明、镜头设计、场景一致性、角色一致性、平面调度、场景母图、Blender/Unreal 低模预演、深度图、线稿、机位图、ComfyUI 提示词、AI 视频渲染、AI 配音、剪辑或后期交付时使用。
+description: 导演部门与导演分镜部 AI 视频生产规划技能。用于从固定项目目录读取成稿剧本、角色设定、场景设定和连续性报告，组织导演、场景拆解、分镜、摄影、视觉连续性、场景控制包、生成策略、提示词、工作流参数、渲染质检、剪辑、音频与交付质检等员工子任务，循环评审直到各员工产物达标，并输出导演部门完整生产包和交给后续美术规划的场景图片资源包。当用户提到导演部门、导演分镜部、导演分镜、分镜说明、镜头设计、场景一致性、角色一致性、平面调度、场景母图、低模预演、深度图、线稿、机位图、ComfyUI 提示词、AI 视频渲染、AI 配音、剪辑或后期交付时使用。
 ---
 
-# 导演分镜部
+# 导演部门
 
-本技能用于把已经定稿的剧本包转化为可执行的视频生产包。父级 Codex 实例担任总导演、制片统筹和提示词总监：先核验项目输入，再组织各角色卡执行分工，最后汇总、校验并写入项目产物。
+本技能把定稿剧本包转化为导演部门的可执行视频生产包。主协调代理只负责调度、依赖检查、质量评审、失败返工、文件装配和最终交付；具体创作、规划和质检由各员工子任务完成。
 
-本技能特别处理 AI 视频制作中的一致性问题。它不把“一致性”寄托在单条提示词上，而是要求建立可复用的场景证据：场景圣经、平面调度、场景母图、低模场景、机位图、深度图、线稿、遮罩、首尾关键帧和 ComfyUI 条件输入。视频模型负责生成画面，空间、站位和镜头约束由这些证据共同锁定。
+本技能不绑定特定运行平台。若运行环境支持子任务、子代理或多任务执行，各员工以子任务形式运行；若环境不支持，主协调代理按相同输入/输出契约顺序执行对应员工职责。不得为了本部门流程创建新的顶层项目、顶层线程或脱离当前项目根的任务空间。
 
-## 部门边界
+## 部门职责
 
-故事场景设计不属于导演分镜部的首要职责。上游应当已经给出地点、戏剧目的、可见行动和基本可拍性。本技能负责把这些材料整理成生产单位：场景、镜头、双语分镜面板、视觉连续性锁点、场景控制包、生成方法、提示词草稿、ComfyUI 双语提示词和后期交付文件。
+导演部门只关心自身输入、内部加工和输出。它不规定其他部门如何工作，也不引用其他 skill 的名称。
 
-本技能同时承担原“提示词工程”职责。同一集不再另行调用独立的 prompt-room。提示词产物必须从成稿剧本、导演方案、摄影方案、分镜、视觉连续性、场景控制包和生成策略中推导。已有 art-room 资产可以使用，但第一次从剧本到提示词的生产规划不得以 art-room 资产为前置条件。
+导演部门负责：
 
-默认流水线：
+- 读取固定项目输入；
+- 将剧本转化为场景、镜头、摄影、分镜、连续性、生成策略和提示词生产资产；
+- 建立场景一致性所需的场景控制包；
+- 输出可供视频生成、剪辑、音频、后期和交付质检使用的导演部门产物；
+- 输出交给后续美术规划的场景图片资源包。
 
-```text
-创作简报
-  -> 成稿剧本包
-  -> director-room 前资产分镜包
-  -> 场景控制包和低模预演计划
-  -> art-room 资产
-  -> director-room 后资产视频生产包
-  -> ComfyUI 生产
-  -> director-room 渲染质检 / 剪辑 / AI 配音 / 后期交付
-```
+导演部门不负责：
 
-## 运行模型
-
-- 把 Codex 视为运行时。不得另写 Python agent loop，也不得让项目 LLM provider 代替 Codex 子代理执行部门角色。
-- 父级协调器在可用时使用 `multi_agent_v1.spawn_agent`。只有当用户明确要求 Codex 原生部门制或多代理分镜工作流时，才启动子代理。
-- 子代理只执行一个角色卡。子代理不得再次要求 `spawn_agent`，也不得擅自修改共享文件；它只返回结构化 artifact envelope。
-- 父级协调器负责输入核验、编排、文件写入、结构校验、质量门禁和向用户提出必要问题。
-- 子代理只接收完成本角色所需的 artifact 文本和角色卡，避免把整个项目无差别塞入上下文。
-- 若父级协调器没有子代理工具，应明确说明“每个角色均由 Codex 子代理执行”的要求暂时受阻，并询问是否继续采用父级单代理模拟。
+- 改写剧本；
+- 兼容任意旧目录或散文件；
+- 替其他部门制定工作流；
+- 用提示词掩盖缺失资产、缺失控制图或缺失配置；
+- 在缺少必需输入时继续猜测。
 
 ## 项目输入
 
@@ -45,7 +37,7 @@ description: 面向 Codex 的导演分镜部与 AI 视频生产规划技能。�
 ./project/{project-name}/
 ```
 
-对 `{episode-id}` 运行前，必须核验以下标准文件：
+运行 `{episode-id}` 前，以下文件必须存在。缺少任一项即报错并停止，返回 `blocked`，不得询问、推断、兼容或自动改名。
 
 ```text
 bible/characters.md
@@ -53,58 +45,35 @@ bible/scenes.md
 {episode-id}/script/final-script.md
 {episode-id}/reports/continuity-report.md
 {episode-id}/reports/script-score.md
+production/series-video-rules.md
 ```
 
-如果用户给出的项目目录使用等价旧名称，应在同一项目目录内归一到上述固定路径。不得创建脱离项目根的 director-room 输入目录，也不得把零散文件视为默认输入。若某类必需来源缺失且无法安全推断，只问一个简洁问题。固定输入建立后，不得修改源剧本、角色圣经和场景圣经。
-
-可选项目级输入：
+可选输入只在存在时读取；不存在不报错，但必须在交付摘要中说明未使用：
 
 ```text
 bible/continuity.md
 bible/visual-style.md
-production/series-video-rules.md
 assets/asset-index.json
+{episode-id}/assets/source-reference-index.json
+{episode-id}/production/render-feedback.json
 ```
 
-系列搭建阶段若缺少 `production/series-video-rules.md`，应先创建该文件。该文件固定画幅、帧率、镜头风格、运动限制、质量下限、禁止的视觉/声音选择、渲染反馈格式，以及 AI 音频和后期规则。
+固定输入建立后，不得修改源剧本、角色设定、场景设定、连续性报告或评分报告。
 
-## 场景控制包
+## 员工子任务与模型选择
 
-每个需要保持空间连续性的场景，都应建立场景控制包。它不是美术参考图的集合，而是供下游模型反复查验的生产证据。
+每个员工角色是当前部门流程内的子任务，不是新的顶层任务。子任务只接收本角色所需输入，只返回本角色 artifact envelope。
 
-推荐目录：
+模型选择规则：
 
-```text
-{episode-id}/control/
-  scene-packages/
-    SC###/
-      scene-bible.md
-      layout.yaml
-      master-reference-front.png
-      master-reference-reverse.png
-      blockout-plan.md
-      top-view.png
-      camera-map.png
-      shot-guides/
-      depth/
-      lineart/
-      masks/
-```
-
-各素材职责如下：
-
-- `scene-bible.md`：固定场景空间、材质、光源、道具、角色出入口和禁止变更项。
-- `layout.yaml`：用坐标记录房间尺寸、门窗、家具、道具、角色站位、运动路径和机位；这是空间连续性的事实源。
-- 场景母图：固定美术气质、材质语言和光线基调；它不能替代平面调度。
-- 平面调度图：从 `layout.yaml` 或同一个低模场景导出，用于锁定人物、道具和摄影机相对位置。
-- 低模场景：可由 Blender 或 Unreal 建立。所有镜头应从同一低模场景导出机位图、深度图、线稿和遮罩。
-- 深度图、线稿、机位图：作为 ComfyUI ControlNet、IP-Adapter、参考图、首尾帧和重绘流程的条件输入。
-
-原则：文生图可以用于探索场景母图，不能单独承担空间一致性。生产级一致性来自固定坐标、低模场景和可复现导出。
+- 默认继承主协调代理所在运行环境的模型和权限。
+- 若项目或运行环境显式提供 `role_model_profiles`，主协调代理可按该配置为员工子任务选择模型。
+- 员工不得自行升级、切换或声明模型；缺少模型配置时写 `needs_config`，不伪造能力。
+- 主协调代理不得为了模型选择改变项目输入、输出路径或质量门槛。
 
 ## 输出
 
-必需的前资产部门交付：
+必需的导演部门生产包：
 
 ```text
 {episode-id}/director/director-brief.md
@@ -116,9 +85,17 @@ assets/asset-index.json
 {episode-id}/production/generation-plan.json
 {episode-id}/production/video-production-plan.md
 {episode-id}/prompts/shot-prompts-draft.json
+{episode-id}/prompts/comfyui-prompt-brief.md
+{episode-id}/prompts/comfyui-style-preset.json
+{episode-id}/prompts/comfyui-asset-prompt-pack.json
+{episode-id}/prompts/comfyui-shot-prompts.json
+{episode-id}/prompts/comfyui-workflow-plan.json
+{episode-id}/prompts/comfyui-render-prompts.md
+{episode-id}/prompts/comfyui-tuning-log.json
+{episode-id}/reports/comfyui-prompt-qc.md
 ```
 
-必需的场景控制交付：
+必需的场景控制包：
 
 ```text
 {episode-id}/control/scene-packages/
@@ -133,20 +110,20 @@ assets/asset-index.json
 {episode-id}/control/scene-packages/SC###/masks/
 ```
 
-必需的后资产视频生产交付：
+必需的美术规划交接包：
 
 ```text
-{episode-id}/prompts/comfyui-prompt-brief.md
-{episode-id}/prompts/comfyui-style-preset.json
-{episode-id}/prompts/comfyui-asset-prompt-pack.json
-{episode-id}/prompts/comfyui-shot-prompts.json
-{episode-id}/prompts/comfyui-workflow-plan.json
-{episode-id}/prompts/comfyui-render-prompts.md
-{episode-id}/prompts/comfyui-tuning-log.json
-{episode-id}/reports/comfyui-prompt-qc.md
+{episode-id}/handoff/art-planning/scene-image-brief.md
+{episode-id}/handoff/art-planning/scene-image-resource-index.json
+{episode-id}/handoff/art-planning/scene-reference-prompts.json
+{episode-id}/assets/director-room/scenes/
+{episode-id}/assets/director-room/scenes/SC###/master-reference-front.png
+{episode-id}/assets/director-room/scenes/SC###/master-reference-reverse.png
+{episode-id}/assets/director-room/scenes/SC###/key-prop-placement.png
+{episode-id}/assets/director-room/scenes/SC###/blocking-overview.png
 ```
 
-在用户请求渲染、剪辑、音频或下游反馈存在时，生成以下产物：
+在渲染、剪辑、音频或交付阶段被请求时，生成以下产物：
 
 ```text
 {episode-id}/production/render-manifest.json
@@ -168,105 +145,123 @@ assets/asset-index.json
 {episode-id}/post/delivery-qc-report.md
 ```
 
-协调器辅助输出：
+调度与评审日志：
 
 ```text
 {episode-id}/logs/director-room-agent-calls.jsonl
+{episode-id}/reviews/director-room-review-ledger.json
+{episode-id}/reviews/director-room-scorecard.md
 ```
 
-## 参考文件
+## 员工输入与输出
 
-按需加载，不要一次性读取无关材料：
+主技能只列出员工的输入和输出；员工的具体方法、约束和返工重点写在各自角色卡内。
 
-- `references/artifact-contract.md`：子代理返回 envelope 和 artifact 的规则。
-- `references/department-workflow.md`：子代理启动、并行、上下文切片、恢复和文件写入规则。
-- `references/comfyui-prompting-guide.md`：双语提示词结构、生成方法映射、控制图输入、JSON 上下文传递、参数计划和反馈调优规则。
-- `agents/*.md`：每个子代理的角色卡。不得把 `agents/openai.yaml` 当作角色卡。
-- `schemas/*.json`：JSON 产物和测试使用的结构契约。
+| 员工 | 输入 | 输出 |
+| --- | --- | --- |
+| `director-agent` | 标准必需输入 | `{episode-id}/director/director-brief.md` |
+| `scene-breakdown-agent` | 场景设定、成稿剧本、连续性报告、导演阐述 | `{episode-id}/shots/scene-breakdown.json` |
+| `visual-continuity-agent` | 角色设定、场景设定、成稿剧本、连续性报告、导演阐述 | `{episode-id}/continuity/visual-continuity-bible.json` |
+| `shot-planner-agent` | 成稿剧本、场景拆解、导演阐述、视觉连续性圣经 | `{episode-id}/shots/shot-list.json` |
+| `cinematographer-agent` | 导演阐述、场景拆解、分镜表、角色设定、场景设定 | `{episode-id}/director/camera-plan.md` |
+| `storyboard-agent` | 导演阐述、分镜表、摄影方案、视觉连续性圣经 | `{episode-id}/storyboard/storyboard-plan.md` |
+| `generation-strategy-agent` | 导演阐述、分镜表、摄影方案、分镜计划、视觉连续性圣经 | `{episode-id}/production/generation-plan.json`、`{episode-id}/production/video-production-plan.md` |
+| `shot-prompt-agent` | 分镜表、摄影方案、分镜计划、视觉连续性圣经、生成计划 | `{episode-id}/prompts/shot-prompts-draft.json` |
+| `prompt-director-agent` | 成稿剧本、角色设定、场景设定、导演阐述、摄影方案、分镜表、分镜计划、视觉连续性圣经、生成计划 | `{episode-id}/prompts/comfyui-prompt-brief.md` |
+| `style-preset-agent` | 提示词简报、导演阐述、摄影方案、分镜计划、视觉连续性圣经、角色设定、场景设定 | `{episode-id}/prompts/comfyui-style-preset.json` |
+| `asset-conditioning-agent` | 角色设定、场景设定、分镜表、视觉连续性圣经、生成计划、可选资产索引、场景控制素材 | `{episode-id}/prompts/comfyui-asset-prompt-pack.json` |
+| `shot-prompt-engineer-agent` | 提示词简报、风格预设、资产条件包、提示词草稿、分镜表、摄影方案、分镜计划、生成计划、视觉连续性圣经 | `{episode-id}/prompts/comfyui-shot-prompts.json` |
+| `workflow-parameter-agent` | 生成计划、最终镜头提示词、资产条件包、风格预设、分镜表 | `{episode-id}/prompts/comfyui-workflow-plan.json` |
+| `prompt-qc-agent` | 提示词简报、风格预设、资产条件包、最终镜头提示词、工作流计划 | `{episode-id}/reports/comfyui-prompt-qc.md` |
+| `scene-image-resource-agent` | 视觉连续性圣经、场景控制包、分镜计划、摄影方案、生成计划 | 美术规划交接包和场景图片资源索引 |
+| `comfyui-feedback-agent` | 最终提示词、工作流计划、风格预设、资产条件包、渲染反馈 | `{episode-id}/prompts/comfyui-tuning-log.json`、`{episode-id}/qc/shot-qc-report.json` |
+| `edit-planner-agent` | 分镜表、镜头质检、渲染登记、成稿剧本、最终提示词 | `{episode-id}/edit/edit-plan.md`、`{episode-id}/edit/edit-decision-list.json`、`{episode-id}/qc/episode-qc-report.md` |
+| `audio-planner-agent` | 成稿剧本、剪辑方案、剪辑决定表、分镜表、可选字幕脚本 | 音频与字幕规划产物 |
+| `delivery-qc-agent` | 镜头质检、剧集质检、剪辑决定表、音频清单、音频质检、字幕和声音计划 | 后期与交付质检产物 |
 
-## 工作流程
+## 总工作流
 
-1. 核验项目根和五个标准输入文件。必要时在同一项目目录内归一旧路径。系列搭建阶段若缺少 `production/series-video-rules.md`，先创建该文件。
-2. 运行 `director-agent`，生成 `{episode-id}/director/director-brief.md`。
-3. 运行 `scene-breakdown-agent` 和 `visual-continuity-agent`。导演阐述存在后，两者可以并行。
-4. `visual-continuity-agent` 必须识别需要场景控制包的场景，定义场景圣经、平面调度、道具锁点、角色站位和低模导出需求。
-5. 在 `{episode-id}/shots/scene-breakdown.json` 存在后运行 `shot-planner-agent`。
-6. 在 `{episode-id}/shots/shot-list.json` 存在后运行 `cinematographer-agent`，生成机位、镜头轴线、焦段、运动、景深和光线方案。
-7. 根据视觉连续性和摄影方案，为每个高一致性风险场景补齐场景控制包计划：`layout.yaml`、`blockout-plan.md`、`top-view.png`、`camera-map.png`、shot guide、depth、lineart 和 masks 的导出清单。
-8. 在摄影方案和视觉连续性圣经存在后运行 `storyboard-agent`。
-9. 在分镜表、摄影方案、分镜计划和视觉连续性圣经存在后运行 `generation-strategy-agent`。它必须决定每个镜头使用 `T2V`、`I2V`、`FLF2V`、`REFERENCE_IMAGE` 或 `REDRAW`，并说明是否需要首帧、尾帧、参考图、ControlNet 深度图、线稿、OpenPose、mask 或低模导出。
-10. 在 `{episode-id}/production/generation-plan.json` 存在后运行 `shot-prompt-agent`。
-11. 创建或更新 `{episode-id}/production/video-production-plan.md` 作为前资产视频生产计划，未解决的资产、模型、工作流和控制图依赖必须显式标记。
-12. art-room 资产存在后，读取 `assets/asset-index.json`、`{episode-id}/art/asset-index.json`、`{episode-id}/art/asset-qc-report.md`、`{episode-id}/prompts/art-image-prompts.json` 和标准图像路径，并保留每个资产的 `output_format`；随后运行 `prompt-director-agent`，生成 `{episode-id}/prompts/comfyui-prompt-brief.md`。
-13. 运行 `style-preset-agent` 和 `asset-conditioning-agent`。提示词简报存在后，两者可以并行。
-14. 在提示词简报、风格预设、资产条件包、镜头提示词草稿、分镜表、摄影方案、分镜计划、视觉连续性圣经和生成计划齐备后，运行 `shot-prompt-engineer-agent`。
-15. 在 `{episode-id}/prompts/comfyui-shot-prompts.json` 存在后运行 `workflow-parameter-agent`。该角色必须把参考图、首尾帧、ControlNet 深度图、线稿、OpenPose、mask、LoRA、IPAdapter 和输出路径写入 node binding hints；不得伪造未验证的节点模板。
-16. 从风格预设和镜头提示词记录组装 `{episode-id}/prompts/comfyui-render-prompts.md`。该 Markdown 是给 ComfyUI 操作者复制使用的交付面，必须为每个镜头提供完整的 `positive_prompt_zh`、`negative_prompt_zh`、`positive_prompt_en` 和 `negative_prompt_en`。不得要求操作者手工拼接 JSON 字段。
-17. 更新 `{episode-id}/production/video-production-plan.md` 为后资产视频生产计划，写明具体资产引用、控制图输入、渲染顺序、风险和未解决配置占位符。
-18. 运行 `prompt-qc-agent`，生成 `{episode-id}/reports/comfyui-prompt-qc.md`。
-19. 若存在 ComfyUI 渲染反馈，运行 `comfyui-feedback-agent`；否则仍写入 `{episode-id}/prompts/comfyui-tuning-log.json`，并设置 `status="no_feedback"`。
-20. 渲染输出存在后，登记 `{episode-id}/production/render-manifest.json`，并在 `{episode-id}/qc/shot-qc-report.json` 中分类每个镜头。
-21. 存在可接受镜头后，运行 `edit-planner-agent`，生成 `{episode-id}/edit/edit-plan.md` 和 `{episode-id}/edit/edit-decision-list.json`。
-22. 运行 `audio-planner-agent`，规划 AI 配音、字幕、音效和音乐。音频按对白行、旁白行、音效 cue 和音乐 cue 管理，不按“每个镜头一个音频文件”管理。
-23. 运行 `delivery-qc-agent`，生成后期计划、剧集质检、音频质检和交付质检产物。
-24. 在可行时用本地 schema 校验 JSON 输出。只修复格式错误；不得在修复 JSON 时发明新的故事事实。
-25. 向用户返回输出路径、警告、未解决模型/资产/控制图依赖，以及推荐的 ComfyUI 生产交接方式。
-
-## 子代理顺序
-
-使用以下角色卡：
+主协调代理按依赖图调度员工子任务：
 
 ```text
-agents/director-agent.md
-agents/scene-breakdown-agent.md
-agents/shot-planner-agent.md
-agents/cinematographer-agent.md
-agents/storyboard-agent.md
-agents/visual-continuity-agent.md
-agents/generation-strategy-agent.md
-agents/shot-prompt-agent.md
-agents/prompt-director-agent.md
-agents/style-preset-agent.md
-agents/asset-conditioning-agent.md
-agents/shot-prompt-engineer-agent.md
-agents/workflow-parameter-agent.md
-agents/prompt-qc-agent.md
-agents/comfyui-feedback-agent.md
-agents/edit-planner-agent.md
-agents/audio-planner-agent.md
-agents/delivery-qc-agent.md
+输入校验
+  -> director-agent
+  -> scene-breakdown-agent + visual-continuity-agent
+  -> shot-planner-agent
+  -> cinematographer-agent
+  -> storyboard-agent
+  -> generation-strategy-agent
+  -> shot-prompt-agent
+  -> prompt-director-agent
+  -> style-preset-agent + asset-conditioning-agent
+  -> shot-prompt-engineer-agent
+  -> workflow-parameter-agent
+  -> prompt-qc-agent
+  -> scene-image-resource-agent
+  -> 可选：comfyui-feedback-agent / edit-planner-agent / audio-planner-agent / delivery-qc-agent
+  -> 最终评分与交付
 ```
+
+## 评审与返工循环
+
+每个员工完成后，主协调代理必须立即评审其产物。评审未通过时，产物必须退回同一员工子任务重做，不得由主协调代理代写创作内容。
+
+评审至少包含：
+
+- schema 或结构检查；
+- 必需字段和必需文件检查；
+- 来源追溯检查；
+- 与上游产物的一致性检查；
+- 双语字段检查；
+- 场景、角色、道具、站位和机位连续性检查；
+- 员工专属评分量表。
+
+评分规则：
+
+- 每个员工产物满分 100 分。
+- 默认通过线为 85 分；关键产物通过线为 90 分。关键产物包括视觉连续性圣经、分镜表、摄影方案、生成计划、最终提示词、工作流计划和场景图片资源交接包。
+- 低于通过线时，主协调代理写明失败项、证据和返工要求，退回原员工。
+- 循环持续到所有员工产物达到通过线。若运行预算、工具缺失或同一阻塞重复出现导致无法继续，整体状态为 `blocked`，不得降级为通过。
+
+评审结果写入：
+
+```text
+{episode-id}/reviews/director-room-review-ledger.json
+{episode-id}/reviews/director-room-scorecard.md
+```
+
+## 场景控制包原则
+
+每个需要空间连续性的场景都应建立场景控制包。场景控制包不是泛泛的美术参考，而是让模型和制作人员反复核对的证据集。
+
+- `scene-bible.md` 固定场景空间、材质、光源、道具、角色出入口和禁止变更项。
+- `layout.yaml` 用坐标记录房间尺寸、门窗、家具、道具、角色站位、运动路径和机位。
+- 场景母图固定美术气质、材质语言和光线基调，但不能替代平面调度。
+- 平面调度图、机位图、深度图、线稿和 mask 应来自固定坐标或同一低模场景。
+- 文生图可以用于场景母图和气氛探索，不能单独证明站位、道具和机位一致。
 
 ## 质量规则
 
-- 保持剧本故事、人物意图和连续性。不得改写情节、增加新情节拍，或通过修改剧本来掩盖分镜问题。
+- 保持剧本故事、人物意图和连续性。不得改写情节或新增故事节拍。
+- 固定输入缺失时立即 `blocked`，不得兼容、推断、自动改名或继续生产。
 - 镜头 ID 必须稳定且机器友好。除非项目已有更强约定，使用 `SC###-SH###`。
-- 每个镜头必须可拍：有可见行动、明确主体、摄影方案、光线意图、音频说明、连续性锚点和生成方法。
-- 前资产分镜包与后资产视频生产包必须分离。`shot-prompts-draft` 是给 art-room 和后续提示词工程使用的中间产物；最终 `comfyui-*` 提示词产物必须在资产质检后生成。
-- 必须显式选择生成方法：`T2V`、`I2V`、`FLF2V`、`REFERENCE_IMAGE` 或 `REDRAW`，并写明理由和所需资产。
-- 场景一致性优先于孤立镜头美观。角色外观、服装、道具、地理关系、轴线、光线和场景布局必须在相邻镜头中保持连贯。
-- 精确空间连续性不得只靠文生图或形容词。需要锁定站位、道具和机位时，应使用 `layout.yaml`、低模场景、平面调度图、机位图、深度图、线稿、mask、首帧或尾帧。
-- 生产元数据必须与模型可见提示词分离。`shot_id`、`generation_method`、`asset_id`、`episode_id`、`output_file` 和 workflow 标识属于元数据，不得写入模型可见提示词正文。
-- ComfyUI 交付必须同时提供结构化提示词记录和可复制提示词 Markdown。`comfyui-shot-prompts.json` 是结构化事实源；`comfyui-render-prompts.md` 是派生的操作交付面。
-- 使用 art-room 资产时必须尊重 `output_format`。中性母卡、转面图和细节图只作身份、尺度、材质和连续性参考；透明抠图用于 mask、叠加、合成或局部重绘；只有 `video_reference_frame` 和 `shot_override_frame` 可作为 I2V/FLF2V 的完整场景首帧、尾帧或参考帧。可作场景帧的参考图必须清楚呈现前景、中景、背景。不得把透明抠图或孤立卡片当成场景帧。
-- 明显不可能、成本过高或含糊的镜头必须标记风险，不能藏进提示词。
-- QC 状态必须机器可读：`accepted`、`needs_redraw`、`needs_regenerate`、`needs_prompt_tuning`、`needs_asset_fix`、`needs_script_fix`、`needs_audio_fix` 或 `blocked`。
-- 分镜和提示词产物必须双语。人类可读的分镜区块应有中文和英文标签/内容；JSON 提示词记录必须包含中文和英文字段，不得只在备注中翻译。
-- 不得发明 checkpoint ID、LoRA ID、ControlNet 模型名、IPAdapter 预设或节点模板 ID。只能使用用户或项目提供的 ID；缺失时写明确占位符，并把镜头标为 `needs_config`。
-- 给子代理或模型调用传递 JSON 时，小文件完整传递；大文件按场景或镜头族切片，并保留全局摘要和 `source_refs`。
-- 不要让视频模型生成精确对白。视频提示词可以描述说话状态、轻微口型、呼吸和表演意图；准确文本来自 `script/final-script.md`、`post/subtitle-script.md` 和 `audio/dialogue-plan.json`。
-- 音频使用短文件名，例如 `audio/dialogue/d001.wav`、`audio/sfx/sfx001.wav`、`audio/music/mx001.wav`。废弃 take 应进入历史记录，并由 `audio/audio-manifest.json` 建索引。
+- 每个镜头必须有可见行动、明确主体、摄影方案、光线意图、连续性锚点和生成方法。
+- 生产元数据必须与模型可见提示词分离。
+- 精确空间连续性不得只靠文生图或形容词，应使用 `layout.yaml`、低模场景、平面调度图、机位图、深度图、线稿、mask、首帧或尾帧。
+- 分镜和提示词产物必须双语。
+- 不得发明 checkpoint ID、LoRA ID、ControlNet 模型名、IPAdapter 预设或节点模板 ID。
+- 不要让视频模型生成精确对白；准确文本来自剧本、字幕和音频规划产物。
+- 所有最终交付必须先通过评分循环。
 
 ## 最终回复
 
-运行结束后，向用户报告：
+运行结束后，报告：
 
-- director-room 项目根
-- 已创建的 artifact
-- 阻塞项或警告项
-- 已创建的双语提示词产物
-- 已创建的可复制 ComfyUI 渲染提示词 Markdown
-- 已创建或待补的场景控制包、平面调度、低模导出、深度图、线稿、机位图和 mask
-- 仍需模型、配置、资产或控制图决策的镜头
-- 已执行的校验
-- 推荐的 ComfyUI 生产交接方式
+- 项目根和集 ID；
+- 已创建的导演部门 artifact；
+- 每个员工的最终评分和返工次数；
+- 已创建的场景控制包；
+- 已创建的场景图片资源和美术规划交接包；
+- 仍需模型、配置、资产或控制图决策的镜头；
+- 已执行的校验；
+- 阻塞项或警告项。

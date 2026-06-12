@@ -22,6 +22,7 @@ ROLE_CARDS = (
     "shot-prompt-engineer-agent.md",
     "workflow-parameter-agent.md",
     "prompt-qc-agent.md",
+    "scene-image-resource-agent.md",
     "comfyui-feedback-agent.md",
     "edit-planner-agent.md",
     "audio-planner-agent.md",
@@ -34,6 +35,7 @@ REQUIRED_INPUTS = (
     "{episode-id}/script/final-script.md",
     "{episode-id}/reports/continuity-report.md",
     "{episode-id}/reports/script-score.md",
+    "production/series-video-rules.md",
 )
 
 REQUIRED_OUTPUTS = (
@@ -61,6 +63,10 @@ REQUIRED_OUTPUTS = (
     "{episode-id}/prompts/comfyui-render-prompts.md",
     "{episode-id}/prompts/comfyui-tuning-log.json",
     "{episode-id}/reports/comfyui-prompt-qc.md",
+    "{episode-id}/handoff/art-planning/scene-image-brief.md",
+    "{episode-id}/handoff/art-planning/scene-image-resource-index.json",
+    "{episode-id}/handoff/art-planning/scene-reference-prompts.json",
+    "{episode-id}/assets/director-room/scenes/",
     "{episode-id}/production/render-manifest.json",
     "{episode-id}/qc/shot-qc-report.json",
     "{episode-id}/qc/episode-qc-report.md",
@@ -90,22 +96,25 @@ class DirectorRoomSkillTests(unittest.TestCase):
         self.assertIn("name: director-room", frontmatter)
         self.assertIn("导演分镜部", frontmatter)
         self.assertIn("场景一致性", frontmatter)
+        self.assertNotIn("面向 Codex", frontmatter)
         self.assertNotIn("TODO", content)
-        self.assertIn("故事场景设计不属于导演分镜部的首要职责", content)
+        self.assertIn("本技能不绑定特定运行平台", content)
+        self.assertIn("每个员工角色是当前部门流程内的子任务", content)
         self.assertIn("./project/{project-name}/", content)
         self.assertIn("{episode-id}", content)
-        self.assertIn("不得创建脱离项目根的 director-room 输入目录", content)
-        self.assertIn("不得另写 Python agent loop", content)
+        self.assertIn("缺少任一项即报错并停止", content)
+        self.assertIn("不得询问、推断、兼容或自动改名", content)
+        self.assertIn("role_model_profiles", content)
         self.assertIn("shot-prompts-draft", content)
-        self.assertIn("不再另行调用独立的 prompt-room", content)
         self.assertIn("分镜和提示词产物必须双语", content)
-        self.assertIn("小文件完整传递", content)
         self.assertIn("production/series-video-rules.md", content)
-        self.assertIn("前资产分镜包", content)
-        self.assertIn("后资产视频生产包", content)
-        self.assertIn("output_format", content)
-        self.assertIn("透明抠图", content)
-        self.assertIn("前景、中景、背景", content)
+        self.assertIn("主技能只列出员工的输入和输出", content)
+        self.assertIn("评审与返工循环", content)
+        self.assertIn("默认通过线为 85 分", content)
+        self.assertIn("关键产物通过线为 90 分", content)
+        self.assertIn("scene-image-resource-agent", content)
+        self.assertIn("美术规划交接包", content)
+        self.assertIn("scene-image-resource-index.json", content)
         self.assertIn("不要让视频模型生成精确对白", content)
         self.assertIn("layout.yaml", content)
         self.assertIn("低模场景", content)
@@ -125,9 +134,14 @@ class DirectorRoomSkillTests(unittest.TestCase):
             if path.is_file() and path.suffix in {".md", ".yaml", ".json"}
         )
 
-        self.assertNotIn("skills/writer-room", combined_content.lower())
+        lowered = combined_content.lower()
+        self.assertNotIn("skills/writer-room", lowered)
+        self.assertNotIn("art-room", lowered)
+        self.assertNotIn("writer room", lowered)
+        self.assertNotIn("prompt-room", lowered)
         self.assertIn("needs_script_fix", combined_content)
-        self.assertIn("不要在后期文件中修故事问题", combined_content)
+        self.assertIn("脚本源文件需要修订", combined_content)
+        self.assertIn("固定必需输入缺失时", combined_content)
 
     def test_all_role_cards_exist_with_artifact_contracts(self) -> None:
         for filename in ROLE_CARDS:
@@ -159,6 +173,8 @@ class DirectorRoomSkillTests(unittest.TestCase):
             "comfyui-workflow-plan.schema.json",
             "comfyui-tuning-log.schema.json",
             "video-production-plan.schema.json",
+            "scene-image-resource-index.schema.json",
+            "scene-reference-prompts.schema.json",
             "render-manifest.schema.json",
             "shot-qc-report.schema.json",
             "episode-qc-report.schema.json",
@@ -242,6 +258,41 @@ class DirectorRoomSkillTests(unittest.TestCase):
             "mask",
         ):
             self.assertIn(expected, roles)
+
+    def test_scene_image_resource_handoff_contract_is_explicit(self) -> None:
+        resource_schema = json.loads(
+            (SKILL_ROOT / "schemas" / "scene-image-resource-index.schema.json").read_text(
+                encoding="utf-8"
+            )
+        )
+        prompt_schema = json.loads(
+            (SKILL_ROOT / "schemas" / "scene-reference-prompts.schema.json").read_text(
+                encoding="utf-8"
+            )
+        )
+        agent_card = (SKILL_ROOT / "agents" / "scene-image-resource-agent.md").read_text(
+            encoding="utf-8"
+        )
+
+        resource_item = resource_schema["properties"]["resources"]["items"]
+        prompt_item = prompt_schema["properties"]["prompts"]["items"]
+        for field in (
+            "resource_id",
+            "scene_id",
+            "resource_type",
+            "target_path",
+            "status",
+            "usage",
+            "continuity_locks",
+            "source_refs",
+        ):
+            self.assertIn(field, resource_item["required"])
+        resource_types = resource_item["properties"]["resource_type"]["enum"]
+        self.assertIn("master_reference_front", resource_types)
+        self.assertIn("blocking_overview", resource_item["properties"]["resource_type"]["enum"])
+        self.assertIn("prompt_zh", prompt_item["required"])
+        self.assertIn("prompt_en", prompt_item["required"])
+        self.assertIn("场景图片资源包是关键产物，通过线为 90 分", agent_card)
 
     def test_bilingual_comfyui_prompt_contract_is_explicit(self) -> None:
         prompt_schema = json.loads(
@@ -327,8 +378,10 @@ class DirectorRoomSkillTests(unittest.TestCase):
         self.assertIn("2. 氛围和画质 / Atmosphere and Image Quality", guide)
         self.assertIn("3. 画面内容 / Shot Panels", guide)
         self.assertIn("控制图需求 / Control Inputs", guide)
-        self.assertIn("JSON 文件不会自动完整发送", workflow)
-        self.assertIn("小型 JSON artifact 可完整传递", workflow)
+        self.assertIn("每个员工是当前导演部门流程中的子任务", workflow)
+        self.assertIn("默认继承主协调代理所在运行环境的模型", workflow)
+        self.assertIn("评审循环", workflow)
+        self.assertIn("评分未达标时", workflow)
         self.assertIn("production_metadata", guide)
         self.assertIn("model_visible_prompt", guide)
         self.assertIn("美术资产输出格式", guide)
@@ -366,6 +419,11 @@ class DirectorRoomSkillTests(unittest.TestCase):
             qc_schema["properties"]["shots"]["items"]["properties"]["status"]["enum"],
             expected_qc,
         )
+        owner_fix = qc_schema["properties"]["shots"]["items"]["properties"]["owner_fix"]["enum"]
+        self.assertIn("image-asset-source", owner_fix)
+        self.assertIn("script-source", owner_fix)
+        self.assertNotIn("art-room", owner_fix)
+        self.assertNotIn("writer-room", owner_fix)
 
         edit_item = edit_schema["properties"]["items"]["items"]
         self.assertIn("audio_refs", edit_item["required"])
@@ -386,8 +444,8 @@ class DirectorRoomSkillTests(unittest.TestCase):
         content = (SKILL_ROOT / "agents" / "openai.yaml").read_text(encoding="utf-8")
 
         self.assertIn('display_name: "导演分镜部"', content)
-        self.assertIn("使用 $director-room", content)
-        self.assertIn("分镜、场景控制包和双语 ComfyUI", content)
+        self.assertIn("调用 director-room", content)
+        self.assertIn("场景图片资源包", content)
 
 
 if __name__ == "__main__":

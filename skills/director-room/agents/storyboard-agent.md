@@ -15,7 +15,7 @@
 
 - 按场景为每个镜头生成面板计划。
 - 描述构图、前景/中景/背景、角色站位、视线方向、运动路径、道具位置、光线读法和转场。
-- 标记需要 art-room 参考图、锁定连续性帧、首尾帧或控制图的面板。
+- 标记需要参考图、锁定连续性帧、首尾帧或控制图的面板。
 - 严格保留 `shots/shot-list.json` 中的镜头 ID。
 - 使用 `references/comfyui-prompting-guide.md` 的双语分镜结构：`1. 基础设定 / Basic Setup`、`2. 氛围和画质 / Atmosphere and Image Quality`、`3. 画面内容 / Shot Panels`。
 - 每个面板都要包含 `景别 / Shot Size`、`构图 / Composition`、`运镜手法 / Camera Movement`、`画面内容 / Visual Content`、`光线与色彩 / Lighting and Color`、`连续性锚点 / Continuity Anchors` 和 `控制图需求 / Control Inputs` 的双语内容。

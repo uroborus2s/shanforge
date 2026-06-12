@@ -28,7 +28,16 @@
               "blocked"
             ]
           },
-          "owner_fix": {"type": "string", "enum": ["director-room", "art-room", "writer-room", "none"]}
+          "owner_fix": {
+            "type": "string",
+            "enum": [
+              "director-room",
+              "image-asset-source",
+              "script-source",
+              "audio-source",
+              "none"
+            ]
+          }
         }
       }
     }

@@ -1,4 +1,4 @@
 interface:
   display_name: "导演分镜部"
-  short_description: "把成稿剧本转化为分镜、场景控制包和双语 ComfyUI 生产提示词"
-  default_prompt: "使用 $director-room，将 ./project/{project-name}/{episode-id} 的成稿剧本包转化为双语分镜、分镜表、视觉连续性圣经、场景控制包、生成计划和双语 ComfyUI 提示词包。"
+  short_description: "把成稿剧本转化为导演生产包、场景控制包和美术规划交接资源"
+  default_prompt: "调用 director-room，将 ./project/{project-name}/{episode-id} 的成稿剧本包转化为双语分镜、分镜表、视觉连续性圣经、场景控制包、生成计划、双语 ComfyUI 提示词包和场景图片资源包。"

@@ -23,7 +23,7 @@
 - 优先选择最小有效修改。
 - 若反馈需要补做美术资产、重导控制图或改变分镜计划，应直接标记依赖，不得把问题藏在提示词里。
 - 使用机器可读 QC 状态：`accepted`、`needs_redraw`、`needs_regenerate`、`needs_prompt_tuning`、`needs_asset_fix`、`needs_script_fix`、`needs_audio_fix` 或 `blocked`。
-- 父级要求应用调优时，在返回 envelope 中包含修订后的提示词或工作流 artifact，并把变更记录追加到 tuning log。
+- 主协调代理要求应用调优时，在返回 envelope 中包含修订后的提示词或工作流 artifact，并把变更记录追加到 tuning log。
 
 ## 必需产物
 

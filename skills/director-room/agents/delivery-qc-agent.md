@@ -19,7 +19,7 @@
 - 创建覆盖字幕、声音、调色和交付检查的后期计划。
 - 核对 accepted 镜头、剪辑时长、对白/音频引用、字幕文本和 QC 状态是否一致。
 - 将剩余问题分类为 `accepted`、`needs_redraw`、`needs_regenerate`、`needs_prompt_tuning`、`needs_asset_fix`、`needs_script_fix`、`needs_audio_fix` 或 `blocked`。
-- 维护故事正典边界：不要在后期文件中修故事问题；需要时标记 `needs_script_fix` 并交回 Writer Room。
+- 维护故事正典边界：不要在后期文件中修故事问题；需要时标记 `needs_script_fix` 并说明脚本源文件需要修订。
 
 ## 必需产物
 
@@ -33,4 +33,4 @@
 
 ## 质量门槛
 
-交付质检必须给出通过/阻塞判断、未解决风险、每项修复的 owner skill，以及修复后必须刷新的下游文件。
+交付质检必须给出通过/阻塞判断、未解决风险、每项修复的责任部门，以及修复后必须刷新的下游文件。

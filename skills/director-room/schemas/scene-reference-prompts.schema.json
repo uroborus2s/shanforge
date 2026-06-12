@@ -1,0 +1,58 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Director Room Scene Reference Prompts",
+  "type": "object",
+  "additionalProperties": true,
+  "required": ["version", "prompts"],
+  "properties": {
+    "version": {
+      "type": "string"
+    },
+    "prompts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": true,
+        "required": [
+          "resource_id",
+          "scene_id",
+          "resource_type",
+          "prompt_zh",
+          "prompt_en",
+          "negative_prompt_zh",
+          "negative_prompt_en",
+          "source_refs"
+        ],
+        "properties": {
+          "resource_id": {
+            "type": "string"
+          },
+          "scene_id": {
+            "type": "string"
+          },
+          "resource_type": {
+            "type": "string"
+          },
+          "prompt_zh": {
+            "type": "string"
+          },
+          "prompt_en": {
+            "type": "string"
+          },
+          "negative_prompt_zh": {
+            "type": "string"
+          },
+          "negative_prompt_en": {
+            "type": "string"
+          },
+          "source_refs": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    }
+  }
+}

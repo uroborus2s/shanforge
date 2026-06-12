@@ -1,6 +1,6 @@
 ---
 name: director-room
-description: 导演部门与导演分镜部 AI 视频生产规划技能。用于从固定项目目录读取成稿剧本、角色设定、场景设定和连续性报告，组织导演、场景拆解、分镜、摄影、视觉连续性、场景控制包、生成策略、提示词、工作流参数、渲染质检、剪辑、音频与交付质检等员工子任务，循环评审直到各员工产物达标，并输出导演部门完整生产包和交给后续美术规划的场景图片资源包。当用户提到导演部门、导演分镜部、导演分镜、分镜说明、镜头设计、场景一致性、角色一致性、平面调度、场景母图、低模预演、深度图、线稿、机位图、ComfyUI 提示词、AI 视频渲染、AI 配音、剪辑或后期交付时使用。
+description: 导演部门与导演分镜部 AI 视频生产规划技能。用于从固定项目目录读取成稿剧本、角色设定、场景设定和连续性报告，组织导演、场景拆解、分镜、摄影、视觉连续性、场景控制包、生成策略、提示词、工作流参数、渲染质检、剪辑、音频与交付质检等员工子任务，循环评审直到各员工产物达标，并输出导演部门完整生产包、交给后续美术规划的场景图片资源包、逐镜头图片生成任务单和最终综合中文报告。当用户提到导演部门、导演分镜部、导演分镜、分镜说明、镜头设计、场景一致性、角色一致性、平面调度、场景母图、低模预演、深度图、线稿、机位图、ComfyUI 提示词、AI 视频渲染、AI 配音、剪辑或后期交付时使用。
 ---
 
 # 导演部门
@@ -19,7 +19,7 @@ description: 导演部门与导演分镜部 AI 视频生产规划技能。用于
 - 将剧本转化为场景、镜头、摄影、分镜、连续性、生成策略和提示词生产资产；
 - 建立场景一致性所需的场景控制包；
 - 输出可供视频生成、剪辑、音频、后期和交付质检使用的导演部门产物；
-- 输出交给后续美术规划的场景图片资源包。
+- 输出交给后续美术规划的场景图片资源包、逐镜头图片生成任务单和最终综合中文报告。
 
 导演部门不负责：
 
@@ -116,11 +116,21 @@ assets/asset-index.json
 {episode-id}/handoff/art-planning/scene-image-brief.md
 {episode-id}/handoff/art-planning/scene-image-resource-index.json
 {episode-id}/handoff/art-planning/scene-reference-prompts.json
+{episode-id}/handoff/art-planning/shot-image-task-list.json
 {episode-id}/assets/director-room/scenes/
 {episode-id}/assets/director-room/scenes/SC###/master-reference-front.png
 {episode-id}/assets/director-room/scenes/SC###/master-reference-reverse.png
 {episode-id}/assets/director-room/scenes/SC###/key-prop-placement.png
 {episode-id}/assets/director-room/scenes/SC###/blocking-overview.png
+{episode-id}/assets/director-room/shots/
+{episode-id}/assets/director-room/shots/SC###-SH###/shot-scene-image.png
+{episode-id}/assets/director-room/shots/SC###-SH###/director-reference.png
+```
+
+最终人类审阅报告：
+
+```text
+{episode-id}/reports/director-room-final-report.md
 ```
 
 在渲染、剪辑、音频或交付阶段被请求时，生成以下产物：
@@ -173,7 +183,7 @@ assets/asset-index.json
 | `shot-prompt-engineer-agent` | 提示词简报、风格预设、资产条件包、提示词草稿、分镜表、摄影方案、分镜计划、生成计划、视觉连续性圣经 | `{episode-id}/prompts/comfyui-shot-prompts.json` |
 | `workflow-parameter-agent` | 生成计划、最终镜头提示词、资产条件包、风格预设、分镜表 | `{episode-id}/prompts/comfyui-workflow-plan.json` |
 | `prompt-qc-agent` | 提示词简报、风格预设、资产条件包、最终镜头提示词、工作流计划 | `{episode-id}/reports/comfyui-prompt-qc.md` |
-| `scene-image-resource-agent` | 视觉连续性圣经、场景控制包、分镜计划、摄影方案、生成计划 | 美术规划交接包和场景图片资源索引 |
+| `scene-image-resource-agent` | 视觉连续性圣经、场景控制包、分镜计划、摄影方案、生成计划 | 美术规划交接包、场景图片资源索引和逐镜头图片任务单 |
 | `comfyui-feedback-agent` | 最终提示词、工作流计划、风格预设、资产条件包、渲染反馈 | `{episode-id}/prompts/comfyui-tuning-log.json`、`{episode-id}/qc/shot-qc-report.json` |
 | `edit-planner-agent` | 分镜表、镜头质检、渲染登记、成稿剧本、最终提示词 | `{episode-id}/edit/edit-plan.md`、`{episode-id}/edit/edit-decision-list.json`、`{episode-id}/qc/episode-qc-report.md` |
 | `audio-planner-agent` | 成稿剧本、剪辑方案、剪辑决定表、分镜表、可选字幕脚本 | 音频与字幕规划产物 |
@@ -199,8 +209,24 @@ assets/asset-index.json
   -> prompt-qc-agent
   -> scene-image-resource-agent
   -> 可选：comfyui-feedback-agent / edit-planner-agent / audio-planner-agent / delivery-qc-agent
-  -> 最终评分与交付
+  -> 最终评分、综合中文报告与交付
 ```
+
+## 镜头与分镜连续规划
+
+镜头规划和分镜规划必须服务于连续性，而不是拆成孤立镜头逐条猜测。
+
+- `shot-planner-agent` 必须一次性整体处理本集所有场景与镜头，建立稳定镜头 ID、镜头顺序、空间方向、轴线关系、角色站位、道具状态、入画出画和相邻镜头衔接。
+- `storyboard-agent` 必须基于完整分镜表一次性整体处理本集分镜，不得把每个镜头交给彼此隔离的任务分别规划。
+- 主协调代理评审分镜表和分镜计划时，必须检查前后镜头的场景、角色、道具、站位、动作方向、视线方向、光线状态和机位关系。
+- 只有在整体镜头表和整体分镜计划通过评审后，才能进入逐镜头图片资源任务拆分。
+
+逐镜头出图任务必须拆分，以免单个任务过长，但拆分不得破坏连续性：
+
+- 单镜头场景图和导演参考图必须拆成独立任务；每个镜头至少有一个可追踪的图片生成任务记录。
+- 每个图片任务必须引用同一套上游连续性依据：`shot-list.json`、`storyboard-plan.md`、`camera-plan.md`、`visual-continuity-bible.json`、对应 `scene-packages/SC###/layout.yaml`、机位图、深度图、线稿或 mask。
+- 逐镜头任务只负责生成或整理本镜头的场景输出图、导演参考图或控制图，不得重新设计场景空间、角色站位、道具位置或镜头顺序。
+- 逐镜头任务清单写入 `{episode-id}/handoff/art-planning/shot-image-task-list.json`，供后续逐项执行、返工和追踪。
 
 ## 评审与返工循环
 
@@ -230,6 +256,25 @@ assets/asset-index.json
 {episode-id}/reviews/director-room-scorecard.md
 ```
 
+## 最终综合中文报告
+
+所有员工产物通过评审后，主协调代理必须生成一份供人类查看的综合性中文 Markdown 文件：
+
+```text
+{episode-id}/reports/director-room-final-report.md
+```
+
+该报告不得只是日志转写，必须用清晰中文说明：
+
+- 本次导演部门运行的项目根、集 ID、输入文件、可选输入使用情况和阻塞条件；
+- 所有输出文档、结构化文件、控制包、图片资源目录、逐镜头图片任务单及其作用；
+- 每个员工最终产物的审查分析、最终评分、通过线、返工次数、未通过原因摘要和最终状态；
+- 场景控制包如何支撑场景母图、平面调度、机位图、深度图、线稿、mask 和逐镜头参考图；
+- 镜头与分镜如何一次性整体规划，逐镜头图片任务如何拆分执行；
+- 已通过校验、仍需人工或外部工具决策的事项、警告项、风险项和交接建议。
+
+最终报告是必需交付物。缺少该报告时，导演部门不得标记为完成。
+
 ## 场景控制包原则
 
 每个需要空间连续性的场景都应建立场景控制包。场景控制包不是泛泛的美术参考，而是让模型和制作人员反复核对的证据集。
@@ -258,6 +303,7 @@ assets/asset-index.json
 运行结束后，报告：
 
 - 项目根和集 ID；
+- 最终综合中文报告路径；
 - 已创建的导演部门 artifact；
 - 每个员工的最终评分和返工次数；
 - 已创建的场景控制包；

@@ -66,7 +66,12 @@ REQUIRED_OUTPUTS = (
     "{episode-id}/handoff/art-planning/scene-image-brief.md",
     "{episode-id}/handoff/art-planning/scene-image-resource-index.json",
     "{episode-id}/handoff/art-planning/scene-reference-prompts.json",
+    "{episode-id}/handoff/art-planning/shot-image-task-list.json",
     "{episode-id}/assets/director-room/scenes/",
+    "{episode-id}/assets/director-room/shots/",
+    "{episode-id}/assets/director-room/shots/SC###-SH###/shot-scene-image.png",
+    "{episode-id}/assets/director-room/shots/SC###-SH###/director-reference.png",
+    "{episode-id}/reports/director-room-final-report.md",
     "{episode-id}/production/render-manifest.json",
     "{episode-id}/qc/shot-qc-report.json",
     "{episode-id}/qc/episode-qc-report.md",
@@ -121,6 +126,17 @@ class DirectorRoomSkillTests(unittest.TestCase):
         self.assertIn("深度图", content)
         self.assertIn("线稿", content)
         self.assertIn("场景控制包", content)
+        self.assertIn("最终综合中文报告", content)
+        self.assertIn(
+            "所有输出文档、结构化文件、控制包、图片资源目录、逐镜头图片任务单及其作用",
+            content,
+        )
+        self.assertIn("每个员工最终产物的审查分析、最终评分、通过线、返工次数", content)
+        self.assertIn("缺少该报告时，导演部门不得标记为完成", content)
+        self.assertIn("镜头规划和分镜规划必须服务于连续性", content)
+        self.assertIn("必须一次性整体处理本集所有场景与镜头", content)
+        self.assertIn("单镜头场景图和导演参考图必须拆成独立任务", content)
+        self.assertIn("shot-image-task-list.json", content)
 
         for path in REQUIRED_INPUTS + REQUIRED_OUTPUTS:
             self.assertIn(path, content)
@@ -175,6 +191,7 @@ class DirectorRoomSkillTests(unittest.TestCase):
             "video-production-plan.schema.json",
             "scene-image-resource-index.schema.json",
             "scene-reference-prompts.schema.json",
+            "shot-image-task-list.schema.json",
             "render-manifest.schema.json",
             "shot-qc-report.schema.json",
             "episode-qc-report.schema.json",
@@ -270,12 +287,18 @@ class DirectorRoomSkillTests(unittest.TestCase):
                 encoding="utf-8"
             )
         )
+        task_schema = json.loads(
+            (SKILL_ROOT / "schemas" / "shot-image-task-list.schema.json").read_text(
+                encoding="utf-8"
+            )
+        )
         agent_card = (SKILL_ROOT / "agents" / "scene-image-resource-agent.md").read_text(
             encoding="utf-8"
         )
 
         resource_item = resource_schema["properties"]["resources"]["items"]
         prompt_item = prompt_schema["properties"]["prompts"]["items"]
+        task_item = task_schema["properties"]["tasks"]["items"]
         for field in (
             "resource_id",
             "scene_id",
@@ -290,8 +313,29 @@ class DirectorRoomSkillTests(unittest.TestCase):
         resource_types = resource_item["properties"]["resource_type"]["enum"]
         self.assertIn("master_reference_front", resource_types)
         self.assertIn("blocking_overview", resource_item["properties"]["resource_type"]["enum"])
+        self.assertIn("shot_scene_image", resource_types)
+        self.assertIn("director_reference_image", resource_types)
         self.assertIn("prompt_zh", prompt_item["required"])
         self.assertIn("prompt_en", prompt_item["required"])
+        for field in (
+            "task_id",
+            "shot_id",
+            "scene_id",
+            "task_type",
+            "target_path",
+            "status",
+            "input_refs",
+            "control_refs",
+            "continuity_locks",
+            "forbidden_changes",
+        ):
+            self.assertIn(field, task_item["required"])
+        task_types = task_item["properties"]["task_type"]["enum"]
+        self.assertIn("shot_scene_image", task_types)
+        self.assertIn("director_reference_image", task_types)
+        self.assertIn("每个任务只处理一个镜头的一类图片资源", agent_card)
+        self.assertIn("不得把整集、整场或多个镜头合并为一个出图任务", agent_card)
+        self.assertIn("每个镜头必须至少有一个单镜头场景图或导演参考图任务", agent_card)
         self.assertIn("场景图片资源包是关键产物，通过线为 90 分", agent_card)
 
     def test_bilingual_comfyui_prompt_contract_is_explicit(self) -> None:
@@ -382,6 +426,10 @@ class DirectorRoomSkillTests(unittest.TestCase):
         self.assertIn("默认继承主协调代理所在运行环境的模型", workflow)
         self.assertIn("评审循环", workflow)
         self.assertIn("评分未达标时", workflow)
+        self.assertIn("镜头和分镜必须先整体连续规划，再拆分图片执行任务", workflow)
+        self.assertIn("单镜头场景图和导演参考图必须拆成独立任务", workflow)
+        self.assertIn("最终综合中文报告", workflow)
+        self.assertIn("每个输出文档的作用", workflow)
         self.assertIn("production_metadata", guide)
         self.assertIn("model_visible_prompt", guide)
         self.assertIn("美术资产输出格式", guide)

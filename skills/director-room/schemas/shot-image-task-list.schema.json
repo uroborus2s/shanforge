@@ -1,46 +1,49 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "Director Room Scene Image Resource Index",
+  "title": "Director Room Shot Image Task List",
   "type": "object",
   "additionalProperties": true,
-  "required": ["version", "resources"],
+  "required": ["version", "tasks"],
   "properties": {
     "version": {
       "type": "string"
     },
-    "resources": {
+    "tasks": {
       "type": "array",
       "items": {
         "type": "object",
         "additionalProperties": true,
         "required": [
-          "resource_id",
+          "task_id",
+          "shot_id",
           "scene_id",
-          "resource_type",
+          "task_type",
           "target_path",
           "status",
-          "usage",
+          "input_refs",
+          "control_refs",
           "continuity_locks",
-          "source_refs"
+          "forbidden_changes"
         ],
         "properties": {
-          "resource_id": {
+          "task_id": {
+            "type": "string"
+          },
+          "shot_id": {
             "type": "string"
           },
           "scene_id": {
             "type": "string"
           },
-          "resource_type": {
+          "task_type": {
             "type": "string",
             "enum": [
-              "master_reference_front",
-              "master_reference_reverse",
-              "key_prop_placement",
-              "blocking_overview",
               "shot_scene_image",
               "director_reference_image",
-              "shot_reference",
-              "control_export"
+              "camera_view_export",
+              "depth_export",
+              "lineart_export",
+              "mask_export"
             ]
           },
           "target_path": {
@@ -48,10 +51,19 @@
           },
           "status": {
             "type": "string",
-            "enum": ["ready", "planned", "needs_generation", "needs_config", "blocked"]
+            "enum": ["ready", "planned", "needs_generation", "needs_export", "needs_config", "blocked"]
           },
-          "usage": {
-            "type": "string"
+          "input_refs": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "control_refs": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           },
           "continuity_locks": {
             "type": "array",
@@ -59,11 +71,17 @@
               "type": "string"
             }
           },
-          "source_refs": {
+          "forbidden_changes": {
             "type": "array",
             "items": {
               "type": "string"
             }
+          },
+          "resource_id": {
+            "type": "string"
+          },
+          "prompt_id": {
+            "type": "string"
           }
         }
       }

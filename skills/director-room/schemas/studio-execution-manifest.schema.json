@@ -1,0 +1,83 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Director Room Studio Execution Manifest",
+  "type": "object",
+  "additionalProperties": true,
+  "required": ["version", "executions"],
+  "properties": {
+    "version": {
+      "type": "string"
+    },
+    "executions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": true,
+        "required": [
+          "task_id",
+          "tool",
+          "status",
+          "input_refs",
+          "output_paths",
+          "continuity_refs",
+          "feedback_refs",
+          "failure_reason"
+        ],
+        "properties": {
+          "task_id": {
+            "type": "string"
+          },
+          "scene_id": {
+            "type": "string"
+          },
+          "shot_id": {
+            "type": "string"
+          },
+          "tool": {
+            "type": "string",
+            "enum": [
+              "raster_image_generation",
+              "desktop_automation",
+              "blender",
+              "comfyui",
+              "krita",
+              "gimp",
+              "photoshop"
+            ]
+          },
+          "status": {
+            "type": "string",
+            "enum": ["ready", "planned", "needs_generation", "needs_export", "needs_config", "blocked", "failed"]
+          },
+          "input_refs": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "output_paths": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "continuity_refs": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "feedback_refs": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "failure_reason": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,11 +1,11 @@
 ---
 name: director-room
-description: 导演部门与导演分镜部 AI 视频生产规划技能。用于从固定项目目录读取成稿剧本、角色设定、场景设定和连续性报告，组织导演、场景拆解、分镜、摄影、视觉连续性、场景控制包、生成策略、提示词、工作流参数、渲染质检、剪辑、音频与交付质检等员工子任务，循环评审直到各员工产物达标，并输出导演部门完整生产包、交给后续美术规划的场景图片资源包、逐镜头图片生成任务单和最终综合中文报告。当用户提到导演部门、导演分镜部、导演分镜、分镜说明、镜头设计、场景一致性、角色一致性、平面调度、场景母图、低模预演、深度图、线稿、机位图、ComfyUI 提示词、AI 视频渲染、AI 配音、剪辑或后期交付时使用。
+description: 导演部门与导演分镜部 AI 视频生产规划和工作室执行技能。用于从固定项目目录读取成稿剧本、角色设定、场景设定和连续性报告，组织导演、场景拆解、分镜、摄影、视觉连续性、平面调度坐标、场景控制包、低模预演、工具执行、生成策略、提示词、工作流参数、渲染质检、剪辑、音频与交付质检等员工子任务，循环评审直到各员工产物达标，并输出导演部门完整生产包、场景图片资源、逐镜头图片生成任务单、实际工具执行清单和最终综合中文报告。当用户提到导演部门、导演分镜部、导演工作室、分镜说明、镜头设计、场景一致性、角色一致性、平面调度、场景母图、低模预演、Blender、Krita、GIMP、ComfyUI、深度图、线稿、机位图、AI 生图、AI 视频渲染、AI 配音、剪辑或后期交付时使用。
 ---
 
 # 导演部门
 
-本技能把定稿剧本包转化为导演部门的可执行视频生产包。主协调代理只负责调度、依赖检查、质量评审、失败返工、文件装配和最终交付；具体创作、规划和质检由各员工子任务完成。
+本技能把定稿剧本包转化为导演部门的可执行视频生产包。主协调代理负责调度、依赖检查、工具能力检查、质量评审、失败返工、用户反馈返工、文件装配和最终交付；具体创作、规划、工具执行和质检由各员工子任务完成。
 
 本技能不绑定特定运行平台。若运行环境支持子任务、子代理或多任务执行，各员工以子任务形式运行；若环境不支持，主协调代理按相同输入/输出契约顺序执行对应员工职责。不得为了本部门流程创建新的顶层项目、顶层线程或脱离当前项目根的任务空间。
 
@@ -17,7 +17,9 @@ description: 导演部门与导演分镜部 AI 视频生产规划技能。用于
 
 - 读取固定项目输入；
 - 将剧本转化为场景、镜头、摄影、分镜、连续性、生成策略和提示词生产资产；
+- 建立平面调度坐标和 `layout.yaml`，把场景空间、角色站位、道具位置、运动路径和机位坐标固定下来；
 - 建立场景一致性所需的场景控制包；
+- 在运行环境提供工具时，调用可用图像生成能力、Blender、ComfyUI、Krita、GIMP 或桌面自动化，把低模场景、顶视图、机位图、导演视角图、深度图、线稿、mask、场景母图和逐镜头参考图实际产出；
 - 输出可供视频生成、剪辑、音频、后期和交付质检使用的导演部门产物；
 - 输出交给后续美术规划的场景图片资源包、逐镜头图片生成任务单和最终综合中文报告。
 
@@ -27,6 +29,7 @@ description: 导演部门与导演分镜部 AI 视频生产规划技能。用于
 - 兼容任意旧目录或散文件；
 - 替其他部门制定工作流；
 - 用提示词掩盖缺失资产、缺失控制图或缺失配置；
+- 假定 Photoshop 必然存在，或把 Photoshop 作为必需工具；
 - 在缺少必需输入时继续猜测。
 
 ## 项目输入
@@ -56,6 +59,8 @@ bible/visual-style.md
 assets/asset-index.json
 {episode-id}/assets/source-reference-index.json
 {episode-id}/production/render-feedback.json
+production/tool-profiles.json
+{episode-id}/reviews/human-feedback.md
 ```
 
 固定输入建立后，不得修改源剧本、角色设定、场景设定、连续性报告或评分报告。
@@ -102,12 +107,22 @@ assets/asset-index.json
 {episode-id}/control/scene-packages/SC###/scene-bible.md
 {episode-id}/control/scene-packages/SC###/layout.yaml
 {episode-id}/control/scene-packages/SC###/blockout-plan.md
+{episode-id}/control/scene-packages/SC###/blockout.blend
+{episode-id}/control/scene-packages/SC###/blockout-export-manifest.json
 {episode-id}/control/scene-packages/SC###/top-view.png
 {episode-id}/control/scene-packages/SC###/camera-map.png
 {episode-id}/control/scene-packages/SC###/shot-guides/
+{episode-id}/control/scene-packages/SC###/shot-guides/SC###-SH###.png
 {episode-id}/control/scene-packages/SC###/depth/
 {episode-id}/control/scene-packages/SC###/lineart/
 {episode-id}/control/scene-packages/SC###/masks/
+```
+
+工作室执行产物：
+
+```text
+{episode-id}/production/tool-capability-report.json
+{episode-id}/production/studio-execution-manifest.json
 ```
 
 必需的美术规划交接包：
@@ -161,6 +176,8 @@ assets/asset-index.json
 {episode-id}/logs/director-room-agent-calls.jsonl
 {episode-id}/reviews/director-room-review-ledger.json
 {episode-id}/reviews/director-room-scorecard.md
+{episode-id}/reviews/human-feedback-log.jsonl
+{episode-id}/reviews/feedback-revision-plan.json
 ```
 
 ## 员工输入与输出
@@ -173,7 +190,8 @@ assets/asset-index.json
 | `scene-breakdown-agent` | 场景设定、成稿剧本、连续性报告、导演阐述 | `{episode-id}/shots/scene-breakdown.json` |
 | `visual-continuity-agent` | 角色设定、场景设定、成稿剧本、连续性报告、导演阐述 | `{episode-id}/continuity/visual-continuity-bible.json` |
 | `shot-planner-agent` | 成稿剧本、场景拆解、导演阐述、视觉连续性圣经 | `{episode-id}/shots/shot-list.json` |
-| `cinematographer-agent` | 导演阐述、场景拆解、分镜表、角色设定、场景设定 | `{episode-id}/director/camera-plan.md` |
+| `scene-coordinate-agent` | 场景拆解、视觉连续性圣经、分镜表、场景设定 | `{episode-id}/control/scene-packages/SC###/layout.yaml`、`scene-bible.md`、`blockout-plan.md` |
+| `cinematographer-agent` | 导演阐述、场景拆解、分镜表、角色设定、场景设定、场景坐标包 | `{episode-id}/director/camera-plan.md` |
 | `storyboard-agent` | 导演阐述、分镜表、摄影方案、视觉连续性圣经 | `{episode-id}/storyboard/storyboard-plan.md` |
 | `generation-strategy-agent` | 导演阐述、分镜表、摄影方案、分镜计划、视觉连续性圣经 | `{episode-id}/production/generation-plan.json`、`{episode-id}/production/video-production-plan.md` |
 | `shot-prompt-agent` | 分镜表、摄影方案、分镜计划、视觉连续性圣经、生成计划 | `{episode-id}/prompts/shot-prompts-draft.json` |
@@ -184,6 +202,8 @@ assets/asset-index.json
 | `workflow-parameter-agent` | 生成计划、最终镜头提示词、资产条件包、风格预设、分镜表 | `{episode-id}/prompts/comfyui-workflow-plan.json` |
 | `prompt-qc-agent` | 提示词简报、风格预设、资产条件包、最终镜头提示词、工作流计划 | `{episode-id}/reports/comfyui-prompt-qc.md` |
 | `scene-image-resource-agent` | 视觉连续性圣经、场景控制包、分镜计划、摄影方案、生成计划 | 美术规划交接包、场景图片资源索引和逐镜头图片任务单 |
+| `studio-tool-execution-agent` | 场景控制包、逐镜头图片任务单、最终提示词、工作流计划、工具配置、可选人工反馈 | 工具能力报告、工作室执行清单和实际图片/控制图产物 |
+| `user-feedback-triage-agent` | 人工反馈、评审账本、最终报告、相关产物清单 | `{episode-id}/reviews/feedback-revision-plan.json`、`{episode-id}/reviews/human-feedback-log.jsonl` |
 | `comfyui-feedback-agent` | 最终提示词、工作流计划、风格预设、资产条件包、渲染反馈 | `{episode-id}/prompts/comfyui-tuning-log.json`、`{episode-id}/qc/shot-qc-report.json` |
 | `edit-planner-agent` | 分镜表、镜头质检、渲染登记、成稿剧本、最终提示词 | `{episode-id}/edit/edit-plan.md`、`{episode-id}/edit/edit-decision-list.json`、`{episode-id}/qc/episode-qc-report.md` |
 | `audio-planner-agent` | 成稿剧本、剪辑方案、剪辑决定表、分镜表、可选字幕脚本 | 音频与字幕规划产物 |
@@ -198,6 +218,7 @@ assets/asset-index.json
   -> director-agent
   -> scene-breakdown-agent + visual-continuity-agent
   -> shot-planner-agent
+  -> scene-coordinate-agent
   -> cinematographer-agent
   -> storyboard-agent
   -> generation-strategy-agent
@@ -208,9 +229,37 @@ assets/asset-index.json
   -> workflow-parameter-agent
   -> prompt-qc-agent
   -> scene-image-resource-agent
+  -> studio-tool-execution-agent
   -> 可选：comfyui-feedback-agent / edit-planner-agent / audio-planner-agent / delivery-qc-agent
+  -> 可选：user-feedback-triage-agent -> 受影响员工返工 -> studio-tool-execution-agent
   -> 最终评分、综合中文报告与交付
 ```
+
+## 工作室执行模式
+
+导演部门可以作为总工作室完成规划和实际资产产出，但必须先确认工具能力，再执行，不得假装工具已经完成工作。
+
+- 可调用运行环境提供的图像生成能力，用于场景母图、气氛探索、导演参考图和逐镜头参考图。
+- 可调用 Blender 或等价 3D 工具，根据 `layout.yaml` 建立低模场景，导出顶视图、机位图、导演视角图、深度图、线稿、mask 和低模工程文件。
+- 可调用 ComfyUI 或等价节点式生成环境，执行可复现的图像、控制图和视频生成工作流。
+- 可调用 Krita、GIMP 或等价图像编辑工具，执行遮罩清理、抠图、局部修正、色彩统一、分层整理和输出格式整理。
+- 不得把 Photoshop 作为必需工具；只有在 `production/tool-profiles.json` 明确配置 Photoshop 时，才可把它列为可选执行工具。
+- ComfyUI 不是导演规划的必需条件；若用户要求本地可复现批量生成而 ComfyUI 不可用，相关任务必须写为 `needs_config` 或 `blocked`。
+- Krita 和 GIMP 已安装时，优先作为修图、mask、抠图和资产清理工具；它们不替代 `layout.yaml` 或低模场景的空间证明作用。
+
+工具能力检查结果写入：
+
+```text
+{episode-id}/production/tool-capability-report.json
+```
+
+实际执行、失败、返工和输出路径写入：
+
+```text
+{episode-id}/production/studio-execution-manifest.json
+```
+
+若工具不可用，主协调代理仍可完成规划和任务单，但不得把未生成图片标记为 `ready`。
 
 ## 镜头与分镜连续规划
 
@@ -227,6 +276,21 @@ assets/asset-index.json
 - 每个图片任务必须引用同一套上游连续性依据：`shot-list.json`、`storyboard-plan.md`、`camera-plan.md`、`visual-continuity-bible.json`、对应 `scene-packages/SC###/layout.yaml`、机位图、深度图、线稿或 mask。
 - 逐镜头任务只负责生成或整理本镜头的场景输出图、导演参考图或控制图，不得重新设计场景空间、角色站位、道具位置或镜头顺序。
 - 逐镜头任务清单写入 `{episode-id}/handoff/art-planning/shot-image-task-list.json`，供后续逐项执行、返工和追踪。
+
+## 平面调度坐标
+
+`layout.yaml` 是平面调度坐标的权威来源。导演部门可以先依据剧本、场景设定和分镜规划起草坐标，再用低模场景和导出图验证坐标。
+
+`layout.yaml` 至少记录：
+
+- 坐标原点、单位、轴向、场景尺寸和比例；
+- 墙体、门窗、楼梯、固定家具、可移动道具和关键光源；
+- 角色在每个镜头的起点、终点、朝向、视线方向和运动路径；
+- 摄影机位置、镜头朝向、高度、焦段、视角、运动轨迹和轴线关系；
+- 每个镜头的导演视角图、深度图、线稿和 mask 对应路径；
+- 禁止改变的空间关系、道具状态和连续性锁点。
+
+若用户审核认为空间不对，返工必须优先修改 `layout.yaml` 和低模场景，再重新导出图像，不得只改提示词。
 
 ## 评审与返工循环
 
@@ -248,12 +312,15 @@ assets/asset-index.json
 - 默认通过线为 85 分；关键产物通过线为 90 分。关键产物包括视觉连续性圣经、分镜表、摄影方案、生成计划、最终提示词、工作流计划和场景图片资源交接包。
 - 低于通过线时，主协调代理写明失败项、证据和返工要求，退回原员工。
 - 循环持续到所有员工产物达到通过线。若运行预算、工具缺失或同一阻塞重复出现导致无法继续，整体状态为 `blocked`，不得降级为通过。
+- 用户人工审核不通过时，主协调代理必须记录反馈、定位受影响产物和员工、退回对应员工或工具执行任务返工，直到用户反馈被解决或进入 `blocked`。
 
 评审结果写入：
 
 ```text
 {episode-id}/reviews/director-room-review-ledger.json
 {episode-id}/reviews/director-room-scorecard.md
+{episode-id}/reviews/human-feedback-log.jsonl
+{episode-id}/reviews/feedback-revision-plan.json
 ```
 
 ## 最终综合中文报告
@@ -271,6 +338,8 @@ assets/asset-index.json
 - 每个员工最终产物的审查分析、最终评分、通过线、返工次数、未通过原因摘要和最终状态；
 - 场景控制包如何支撑场景母图、平面调度、机位图、深度图、线稿、mask 和逐镜头参考图；
 - 镜头与分镜如何一次性整体规划，逐镜头图片任务如何拆分执行；
+- 实际使用了哪些工具，哪些图已经真实生成，哪些图仍是计划、配置缺失或阻塞；
+- 用户审核意见如何被处理，哪些产物经历了返工，哪些反馈仍未关闭；
 - 已通过校验、仍需人工或外部工具决策的事项、警告项、风险项和交接建议。
 
 最终报告是必需交付物。缺少该报告时，导演部门不得标记为完成。
@@ -284,6 +353,7 @@ assets/asset-index.json
 - 场景母图固定美术气质、材质语言和光线基调，但不能替代平面调度。
 - 平面调度图、机位图、深度图、线稿和 mask 应来自固定坐标或同一低模场景。
 - 文生图可以用于场景母图和气氛探索，不能单独证明站位、道具和机位一致。
+- 低模场景、坐标文件和导出图发生冲突时，以 `layout.yaml` 和重新验证后的低模场景为准。
 
 ## 质量规则
 
@@ -293,6 +363,7 @@ assets/asset-index.json
 - 每个镜头必须有可见行动、明确主体、摄影方案、光线意图、连续性锚点和生成方法。
 - 生产元数据必须与模型可见提示词分离。
 - 精确空间连续性不得只靠文生图或形容词，应使用 `layout.yaml`、低模场景、平面调度图、机位图、深度图、线稿、mask、首帧或尾帧。
+- 生图、ComfyUI、Blender、Krita、GIMP 或桌面自动化输出必须记录工具、输入、输出路径、状态和失败原因。
 - 分镜和提示词产物必须双语。
 - 不得发明 checkpoint ID、LoRA ID、ControlNet 模型名、IPAdapter 预设或节点模板 ID。
 - 不要让视频模型生成精确对白；准确文本来自剧本、字幕和音频规划产物。
@@ -308,6 +379,8 @@ assets/asset-index.json
 - 每个员工的最终评分和返工次数；
 - 已创建的场景控制包；
 - 已创建的场景图片资源和美术规划交接包；
+- 已执行的工具、生成的低模场景、顶视图、机位图、导演视角图、深度图、线稿、mask、场景母图和逐镜头参考图；
+- 用户审核反馈的处理状态；
 - 仍需模型、配置、资产或控制图决策的镜头；
 - 已执行的校验；
 - 阻塞项或警告项。

@@ -16,6 +16,26 @@
 - 员工不得自行切换模型，不得把模型能力写成事实。
 - 缺少模型、工具或节点配置时，产物标为 `needs_config` 或 `blocked`。
 
+## 工具能力检查
+
+工作室执行前，主协调代理必须要求 `studio-tool-execution-agent` 生成工具能力报告：
+
+```text
+{episode-id}/production/tool-capability-report.json
+```
+
+报告必须说明以下能力是否可用：
+
+- 图像生成能力；
+- 桌面自动化；
+- Blender；
+- ComfyUI；
+- Krita；
+- GIMP；
+- 可选 Photoshop。
+
+Photoshop 不得被视为必需工具。ComfyUI 不影响导演规划；只有当用户要求本地可复现生成而 ComfyUI 缺失时，相关执行任务才标为 `needs_config` 或 `blocked`。
+
 ## 默认派工格式
 
 ```text
@@ -39,7 +59,8 @@
 - 输入校验通过后，运行 `director-agent`。
 - `director-agent` 通过评审后，运行 `scene-breakdown-agent` 与 `visual-continuity-agent`。
 - 两者均通过评审后，运行 `shot-planner-agent`。
-- `shot-planner-agent` 通过后，运行 `cinematographer-agent`。
+- `shot-planner-agent` 通过后，运行 `scene-coordinate-agent`，生成 `layout.yaml`、场景圣经和低模搭建计划。
+- `scene-coordinate-agent` 通过后，运行 `cinematographer-agent`。
 - `cinematographer-agent` 通过后，运行 `storyboard-agent`。
 - `storyboard-agent` 通过后，运行 `generation-strategy-agent`。
 - `generation-strategy-agent` 通过后，运行 `shot-prompt-agent`。
@@ -49,8 +70,10 @@
 - `shot-prompt-engineer-agent` 通过后，运行 `workflow-parameter-agent`。
 - `workflow-parameter-agent` 通过后，运行 `prompt-qc-agent`。
 - `prompt-qc-agent` 通过后，运行 `scene-image-resource-agent`。
+- `scene-image-resource-agent` 通过后，运行 `studio-tool-execution-agent`，执行低模搭建、控制图导出、场景母图、导演参考图和修图任务。
 - 若存在渲染反馈，运行 `comfyui-feedback-agent`。
 - 若进入剪辑、音频或交付阶段，依次运行 `edit-planner-agent`、`audio-planner-agent`、`delivery-qc-agent`。
+- 若存在人工审核反馈，运行 `user-feedback-triage-agent`，再把返工项退回受影响员工或工具执行任务。
 - 所有被请求阶段均通过评审后，主协调代理装配最终综合中文报告。
 
 ## 镜头与分镜连续规划
@@ -63,6 +86,26 @@
 - 单镜头场景图和导演参考图必须拆成独立任务，每个任务引用同一套场景控制包、镜头 ID、摄影方案、分镜说明和控制图依据。
 - 逐镜头图片任务只执行本镜头的场景输出图、导演参考图或控制图生成，不得重排镜头、重设场景、重放角色或改变道具位置。
 
+## 平面调度坐标与低模导出
+
+`layout.yaml` 是平面调度坐标的权威来源。它由 `scene-coordinate-agent` 生成，经评审通过后，才能交给工具执行环节建立低模场景。
+
+低模执行顺序：
+
+1. 根据 `layout.yaml` 和 `blockout-plan.md` 建立低模场景。
+2. 导出顶视图、机位图和每个镜头的导演视角图。
+3. 导出深度图、线稿和 mask。
+4. 对照镜头表、摄影方案和视觉连续性圣经评审导出图。
+5. 若用户或评审认为空间关系不成立，优先返工 `layout.yaml` 和低模场景，再重新导出图，不得只改提示词。
+
+低模导出结果写入：
+
+```text
+{episode-id}/control/scene-packages/SC###/blockout.blend
+{episode-id}/control/scene-packages/SC###/blockout-export-manifest.json
+{episode-id}/production/studio-execution-manifest.json
+```
+
 ## 评审循环
 
 每个员工完成后立即评审：
@@ -74,6 +117,7 @@
 5. 达到通过线后写入项目文件，并进入下一个员工。
 6. 未达到通过线时，把评审记录退回同一员工重做。
 7. 重做后的 artifact 重新进入同一评审流程。
+8. 人工审核不通过时，先运行 `user-feedback-triage-agent`，再把反馈映射到对应员工或工具任务返工。
 
 默认通过线：
 
@@ -93,6 +137,15 @@
 
 账本记录每个员工每次尝试的分数、失败项、返工要求、最终通过状态和已写入 artifact。
 
+人工反馈另写入：
+
+```text
+{episode-id}/reviews/human-feedback-log.jsonl
+{episode-id}/reviews/feedback-revision-plan.json
+```
+
+每条人工反馈必须有状态：`open`、`in_progress`、`resolved` 或 `blocked`。
+
 ## 最终综合中文报告
 
 所有员工产物通过评审后，主协调代理必须生成：
@@ -106,6 +159,8 @@
 - 所有输出文档、结构化文件、控制包、图片资源目录和逐镜头图片任务单；
 - 每个输出文档的作用、来源依据、使用部门或使用阶段；
 - 每个员工最终评分、通过线、返工次数、主要审查意见和最终状态；
+- 工具能力检查、实际执行结果、生成文件路径和失败原因；
+- 用户审核反馈、返工处理状态和未关闭问题；
 - 场景连续性、镜头连续性、角色与道具一致性的审查结论；
 - 已通过校验、警告项、阻塞项和后续交接建议。
 

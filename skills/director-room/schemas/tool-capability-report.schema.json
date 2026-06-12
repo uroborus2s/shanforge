@@ -1,0 +1,53 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Director Room Tool Capability Report",
+  "type": "object",
+  "additionalProperties": true,
+  "required": ["version", "tools"],
+  "properties": {
+    "version": {
+      "type": "string"
+    },
+    "tools": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": true,
+        "required": ["tool", "status", "usage", "missing_requirements"],
+        "properties": {
+          "tool": {
+            "type": "string",
+            "enum": [
+              "raster_image_generation",
+              "desktop_automation",
+              "blender",
+              "comfyui",
+              "krita",
+              "gimp",
+              "photoshop"
+            ]
+          },
+          "status": {
+            "type": "string",
+            "enum": ["available", "configured", "needs_config", "not_available", "blocked"]
+          },
+          "usage": {
+            "type": "string"
+          },
+          "version": {
+            "type": "string"
+          },
+          "endpoint_or_path": {
+            "type": "string"
+          },
+          "missing_requirements": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    }
+  }
+}

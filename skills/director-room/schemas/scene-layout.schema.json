@@ -1,0 +1,71 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Director Room Scene Layout",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "scene_id",
+    "unit",
+    "origin",
+    "axes",
+    "dimensions",
+    "fixed_structures",
+    "props",
+    "characters_by_shot",
+    "camera_by_shot",
+    "movement_paths",
+    "continuity_locks",
+    "forbidden_changes",
+    "source_refs"
+  ],
+  "properties": {
+    "scene_id": {
+      "type": "string"
+    },
+    "unit": {
+      "type": "string"
+    },
+    "origin": {
+      "type": "object"
+    },
+    "axes": {
+      "type": "object"
+    },
+    "dimensions": {
+      "type": "object"
+    },
+    "fixed_structures": {
+      "type": "array"
+    },
+    "props": {
+      "type": "array"
+    },
+    "characters_by_shot": {
+      "type": "array"
+    },
+    "camera_by_shot": {
+      "type": "array"
+    },
+    "movement_paths": {
+      "type": "array"
+    },
+    "continuity_locks": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "forbidden_changes": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "source_refs": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  }
+}

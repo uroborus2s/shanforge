@@ -11,6 +11,7 @@ ROLE_CARDS = (
     "director-agent.md",
     "scene-breakdown-agent.md",
     "shot-planner-agent.md",
+    "scene-coordinate-agent.md",
     "cinematographer-agent.md",
     "storyboard-agent.md",
     "visual-continuity-agent.md",
@@ -23,6 +24,8 @@ ROLE_CARDS = (
     "workflow-parameter-agent.md",
     "prompt-qc-agent.md",
     "scene-image-resource-agent.md",
+    "studio-tool-execution-agent.md",
+    "user-feedback-triage-agent.md",
     "comfyui-feedback-agent.md",
     "edit-planner-agent.md",
     "audio-planner-agent.md",
@@ -52,6 +55,9 @@ REQUIRED_OUTPUTS = (
     "{episode-id}/control/scene-packages/SC###/layout.yaml",
     "{episode-id}/control/scene-packages/SC###/top-view.png",
     "{episode-id}/control/scene-packages/SC###/camera-map.png",
+    "{episode-id}/control/scene-packages/SC###/blockout.blend",
+    "{episode-id}/control/scene-packages/SC###/blockout-export-manifest.json",
+    "{episode-id}/control/scene-packages/SC###/shot-guides/SC###-SH###.png",
     "{episode-id}/control/scene-packages/SC###/depth/",
     "{episode-id}/control/scene-packages/SC###/lineart/",
     "{episode-id}/control/scene-packages/SC###/masks/",
@@ -63,6 +69,8 @@ REQUIRED_OUTPUTS = (
     "{episode-id}/prompts/comfyui-render-prompts.md",
     "{episode-id}/prompts/comfyui-tuning-log.json",
     "{episode-id}/reports/comfyui-prompt-qc.md",
+    "{episode-id}/production/tool-capability-report.json",
+    "{episode-id}/production/studio-execution-manifest.json",
     "{episode-id}/handoff/art-planning/scene-image-brief.md",
     "{episode-id}/handoff/art-planning/scene-image-resource-index.json",
     "{episode-id}/handoff/art-planning/scene-reference-prompts.json",
@@ -89,6 +97,8 @@ REQUIRED_OUTPUTS = (
     "{episode-id}/post/sound-plan.md",
     "{episode-id}/post/color-plan.md",
     "{episode-id}/post/delivery-qc-report.md",
+    "{episode-id}/reviews/human-feedback-log.jsonl",
+    "{episode-id}/reviews/feedback-revision-plan.json",
 )
 
 
@@ -137,6 +147,16 @@ class DirectorRoomSkillTests(unittest.TestCase):
         self.assertIn("必须一次性整体处理本集所有场景与镜头", content)
         self.assertIn("单镜头场景图和导演参考图必须拆成独立任务", content)
         self.assertIn("shot-image-task-list.json", content)
+        self.assertIn("工作室执行模式", content)
+        self.assertIn("可调用运行环境提供的图像生成能力", content)
+        self.assertIn("Blender", content)
+        self.assertIn("Krita", content)
+        self.assertIn("GIMP", content)
+        self.assertIn("ComfyUI", content)
+        self.assertIn("不得把 Photoshop 作为必需工具", content)
+        self.assertIn("平面调度坐标的权威来源", content)
+        self.assertIn("用户人工审核不通过时", content)
+        self.assertIn("human-feedback-log.jsonl", content)
 
         for path in REQUIRED_INPUTS + REQUIRED_OUTPUTS:
             self.assertIn(path, content)
@@ -181,6 +201,7 @@ class DirectorRoomSkillTests(unittest.TestCase):
             "scene-breakdown.schema.json",
             "shot-list.schema.json",
             "visual-continuity-bible.schema.json",
+            "scene-layout.schema.json",
             "generation-plan.schema.json",
             "shot-prompts-draft.schema.json",
             "comfyui-style-preset.schema.json",
@@ -192,6 +213,9 @@ class DirectorRoomSkillTests(unittest.TestCase):
             "scene-image-resource-index.schema.json",
             "scene-reference-prompts.schema.json",
             "shot-image-task-list.schema.json",
+            "tool-capability-report.schema.json",
+            "studio-execution-manifest.schema.json",
+            "feedback-revision-plan.schema.json",
             "render-manifest.schema.json",
             "shot-qc-report.schema.json",
             "episode-qc-report.schema.json",
@@ -338,6 +362,105 @@ class DirectorRoomSkillTests(unittest.TestCase):
         self.assertIn("每个镜头必须至少有一个单镜头场景图或导演参考图任务", agent_card)
         self.assertIn("场景图片资源包是关键产物，通过线为 90 分", agent_card)
 
+    def test_studio_tool_execution_contract_is_explicit(self) -> None:
+        tool_schema = json.loads(
+            (SKILL_ROOT / "schemas" / "tool-capability-report.schema.json").read_text(
+                encoding="utf-8"
+            )
+        )
+        manifest_schema = json.loads(
+            (SKILL_ROOT / "schemas" / "studio-execution-manifest.schema.json").read_text(
+                encoding="utf-8"
+            )
+        )
+        agent_card = (SKILL_ROOT / "agents" / "studio-tool-execution-agent.md").read_text(
+            encoding="utf-8"
+        )
+
+        tools = tool_schema["properties"]["tools"]["items"]["properties"]["tool"]["enum"]
+        for expected in (
+            "raster_image_generation",
+            "desktop_automation",
+            "blender",
+            "comfyui",
+            "krita",
+            "gimp",
+        ):
+            self.assertIn(expected, tools)
+        self.assertIn("photoshop", tools)
+
+        execution_item = manifest_schema["properties"]["executions"]["items"]
+        for field in (
+            "task_id",
+            "tool",
+            "status",
+            "input_refs",
+            "output_paths",
+            "continuity_refs",
+            "feedback_refs",
+            "failure_reason",
+        ):
+            self.assertIn(field, execution_item["required"])
+        self.assertIn("blockout.blend", agent_card)
+        self.assertIn("顶视图", agent_card)
+        self.assertIn("导演视角图", agent_card)
+        self.assertIn("深度图", agent_card)
+        self.assertIn("线稿", agent_card)
+        self.assertIn("mask", agent_card)
+        self.assertIn("不得假定 Photoshop 存在", agent_card)
+        self.assertIn("不得伪造已生成文件", agent_card)
+
+    def test_scene_coordinate_and_human_feedback_contracts_are_explicit(self) -> None:
+        layout_schema = json.loads(
+            (SKILL_ROOT / "schemas" / "scene-layout.schema.json").read_text(encoding="utf-8")
+        )
+        feedback_schema = json.loads(
+            (SKILL_ROOT / "schemas" / "feedback-revision-plan.schema.json").read_text(
+                encoding="utf-8"
+            )
+        )
+        coordinate_card = (SKILL_ROOT / "agents" / "scene-coordinate-agent.md").read_text(
+            encoding="utf-8"
+        )
+        feedback_card = (SKILL_ROOT / "agents" / "user-feedback-triage-agent.md").read_text(
+            encoding="utf-8"
+        )
+
+        for field in (
+            "scene_id",
+            "unit",
+            "origin",
+            "axes",
+            "dimensions",
+            "fixed_structures",
+            "props",
+            "characters_by_shot",
+            "camera_by_shot",
+            "movement_paths",
+            "continuity_locks",
+            "forbidden_changes",
+            "source_refs",
+        ):
+            self.assertIn(field, layout_schema["required"])
+        feedback_item = feedback_schema["properties"]["feedback_items"]["items"]
+        for field in (
+            "feedback_id",
+            "status",
+            "severity",
+            "target_refs",
+            "assigned_role",
+            "required_changes",
+            "acceptance_criteria",
+            "retry_policy",
+        ):
+            self.assertIn(field, feedback_item["required"])
+        self.assertIn("坐标原点", coordinate_card)
+        self.assertIn("角色起点、终点、朝向", coordinate_card)
+        self.assertIn("摄影机位置、高度、朝向", coordinate_card)
+        self.assertIn("人工审核反馈分诊员", feedback_card)
+        self.assertIn("退回原员工或工具执行任务继续修改", feedback_card)
+        self.assertIn("不得自行改写创作产物", feedback_card)
+
     def test_bilingual_comfyui_prompt_contract_is_explicit(self) -> None:
         prompt_schema = json.loads(
             (SKILL_ROOT / "schemas" / "comfyui-shot-prompts.schema.json").read_text(
@@ -430,6 +553,10 @@ class DirectorRoomSkillTests(unittest.TestCase):
         self.assertIn("单镜头场景图和导演参考图必须拆成独立任务", workflow)
         self.assertIn("最终综合中文报告", workflow)
         self.assertIn("每个输出文档的作用", workflow)
+        self.assertIn("工具能力检查", workflow)
+        self.assertIn("Photoshop 不得被视为必需工具", workflow)
+        self.assertIn("平面调度坐标的权威来源", workflow)
+        self.assertIn("人工审核不通过时", workflow)
         self.assertIn("production_metadata", guide)
         self.assertIn("model_visible_prompt", guide)
         self.assertIn("美术资产输出格式", guide)

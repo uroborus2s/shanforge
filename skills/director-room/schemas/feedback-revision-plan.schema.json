@@ -1,0 +1,66 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Director Room Feedback Revision Plan",
+  "type": "object",
+  "additionalProperties": true,
+  "required": ["version", "feedback_items"],
+  "properties": {
+    "version": {
+      "type": "string"
+    },
+    "feedback_items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": true,
+        "required": [
+          "feedback_id",
+          "status",
+          "severity",
+          "target_refs",
+          "assigned_role",
+          "required_changes",
+          "acceptance_criteria",
+          "retry_policy"
+        ],
+        "properties": {
+          "feedback_id": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["open", "in_progress", "resolved", "blocked"]
+          },
+          "severity": {
+            "type": "string",
+            "enum": ["critical", "major", "minor"]
+          },
+          "target_refs": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "assigned_role": {
+            "type": "string"
+          },
+          "required_changes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "acceptance_criteria": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "retry_policy": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}

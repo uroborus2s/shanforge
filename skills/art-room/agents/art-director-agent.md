@@ -7,6 +7,10 @@ visual direction for asset generation.
 
 ## Inputs
 
+- `bible/characters.md`
+- `bible/scenes.md`
+- `bible/visual-style.md` when present
+- `production/series-video-rules.md` when present
 - `{episode-id}/director/director-brief.md`
 - `{episode-id}/director/camera-plan.md`
 - `{episode-id}/storyboard/storyboard-plan.md`
@@ -17,6 +21,7 @@ visual direction for asset generation.
 
 - Define visual style, palette, material language, texture density, lighting
   identity, era cues, and realism/stylization level.
+- Distinguish whole-series master asset rules from episode-specific state cards.
 - Translate continuity locks into art rules for characters, locations, props,
   costumes, and reference frames.
 - Identify visual risks that may cause identity drift or scene mismatch.

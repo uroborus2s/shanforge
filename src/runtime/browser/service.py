@@ -75,7 +75,12 @@ class BrowserService:
         url: str,
         context: CapabilityInvocationContext,
     ) -> BrowserSessionHandle:
-        raise NotImplementedError("Scaffold only: implement browser session open in TASK-017.")
+        payload = self._require_browser_provider().open_page(url, session_id=context.session_id)
+        return BrowserSessionHandle(
+            session_token=str(payload.get("session_token") or context.session_id),
+            current_url=str(payload.get("current_url") or url),
+            metadata=dict(payload.get("metadata") or {}),
+        )
 
     def inspect_dom(
         self,
@@ -83,7 +88,9 @@ class BrowserService:
         selector: str | None,
         context: CapabilityInvocationContext,
     ) -> BrowserObservation:
-        raise NotImplementedError("Scaffold only: implement DOM inspection in TASK-017.")
+        del context
+        payload = self._require_browser_provider().inspect_dom(session_token, selector)
+        return self._observation_from_payload(session_token, payload)
 
     def click(
         self,
@@ -91,7 +98,9 @@ class BrowserService:
         target: str,
         context: CapabilityInvocationContext,
     ) -> BrowserActionReceipt:
-        raise NotImplementedError("Scaffold only: implement click actions in TASK-017.")
+        self._ensure_mutation_allowed(context)
+        payload = self._require_browser_provider().click(session_token, target)
+        return self._receipt_from_payload(session_token, "click", payload)
 
     def type_text(
         self,
@@ -100,7 +109,9 @@ class BrowserService:
         value: str,
         context: CapabilityInvocationContext,
     ) -> BrowserActionReceipt:
-        raise NotImplementedError("Scaffold only: implement typing actions in TASK-017.")
+        self._ensure_mutation_allowed(context)
+        payload = self._require_browser_provider().type_text(session_token, target, value)
+        return self._receipt_from_payload(session_token, "type_text", payload)
 
     def wait_for(
         self,
@@ -108,7 +119,9 @@ class BrowserService:
         condition: dict[str, Any],
         context: CapabilityInvocationContext,
     ) -> BrowserObservation:
-        raise NotImplementedError("Scaffold only: implement waits in TASK-017.")
+        del context
+        payload = self._require_browser_provider().wait_for(session_token, condition)
+        return self._observation_from_payload(session_token, payload)
 
     def capture_screenshot(
         self,
@@ -116,4 +129,42 @@ class BrowserService:
         label: str | None,
         context: CapabilityInvocationContext,
     ) -> BrowserObservation:
-        raise NotImplementedError("Scaffold only: implement screenshots in TASK-017.")
+        del context
+        payload = self._require_browser_provider().capture_screenshot(session_token, label)
+        return self._observation_from_payload(session_token, payload)
+
+    def _ensure_mutation_allowed(self, context: CapabilityInvocationContext) -> None:
+        if context.sandbox_decision == "denied":
+            raise PermissionError("Sandbox denied the browser interaction request.")
+        if not context.approval_ref:
+            raise PermissionError("Approval is required before mutating browser state.")
+
+    def _require_browser_provider(self) -> BrowserAutomationProviderPort:
+        if self.browser_provider is None:
+            raise RuntimeError("Browser automation provider is not configured.")
+        return self.browser_provider
+
+    def _observation_from_payload(
+        self,
+        session_token: str,
+        payload: dict[str, Any],
+    ) -> BrowserObservation:
+        return BrowserObservation(
+            session_token=str(payload.get("session_token") or session_token),
+            kind=str(payload.get("kind") or "browser"),
+            value=str(payload.get("value") or ""),
+            metadata=dict(payload.get("metadata") or {}),
+        )
+
+    def _receipt_from_payload(
+        self,
+        session_token: str,
+        action: str,
+        payload: dict[str, Any],
+    ) -> BrowserActionReceipt:
+        return BrowserActionReceipt(
+            session_token=str(payload.get("session_token") or session_token),
+            action=str(payload.get("action") or action),
+            status=str(payload.get("status") or "completed"),
+            metadata=dict(payload.get("metadata") or {}),
+        )

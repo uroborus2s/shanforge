@@ -7,11 +7,12 @@
 **上游输入：** [记忆系统业务需求文档](../03-requirements/memory-system-business-requirements.md) | [记忆运行时设计](./memory-runtime-design.md) | [记忆系统对外界面](./memory-runtime-interfaces.md) | [架构分层与代码映射说明](./architecture-layer-code-mapping.md) | [Hermes Agent 源码与实现原理调研报告](../02-discovery/hermes-agent-source-analysis-report.md)  
 **下游输出：** 代码实现 | 追踪矩阵 | 测试计划 | `.factory/memory` 摘要  
 **关联 ID：** `REQ-006`, `MOD-007`, `MOD-010`, `API-006`, `API-007`, `MEM-BIZ-001` ~ `MEM-BIZ-008`  
-**最后更新：** 2026-04-15
+**最后更新：** 2026-04-19
 
 ## 1. 这份文档解决什么问题
 
-现有 `memory-runtime-design.md` 文件已经回答了“记忆为什么要成为平台一级能力专题、recall / promotion / distill 怎么分层、当前实现闭环怎么落地”。  
+现有 `memory-runtime-design.md` 文件已经回答了“记忆为什么要成为平台一级能力专题、recall / promotion / distill 怎么分层、当前实现闭环怎么落地”。
+治理边界、分层 owner 与开发分阶段收口，现由 [记忆治理专项设计方案](./memory-governance-design.md) 单独说明。
 本文件进一步回答业务侧真正关心的 8 个问题：
 
 1. 会话启动时，哪一层负责决定长期记忆域、项目规则和技能装配。
@@ -61,7 +62,7 @@ Hermes Agent 的源码结论进一步验证了这个分拆方向：它把 bounde
 | 业务调度层 | `src/application/` | 组织 `prepare -> run -> distill -> persist` 会话生命周期，并通过 `MemoryDomainService` 调用记忆领域 | 直接决定 store / provider 实现细节 |
 | 业务模型层 | `src/domain/memory/`、相关 assembly/archive 模型 | 定义 `RecallQuery`、`RecallBundle`、`MemoryRecord`、`SessionAssemblyManifest` 等稳定契约，并持有记忆业务逻辑 | 持有外部 SDK 或数据库驱动细节 |
 | 基础能力层 | `src/runtime/ports/` 及未来实现模块 | 提供 recall、assembly、promotion、archive query 所需的检索、规则、profile、skill、推理和存储能力 | 主导记忆业务语义 |
-| 基础设置层 | `src/settings/session/`、`src/settings/memory/`、`src/settings/model/`、`src/settings/composition/` | 提供 session ledger、evidence、memory、dataset、archive、provider 与装配实现 | 主导业务路由或改写领域规则 |
+| 基础设置层 | `src/settings/session/`、`src/settings/memory/`、`src/settings/model/`、`src/settings/composition/`、sibling `shanforge-di` | 提供 session ledger、evidence、memory、dataset、archive、provider、本地 business bindings 与装配实现 | 主导业务路由或改写领域规则 |
 
 补充约束：
 
@@ -113,7 +114,7 @@ Hermes Agent 的源码结论进一步验证了这个分拆方向：它把 bounde
 | `ProjectRuleBundle` | `src/domain/session/assembly_models.py`（新增） | 表达当前仓库加载到的规则文件、规则来源、版本摘要 |
 | `SkillDescriptor` | `src/domain/context/skill_models.py`（新增） | 只描述 skill 索引，不承载 skill 正文 |
 | `SkillActivation` | `src/domain/context/skill_models.py`（新增） | 描述本会话已激活的 skill、来源和加载原因 |
-| `SessionAssemblyManifest` | `src/domain/session/assembly_models.py`（新增） | 一次会话最终装配结果的读模型，记录 profile、cwd、规则、skills、recall plan、memory sources |
+| `SessionAssemblyManifest` | `src/domain/session/assembly_models.py`（新增） | 一次会话最终装配结果的读模型，记录 profile、cwd、规则、skills、recall plan、memory sources、backend bindings、默认 selected model 与实际 model invocation history |
 | `SubAgentDigest` | `src/domain/session/delegation_models.py`（新增） | 子 Agent 产出摘要、责任范围、证据来源、主 Agent 吸收状态 |
 | `RecallPlan` | `src/domain/memory/assembly_models.py`（新增） | 记录本轮 recall 的 scopes、预算、排序策略和过滤原因 |
 | `MemoryProviderBinding` | `src/domain/memory/assembly_models.py`（新增） | 描述本轮启用的 built-in / external provider、命名空间与注入模式 |
@@ -178,8 +179,8 @@ SessionArchiveHit
 | `Evidence Store` | 已有 `InMemory/JsonlEvidenceStore` | 保存事实投影，供审计、追溯和 candidate 支撑引用 |
 | `Memory Store` | 已有 `InMemory/JsonlMemoryStore` | 保存 `accepted/draft/superseded` 记忆，按 `profile_id + scope + scope_key` 分区 |
 | `Dataset Store` | 已有 `InMemory/JsonlMemoryDatasetStore` | 保存 `candidate -> decision -> supporting refs` 样本链 |
-| `Assembly Store` | 缺失 | 保存 `SessionAssemblyManifest`，支撑“当前装配了什么”的解释与调试 |
-| `Digest Store` | 缺失 | 保存子 Agent 输出摘要和主 Agent 吸收决策 |
+| `Assembly Store` | 已有 `InMemory/JsonlSessionAssemblyStore` | 保存 `SessionAssemblyManifest`，支撑“当前装配了什么”的解释与调试 |
+| `Digest Store` | 已有 `InMemory/JsonlDelegationDigestStore` | 保存子 Agent 输出摘要和主 Agent 吸收决策 |
 | `Session Archive Index` | 缺失 | 为历史会话建立 `session/event/artifact` 检索索引，专门服务回查 |
 
 ### 5.2 推荐的本地目录布局
@@ -193,7 +194,10 @@ SessionArchiveHit
       memory-records.jsonl
       memory-dataset.jsonl
       profile-config.json
-      provider-snapshot.json
+      memory-provider/
+        memory-provider-snapshots.jsonl
+        memory-provider-turns.jsonl
+        memory-provider-digests.jsonl
   sessions/
     <session_id>/
       session-events.jsonl
@@ -217,15 +221,16 @@ SessionArchiveHit
 
 ### 5.4 检索与持久化分离
 
-当前 `MemoryStorePort.search()` 同时承担筛选与排序；这在 `v1` 可接受，但在 `v2` 详细设计中应拆成：
+当前这条链已经从“设计要求”进入“正式实现”，主链已拆成：
 
-- `MemoryStorePort`：负责持久化与按分区扫描
-- `RecallPlannerPort`：负责确定查询 scope、预算、状态过滤
+- `MemoryStorePort`：负责持久化与按分区扫描；当前正式 owner 是 `scan_memory_records()`
+- `RecallGovernancePolicy`：负责确定查询 scope、状态过滤与 augmentation 参与条件
+- `RecallPlannerPort`：负责把 `RecallGovernanceDecision` 物化为带预算的 `RecallPlan`
 - `RecallRankerPort`：负责排序、去重、pinned 优先级和 top-k 裁剪
 - `SessionArchiveQueryPort`：负责在 session ledger / archive index 上做历史回查，不污染长期记忆入口
 - `provider_manager`：负责把 built-in snapshot 与单个 external provider augmentation 编织到本轮装配中
 
-这样可以避免未来把向量检索、关键词检索、规则过滤全部塞进 store。
+这样可以避免未来把向量检索、关键词检索、规则过滤和 external augmentation 全部塞进 store。
 
 ### 5.5 清理与维护规则
 
@@ -259,10 +264,11 @@ SessionArchiveHit
 | `src/settings/memory/evidence_store.py` | 已存在 | evidence store 实现 |
 | `src/settings/memory/dataset_store.py` | 已存在 | dataset store 实现 |
 | `src/settings/composition/container.py` | 已存在 | 默认容器装配 |
+| `src/settings/composition/component_bindings.py` | 已存在 | 记忆相关 store/provider 的本地 business bindings |
 
-兼容说明：
+迁移说明：
 
-- `src/runtime/memory/runtime.py`、`src/runtime/memory/policy.py` 仍可保留为迁移期兼容代码，但不再是正式主链 owner。
+- 旧的 `src/runtime/memory/runtime.py` 与 `src/runtime/memory/policy.py` 已在 2026-04-18 退役；记忆主链只保留 `src/domain/memory/service.py`、`src/domain/memory/policy.py` 与 runtime 侧的 planner/ranker/provider_manager/summarizer 支撑模块。
 
 ### 6.2 建议新增的骨架
 
@@ -270,32 +276,36 @@ SessionArchiveHit
 |---|---|---|
 | `src/domain/memory/assembly_models.py` | 新增 | `ProfileMemoryDomain`、`RecallPlan`、`MemoryProviderBinding` |
 | `src/domain/session/assembly_models.py` | 新增 | `ProjectRuleBundle`、`SessionAssemblyManifest` |
-| `src/domain/session/delegation_models.py` | 新增 | `SubAgentDigest` |
+| `src/domain/session/delegation_models.py` | 已落地 | `SubAgentDigest` |
 | `src/domain/session/archive_models.py` | 新增 | `SessionArchiveHit` |
 | `src/domain/context/skill_models.py` | 新增 | `SkillDescriptor`、`SkillActivation` |
 | `src/application/ports/memory_assembly.py` | 新增 | `MemoryAssemblyQueryPort` |
 | `src/access/api/memory_api.py` | 新增 | 读写分离的 memory / assembly 调试与运维入口 |
 | `src/runtime/memory/assembly.py` | 新增 | `profile + rules + skill + digest` 装配服务 |
-| `src/runtime/memory/provider_manager.py` | 新增 | 编排 built-in local memory 与单个 external memory provider |
-| `src/runtime/memory/recall_planner.py` | 新增 | recall plan 生成与预算裁剪 |
+| `src/runtime/memory/provider_manager.py` | 已落地 | 编排 built-in local memory 与单个 external memory provider |
+| `src/runtime/memory/recall_planner.py` | 已落地 | recall plan 生成与预算裁剪 |
 | `src/runtime/ports/profile_resolver.py` | 新增 | 显式入口 -> profile domain |
 | `src/runtime/ports/workspace_rule_bundle.py` | 新增 | 从 `cwd` 加载项目规则摘要 |
 | `src/runtime/ports/skill_catalog.py` | 新增 | 暴露 skill 索引与按需加载能力 |
-| `src/runtime/ports/memory_provider.py` | 新增 | external memory augmentation 生命周期接口 |
-| `src/runtime/ports/recall_ranker.py` | 新增 | recall 结果排序与裁剪 |
-| `src/runtime/ports/session_assembly_store.py` | 新增 | assembly manifest 持久化 |
+| `src/domain/memory/ports.py` | 已扩展 | `MemoryProviderPort` / `MemoryProviderManagerPort` 的 consumer-owned 接口定义 |
+| `src/runtime/memory/recall_ranker.py` | 已落地 | recall 结果排序与裁剪 |
+| `src/domain/session/ports.py` | 已落地 | `SessionAssemblyStorePort`，承载 assembly manifest 的 durable snapshot 契约 |
 | `src/runtime/ports/delegation_digest_store.py` | 新增 | 子 Agent digest 持久化 |
 | `src/runtime/ports/session_archive_query.py` | 新增 | 历史会话检索与摘要回查 |
-| `src/settings/session/assembly_store.py` | 新增 | assembly store 的 `in-memory / JSONL` 实现 |
+| `src/settings/memory/provider.py` | 已落地 | external memory provider 的 `none / in_memory / jsonl` 基础设置实现 |
+| `src/settings/session/assembly_store.py` | 已落地 | assembly store 的 `in-memory / JSONL` 实现 |
 | `src/settings/delegation/digest_store.py` | 新增 | digest store 的 `in-memory / JSONL` 实现 |
 | `src/settings/session/archive_index.py` | 新增 | session archive query 的 `SQLite FTS / JSONL` 实现 |
 
 ### 6.3 与当前实现的关键对齐结论
 
 - `ExecutionService -> SessionDomainService / MemoryDomainService -> domain ports -> stores / reasoning capability` 已经是真实主链路，不再以 `MemoryRuntime` 作为正式业务 owner。
-- `project_scope_key="shanforge"` 这类静态配置应从 `runtime.py` / `container/default.py` 迁出，改为由 `ProfileResolver + WorkspaceRuleBundle` 在装配阶段生成。
+- `project_scope_key="shanforge"` 这类静态配置已从默认容器迁出；当前默认装配已改为通过 `ProfileSourceService + RuleSourceService` 生成 `profile_id` 与 `project_scope_key`，并随 `SessionAssemblyManifest` 持久化。
 - `ContextSegmentType` 已预留 `SKILL` / `EVIDENCE`，但当前上下文引擎尚未把 skill 正文和 evidence 段正式产出；详细设计应明确这部分是下一阶段补位。
-- `DefaultMemoryDomainService` 当前已承接 recall / distill / promotion 主逻辑；下一阶段应继续把 planner / ranker / archive query / provider manager 补齐为独立领域协作对象，而不是回塞到 `runtime.py`。
+- `DefaultMemoryDomainService` 当前已承接 recall / distill / promotion 主逻辑；其中 recall 已改为 `RecallGovernancePolicy -> RecallPlannerPort -> scan_memory_records() -> RecallRankerPort` 的独立协作链，不再回塞到 legacy runtime shim 或 store 查询里。
+- external `MemoryProviderPort + provider_manager` 已从首轮边界推进到 durable backend/source：domain owner 定义 `MemoryProviderPort / MemoryProviderManagerPort`，runtime `DefaultMemoryProviderManager` 负责 single-provider lifecycle + sanitize fence，settings `memory_provider` family 已提供 `none / in_memory / jsonl / jsonl_vector / remote_http` 实现，`SessionAssemblyManifest` 现会冻结 `memory_provider_binding`。
+- `JsonlAugmentationMemoryProvider` 会把 provider-owned snapshot / turn / digest state 落到 profile-scoped JSONL root，保证 built-in local memory 与 external augmentation 的 durable state 仍然分仓治理。
+- `RemoteAugmentationMemoryProvider` 现已通过 settings-layer `http_client` 支持 `file:// + http(s)` JSON transport，并可选写回 `sync / session_end / lifecycle_apply / delegation` 事件；binding metadata 还可声明 `metadata_file`、`request_headers / bearer_token(_env|_file) / signature_secret(_env|_file) / signature_key_id / retry_status_codes / max_retries / timeout_seconds`、canonical `hmac-sha256` 签名串、`prefetch_response_validation`、`*_failure_policy` 与 `secret_catalog_file`；其中 `secret_catalog_file` 可提供 `default_signature_key_id / signature_keys / default_bearer_token_id / bearer_tokens`，把 key rotation 与 durable secret governance 留在 settings 层，而 `RemoteHttpMetadataResolver` 会把 `recall / sync / session_end / lifecycle_apply / delegation` 的 endpoint、response contract、response validation、failure policy、canonical `bearer_token*` 与 legacy alias fallback 统一收口到同一条解析路径，并投影为 `RemoteHttpRequestGovernance` 读模型供 provider 直接消费；当前 `jsonl / jsonl_vector / remote_http` 也已统一把 `query_terms / source_breakdown / result_truncated / budget_trace / rank_trace / hit_provenance / contract_trace / access_trace / writeback_trace` 回收到 preview explainability，`src/domain/memory/augmentation_diagnostics.py` 则把 provider manager、stored replay、domain preview 回读和 session/manifest 落盘统一到同一套 normalize/compact/project-stored/preview-project 路径上；其中 runtime provider manager 现已直接输出 compact canonical diagnostics，不再主动展开 legacy 顶层 alias，而读取冻结的旧 diagnostics 时仍可经 normalize 把这些 legacy 顶层键并回 trace，且 `DefaultMemoryDomainService` 不再单独维护一份 service-local `allowed_keys`。与此同时，stored replay 现还会基于 `provider_id` 推断基础 contract defaults，并基于 `memory_provider_binding.metadata.recall_endpoint_url` 恢复 access 默认值，使 `bridge_kind / provider_kind / storage_kind / retrieval_kind / response_contract / response_contract_source / endpoint_url` 不再需要继续作为 legacy 顶层输入。preview 现已完全只暴露 canonical trace-first 字段，不再输出 `legacy_aliases`。`remote_http` provider 自身则继续移除重复顶层 diagnostics，并把 transport auth、retry/timeout、secret selection、catalog source、prefetch validation 与 writeback outcome/error 摘要分别统一回收到 `access_trace / contract_trace / writeback_trace`；其中 `writeback_trace` 现会稳定暴露 `successes / response_oks / response_statuses / response_messages / response_report_ids / failure_policies / response_validation_errors`，并以 `detail_reports` 作为 canonical drill-down 字段；旧的 `reports` 只在 replay/normalize 阶段作为兼容输入，`hit_count / hit_ids / query_text_present` 这组跨 backend 命中摘要也已继续并入 `budget_trace.selected_hit_count / selected_hit_ids / query_text_present`。`apply_lifecycle()` 现还会在本地 memory store durable 更新后，按 `MemoryProviderGovernanceDecision.allow_lifecycle_writeback` 决定是否继续触发 provider-aware lifecycle writeback。
 - Hermes 的 `MemoryManager + MemoryProvider` 模式可直接复用为 shanforge 的“增强 provider 插槽”，但 evidence / accepted memory 仍必须由本仓的 local-first stores 主导。
 
 ## 7. 对外服务界面
@@ -309,6 +319,12 @@ prepare_session(session, app, workflow) -> RecallBundle
 recall(query) -> RecallBundle
 distill_session(session) -> DistillationResult
 explain_session_memory(session) -> Mapping[str, Any]
+review_lifecycle(session) -> MemoryLifecycleReviewResult
+load_lifecycle_queue(session, queue_filter=None) -> MemoryLifecycleQueue
+reopen_lifecycle_queue(session, actor, record_ids=None, queue_filter=None, note=None) -> MemoryLifecycleQueueUpdateResult
+load_lifecycle_audit(session, audit_filter=None) -> MemoryLifecycleAuditLog
+update_lifecycle_queue(session, actor, review_status, record_ids=None, queue_filter=None, note=None, resolution=None) -> MemoryLifecycleQueueUpdateResult
+apply_lifecycle(session, actor, record_ids=None, queue_filter=None) -> MemoryLifecycleApplyResult
 ```
 
 解释：
@@ -316,7 +332,17 @@ explain_session_memory(session) -> Mapping[str, Any]
 - `prepare_session` 内部应先完成 `SessionAssemblyManifest` 解析，再执行 recall
 - `recall` 保持可独立调试和测试
 - `distill_session` 负责 evidence 投影、candidate 提取、promotion、sample 写入
-- `explain_session_memory` 负责 explainability 读模型收口
+- `explain_session_memory` 负责 explainability 读模型收口，并稳定给出 recall plan、memory provider binding、promotion reasons、recalled memory lifecycle 状态，以及 scoped records 的 `lifecycle_evaluations / lifecycle_queue_summary / lifecycle_audit_summary`；其中 audit summary 会把 `latest_entries` 固化为最新优先，并额外给出 `latest_by_record`
+- `review_lifecycle` 负责返回 session scope 下的完整 lifecycle review 结果
+- `load_lifecycle_queue` 负责把 review 结果投影为产品可消费的 durable queue 读模型，并给出默认 batch selection；默认只返回 `pending` 的 actionable items
+- `load_lifecycle_queue` 对 actionable item 还会投影 reviewer guidance，包括 `resolution_required`、推荐 `resolution_options` 和建议 note 模板
+- `reopen_lifecycle_queue` 负责把已 dismiss/applied 的 review item 恢复到 `pending`
+- 当未显式给出 `record_ids` 时，`reopen_lifecycle_queue` 可按 `queue_filter` 批量恢复命中的 queue item
+- `load_lifecycle_audit` 负责读取 durable 审计轨迹，回答 queue review/apply 的 actor/action/status/resolution 变化，并支持按 `queue_review_status / resolution` 过滤；当 `audit_filter.latest_per_record_only=True` 时，可直接返回每条 record 最近一次人工处理事件
+- `update_lifecycle_queue` 负责持久化人工 review 状态 `pending / dismissed / applied`，不直接改写 memory record；当状态不变但 note 变化时，会落为独立 `review_note_updated` 审计动作
+- `update_lifecycle_queue` 也可显式持久化 reviewer resolution taxonomy；当 queue item 被 `reopen` 回 `pending` 时，已记录 resolution 会被清空
+- 当未显式给出 `record_ids` 时，`update_lifecycle_queue` 可按 `queue_filter` 批量更新命中的 queue item；这里的 filter 语义是“命中队列项全集”，与 `apply_lifecycle` 的默认选中子集不同
+- `apply_lifecycle` 负责将已允许的 lifecycle decision durable 写回 memory store；当未显式给出 `record_ids` 时，可直接消费 queue filter 做批量 apply；成功 apply 后，对应 queue item 会同步标记为 `applied`；当 provider governance 允许时，还会继续通过专门的 `lifecycle_apply` 通道把结果同步给 external provider
 
 兼容说明：
 
@@ -325,12 +351,13 @@ explain_session_memory(session) -> Mapping[str, Any]
 
 ### 7.2 可解释性查询门面
 
-新增读模型门面 `MemoryAssemblyQueryPort`：
+首轮已落地的读模型门面 `MemoryAssemblyQueryPort`：
 
 ```text
-explain_session_assembly(session_id) -> SessionAssemblyManifest
-list_sub_agent_digests(session_id) -> tuple[SubAgentDigest, ...]
+get_session(session_id) -> AgentSession | None
 search_session_archive(query, profile_id, limit) -> tuple[SessionArchiveHit, ...]
+load_session_slice(session_id, cursor, limit) -> SessionTranscriptSlice
+explain_session_assembly(session_id) -> SessionAssemblyManifest
 ```
 
 目的：
@@ -338,24 +365,35 @@ search_session_archive(query, profile_id, limit) -> tuple[SessionArchiveHit, ...
 - 让 CLI / HTTP / 测试可直接看见“当前装配了什么”
 - 将“路由错了、规则错了、skill 装错了、记忆召回错了、历史回查错了”五类问题区分开
 
+当前落地说明：
+
+- 默认容器已接线 `MemoryAPI -> SessionInspectionService -> SessionSearchQueryAdapter -> SessionSearchService`
+- 默认容器现还额外接线 `MemoryInspectionService -> DefaultMemoryDomainService.preview_recall()`，把 recall 预览作为独立治理接口暴露给 `MemoryAPI`
+- `prepare_session` 会把 assembly snapshot 写入 `AgentSession.context["assembly_manifest"]`，并同步保存到专门 `SessionAssemblyStorePort`
+- `SubAgentDigest` 与 `DelegationDigestStorePort` 已落地，`prepare_session` 会把 child digests 合并进 `SessionAssemblyManifest`
+- `ExecutionService` 现会在 session 打开后注入稳定的 `session_context_defaults`，把本轮 profile/backend/model 默认绑定冻结进 session context
+- `CapabilityExecutor` 现会把每个 prompt step 的实际 `provider/model` 调用记录回 `SessionAssemblyManifest.model_bindings`
+- `SessionAssemblyManifest` 现已显式暴露 `backend_bindings`、`selected_model` 与 `model_bindings`，用于区分“装配默认选择”“这些绑定来自哪个 profile/backend/provider 来源”以及“执行时实际使用”；`selected_model` 继续保留默认装配元数据，不再被 step 级真实调用覆盖
+
 ### 7.3 Access 层推荐服务
 
-在 `src/access/api/` 中建议新增 `MemoryAPI`，用于调试、诊断与治理，而不是替代 `RuntimeAPI`：
+`src/access/api/memory_api.py` 已提供首轮 `MemoryAPI`，用于调试、诊断与治理，而不是替代 `RuntimeAPI`：
 
 ```text
-preview_recall(profile_id, app_id, workflow_id, cwd, user_input) -> RecallBundle
-explain_session(session_id) -> SessionAssemblyManifest
+get_session(session_id) -> AgentSession | None
 search_session_archive(query, profile_id, limit) -> tuple[SessionArchiveHit, ...]
-list_profile_memory(profile_id, scope, scope_key, status) -> tuple[MemoryRecord, ...]
-absorb_sub_agent_digest(digest_id) -> PromotionDecision
-list_memory_backends(profile_id) -> tuple[MemoryProviderBinding, ...]
+load_session_slice(session_id, cursor, limit) -> SessionTranscriptSlice
+explain_session_assembly(session_id) -> SessionAssemblyManifest
+preview_recall(session_id, limit=None) -> RecallPreview
 ```
 
 其中：
 
-- `preview_recall` 是调试接口，不改变长期记忆
-- `absorb_sub_agent_digest` 只有主 Agent 或显式治理流程才能调用
 - `search_session_archive` 只回查历史，不把旧日志晋升为长期记忆
+- `load_session_slice` 只回放 archive facts，不改变长期记忆
+- `preview_recall` 已作为独立治理接口落到 `MemoryInspectionService`，通过 `MemoryAPI` 聚合暴露，但没有写回 `SessionInspectionService`
+- 当前 `preview_recall` 会显式返回 `scope_breakdowns`、`record_rankings` 与 `augmentation_preview`，用来回答 recall budget 如何分配、哪些记录因 overflow 被淘汰、external augmentation provenance 从哪里来
+- 后续如果补 digest 吸收和 backend 列表，也应继续沿独立治理接口扩展，不与当前 inspection facade 混写
 
 ## 8. 需要接入的基础设施能力界面定义
 
@@ -377,15 +415,17 @@ SkillCatalogPort.load_body(skill_id) -> str
 ### 8.2 Recall 与治理接口
 
 ```text
-RecallPlannerPort.plan(manifest, app_id, workflow_id, user_input) -> RecallPlan
+RecallGovernancePolicy.decide(session, app_id, workflow_id, profile_id, project_scope_key, provider_decision, default_limit=None) -> RecallGovernanceDecision
+RecallPlannerPort.plan(decision) -> RecallPlan
 RecallRankerPort.rank(records, plan) -> tuple[MemoryRecord, ...]
 MemoryPromotionPolicy.evaluate(candidate) -> (status, reason)
 ```
 
 要求：
 
-- `RecallPlannerPort` 决定本轮查哪些 `scope`、每层预算多少、接受哪些 `status`
-- `RecallRankerPort` 负责 top-k、pin、冲突降权和多来源融合
+- `RecallGovernancePolicy` 决定本轮查哪些 `scope`、接受哪些 `status`，以及 external augmentation 能否参与
+- `RecallPlannerPort` 只负责把领域决策转成预算化且带显式排序指令的 `RecallPlan`
+- `RecallRankerPort` 只负责执行 `RecallPlan` 中的 bucket/overflow 排序与 top-k 收口
 - `MemoryPromotionPolicy` 继续独立，不进入 store
 - 若启用 external memory provider，其 augmentation 结果只能作为 ranker 的额外输入，不得绕过 built-in policy 直接注入 accepted memory
 
@@ -408,8 +448,9 @@ SessionAssemblyStorePort.get(session_id) -> SessionAssemblyManifest | None
 DelegationDigestStorePort.save(digest) -> None
 DelegationDigestStorePort.list_by_session(session_id) -> tuple[SubAgentDigest, ...]
 
-SessionArchiveQueryPort.search(query, profile_id, limit) -> tuple[SessionArchiveHit, ...]
+SessionArchiveQueryPort.search_session_archive(query, profile_id, limit) -> tuple[SessionArchiveHit, ...]
 SessionArchiveQueryPort.get_session_summary(session_id) -> str | None
+SessionTranscriptSlicePort.load_session_slice(session_id, cursor, limit) -> SessionTranscriptSlice
 ```
 
 ### 8.4 模型与技能提炼接口
@@ -466,7 +507,7 @@ MemoryProviderPort.on_delegation(digest) -> None
 1. 先补 `SessionAssemblyManifest`，把 `profile / cwd / rules / skills / recall sources / child digests / provider bindings` 变成一等对象。
 2. 先补 `ProfileResolverPort` 与 `WorkspaceRuleBundlePort`，切断 `cwd` 与长期脑路由的耦合。
 3. 先补 `SkillCatalogPort` 与 `SkillActivation`，把“skill 索引先行、正文按需加载”固化到运行时。
-4. 先补 `SessionAssemblyStorePort`、`MemoryAssemblyQueryPort` 与 `SessionArchiveQueryPort`，把 explainability 与历史回查都做成正式读模型。
+4. `SessionAssemblyStorePort`、`DelegationDigestStorePort`、`MemoryAssemblyQueryPort` 与 `SessionArchiveQueryPort` 已进入首轮实现；下一轮继续补 provider bindings 治理。
 5. 先补 `MemoryProviderPort + provider_manager`，明确 built-in local memory 与单个 external provider 的职责边界。
 6. 先把 `project_scope_key` 从硬编码改成装配输入，避免后续多项目和多 profile 迁移返工。
 
@@ -488,9 +529,14 @@ MemoryProviderPort.on_delegation(digest) -> None
 |---|---|---|
 | `P0` | 建立业务可控的装配治理 | `SessionAssemblyManifest`、`ProfileResolverPort`、`WorkspaceRuleBundlePort`、`SkillCatalogPort` |
 | `P1` | 建立 explainability、archive query 与主从协作闭环 | `MemoryAssemblyQueryPort`、`SessionAssemblyStorePort`、`DelegationDigestStorePort`、`SessionArchiveQueryPort` |
-| `P2` | 建立 built-in + external provider augmentation 边界 | `MemoryProviderPort`、`provider_manager`、`provider bindings` |
+| `P2` | 建立 built-in + external provider augmentation 边界 | `MemoryProviderPort`、`provider_manager`、`provider bindings`、durable `memory_provider:jsonl / jsonl_vector / remote_http` |
 | `P3` | 扩 recall 规划与检索能力 | `RecallPlannerPort`、`RecallRankerPort`、向量/远程检索适配器 |
 | `P4` | 扩长期治理与训练化 | retention policy、dataset 审核流、训练样本治理 |
+
+当前实现状态：
+
+- `P2` 已落地，并已补到 durable `jsonl / jsonl_vector / remote_http`；其中 `remote_http` 已支持真实 `HTTP/file` transport 与可选远端写回
+- `P3` 的 `RecallPlannerPort / RecallRankerPort`、`preview_recall` 与 provider provenance explainability 已落地；当前剩余的是跨 backend 的统一 recall diagnostics，以及 `remote_http` 的 response schema contract、secret rotation audit 与统一 durable secret governance provider
 
 ## 10. Hermes-Agent 可复用能力
 

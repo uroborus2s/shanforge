@@ -1,0 +1,122 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Art Room Episode Asset Prep Plan",
+  "type": "object",
+  "additionalProperties": true,
+  "required": ["version", "episode_id", "required_assets"],
+  "properties": {
+    "version": {"type": "string"},
+    "episode_id": {"type": "string"},
+    "required_assets": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": true,
+        "required": [
+          "asset_id",
+          "asset_subtype",
+          "creation_order",
+          "creation_phase",
+          "depends_on_assets",
+          "blocks_assets",
+          "dependency_reason",
+          "priority",
+          "output_format",
+          "source_refs",
+          "status"
+        ],
+        "properties": {
+          "asset_id": {"type": "string"},
+          "asset_subtype": {"type": "string"},
+          "creation_order": {"type": "integer", "minimum": 1},
+          "creation_phase": {
+            "type": "string",
+            "enum": [
+              "style_reference",
+              "master_cards",
+              "episode_state_cards",
+              "precision_assets",
+              "reference_frames",
+              "shot_overrides"
+            ]
+          },
+          "depends_on_assets": {"type": "array", "items": {"type": "string"}},
+          "blocks_assets": {"type": "array", "items": {"type": "string"}},
+          "dependency_reason": {"type": "string"},
+          "priority": {"type": "string", "enum": ["high", "medium", "low"]},
+          "output_format": {"$ref": "#/$defs/output_format"},
+          "source_refs": {"type": "array", "items": {"type": "string"}},
+          "status": {"type": "string", "enum": ["planned", "reuse_master", "needs_image", "blocked"]}
+        }
+      }
+    }
+  },
+  "$defs": {
+    "output_format": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "deliverable_kind",
+        "file_format",
+        "minimum_resolution",
+        "background_policy",
+        "alpha_policy",
+        "canvas_aspect_ratio",
+        "required_views",
+        "composition_layers",
+        "qc_checks"
+      ],
+      "properties": {
+        "deliverable_kind": {
+          "type": "string",
+          "enum": [
+            "neutral_master_card",
+            "episode_state_card",
+            "transparent_cutout",
+            "turnaround_sheet",
+            "detail_crop_sheet",
+            "location_scene_card",
+            "style_reference",
+            "video_reference_frame",
+            "shot_override_frame",
+            "precision_overlay"
+          ]
+        },
+        "file_format": {"type": "string", "enum": ["png", "jpg", "svg"]},
+        "minimum_resolution": {
+          "type": "string",
+          "pattern": "^([0-9]+x[0-9]+|project_defined)$"
+        },
+        "background_policy": {
+          "type": "string",
+          "enum": ["neutral_plain", "transparent_alpha", "scene_context", "video_frame"]
+        },
+        "alpha_policy": {"type": "string", "enum": ["required", "forbidden", "optional"]},
+        "canvas_aspect_ratio": {
+          "type": "string",
+          "enum": ["1:1", "4:5", "16:9", "project_defined"]
+        },
+        "required_views": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"type": "string"}
+        },
+        "composition_layers": {
+          "type": "object",
+          "additionalProperties": true,
+          "required": ["foreground", "midground", "background"],
+          "properties": {
+            "foreground": {"type": "string"},
+            "midground": {"type": "string"},
+            "background": {"type": "string"}
+          }
+        },
+        "qc_checks": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"type": "string"}
+        }
+      }
+    }
+  }
+}

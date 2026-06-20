@@ -1,4 +1,4 @@
 interface:
   display_name: "Python UV Project"
   short_description: "Standardize Python projects around uv, pyproject, Ruff, pytest, and mypy"
-  default_prompt: "Use $python-uv-project when building, refactoring, debugging, migrating, or reviewing a Python project. Standardize on uv for Python versions, virtualenvs, dependencies, lockfiles, and tool execution. Keep pyproject.toml as the single config entry, commit uv.lock, run Ruff, pytest, and mypy via uv run, and avoid Poetry/Pipenv/requirements.txt as the main workflow."
+  default_prompt: "Use $python-uv-project when building, refactoring, debugging, migrating, or reviewing a Python project. Standardize on uv for Python versions, virtualenvs, dependencies, lockfiles, and tool execution. For bug fixes, reproduce and identify the root cause before changing behavior; do not replace fixes with unverified fallback branches. Keep pyproject.toml as the single config entry, commit uv.lock, run Ruff, pytest, and mypy via uv run, and avoid Poetry/Pipenv/requirements.txt as the main workflow."

@@ -163,6 +163,9 @@ mkdocs:
             - title: 多前台宿主与多代理协作设计
               path: 04-project-development/04-design/frontend-adapters-and-multi-agent-coordination.md
               access: private
+            - title: 编剧室模拟器设计方案
+              path: 04-project-development/04-design/writer-room-simulator-design.md
+              access: private
             - title: 能力注册与分级自治治理设计
               path: 04-project-development/04-design/action-registry-and-autonomy-policy.md
               access: private

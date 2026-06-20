@@ -2,21 +2,43 @@ from __future__ import annotations
 
 from typing import Any, Mapping, Protocol
 
+from domain.memory.assembly_models import (
+    MemoryProviderAugmentation,
+    MemoryProviderBinding,
+    RecallPlan,
+)
+from domain.memory.governance import (
+    MemoryProviderGovernanceDecision,
+    RecallGovernanceDecision,
+)
 from domain.memory.models import (
     CandidateDrafts,
+    DistillationResult,
     EvidenceRecord,
     MemoryDistillationSample,
+    MemoryLifecycleApplyResult,
+    MemoryLifecycleAuditEntry,
+    MemoryLifecycleQueueEntry,
     MemoryRecord,
+    MemoryScope,
+    MemoryStatus,
     RecallQuery,
     SummaryResult,
 )
-from domain.session.models import AgentSession
+from domain.session.delegation_models import SubAgentDigest
+from domain.session.models import AgentSession, SessionEvent
 
 
 class MemoryRecordRepositoryPort(Protocol):
     """Foundation capability contract consumed by the memory domain for memory persistence."""
 
     def save_memory_record(self, record: MemoryRecord) -> None: ...
+
+    def scan_memory_records(
+        self,
+        scope_filters: tuple[tuple[MemoryScope, str], ...],
+        allowed_statuses: tuple[MemoryStatus, ...],
+    ) -> tuple[MemoryRecord, ...]: ...
 
     def query_memory_records(self, query: RecallQuery) -> tuple[MemoryRecord, ...]: ...
 
@@ -35,6 +57,36 @@ class MemoryDatasetRepositoryPort(Protocol):
     def save_sample(self, sample: MemoryDistillationSample) -> None: ...
 
     def list_samples(self, session_id: str) -> tuple[MemoryDistillationSample, ...]: ...
+
+
+class MemoryLifecycleQueueRepositoryPort(Protocol):
+    """Foundation capability contract consumed by the memory domain for queue persistence."""
+
+    def list_lifecycle_queue_entries(
+        self,
+        session_id: str,
+    ) -> tuple[MemoryLifecycleQueueEntry, ...]: ...
+
+    def replace_lifecycle_queue_entries(
+        self,
+        session_id: str,
+        entries: tuple[MemoryLifecycleQueueEntry, ...],
+    ) -> None: ...
+
+
+class MemoryLifecycleAuditRepositoryPort(Protocol):
+    """Foundation capability contract consumed by the memory domain for audit persistence."""
+
+    def list_lifecycle_audit_entries(
+        self,
+        session_id: str,
+    ) -> tuple[MemoryLifecycleAuditEntry, ...]: ...
+
+    def append_lifecycle_audit_entries(
+        self,
+        session_id: str,
+        entries: tuple[MemoryLifecycleAuditEntry, ...],
+    ) -> None: ...
 
 
 class MemoryArchiveQueryPort(Protocol):
@@ -106,3 +158,85 @@ class MemorySemanticSearchPort(Protocol):
         limit: int = 8,
         filters: Mapping[str, Any] | None = None,
     ) -> tuple[Mapping[str, Any], ...]: ...
+
+
+class MemoryProviderPort(Protocol):
+    """Foundation capability contract for external recall augmentation."""
+
+    def initialize(self, binding: MemoryProviderBinding, session_id: str) -> None: ...
+
+    def prefetch(self, query: RecallQuery, session_id: str) -> str: ...
+
+    def sync_turn(
+        self,
+        session_id: str,
+        latest_events: tuple[SessionEvent, ...],
+    ) -> None: ...
+
+    def on_session_end(
+        self,
+        session_id: str,
+        distillation_result: DistillationResult,
+    ) -> None: ...
+
+    def on_lifecycle_apply(
+        self,
+        session_id: str,
+        apply_result: MemoryLifecycleApplyResult,
+    ) -> None: ...
+
+    def on_delegation(self, digest: SubAgentDigest) -> None: ...
+
+
+class MemoryProviderManagerPort(Protocol):
+    """Runtime execution contract for coordinating one active external memory provider."""
+
+    def start_session(
+        self,
+        decision: MemoryProviderGovernanceDecision | None,
+        query: RecallQuery,
+    ) -> MemoryProviderAugmentation | None: ...
+
+    def sync_turn(
+        self,
+        decision: MemoryProviderGovernanceDecision | None,
+        session_id: str,
+        latest_events: tuple[SessionEvent, ...],
+    ) -> None: ...
+
+    def on_session_end(
+        self,
+        decision: MemoryProviderGovernanceDecision | None,
+        session_id: str,
+        distillation_result: DistillationResult,
+    ) -> None: ...
+
+    def on_lifecycle_apply(
+        self,
+        decision: MemoryProviderGovernanceDecision | None,
+        session_id: str,
+        apply_result: MemoryLifecycleApplyResult,
+    ) -> None: ...
+
+    def on_delegation(
+        self,
+        decision: MemoryProviderGovernanceDecision | None,
+        digest: SubAgentDigest,
+    ) -> None: ...
+
+
+class RecallPlannerPort(Protocol):
+    """Runtime execution contract for materializing a recall plan from a domain decision."""
+
+    def plan(self, decision: RecallGovernanceDecision) -> RecallPlan: ...
+
+
+class RecallRankerPort(Protocol):
+    """Runtime execution contract for ranking and trimming recall candidates."""
+
+    def rank(
+        self,
+        plan: RecallPlan,
+        records: tuple[MemoryRecord, ...],
+        augmentation: MemoryProviderAugmentation | None = None,
+    ) -> tuple[MemoryRecord, ...]: ...

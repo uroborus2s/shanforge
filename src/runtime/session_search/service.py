@@ -3,6 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
 
+from domain.session.assembly_models import SessionAssemblyManifest
 from runtime.capability.contracts import (
     CapabilityInvocationContext,
     CapabilityOperationDescriptor,
@@ -14,11 +15,7 @@ from runtime.ports.data_access import (
     StructuredStoreProviderPort,
     VectorIndexProviderPort,
 )
-from runtime.session_search.models import (
-    SessionArchiveHit,
-    SessionAssemblyExplanation,
-    SessionTranscriptSlice,
-)
+from runtime.session_search.models import SessionArchiveHit, SessionTranscriptSlice
 
 
 @dataclass(slots=True)
@@ -119,7 +116,7 @@ class SessionSearchService:
         self,
         session_id: str,
         context: CapabilityInvocationContext,
-    ) -> SessionAssemblyExplanation:
+    ) -> SessionAssemblyManifest:
         del context
         session_record = self._structured_get("sessions", session_id)
         if session_record is None:
@@ -147,7 +144,37 @@ class SessionSearchService:
         if session_record.get("parent_session_id"):
             sources.append("parent_session")
 
-        return SessionAssemblyExplanation(
+        manifest_payload = session_record.get("assembly_manifest")
+        if isinstance(manifest_payload, dict):
+            manifest = SessionAssemblyManifest.from_mapping(manifest_payload)
+            metadata = dict(manifest.metadata)
+            metadata.update(
+                {
+                    "event_count": len(event_records),
+                    "artifact_count": len(artifact_records),
+                    "preview": session_record.get("preview"),
+                }
+            )
+            return SessionAssemblyManifest(
+                session_id=manifest.session_id,
+                profile_id=manifest.profile_id,
+                workspace_root=manifest.workspace_root,
+                rule_bundle=manifest.rule_bundle,
+                active_skills=manifest.active_skills,
+                recall_scope_filters=manifest.recall_scope_filters,
+                recalled_memory_ids=manifest.recalled_memory_ids,
+                child_session_ids=manifest.child_session_ids,
+                child_digests=manifest.child_digests,
+                memory_provider_binding=manifest.memory_provider_binding,
+                selected_model=manifest.selected_model,
+                model_bindings=manifest.model_bindings,
+                backend_bindings=manifest.backend_bindings,
+                provider_bindings=manifest.provider_bindings,
+                sources=manifest.sources,
+                metadata=metadata,
+            )
+
+        return SessionAssemblyManifest(
             session_id=session_id,
             profile_id=str(session_record.get("profile_id") or "") or None,
             workspace_root=str(session_record.get("workspace_root") or "") or None,
@@ -158,6 +185,13 @@ class SessionSearchService:
                 "preview": session_record.get("preview"),
             },
         )
+
+    def get_session_summary(self, session_id: str) -> str | None:
+        session_record = self._structured_get("sessions", session_id)
+        if session_record is None:
+            return None
+        summary = str(session_record.get("preview") or session_record.get("summary") or "").strip()
+        return summary or None
 
     def search_session_artifacts(
         self,
@@ -183,7 +217,10 @@ class SessionSearchService:
     ) -> list[dict[str, object]]:
         if self.structured_store is None:
             return []
-        return [dict(item) for item in self.structured_store.query_records(namespace, filters, limit)]
+        return [
+            dict(item)
+            for item in self.structured_store.query_records(namespace, filters, limit)
+        ]
 
     def _structured_get(self, namespace: str, record_id: str) -> dict[str, object] | None:
         if self.structured_store is None:
@@ -199,7 +236,10 @@ class SessionSearchService:
         filters: dict[str, object] | None,
     ) -> list[dict[str, object]]:
         if self.search_index is not None:
-            return [dict(item) for item in self.search_index.search(namespace, query, limit, filters)]
+            return [
+                dict(item)
+                for item in self.search_index.search(namespace, query, limit, filters)
+            ]
 
         records = self._structured_query(namespace, filters=filters, limit=max(limit * 5, 50))
         tokens = tuple(token for token in query.lower().split() if token)

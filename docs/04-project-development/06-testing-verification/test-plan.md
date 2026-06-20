@@ -6,7 +6,7 @@
 **主要读者：** QA | 架构 | 平台开发 | 业务 Agent 开发
 **上游输入：** PRD | API 设计 | 实施计划
 **下游输出：** 测试报告 | 发布说明
-**最后更新：** 2026-04-14
+**最后更新：** 2026-04-19
 
 ## 1. 测试目标
 
@@ -43,6 +43,10 @@
 | `TC-010` Session Ledger 保真 | 原始 event/evidence 不被蒸馏层覆盖 |
 | `TC-011` Promotion Gate | 无 evidence 或冲突 candidate 不能晋升长期记忆 |
 | `TC-012` Recall Bundle | recall 只返回 accepted memory，并带 diagnostics 与 source refs |
+| `TC-013` Recall Governance | scope、allowed status、budget 与排序策略由领域治理决定 |
+| `TC-014` Provider Governance | external provider 的 writable、delegation、session-end 与 lifecycle-apply writeback 受领域治理控制 |
+| `TC-015` Lifecycle Governance | memory 可进入 superseded / forgotten 等后续状态，并支持 durable review queue、`pending / dismissed / applied` review state、reviewer resolution taxonomy、queue item 的 reviewer guidance（`resolution_required / resolution_options / suggested note`）、`reopen`、note-only update 的独立审计语义、durable 审计轨迹、`latest_per_record_only` 审计视图、`queue_filter` 驱动的 batch review / reopen、batch apply 与 provider-aware apply |
+| `TC-016` Explainability Governance | `preview_recall / distill_session / explain_session_memory` 可稳定解释治理结论 |
 
 ## 4. 质量门
 
@@ -66,3 +70,4 @@
 |---|---|---|
 | `v2.0` | 2026-04-13 | 重写测试计划，围绕平台契约、运行时闭环和 demo Agent App 校验 |
 | `v2.1` | 2026-04-14 | 新增记忆蒸馏、promotion gate 和 recall bundle 的测试方向 |
+| `v2.2` | 2026-04-19 | 增补记忆治理专项测试方向，补 recall/provider/lifecycle/explainability 四类治理回归 |

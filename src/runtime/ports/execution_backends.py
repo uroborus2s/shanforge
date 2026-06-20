@@ -32,6 +32,7 @@ class HttpClientProviderPort(Protocol):
         method: str,
         url: str,
         payload: Mapping[str, Any] | None = None,
+        options: Mapping[str, Any] | None = None,
     ) -> Mapping[str, Any]: ...
 
 

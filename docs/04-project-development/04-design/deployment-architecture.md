@@ -6,7 +6,7 @@
 **主要读者：** 架构 | 平台开发 | 测试 | 运维  
 **上游输入：** 系统架构 | 基础设置层设计 | 技术选型  
 **下游输出：** 部署手册 | 运维手册 | 发布说明  
-**最后更新：** 2026-04-15
+**最后更新：** 2026-04-18
 
 ## 1. 文档目标
 
@@ -86,11 +86,13 @@
 
 - `src/settings/composition/settings.py`
 - `src/settings/composition/container.py`
+- `src/settings/composition/component_bindings.py`
+- sibling `shanforge-di`
 
 装配时至少要完成：
 
 1. 读取 settings
-2. 选择 store/provider/backend 实现
+2. 通过本地业务绑定 + `shanforge-di` 选择 store/provider/backend 实现
 3. 绑定 `runtime ports`
 4. 组装 application/domain/runtime 服务图
 5. 暴露 API/CLI 等 access 入口
@@ -108,7 +110,9 @@
 
 - `tests/test_application_execution.py`
 - `tests/test_context_engine.py`
-- `tests/test_memory_runtime.py`
+- `tests/test_domain_services.py`
+- `tests/test_runtime_memory_summarizer.py`
+- `tests/test_settings_memory_stores.py`
 - `tests/test_platform_scaffold.py`
 - `tests/test_infrastructure_scaffold.py`
 

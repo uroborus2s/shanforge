@@ -1,0 +1,95 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Art Room Location Designs",
+  "type": "object",
+  "additionalProperties": true,
+  "required": ["version", "locations"],
+  "properties": {
+    "version": {"type": "string"},
+    "locations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": true,
+        "required": [
+          "asset_id",
+          "file",
+          "asset_type",
+          "asset_subtype",
+          "display_name",
+          "location_lock",
+          "episode_state",
+          "card_layout",
+          "output_format_requirements",
+          "continuity_refs",
+          "source_refs",
+          "usage"
+        ],
+        "properties": {
+          "asset_id": {"type": "string"},
+          "file": {"type": "string", "pattern": "^[^/]{1,20}\\.[^./]+$"},
+          "asset_type": {"type": "string", "const": "location"},
+          "asset_subtype": {
+            "type": "string",
+            "enum": ["location_master_scene_card", "location_episode_scene_card"]
+          },
+          "display_name": {"type": "string"},
+          "location_lock": {"type": "object", "additionalProperties": true},
+          "episode_state": {"type": "object", "additionalProperties": true},
+          "card_layout": {"type": "array", "items": {"type": "string"}},
+          "output_format_requirements": {
+            "type": "object",
+            "additionalProperties": true,
+            "required": [
+              "canvas_aspect_ratio",
+              "background_policy",
+              "composition_layers",
+              "camera_requirements"
+            ],
+            "properties": {
+              "canvas_aspect_ratio": {
+                "type": "string",
+                "enum": ["16:9", "project_defined"]
+              },
+              "background_policy": {
+                "type": "string",
+                "enum": ["scene_context", "video_frame"]
+              },
+              "composition_layers": {
+                "type": "object",
+                "additionalProperties": true,
+                "required": ["foreground", "midground", "background"],
+                "properties": {
+                  "foreground": {"type": "string"},
+                  "midground": {"type": "string"},
+                  "background": {"type": "string"}
+                }
+              },
+              "camera_requirements": {
+                "type": "object",
+                "additionalProperties": true,
+                "required": [
+                  "camera_distance",
+                  "camera_angle",
+                  "screen_direction",
+                  "light",
+                  "weather_time"
+                ],
+                "properties": {
+                  "camera_distance": {"type": "string"},
+                  "camera_angle": {"type": "string"},
+                  "screen_direction": {"type": "string"},
+                  "light": {"type": "string"},
+                  "weather_time": {"type": "string"}
+                }
+              }
+            }
+          },
+          "continuity_refs": {"type": "array", "items": {"type": "string"}},
+          "source_refs": {"type": "array", "items": {"type": "string"}},
+          "usage": {"type": "array", "items": {"type": "string"}}
+        }
+      }
+    }
+  }
+}

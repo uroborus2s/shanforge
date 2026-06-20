@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from typing import Any
 
 from domain.model.models import ModelRef, ModelRequest, ModelResponse, TokenUsage
 
@@ -10,6 +11,12 @@ class MockLLMProvider:
     """Deterministic provider used for local scaffold validation."""
 
     provider_name: str = "mock"
+
+    def contract_metadata(self) -> dict[str, Any]:
+        return {
+            "bridge_kind": "provider",
+            "contract_ready": True,
+        }
 
     def generate(self, request: ModelRequest) -> ModelResponse:
         step_id = str(request.metadata.get("step_id", "step"))

@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "WriterRoomScriptScore",
+  "type": "object",
+  "required": ["hook", "motivation", "conflict", "pacing", "dialogue", "filmability", "continuity", "total", "decision"],
+  "properties": {
+    "hook": {"type": "integer", "minimum": 0, "maximum": 15},
+    "motivation": {"type": "integer", "minimum": 0, "maximum": 15},
+    "conflict": {"type": "integer", "minimum": 0, "maximum": 15},
+    "pacing": {"type": "integer", "minimum": 0, "maximum": 15},
+    "dialogue": {"type": "integer", "minimum": 0, "maximum": 15},
+    "filmability": {"type": "integer", "minimum": 0, "maximum": 20},
+    "continuity": {"type": "integer", "minimum": 0, "maximum": 5},
+    "total": {"type": "integer", "minimum": 0, "maximum": 100},
+    "decision": {"type": "string", "enum": ["pass", "revise", "reject"]},
+    "rationale": {"type": "string"}
+  },
+  "additionalProperties": false
+}

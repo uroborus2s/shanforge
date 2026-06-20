@@ -1,6 +1,6 @@
 ---
 name: python-uv-project
-description: 约束 Python 项目的工程规范与工具链。当项目使用 Python 开发，或用户提到 uv、pyproject.toml、pytest、ruff、mypy、FastAPI、Typer、Django、CLI、服务端、自动化脚本等 Python 工程搭建、重构、调试、评审时使用。统一要求用 uv 管理 Python 版本、虚拟环境、依赖、锁文件和工具运行。
+description: 约束 Python 项目的工程规范与工具链。当项目使用 Python 开发，或用户提到 uv、pyproject.toml、pytest、ruff、mypy、FastAPI、Typer、Django、CLI、服务端、自动化脚本等 Python 工程搭建、重构、调试、评审时使用。统一要求用 uv 管理 Python 版本、虚拟环境、依赖、锁文件和工具运行；修 Bug 时必须先复现并定位根因，禁止用未验证兜底替代修复。
 ---
 
 # Python UV Project
@@ -108,12 +108,14 @@ uv run pytest
 - 异常处理要带上下文，不吞异常。
 - 配置统一走环境变量或设置层，不把密钥、令牌、数据库连接串硬编码进仓库。
 - I/O、网络、数据库边界应可测试，不把副作用直接塞进核心业务逻辑。
+- 修 Bug 时禁止用宽泛 `except Exception`、返回空集合、默认成功、静默跳过、宽松解析或额外 fallback 掩盖根因；只有当降级是既有契约且有测试和观测信号时才允许保留。
 
 ## 测试规则
 
 - 默认使用 `pytest`。
 - 单元测试与集成测试分层组织。
-- 修 Bug 时先补复现测试，再修实现。
+- 修 Bug 时先补复现测试，再写清楚直接原因、根源原因和证据，然后修造成问题的真实代码路径。
+- 防回归测试必须断言根因路径，不只验证兜底输出。
 - 对 CLI、HTTP、文件处理这类边界行为，优先测试可观察输出，不测试实现细节。
 
 ## 迁移规则

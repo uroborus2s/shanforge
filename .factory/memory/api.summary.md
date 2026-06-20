@@ -1,6 +1,6 @@
 # API 摘要
 
-- 更新时间：2026-04-16 11:40:00
+- 更新时间：2026-04-21 00:00:00
 - 当前版本线：`v2` / `0.2.0.dev0`
 - 摘要焦点：记忆系统独立化后的上下文与状态契约
 
@@ -10,9 +10,25 @@
 - `API-007` 被明确为 `Session / Event / Memory Ledger Contract`，event 与 evidence 是第一事实源，memory record 是带来源 refs 的派生资产。
 - recall 与 promotion 正式解耦；命中 recall 不等于晋升长期记忆。
 - 长期记忆写入必须带 evidence refs 和 promotion decision，缺失证据时必须结构化拒绝。
+- 记忆领域治理口径已进一步收口：领域只描述 `should remember / what to remember / recall when / why this memory`，不直接描述 JSONL、DB、Vector、Cloud 或具体 summarizer/provider。
+- `MG-WP-001` 首轮已落地：`RecallGovernancePolicy`、`MemoryProviderGovernancePolicy`、`MemoryLifecyclePolicy` 与对应 decision 模型已进入 `src/domain/memory/governance.py`，`DefaultMemoryDomainService` 已开始消费这些领域决策。
+- `MG-WP-002 / MG-WP-003` 已继续推进：`RecallPlan` 现在会冻结显式排序指令，`DefaultRecallRanker` 只执行 plan 中的 bucket/overflow 顺序；`MemoryProviderManagerPort` 也已改为直接消费 `MemoryProviderGovernanceDecision`，manager 本身不再判断 writable / shared-write gate。
+- `MG-WP-004` 已补齐首轮 lifecycle governance：`MemoryLifecyclePolicy` 现已支持 conflict supersede、forced manual override、metadata-driven decay forget，并通过 `DefaultMemoryDomainService.explain_session_memory()` 投影 `lifecycle_evaluations`。
+- `MG-WP-004` 当前已继续产品化到 queue 读模型：`review_lifecycle(session)` 返回完整 lifecycle review，`load_lifecycle_queue(session, queue_filter)` 负责投影默认 actionable queue，`apply_lifecycle(session, actor, record_ids | queue_filter)` 则支持按 queue filter 批量 apply；对应 access/application entrypoint 已经通过 `MemoryGovernanceService + MemoryAPI` 暴露。
+- `MG-WP-004` 本轮已把 queue 读模型推进为 durable review queue：新增 `update_lifecycle_queue(session, actor, record_ids, review_status, note=None)` 与 `MemoryLifecycleQueueRepositoryPort`，queue entry 现正式持久化 `pending / dismissed / applied` review state，并在 `apply_lifecycle()` 成功后自动标记为 `applied`。
+- `MG-WP-004` 本轮也已补上 durable lifecycle audit：新增 `load_lifecycle_audit(session, audit_filter=None)` 与 `MemoryLifecycleAuditRepositoryPort`，`update_lifecycle_queue()` 和 `apply_lifecycle()` 现在会留下 `review_status_updated / lifecycle_applied` 审计轨迹，`explain_session_memory()` 也开始投影 `lifecycle_audit_summary`。
+- `MG-WP-004` 当前已继续推进到显式 review workflow：新增 `reopen_lifecycle_queue(session, actor, record_ids, note=None)`，并把“同状态下更新 note”从 `review_status_updated` 拆成独立 `review_note_updated` 审计动作，避免产品层继续手工拼 review 语义。
+- `MG-WP-004` 本轮又把 queue 运维继续推进到批量 review：`update_lifecycle_queue(session, actor, review_status, record_ids=None, queue_filter=None, note=None)` 与 `reopen_lifecycle_queue(session, actor, record_ids=None, queue_filter=None, note=None)` 现都支持 `queue_filter` 驱动的 batch selection；其中 review 路径的 filter 语义是“命中 queue item 全集”，与 `apply_lifecycle()` 继续沿用的默认选中子集明确分离。
+- `MG-WP-004` 当前已继续推进到 reviewer resolution taxonomy：`update_lifecycle_queue(..., resolution=None)` 可显式持久化人工 review resolution，`reopen_lifecycle_queue(...)` 会在回到 `pending` 时清空 resolution；`load_lifecycle_audit(audit_filter)` 现也支持按 `queue_review_status / resolution` 过滤，`lifecycle_queue_summary / lifecycle_audit_summary` 会稳定输出 `resolution_counts`。
+- `MG-WP-004` 本轮继续把 audit read model 收口为 reviewer-facing 视图：`MemoryLifecycleAuditFilter` 新增 `latest_per_record_only`，`lifecycle_audit_summary.latest_entries` 改为真正的最新优先，并额外提供 `latest_by_record`，直接回答每条 memory 最近一次人工处理结果。
+- `MG-WP-004` 当前又把 queue projection 推到 reviewer guidance：`MemoryLifecycleQueueItem` 新增 `resolution_required` 与 `resolution_options`，domain 会按 `conflict_superseded / decay_expired / manual_override_applied` 等 reason 直接给出推荐 resolution 和建议 note 模板。
+- `MG-WP-004` 现已继续接上 provider-aware lifecycle writeback：`MemoryProviderGovernanceDecision` 新增 `allow_lifecycle_writeback`，`MemoryProviderPort / MemoryProviderManagerPort` 新增 `on_lifecycle_apply(...)` 通道，`apply_lifecycle()` 在本地 durable 更新后可按领域治理继续同步 `jsonl / remote_http` provider，并刷新 session explainability。
+- `MG-WP-005` 已落地首轮专项回归：新增 `tests/test_memory_governance_regression.py`，把 `TC-013 ~ TC-016` 收口为独立入口，同时把 `MemoryStatus.FORGOTTEN` 纳入默认 lifecycle state machine。
 - 对外实现界面已经收口为 `prepare_session(session, app_id, workflow_id)`、`distill_session(session)`、`recall(query)`，并由 `AgentSession.recalled_memories / memory_candidates / promotion_decisions` 提供 adapter 可观察状态。
-- 业务驱动详细设计新增了 explainability 读模型口径：建议补 `MemoryAssemblyQueryPort.explain_session_assembly(session_id)`，把 `profile / cwd / project rules / skills / memory sources / child digests` 暴露为一等查询对象。
-- 新增 archive query 口径：建议补 `SessionArchiveQueryPort.search(query, profile_id, limit)`，把历史会话回查从长期记忆检索中剥离出来。
+- `explain_session_memory(session)` 当前已补充稳定 explainability 字段：`recalled_memory_statuses`、`promotion_reasons`、`promotion_decisions`、`memory_provider_binding`、冻结的 `recall_plan`、scoped `lifecycle_evaluations`、`lifecycle_queue_summary` 与 `lifecycle_audit_summary`；queue/audit summary 均会暴露 `resolution_counts`。
+- access/application 层当前已补两类正式入口：`MemoryInspectionUseCase` 负责 recall/preview，`MemoryGovernanceUseCase` 负责 lifecycle review/queue/reopen/audit/update/apply。
+- explainability 读模型首轮已落地：`MemoryAssemblyQueryPort` 现已提供 `get_session / search_session_archive / load_session_slice / explain_session_assembly`，把 session archive、transcript replay 与 assembly explain 暴露为一等查询对象。
+- archive query 口径已落地为 `SessionArchiveQueryPort.search_session_archive(query, profile_id, limit)`，并通过独立 `SessionTranscriptSlicePort` 承担 transcript replay，把历史会话回查从长期记忆检索中剥离出来。
 - 样本沉淀界面已补为 `MemoryDatasetStorePort`；首版默认保留 `MemorySummarizerPort` 但允许用 `null summarizer` 运行，不阻塞 deterministic gate。
 - promotion gate 已补为独立 `MemoryPromotionPolicy`；当设置显式给出 summarizer provider/model 时，容器可接入 `LLMMemorySummarizer`。
 - `LLMMemorySummarizer` 当前 schema 已收口为：summary 阶段读取 `summary`，candidate 阶段必须返回 `title/body`，而 `kind/scope/confidence` 由运行时配置掌控。
@@ -24,7 +40,12 @@
 - 当前源码已补能力包目录契约：`CapabilityPackageDescriptor`、`CapabilityOperationDescriptor`、`CapabilityProviderDependency` 与 `CapabilityPackageRegistry`；默认容器现在可统一枚举基础能力层骨架包。
 - `TASK-017` 的第一批 runtime 行为已落地：`FileAccessService` 已具备 `read_text / read_structured / list_paths / search_paths / plan_write / apply_write` 的本地最小实现；`SkillCatalogService` 已具备 `list / view / install / enable / disable / remove` 的本地 fs 实现；`SessionSearchService` 已具备 `recent/search archive/load slice/explain assembly/search artifacts` 的 in-memory 实现。
 - 基础能力层首批 settings 接入点已开始实装：`Settings` 新增 `workspace_root`、`project/global/managed skills root` 与 `skill_state_path`，默认容器会把这些设置装配进本地 workspace / skills / session archive provider。
-- 下一阶段建议新增的基础设施端口包括：`ProfileResolverPort`、`WorkspaceRuleBundlePort`、`SkillCatalogPort`、`RecallPlannerPort`、`RecallRankerPort`、`SessionAssemblyStorePort`、`DelegationDigestStorePort`。
+- `SessionAssemblyStorePort` 已落地到 `src/domain/session/ports.py`，并由 `src/settings/session/assembly_store.py` 提供 `in-memory / JSONL` 实现；inspection 流现在会优先读取专门 assembly store。
+- `DelegationDigestStorePort` 已落地到 `src/domain/session/ports.py`，并由 `src/settings/delegation/digest_store.py` 提供 `in-memory / JSONL` 实现；`SubAgentDigest` 现已进入 `SessionAssemblyManifest.child_digests`。
+- `SessionAssemblyManifest` 现已补齐 `selected_model`、`model_bindings` 与 `backend_bindings`；`ExecutionService` 会在 session 打开后注入默认 `provider/backend/model` 绑定，`CapabilityExecutor` 会把 step 级真实模型调用回写到 explainability 读模型。
+- `backend_bindings` 当前也会覆盖 `capability_registry`、`approval_policy` 与 `delegation_transport`；当这些 family 走 Hermes-backed adapter 时，manifest 会带出 `bridge_modules`、`bridge_repo_root`、`contract_ready` 与 `fallback_class` 这类契约元数据；backend 来源治理首轮落地后，manifest 还会带出 `binding_source`、`source_path` 与 fallback `requested_binding_id`。
+- `selected_model` 当前也会保留 provider 来源治理元数据；当 `provider-bindings.json` 请求了不可运行 provider 时，manifest 会带出 `requested_provider_id` 并回退到 `contract_ready` 的默认 provider，而 `model_bindings` 继续只记录 step 级真实执行轨迹。
+- recall 主链的正式口径已从“planner 直接决定 scope/status”收紧为：`RecallGovernancePolicy -> RecallPlannerPort -> scan_memory_records() -> RecallRankerPort`；其中 planner 只负责预算和排序指令物化，provider write gate 也已先由领域 policy 显式决定，再交由 service/manager 执行；lifecycle apply 写回则使用独立 `lifecycle_apply` 通道，不复用 `session_end`。
 - 吸收 Hermes Agent 后，下一阶段建议新增的基础设施端口再扩为：`SessionArchiveQueryPort`、`MemoryProviderPort` 与 `provider_manager`。
 - external memory provider 的推荐边界已经明确：built-in local store 永远保留，同时最多只激活 1 个 external provider，且其结果只作为 augmentation。
 - 分层接口口径已收口为：
@@ -32,4 +53,6 @@
   - application 领域服务接口：`MemoryDomainService`
   - domain 下行能力接口：`MemoryRecordRepositoryPort`、`EvidenceRepositoryPort`、`MemoryDatasetRepositoryPort`
   - runtime provider 接口：`StructuredStoreProviderPort`、`SearchIndexProviderPort`、`VectorIndexProviderPort`、`RuleSourceProviderPort`、`ProfileSourceProviderPort`
+- 记忆治理专项设计现明确不建议引入一个过大的“统一记忆工具接口”；正式建议继续按 `repository / reasoning / semantic search / archive query / provider augmentation` 分口，由领域聚合这些能力，而不是让领域知道具体后端。
+- access 层本轮已继续清理：`src/access/api/*` 不再依赖 application concrete classes，`src/access/cli/main.py` 只保留注入式 gateway，默认容器装配已移到 `scripts/shanforge-cli` 这个外部 CLI host。
 - 下一轮需要正式化的治理与通道端口包括：`ApprovalPolicyPort`、`SandboxPolicyPort`、`DelegationTransportPort`、`EventLogPort`、`ArtifactBlobStorePort` 和 `GatewayPort`。

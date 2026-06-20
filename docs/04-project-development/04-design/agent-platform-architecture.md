@@ -76,6 +76,7 @@ flowchart TD
 
 - 基础能力层负责“提供通用技术能力”，例如文件访问、结构化存储、全文检索、向量召回、模型调用、规则源、技能源、审批通道、委派通道。
 - 基础设置层负责“提供这些能力背后的真实资源和实现”，例如文件系统、JSONL/SQLite/外部数据库、模型供应商 SDK、Hermes bridge、外部工具系统。
+- `src/settings/composition/` 是设置层内唯一 composition root 与本地业务绑定层：它在启动时做跨层对象接线，并通过外部 `shanforge-di` 完成业务 ID 到具体实现的解析，但不承担业务编排，也不向业务层暴露 class path 级技术字符串。
 
 一句话：
 
@@ -183,6 +184,7 @@ Hermes 对 `v2` 的真正启发，不是目录形态，而是能力切分方式�
 - 复用 Hermes 的成熟实现，但只允许落在基础设置层实现区。
 - Hermes 不能反向主导 `domain / application / runtime` 的边界。
 - 所有 Hermes 能力都必须先经过 `shanforge` 自己的接口契约收口。
+- `shanforge-di` 作为外部反射 / DI 技术库，只允许由 `src/settings/composition/` 集成使用；业务层和普通 runtime service 只能消费已注入好的接口对象。
 
 ## 7. 架构决策定稿
 

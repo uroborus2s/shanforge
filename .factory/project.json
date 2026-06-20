@@ -12,7 +12,7 @@
     "api_platform"
   ],
   "v2_scope_note": "当前产品范围是抽象 Agent 平台。业务通过 Agent App Manifest、Workflow DSL、ModelPolicy、Platform Ports 和 Capability Registry 接入平台内核。",
-  "stage": "PLAN",
+  "stage": "IMPLEMENTATION",
   "ai_runtime_docs": [
     "skills/software-factory-cli/references/ai-runtime-protocol.md",
     "skills/software-factory-cli/references/ai-role-charter.md"

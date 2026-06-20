@@ -6,6 +6,8 @@ from dataclasses import dataclass
 from datetime import datetime
 from typing import Any, Mapping
 
+from domain.session.assembly_models import SessionAssemblyManifest
+from domain.session.ports import SessionAssemblyStorePort
 from settings.session.artifact_store import InMemoryArtifactStore
 from settings.session.store import InMemorySessionStore
 
@@ -63,6 +65,7 @@ class InMemorySessionArchiveProvider:
 
     session_store: InMemorySessionStore
     artifact_store: InMemoryArtifactStore
+    assembly_store: SessionAssemblyStorePort | None = None
 
     def put_record(
         self,
@@ -159,6 +162,7 @@ class InMemorySessionArchiveProvider:
             "created_at": created_at,
             "preview": transcript_preview,
             "search_text": self._render_session_text(session.id),
+            "assembly_manifest": self._resolve_assembly_manifest(session),
         }
 
     def _events_to_records(self, session_id: str) -> list[dict[str, Any]]:
@@ -216,6 +220,22 @@ class InMemorySessionArchiveProvider:
             elif value != expected:
                 return False
         return True
+
+    def _serialize_assembly_manifest(self, payload: Any) -> Mapping[str, Any] | None:
+        if payload is None:
+            return None
+        if isinstance(payload, SessionAssemblyManifest):
+            return payload.to_mapping()
+        if isinstance(payload, Mapping):
+            return dict(payload)
+        return None
+
+    def _resolve_assembly_manifest(self, session: Any) -> Mapping[str, Any] | None:
+        if self.assembly_store is not None:
+            manifest = self.assembly_store.get(session.id)
+            if manifest is not None:
+                return manifest.to_mapping()
+        return self._serialize_assembly_manifest(session.context.get("assembly_manifest"))
 
 
 @dataclass(slots=True)

@@ -37,7 +37,7 @@
 | `domain` | 定义会话、证据、记忆、样本等业务模型 |
 | `runtime` | 定义 store/provider ports，约束查询与写入语义 |
 | `settings` | 实现本地 `in-memory` / `JSONL-backed` 持久化 |
-| `settings/composition` | 选择并装配具体实现 |
+| `settings/composition` + `shanforge-di` | 通过本地业务绑定选择并装配具体实现 |
 
 ## 3. 当前持久化对象
 

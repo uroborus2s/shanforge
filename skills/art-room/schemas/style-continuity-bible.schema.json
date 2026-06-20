@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Art Room Style Continuity Bible",
+  "type": "object",
+  "additionalProperties": true,
+  "required": ["version", "style_rules", "continuity_risks"],
+  "properties": {
+    "version": {"type": "string"},
+    "style_rules": {"type": "array", "items": {"type": "string"}},
+    "continuity_risks": {"type": "array", "items": {"type": "string"}},
+    "precision_asset_rules": {"type": "array", "items": {"type": "string"}}
+  }
+}

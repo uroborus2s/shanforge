@@ -193,7 +193,7 @@ Web 能力包承载“搜索网页、抓取文档、抽取正文”的统一技�
 | `runtime` 落点 | `src/runtime/web_access/` |
 | 既有 provider | `HttpClientProviderPort` |
 | 建议新增 provider | `WebSearchProviderPort`、`WebDocumentProviderPort` |
-| `settings` 落点 | 未来 `src/settings/web/` 或 Hermes-assisted provider 的后续实现接入点 |
+| `settings` 落点 | 当前首轮 local bridge 在 `src/settings/shared/web_provider.py`；后续可升格到专门 `web` 分域或 Hermes-assisted provider |
 | 证据产物 | URL、标题、摘要、抓取时间、正文片段、规范化 citation |
 
 正式操作面：
@@ -220,7 +220,7 @@ Terminal 能力包负责把“命令执行”变成平台正式受控能力，�
 | `runtime` 落点 | `src/runtime/terminal/` |
 | 既有 provider | `ShellCommandProviderPort`、`GitProviderPort` |
 | 建议补充对象 | `CommandExecutionRequest`、`CommandExecutionResult`、`WriteSetAudit` |
-| `settings` 落点 | `src/settings/workspace/` 与未来 `src/settings/terminal/` 的后续实现接入点 |
+| `settings` 落点 | 当前首轮 local bridge 在 `src/settings/workspace/command_provider.py`；后续可扩成专门 `terminal` 分域 |
 | 证据产物 | argv、cwd、stdout/stderr 摘要、exit code、写集审计、时长 |
 
 正式操作面：
@@ -246,7 +246,7 @@ Browser 能力包是状态化交互能力，必须与 Web 能力包分离设计�
 | 能力职责 | 打开页面、点击、输入、等待、抓 DOM、抓截图 |
 | `runtime` 落点 | `src/runtime/browser/` |
 | 建议新增 provider | `BrowserAutomationProviderPort` |
-| `settings` 落点 | 未来 `src/settings/browser/` 或本地自动化 provider 的后续实现接入点 |
+| `settings` 落点 | 当前首轮 local bridge 在 `src/settings/shared/browser_provider.py`；后续可升格到专门 `browser` 分域 |
 | 证据产物 | 截图、DOM 摘要、交互轨迹、页面 URL 演进 |
 
 正式操作面：
@@ -345,6 +345,7 @@ Skill 能力包既包含读取面，也包含管理面；两者必须分开建�
 - 这些共享能力不能被单个能力包私有化。
 - 任何后续 Hermes 复用实现都必须通过这些公共 provider 接口或统一服务接入。
 - `profile_source + rule_source + skill_source` 必须和 `SessionAssemblyManifest` 对齐，形成可解释装配链。
+- 当前实现已把这条链正式接入默认容器：`ProfileSourceService`、`RuleSourceService`、`SkillCatalogService` 通过 runtime 适配器进入 `DefaultMemoryDomainService.prepare_session(...)`，`ClockIdentityService` 也已通过适配器进入 `DefaultSessionDomainService` 的时钟与 ID 主链。
 
 ## 7. 可选扩展能力包
 
@@ -425,7 +426,9 @@ Skill 能力包既包含读取面，也包含管理面；两者必须分开建�
 - `file_access` 已有本地工作区 provider 与受控读写最小实现。
 - `skills` 已有本地 skill fs provider，支持 `list / view / install / enable / disable / remove`。
 - `session_search` 已有 in-memory archive provider，支持 `recent/search archive/load slice/explain assembly/search artifacts`。
-- 本轮仍未开始 `web / terminal / browser` 的具体函数实现。
+- `web_access` 已有首轮 local search/document bridge，支持 `search / fetch / extract / citation normalize`。
+- `terminal` 已有首轮 local shell/git bridge，支持 `run / stream / git / writeset audit`，并默认挂在 `approval + sandbox` 闸门后。
+- `browser` 已有首轮 in-memory automation bridge，支持 `open / inspect / click / type / wait / screenshot` 的最小会话化能力。
 
 ## 10. 一句话定稿
 

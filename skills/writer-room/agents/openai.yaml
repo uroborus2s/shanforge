@@ -1,0 +1,4 @@
+interface:
+  display_name: "Writer Room"
+  short_description: "Codex-native writer room orchestration"
+  default_prompt: "Use the writer-room skill to produce a short drama script from this story seed."

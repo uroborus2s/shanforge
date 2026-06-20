@@ -1,17 +1,17 @@
 # 项目压缩运行卡
 
-- 生成时间：2026-04-13 14:20:45
+- 生成时间：2026-04-21 00:00:00
 - 负责人：Codex
 - 项目：shanforge
-- 当前阶段：PLAN
+- 当前阶段：IMPLEMENTATION
 - 当前模式：cli_direct
 - 技术画像：抽象 Agent 平台规划画像
 - 技术栈：Python 3.14+ / uv / Markdown docs / .factory memory / typed contracts / settings-layer composition
-- 活跃工作项：1
+- 活跃工作项：3
 - 阻塞项：0
 - 开放风险：0
 - 最近交接包：无
-- 最近快照：`v2` 平台需求与设计基线已重写
+- 最近快照：memory governance 已继续从“可审核 queue”推进到“可解释 reviewer resolution + 可直接消费的 audit/queue read model”。`update_lifecycle_queue(..., resolution=...)` 现可显式持久化人工 review resolution，`reopen_lifecycle_queue(...)` 回到 `pending` 时会清空 resolution；`load_lifecycle_audit(...)` 已支持按 `queue_review_status / resolution` 过滤，并新增 `latest_per_record_only` 视图；`lifecycle_audit_summary.latest_entries` 也已改成真正的最新优先，同时新增 `latest_by_record`。同一轮里，`MemoryLifecycleQueueItem` 还开始直接投影 `resolution_required`、推荐 `resolution_options` 和建议 note 模板，让 reviewer 面不必自己维护 conflict/decay 文案。此前发现的 settings 层 durable store 缺口也已补齐：`JsonlMemoryLifecycleQueueStore` 与 `JsonlMemoryLifecycleAuditStore` 现在都能完整 round-trip `review_resolution / resolution`，跨 container reopen 后 resolution 会被正确清空。相关专项回归 `20 passed`。
 - 备注：Hermes-inspired abstract agent platform
 
 ## AI 最小读取顺序
@@ -35,7 +35,7 @@
 - Hermes 核心能力：Agent 主循环、Capability Registry、Session / Memory、Context Engine、Delegation、Gateway。
 - 业务目标：通过 Business Agent App、Workflow DSL、ModelPolicy 和 Capability Registry 快速装配业务流。
 - 大模型解耦：模型交互统一通过 LLM Runtime、LLMProviderPort、Response Normalizer 完成。
-- 当前交付优先级：先完成平台契约和运行时主闭环，再进入代码实现。
+- 当前交付优先级：trace-first 的跨 backend explainability 已贯通 provider manager、preview 回读和 session/manifest 落盘链；`apply_lifecycle()` 已接上 provider-aware `lifecycle_apply` 写回通道，lifecycle review queue 也已具备正式 durable `pending / dismissed / applied` review state，并新增独立 lifecycle audit trail 记录 review/apply 历史；当前又把 `queue_filter` 驱动的 batch `dismiss / reopen`、reviewer resolution taxonomy、更明确的 audit read model 和 queue guidance 一并收口进显式 review workflow。下一步优先补更完整的人工审核闭环和 reviewer-facing 运维能力，而不是继续扩 file-based test transport。
 
 ## 必要时回源的正式文档
 

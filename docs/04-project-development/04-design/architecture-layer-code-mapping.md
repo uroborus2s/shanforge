@@ -104,8 +104,9 @@ src/settings 对应基础设置层正式代码根。
 
 ### 4.3 `composition` 与 `shared`
 
-- `src/settings/composition/` 负责 settings、container 和装配选择
+- `src/settings/composition/` 负责 settings、container、本地 business bindings，以及对外部 `shanforge-di` 的集成
 - `src/settings/shared/` 负责 JSONL 等层内共享基础设施
+- `src/settings/catalog.py` 负责把基础设置层的功能清单、模块入口和能力域固化成稳定事实源
 
 所以：
 
@@ -170,7 +171,7 @@ src/
 | 架构层 | 模块 | 真实代码位置 | 说明 |
 |---|---|---|---|
 | 接口 / 网关层 | API 门面 | `src/access/api/` | `app_api.py`、`runtime_api.py`、`workflow_api.py` |
-| 接口 / 网关层 | CLI 命令网关 | `src/access/cli/` | `main.py`、`commands/run_demo.py` |
+| 接口 / 网关层 | CLI 命令网关 | `src/access/cli/` | `main.py`、`commands/run_demo.py`；本地 demo launcher 由 `scripts/shanforge-cli` 作为外部 CLI host 承担 |
 | 接口 / 网关层 | 应用用例接口 | `src/access/ports/application_use_cases.py` | `RuntimeExecutionUseCase`、`MemoryInspectionUseCase` 等 |
 | 业务调度层 | App 编译 | `src/application/app_compilation/` | manifest -> app |
 | 业务调度层 | Workflow 解析 | `src/application/workflow_resolution/` | 选择实际 workflow |
@@ -181,7 +182,7 @@ src/
 | 业务模型层 | Context / Model / Capability | `src/domain/context/`、`src/domain/model/`、`src/domain/capability/` | 上下文、模型策略、能力语义 |
 | 业务模型层 | 下行能力接口 | `src/domain/*/ports.py` | 领域向基础能力层声明需要什么 |
 | 基础能力层 | Provider 能力接口 | `src/runtime/ports/` | `LLMProviderPort`、`StructuredStoreProviderPort`、`RuleSourceProviderPort` 等 |
-| 基础设置层 | 领域实现与装配 | `src/settings/` | SDK、外部系统、持久化、桥接、settings、container、binding |
+| 基础设置层 | 领域实现与装配 | `src/settings/` | SDK、外部系统、持久化、桥接、settings、container、business bindings；DI 技术内核来自 sibling `shanforge-di` |
 
 ---
 
@@ -217,7 +218,7 @@ src/
 | 业务调度层 | `src/application/ports/domain_services.py` + `ExecutionService` | 调用 `MemoryDomainService` |
 | 业务模型层 | `src/domain/memory/` + `src/domain/memory/ports.py` | 记忆模型与下行能力契约 owner |
 | 基础能力层 | `src/runtime/ports/data_access.py`、`source_backends.py`、`ai_backends.py` | 为记忆领域提供检索、规则、技能、profile、embedding 等能力 |
-| 基础设置层 | `src/settings/session/`、`src/settings/memory/`、`src/settings/composition/` | 实现文件、DB、索引、provider 和装配 |
+| 基础设置层 | `src/settings/session/`、`src/settings/memory/`、`src/settings/composition/` | 实现文件、DB、索引、provider、本地 business bindings 和装配 |
 
 结论：
 
@@ -235,7 +236,7 @@ src/
 |---|---|
 | 业务模型层 | `src/domain/model/`、`src/domain/agent_app/policies.py` |
 | 基础能力层 | `src/runtime/ports/llm_provider.py`、`src/runtime/ports/ai_backends.py` |
-| 基础设置层 | `src/settings/model/`、`src/settings/composition/` |
+| 基础设置层 | `src/settings/model/`、`src/settings/composition/`、外部 `shanforge-di` |
 
 ### 9.2 能力系统
 
@@ -243,7 +244,7 @@ src/
 |---|---|
 | 业务模型层 | `src/domain/capability/` |
 | 基础能力层 | `src/runtime/ports/execution_backends.py`、`src/runtime/ports/data_access.py` |
-| 基础设置层 | `src/settings/capability_registry/`、`src/settings/approval/`、`src/settings/delegation/`、`src/settings/composition/` |
+| 基础设置层 | `src/settings/capability_registry/`、`src/settings/approval/`、`src/settings/delegation/`、`src/settings/composition/`、外部 `shanforge-di` |
 
 ---
 

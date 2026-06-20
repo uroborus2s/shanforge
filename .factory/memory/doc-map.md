@@ -37,9 +37,11 @@
 - `docs/04-project-development/03-requirements/memory-system-business-requirements.md` -> `.factory/memory/runtime-brief.md`
 - `docs/04-project-development/03-requirements/requirements-verification.md` -> `.factory/memory/runtime-brief.md`
 - `docs/04-project-development/04-design/agent-platform-architecture.md` -> `.factory/memory/architecture.summary.md`, `.factory/memory/runtime-brief.md`
+- `docs/04-project-development/04-design/ai-drama-production-skill-system.md` -> `.factory/memory/architecture.summary.md`, `.factory/memory/skill-updates.summary.md`
 - `docs/04-project-development/04-design/basic-capability-layer-design.md` -> `.factory/memory/architecture.summary.md`, `.factory/memory/api.summary.md`
 - `docs/04-project-development/04-design/infrastructure-layer-design.md` -> `.factory/memory/architecture.summary.md`, `.factory/memory/api.summary.md`
 - `docs/04-project-development/04-design/memory-system-detailed-design.md` -> `.factory/memory/architecture.summary.md`, `.factory/memory/api.summary.md`
+- `docs/04-project-development/04-design/memory-governance-design.md` -> `.factory/memory/architecture.summary.md`, `.factory/memory/api.summary.md`
 - `docs/04-project-development/04-design/memory-runtime-design.md` -> `.factory/memory/architecture.summary.md`
 - `docs/04-project-development/04-design/memory-runtime-interfaces.md` -> `.factory/memory/api.summary.md`
 - `docs/04-project-development/04-design/memory-session-ledger-design.md` -> `.factory/memory/architecture.summary.md`
@@ -58,6 +60,7 @@
 - `docs/04-project-development/04-design/technical-selection.md` -> `.factory/memory/tech-stack.summary.md`
 - `docs/04-project-development/04-design/ux-ui-design.md` -> `.factory/memory/ui.summary.md`, `.factory/memory/design-assets.summary.md`
 - `docs/04-project-development/05-development-process/implementation-plan.md` -> `.factory/memory/runtime-brief.md`
+- `docs/04-project-development/05-development-process/memory-governance-implementation-plan.md` -> `.factory/memory/tasks.summary.md`, `.factory/memory/runtime-brief.md`
 - `docs/04-project-development/05-development-process/index.md` -> `.factory/memory/runtime-brief.md`
 - `docs/04-project-development/05-development-process/software-development-process.md` -> `.factory/memory/runtime-brief.md`
 - `docs/04-project-development/06-testing-verification/index.md` -> `.factory/memory/runtime-brief.md`

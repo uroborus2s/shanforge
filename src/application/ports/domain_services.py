@@ -14,7 +14,21 @@ from domain.delegation.models import (
     DelegationTask,
     DelegationTicket,
 )
-from domain.memory.models import DistillationResult, RecallBundle, RecallQuery
+from domain.memory import RecallPreview
+from domain.memory.models import (
+    DistillationResult,
+    MemoryLifecycleApplyResult,
+    MemoryLifecycleAuditFilter,
+    MemoryLifecycleAuditLog,
+    MemoryLifecycleQueue,
+    MemoryLifecycleQueueFilter,
+    MemoryLifecycleReviewResolution,
+    MemoryLifecycleQueueReviewStatus,
+    MemoryLifecycleQueueUpdateResult,
+    MemoryLifecycleReviewResult,
+    RecallBundle,
+    RecallQuery,
+)
 from domain.model.models import ModelResponse
 from domain.response.models import AgentResponse
 from domain.session.models import AgentSession, SessionArtifact
@@ -79,9 +93,57 @@ class MemoryDomainService(Protocol):
 
     def recall(self, query: RecallQuery) -> RecallBundle: ...
 
+    def preview_recall(
+        self,
+        session: AgentSession,
+        limit: int | None = None,
+    ) -> RecallPreview: ...
+
     def distill_session(self, session: AgentSession) -> DistillationResult: ...
 
     def explain_session_memory(self, session: AgentSession) -> Mapping[str, Any]: ...
+
+    def review_lifecycle(self, session: AgentSession) -> MemoryLifecycleReviewResult: ...
+
+    def load_lifecycle_queue(
+        self,
+        session: AgentSession,
+        queue_filter: MemoryLifecycleQueueFilter | None = None,
+    ) -> MemoryLifecycleQueue: ...
+
+    def reopen_lifecycle_queue(
+        self,
+        session: AgentSession,
+        actor: str,
+        record_ids: tuple[str, ...] | None = None,
+        queue_filter: MemoryLifecycleQueueFilter | None = None,
+        note: str | None = None,
+    ) -> MemoryLifecycleQueueUpdateResult: ...
+
+    def load_lifecycle_audit(
+        self,
+        session: AgentSession,
+        audit_filter: MemoryLifecycleAuditFilter | None = None,
+    ) -> MemoryLifecycleAuditLog: ...
+
+    def apply_lifecycle(
+        self,
+        session: AgentSession,
+        actor: str,
+        record_ids: tuple[str, ...] | None = None,
+        queue_filter: MemoryLifecycleQueueFilter | None = None,
+    ) -> MemoryLifecycleApplyResult: ...
+
+    def update_lifecycle_queue(
+        self,
+        session: AgentSession,
+        actor: str,
+        review_status: MemoryLifecycleQueueReviewStatus,
+        record_ids: tuple[str, ...] | None = None,
+        queue_filter: MemoryLifecycleQueueFilter | None = None,
+        note: str | None = None,
+        resolution: MemoryLifecycleReviewResolution | None = None,
+    ) -> MemoryLifecycleQueueUpdateResult: ...
 
 
 class ContextDomainService(Protocol):

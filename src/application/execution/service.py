@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
+from typing import Any, Mapping
 
 from application.ports import AgentKernelPort
 from application.ports.domain_services import (
@@ -34,6 +35,7 @@ class ExecutionService:
     session_service: SessionDomainService
     memory_service: MemoryDomainService
     kernel: AgentKernelPort
+    session_context_defaults: Mapping[str, Any] = field(default_factory=dict)
 
     def execute_manifest(
         self,
@@ -64,6 +66,7 @@ class ExecutionService:
             user_input=user_input,
             session_id=session_id,
         )
+        session.context.update(dict(self.session_context_defaults))
         self.memory_service.prepare_session(
             session=session,
             app=app,

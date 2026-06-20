@@ -37,6 +37,34 @@ class MemoryStatus(StrEnum):
     ACCEPTED = "accepted"
     REJECTED = "rejected"
     SUPERSEDED = "superseded"
+    FORGOTTEN = "forgotten"
+
+
+class MemoryLifecycleQueueReviewStatus(StrEnum):
+    """Human review state carried by one durable lifecycle queue entry."""
+
+    PENDING = "pending"
+    DISMISSED = "dismissed"
+    APPLIED = "applied"
+
+
+class MemoryLifecycleReviewResolution(StrEnum):
+    """Reviewer-facing taxonomy used to explain why a lifecycle item was triaged."""
+
+    DEFERRED = "deferred"
+    KEEP_CURRENT = "keep_current"
+    CONFLICT_CONFIRMED = "conflict_confirmed"
+    STALE_SIGNAL = "stale_signal"
+    MANUAL_OVERRIDE = "manual_override"
+
+
+class MemoryLifecycleAuditAction(StrEnum):
+    """Canonical audit actions emitted by lifecycle review and apply flows."""
+
+    REVIEW_STATUS_UPDATED = "review_status_updated"
+    REVIEW_NOTE_UPDATED = "review_note_updated"
+    REVIEW_REOPENED = "review_reopened"
+    LIFECYCLE_APPLIED = "lifecycle_applied"
 
 
 @dataclass(slots=True, frozen=True)
@@ -108,6 +136,7 @@ class RecallQuery:
     scope_filters: tuple[tuple[MemoryScope, str], ...]
     allowed_statuses: tuple[MemoryStatus, ...] = (MemoryStatus.ACCEPTED,)
     limit: int = 8
+    query_text: str | None = None
 
 
 @dataclass(slots=True, frozen=True)
@@ -128,6 +157,196 @@ class DistillationResult:
     candidates: tuple[MemoryCandidate, ...] = ()
     promotion_decisions: tuple[PromotionDecision, ...] = ()
     promoted_records: tuple[MemoryRecord, ...] = ()
+
+
+@dataclass(slots=True, frozen=True)
+class MemoryLifecycleEvaluation:
+    """Lifecycle review projection for one persisted memory record."""
+
+    record_id: str
+    scope: MemoryScope
+    scope_key: str
+    current_status: MemoryStatus
+    effective_status: MemoryStatus
+    reason: str
+    allowed: bool
+    hidden: bool
+    metadata: Mapping[str, Any] = field(default_factory=dict)
+
+
+@dataclass(slots=True, frozen=True)
+class MemoryLifecycleQueueFilter:
+    """Stable filter used to project a product-facing lifecycle review queue."""
+
+    actionable_only: bool = True
+    include_hidden: bool = True
+    reasons: tuple[str, ...] = ()
+    effective_statuses: tuple[MemoryStatus, ...] = ()
+    current_statuses: tuple[MemoryStatus, ...] = ()
+    review_statuses: tuple[MemoryLifecycleQueueReviewStatus, ...] = (
+        MemoryLifecycleQueueReviewStatus.PENDING,
+    )
+    review_resolutions: tuple[MemoryLifecycleReviewResolution, ...] = ()
+    limit: int | None = None
+
+
+@dataclass(slots=True, frozen=True)
+class MemoryLifecycleResolutionOption:
+    """Reviewer-facing guidance for one available lifecycle resolution choice."""
+
+    resolution: MemoryLifecycleReviewResolution
+    description: str
+    suggested_note: str | None = None
+
+
+@dataclass(slots=True, frozen=True)
+class MemoryLifecycleQueueEntry:
+    """Durable queue entry persisted for one session-scoped lifecycle review item."""
+
+    id: str
+    session_id: str
+    record_id: str
+    scope: MemoryScope
+    scope_key: str
+    current_status: MemoryStatus
+    effective_status: MemoryStatus
+    reason: str
+    allowed: bool
+    hidden: bool
+    action_required: bool
+    selected_by_default: bool
+    review_status: MemoryLifecycleQueueReviewStatus = MemoryLifecycleQueueReviewStatus.PENDING
+    review_resolution: MemoryLifecycleReviewResolution | None = None
+    reviewed_by: str | None = None
+    reviewed_at: datetime | None = None
+    review_note: str | None = None
+    metadata: Mapping[str, Any] = field(default_factory=dict)
+
+
+@dataclass(slots=True, frozen=True)
+class MemoryLifecycleQueueItem:
+    """One actionable or inspectable item projected into the lifecycle queue."""
+
+    record_id: str
+    scope: MemoryScope
+    scope_key: str
+    current_status: MemoryStatus
+    effective_status: MemoryStatus
+    reason: str
+    allowed: bool
+    hidden: bool
+    action_required: bool
+    selected_by_default: bool
+    review_status: MemoryLifecycleQueueReviewStatus = MemoryLifecycleQueueReviewStatus.PENDING
+    review_resolution: MemoryLifecycleReviewResolution | None = None
+    resolution_required: bool = False
+    resolution_options: tuple[MemoryLifecycleResolutionOption, ...] = ()
+    reviewed_by: str | None = None
+    reviewed_at: datetime | None = None
+    review_note: str | None = None
+    metadata: Mapping[str, Any] = field(default_factory=dict)
+
+
+@dataclass(slots=True, frozen=True)
+class MemoryLifecycleQueue:
+    """Product-facing lifecycle review queue derived from a review pass."""
+
+    session_id: str
+    scope_filters: tuple[tuple[MemoryScope, str], ...]
+    queue_filter: MemoryLifecycleQueueFilter = field(
+        default_factory=MemoryLifecycleQueueFilter
+    )
+    items: tuple[MemoryLifecycleQueueItem, ...] = ()
+    selected_record_ids: tuple[str, ...] = ()
+    total_evaluation_count: int = 0
+    actionable_count: int = 0
+    hidden_count: int = 0
+    metadata: Mapping[str, Any] = field(default_factory=dict)
+
+
+@dataclass(slots=True, frozen=True)
+class MemoryLifecycleReviewResult:
+    """Lifecycle review result for one session-scoped governance pass."""
+
+    session_id: str
+    scope_filters: tuple[tuple[MemoryScope, str], ...]
+    evaluations: tuple[MemoryLifecycleEvaluation, ...] = ()
+    metadata: Mapping[str, Any] = field(default_factory=dict)
+
+
+@dataclass(slots=True, frozen=True)
+class MemoryLifecycleApplyResult:
+    """Durable result of applying reviewed lifecycle decisions."""
+
+    session_id: str
+    actor: str
+    queue_filter: MemoryLifecycleQueueFilter | None = None
+    selected_record_ids: tuple[str, ...] = ()
+    applied_record_ids: tuple[str, ...] = ()
+    skipped_record_ids: tuple[str, ...] = ()
+    updated_records: tuple[MemoryRecord, ...] = ()
+    evaluations: tuple[MemoryLifecycleEvaluation, ...] = ()
+    metadata: Mapping[str, Any] = field(default_factory=dict)
+
+
+@dataclass(slots=True, frozen=True)
+class MemoryLifecycleQueueUpdateResult:
+    """Result of updating durable lifecycle queue review state."""
+
+    session_id: str
+    actor: str
+    review_status: MemoryLifecycleQueueReviewStatus
+    resolution: MemoryLifecycleReviewResolution | None = None
+    queue_filter: MemoryLifecycleQueueFilter | None = None
+    requested_record_ids: tuple[str, ...] = ()
+    updated_record_ids: tuple[str, ...] = ()
+    missing_record_ids: tuple[str, ...] = ()
+    queue: MemoryLifecycleQueue | None = None
+    metadata: Mapping[str, Any] = field(default_factory=dict)
+
+
+@dataclass(slots=True, frozen=True)
+class MemoryLifecycleAuditFilter:
+    """Stable filter used to read lifecycle audit history for one session."""
+
+    actions: tuple[MemoryLifecycleAuditAction, ...] = ()
+    record_ids: tuple[str, ...] = ()
+    actors: tuple[str, ...] = ()
+    queue_review_statuses: tuple[MemoryLifecycleQueueReviewStatus, ...] = ()
+    resolutions: tuple[MemoryLifecycleReviewResolution, ...] = ()
+    latest_per_record_only: bool = False
+    limit: int | None = None
+
+
+@dataclass(slots=True, frozen=True)
+class MemoryLifecycleAuditEntry:
+    """Durable audit event for one lifecycle review or apply action."""
+
+    id: str
+    session_id: str
+    record_id: str
+    actor: str
+    action: MemoryLifecycleAuditAction
+    current_status: MemoryStatus
+    effective_status: MemoryStatus
+    created_at: datetime = field(default_factory=_utcnow)
+    queue_review_status: MemoryLifecycleQueueReviewStatus | None = None
+    resolution: MemoryLifecycleReviewResolution | None = None
+    reason: str | None = None
+    note: str | None = None
+    metadata: Mapping[str, Any] = field(default_factory=dict)
+
+
+@dataclass(slots=True, frozen=True)
+class MemoryLifecycleAuditLog:
+    """Product-facing audit log for lifecycle queue review and apply actions."""
+
+    session_id: str
+    audit_filter: MemoryLifecycleAuditFilter = field(
+        default_factory=MemoryLifecycleAuditFilter
+    )
+    entries: tuple[MemoryLifecycleAuditEntry, ...] = ()
+    metadata: Mapping[str, Any] = field(default_factory=dict)
 
 
 @dataclass(slots=True, frozen=True)

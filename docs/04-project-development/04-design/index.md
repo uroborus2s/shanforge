@@ -36,12 +36,13 @@
 记忆相关专题已经统一到“`domain/memory` 业务 owner + `runtime` 技术能力 + `settings` 实现分区”的口径，建议按下面顺序阅读：
 
 1. [记忆系统详细设计方案](./memory-system-detailed-design.md)
-2. [记忆运行设计（文件名兼容保留）](./memory-runtime-design.md)
-3. [记忆领域接口视图](./memory-runtime-interfaces.md)
-4. [子设计一：Session Ledger](./memory-session-ledger-design.md)
-5. [子设计二：Candidate 与 Promotion](./memory-promotion-design.md)
-6. [子设计三：Recall 与 Context Consumption](./memory-recall-design.md)
-7. [子设计四：Distillation 与 Learning Dataset](./memory-distillation-learning-design.md)
+2. [记忆治理专项设计方案](./memory-governance-design.md)
+3. [记忆运行设计（文件名兼容保留）](./memory-runtime-design.md)
+4. [记忆领域接口视图](./memory-runtime-interfaces.md)
+5. [子设计一：Session Ledger](./memory-session-ledger-design.md)
+6. [子设计二：Candidate 与 Promotion](./memory-promotion-design.md)
+7. [子设计三：Recall 与 Context Consumption](./memory-recall-design.md)
+8. [子设计四：Distillation 与 Learning Dataset](./memory-distillation-learning-design.md)
 
 ## 3. 主题专项
 
@@ -50,8 +51,10 @@
 1. [后端分层与运行链设计](./backend-design.md)
 2. [数据与持久化设计（文件名兼容保留）](./database-design.md)
 3. [多前台宿主与多代理协作设计](./frontend-adapters-and-multi-agent-coordination.md)
-4. [能力注册与分级自治治理设计](./action-registry-and-autonomy-policy.md)
-5. [部署与运行模式设计](./deployment-architecture.md)
+4. [编剧室模拟器设计方案](./writer-room-simulator-design.md)
+5. [AI 剧制作三 Skill 协作方案](./ai-drama-production-skill-system.md)
+6. [能力注册与分级自治治理设计](./action-registry-and-autonomy-policy.md)
+7. [部署与运行模式设计](./deployment-architecture.md)
 
 ## 4. 设计资产
 
@@ -59,6 +62,7 @@
 
 1. [draw.io 架构视图资产](./assets/v2-architecture-views.drawio)
 2. [单页架构图清单](./assets/v2-architecture-pages/index.md)
+3. [Writer Room Simulator 静态原型](./design-assets/writer-room-simulator.html)
 
 图形资产只负责辅助理解，不覆盖 Markdown 正式口径。若图文冲突，以正文为准。
 

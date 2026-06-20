@@ -1,7 +1,8 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timezone
+from uuid import uuid4
 
 from runtime.capability.contracts import (
     CapabilityOperationDescriptor,
@@ -42,7 +43,16 @@ class ClockIdentityService:
         )
 
     def now(self) -> datetime:
-        raise NotImplementedError("Scaffold only: implement clock reads in TASK-017.")
+        if self.clock_provider is not None:
+            current = self.clock_provider.now()
+        else:
+            current = datetime.now(timezone.utc)
+        if current.tzinfo is None:
+            return current.replace(tzinfo=timezone.utc)
+        return current.astimezone(timezone.utc)
 
     def new_id(self, prefix: str) -> str:
-        raise NotImplementedError("Scaffold only: implement ID generation in TASK-017.")
+        normalized_prefix = prefix.strip() or "id"
+        if self.id_provider is not None:
+            return self.id_provider.new_id(normalized_prefix)
+        return f"{normalized_prefix}-{uuid4()}"

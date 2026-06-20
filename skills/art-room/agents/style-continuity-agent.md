@@ -25,8 +25,8 @@ style and continuity bible for image generation.
   reusable-skill lore.
 - Detect conflicts between character, location, prop, costume, and storyboard
   needs.
-- Define reusable style tokens and continuity IDs that prompt-room and
-  production can reference.
+- Define reusable style tokens and continuity IDs that Director Room prompt
+  refresh and production can reference.
 
 ## Required Artifacts
 

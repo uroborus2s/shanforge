@@ -65,5 +65,32 @@ class JsonlStore:
         current[record_id] = payload
         if record_id not in order:
             order.append(record_id)
-        content = "\n".join(json.dumps(current[item_id], ensure_ascii=True) for item_id in order) + "\n"
+        content = (
+            "\n".join(json.dumps(current[item_id], ensure_ascii=True) for item_id in order)
+            + "\n"
+        )
+        self.path.write_text(content, encoding="utf-8")
+
+    def remove(self, record_id: str) -> None:
+        if not self.path.exists():
+            return
+        current: dict[str, dict[str, Any]] = {}
+        order: list[str] = []
+        for line in self.path.read_text(encoding="utf-8").splitlines():
+            if not line.strip():
+                continue
+            item = json.loads(line)
+            item_id = item["id"]
+            if item_id == record_id:
+                continue
+            current[item_id] = item
+            if item_id not in order:
+                order.append(item_id)
+        if not order:
+            self.path.write_text("", encoding="utf-8")
+            return
+        content = (
+            "\n".join(json.dumps(current[item_id], ensure_ascii=True) for item_id in order)
+            + "\n"
+        )
         self.path.write_text(content, encoding="utf-8")

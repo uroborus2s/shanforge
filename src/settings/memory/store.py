@@ -62,15 +62,22 @@ class InMemoryMemoryStore:
             if record.scope is scope and record.scope_key == scope_key
         )
 
-    def search(self, query: RecallQuery) -> tuple[MemoryRecord, ...]:
-        scope_filters = set(query.scope_filters)
-        allowed_statuses = set(query.allowed_statuses)
-        filtered = [
+    def scan_memory_records(
+        self,
+        scope_filters: tuple[tuple[MemoryScope, str], ...],
+        allowed_statuses: tuple[MemoryStatus, ...],
+    ) -> tuple[MemoryRecord, ...]:
+        scope_filter_set = set(scope_filters)
+        allowed_status_set = set(allowed_statuses)
+        return tuple(
             record
             for record in self.records
-            if (record.scope, record.scope_key) in scope_filters
-            and record.status in allowed_statuses
-        ]
+            if (record.scope, record.scope_key) in scope_filter_set
+            and record.status in allowed_status_set
+        )
+
+    def search(self, query: RecallQuery) -> tuple[MemoryRecord, ...]:
+        filtered = list(self.scan_memory_records(query.scope_filters, query.allowed_statuses))
         return _rank_memory_records(filtered, query.limit)
 
     def save_memory_record(self, record: MemoryRecord) -> None:
@@ -96,15 +103,22 @@ class JsonlMemoryStore(JsonlStore):
             if record.scope is scope and record.scope_key == scope_key
         )
 
-    def search(self, query: RecallQuery) -> tuple[MemoryRecord, ...]:
-        scope_filters = set(query.scope_filters)
-        allowed_statuses = set(query.allowed_statuses)
-        filtered = [
+    def scan_memory_records(
+        self,
+        scope_filters: tuple[tuple[MemoryScope, str], ...],
+        allowed_statuses: tuple[MemoryStatus, ...],
+    ) -> tuple[MemoryRecord, ...]:
+        scope_filter_set = set(scope_filters)
+        allowed_status_set = set(allowed_statuses)
+        return tuple(
             record
             for record in self.read_all(_deserialize_memory_record)
-            if (record.scope, record.scope_key) in scope_filters
-            and record.status in allowed_statuses
-        ]
+            if (record.scope, record.scope_key) in scope_filter_set
+            and record.status in allowed_status_set
+        )
+
+    def search(self, query: RecallQuery) -> tuple[MemoryRecord, ...]:
+        filtered = list(self.scan_memory_records(query.scope_filters, query.allowed_statuses))
         return _rank_memory_records(filtered, query.limit)
 
     def save_memory_record(self, record: MemoryRecord) -> None:

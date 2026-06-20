@@ -16,6 +16,7 @@
 | `docs/04-project-development/04-design/technical-selection.md` | 技术选型 | 架构、平台开发、测试 | `v2` 基线 | `NFR-*` |
 | `docs/04-project-development/04-design/system-architecture.md` | 系统架构 | 架构、平台开发 | `v2` 基线 | `REQ-*`, `ADR-*`, `MOD-*`, `API-*` |
 | `docs/04-project-development/04-design/agent-platform-architecture.md` | 平台架构 | 架构、业务 Agent 开发 | `v2` 基线 | `REQ-*`, `MOD-*`, `API-*` |
+| `docs/04-project-development/04-design/ai-drama-production-skill-system.md` | 专项设计 | 架构、业务 Agent 开发、视频生产协作者 | `v0.1` | `SKILL-WRITER-ROOM`, `SKILL-DIRECTOR-ROOM`, `SKILL-ART-ROOM` |
 | `docs/04-project-development/04-design/infrastructure-layer-design.md` | 基础设施层领域模型与服务接口设计 | 架构、平台开发、适配器维护者 | `v2` 基线 | `MOD-*`, `API-*` |
 | `docs/04-project-development/04-design/memory-runtime-design.md` | 记忆专项设计 | 架构、平台开发、测试 | `v2` 基线 | `REQ-006`, `MOD-007`, `API-006`, `API-007` |
 | `docs/04-project-development/04-design/memory-system-detailed-design.md` | 记忆系统详细设计方案 | 架构、平台开发、测试、运营协作者 | `v0.2` | `REQ-006`, `MOD-007`, `MOD-010`, `API-006`, `API-007`, `MEM-BIZ-*` |

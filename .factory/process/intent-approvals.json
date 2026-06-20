@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updated_at": "2026-04-15 13:51:18",
+  "updated_at": "2026-06-20 09:53:25",
   "records": [
     {
       "id": "IA-20260402174647-commandprofi-8b80cf",
@@ -1697,6 +1697,3031 @@
           "daily-close",
           "--project",
           "/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmpjbujs0lq/managed-project",
+          "--owner",
+          "tester",
+          "--note",
+          "close day",
+          "--focus",
+          "handover"
+        ],
+        "label": "按意图执行命令画像 daily-close"
+      }
+    },
+    {
+      "id": "IA-20260416160722-commandprofi-a551fb",
+      "status": "pending",
+      "created_at": "2026-04-16 16:07:22",
+      "updated_at": "2026-04-16 16:07:22",
+      "requested_by": "tester",
+      "intent": "今天收尾并生成会话入口",
+      "project_path": "/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmp3ud03obe/managed-project",
+      "project_kind": "managed",
+      "frontend_id": "codex",
+      "action": "command-profiles",
+      "risk_level": "L2",
+      "approval": "summary_confirm",
+      "execution": "requires_confirmation",
+      "reasons": [
+        "检测到 `daily-close` 子目标语义。",
+        "该 profile 会附带生成会话入口。"
+      ],
+      "artifacts": [
+        "命令画像执行输出"
+      ],
+      "command_hint": "python3 /Users/uroborus/AiProject/shanforge/scripts/factory-dispatch command-profiles daily-close --project \"/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmp3ud03obe/managed-project\" --owner \"<owner>\" --focus \"今天收尾并生成会话入口\"",
+      "note": "close day",
+      "focus": "handover",
+      "strict": false,
+      "selected_profile": "daily-close",
+      "selected_workflow": "",
+      "ownership": {
+        "role_id": "release-manager",
+        "role_title": "发布经理",
+        "execution_owner": "tester",
+        "write_targets": [
+          ".factory",
+          "docs"
+        ],
+        "source": "inferred"
+      },
+      "ownership_conflicts": [],
+      "plan": {
+        "action": "command-profiles",
+        "script_name": "factory-command-profiles",
+        "arguments": [
+          "daily-close",
+          "--project",
+          "/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmp3ud03obe/managed-project",
+          "--owner",
+          "tester",
+          "--note",
+          "close day",
+          "--focus",
+          "handover"
+        ],
+        "label": "按意图执行命令画像 daily-close"
+      }
+    },
+    {
+      "id": "IA-20260416163840-commandprofi-6791c3",
+      "status": "pending",
+      "created_at": "2026-04-16 16:38:40",
+      "updated_at": "2026-04-16 16:38:40",
+      "requested_by": "tester",
+      "intent": "今天收尾并生成会话入口",
+      "project_path": "/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmp0_zhmgfm/managed-project",
+      "project_kind": "managed",
+      "frontend_id": "codex",
+      "action": "command-profiles",
+      "risk_level": "L2",
+      "approval": "summary_confirm",
+      "execution": "requires_confirmation",
+      "reasons": [
+        "检测到 `daily-close` 子目标语义。",
+        "该 profile 会附带生成会话入口。"
+      ],
+      "artifacts": [
+        "命令画像执行输出"
+      ],
+      "command_hint": "python3 /Users/uroborus/AiProject/shanforge/scripts/factory-dispatch command-profiles daily-close --project \"/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmp0_zhmgfm/managed-project\" --owner \"<owner>\" --focus \"今天收尾并生成会话入口\"",
+      "note": "close day",
+      "focus": "handover",
+      "strict": false,
+      "selected_profile": "daily-close",
+      "selected_workflow": "",
+      "ownership": {
+        "role_id": "release-manager",
+        "role_title": "发布经理",
+        "execution_owner": "tester",
+        "write_targets": [
+          ".factory",
+          "docs"
+        ],
+        "source": "inferred"
+      },
+      "ownership_conflicts": [],
+      "plan": {
+        "action": "command-profiles",
+        "script_name": "factory-command-profiles",
+        "arguments": [
+          "daily-close",
+          "--project",
+          "/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmp0_zhmgfm/managed-project",
+          "--owner",
+          "tester",
+          "--note",
+          "close day",
+          "--focus",
+          "handover"
+        ],
+        "label": "按意图执行命令画像 daily-close"
+      }
+    },
+    {
+      "id": "IA-20260416164027-commandprofi-02524d",
+      "status": "pending",
+      "created_at": "2026-04-16 16:40:27",
+      "updated_at": "2026-04-16 16:40:27",
+      "requested_by": "tester",
+      "intent": "今天收尾并生成会话入口",
+      "project_path": "/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmp0cvcp324/managed-project",
+      "project_kind": "managed",
+      "frontend_id": "codex",
+      "action": "command-profiles",
+      "risk_level": "L2",
+      "approval": "summary_confirm",
+      "execution": "requires_confirmation",
+      "reasons": [
+        "检测到 `daily-close` 子目标语义。",
+        "该 profile 会附带生成会话入口。"
+      ],
+      "artifacts": [
+        "命令画像执行输出"
+      ],
+      "command_hint": "python3 /Users/uroborus/AiProject/shanforge/scripts/factory-dispatch command-profiles daily-close --project \"/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmp0cvcp324/managed-project\" --owner \"<owner>\" --focus \"今天收尾并生成会话入口\"",
+      "note": "close day",
+      "focus": "handover",
+      "strict": false,
+      "selected_profile": "daily-close",
+      "selected_workflow": "",
+      "ownership": {
+        "role_id": "release-manager",
+        "role_title": "发布经理",
+        "execution_owner": "tester",
+        "write_targets": [
+          ".factory",
+          "docs"
+        ],
+        "source": "inferred"
+      },
+      "ownership_conflicts": [],
+      "plan": {
+        "action": "command-profiles",
+        "script_name": "factory-command-profiles",
+        "arguments": [
+          "daily-close",
+          "--project",
+          "/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmp0cvcp324/managed-project",
+          "--owner",
+          "tester",
+          "--note",
+          "close day",
+          "--focus",
+          "handover"
+        ],
+        "label": "按意图执行命令画像 daily-close"
+      }
+    },
+    {
+      "id": "IA-20260416170733-commandprofi-b42435",
+      "status": "pending",
+      "created_at": "2026-04-16 17:07:33",
+      "updated_at": "2026-04-16 17:07:33",
+      "requested_by": "tester",
+      "intent": "今天收尾并生成会话入口",
+      "project_path": "/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmpdmyfs98o/managed-project",
+      "project_kind": "managed",
+      "frontend_id": "codex",
+      "action": "command-profiles",
+      "risk_level": "L2",
+      "approval": "summary_confirm",
+      "execution": "requires_confirmation",
+      "reasons": [
+        "检测到 `daily-close` 子目标语义。",
+        "该 profile 会附带生成会话入口。"
+      ],
+      "artifacts": [
+        "命令画像执行输出"
+      ],
+      "command_hint": "python3 /Users/uroborus/AiProject/shanforge/scripts/factory-dispatch command-profiles daily-close --project \"/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmpdmyfs98o/managed-project\" --owner \"<owner>\" --focus \"今天收尾并生成会话入口\"",
+      "note": "close day",
+      "focus": "handover",
+      "strict": false,
+      "selected_profile": "daily-close",
+      "selected_workflow": "",
+      "ownership": {
+        "role_id": "release-manager",
+        "role_title": "发布经理",
+        "execution_owner": "tester",
+        "write_targets": [
+          ".factory",
+          "docs"
+        ],
+        "source": "inferred"
+      },
+      "ownership_conflicts": [],
+      "plan": {
+        "action": "command-profiles",
+        "script_name": "factory-command-profiles",
+        "arguments": [
+          "daily-close",
+          "--project",
+          "/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmpdmyfs98o/managed-project",
+          "--owner",
+          "tester",
+          "--note",
+          "close day",
+          "--focus",
+          "handover"
+        ],
+        "label": "按意图执行命令画像 daily-close"
+      }
+    },
+    {
+      "id": "IA-20260416171630-commandprofi-d6af6d",
+      "status": "pending",
+      "created_at": "2026-04-16 17:16:30",
+      "updated_at": "2026-04-16 17:16:30",
+      "requested_by": "tester",
+      "intent": "今天收尾并生成会话入口",
+      "project_path": "/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmp3l939r_h/managed-project",
+      "project_kind": "managed",
+      "frontend_id": "codex",
+      "action": "command-profiles",
+      "risk_level": "L2",
+      "approval": "summary_confirm",
+      "execution": "requires_confirmation",
+      "reasons": [
+        "检测到 `daily-close` 子目标语义。",
+        "该 profile 会附带生成会话入口。"
+      ],
+      "artifacts": [
+        "命令画像执行输出"
+      ],
+      "command_hint": "python3 /Users/uroborus/AiProject/shanforge/scripts/factory-dispatch command-profiles daily-close --project \"/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmp3l939r_h/managed-project\" --owner \"<owner>\" --focus \"今天收尾并生成会话入口\"",
+      "note": "close day",
+      "focus": "handover",
+      "strict": false,
+      "selected_profile": "daily-close",
+      "selected_workflow": "",
+      "ownership": {
+        "role_id": "release-manager",
+        "role_title": "发布经理",
+        "execution_owner": "tester",
+        "write_targets": [
+          ".factory",
+          "docs"
+        ],
+        "source": "inferred"
+      },
+      "ownership_conflicts": [],
+      "plan": {
+        "action": "command-profiles",
+        "script_name": "factory-command-profiles",
+        "arguments": [
+          "daily-close",
+          "--project",
+          "/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmp3l939r_h/managed-project",
+          "--owner",
+          "tester",
+          "--note",
+          "close day",
+          "--focus",
+          "handover"
+        ],
+        "label": "按意图执行命令画像 daily-close"
+      }
+    },
+    {
+      "id": "IA-20260416172708-commandprofi-03d3c9",
+      "status": "pending",
+      "created_at": "2026-04-16 17:27:08",
+      "updated_at": "2026-04-16 17:27:08",
+      "requested_by": "tester",
+      "intent": "今天收尾并生成会话入口",
+      "project_path": "/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmph04ts4t1/managed-project",
+      "project_kind": "managed",
+      "frontend_id": "codex",
+      "action": "command-profiles",
+      "risk_level": "L2",
+      "approval": "summary_confirm",
+      "execution": "requires_confirmation",
+      "reasons": [
+        "检测到 `daily-close` 子目标语义。",
+        "该 profile 会附带生成会话入口。"
+      ],
+      "artifacts": [
+        "命令画像执行输出"
+      ],
+      "command_hint": "python3 /Users/uroborus/AiProject/shanforge/scripts/factory-dispatch command-profiles daily-close --project \"/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmph04ts4t1/managed-project\" --owner \"<owner>\" --focus \"今天收尾并生成会话入口\"",
+      "note": "close day",
+      "focus": "handover",
+      "strict": false,
+      "selected_profile": "daily-close",
+      "selected_workflow": "",
+      "ownership": {
+        "role_id": "release-manager",
+        "role_title": "发布经理",
+        "execution_owner": "tester",
+        "write_targets": [
+          ".factory",
+          "docs"
+        ],
+        "source": "inferred"
+      },
+      "ownership_conflicts": [],
+      "plan": {
+        "action": "command-profiles",
+        "script_name": "factory-command-profiles",
+        "arguments": [
+          "daily-close",
+          "--project",
+          "/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmph04ts4t1/managed-project",
+          "--owner",
+          "tester",
+          "--note",
+          "close day",
+          "--focus",
+          "handover"
+        ],
+        "label": "按意图执行命令画像 daily-close"
+      }
+    },
+    {
+      "id": "IA-20260416181416-commandprofi-224090",
+      "status": "pending",
+      "created_at": "2026-04-16 18:14:16",
+      "updated_at": "2026-04-16 18:14:16",
+      "requested_by": "tester",
+      "intent": "今天收尾并生成会话入口",
+      "project_path": "/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmpnb1sydwi/managed-project",
+      "project_kind": "managed",
+      "frontend_id": "codex",
+      "action": "command-profiles",
+      "risk_level": "L2",
+      "approval": "summary_confirm",
+      "execution": "requires_confirmation",
+      "reasons": [
+        "检测到 `daily-close` 子目标语义。",
+        "该 profile 会附带生成会话入口。"
+      ],
+      "artifacts": [
+        "命令画像执行输出"
+      ],
+      "command_hint": "python3 /Users/uroborus/AiProject/shanforge/scripts/factory-dispatch command-profiles daily-close --project \"/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmpnb1sydwi/managed-project\" --owner \"<owner>\" --focus \"今天收尾并生成会话入口\"",
+      "note": "close day",
+      "focus": "handover",
+      "strict": false,
+      "selected_profile": "daily-close",
+      "selected_workflow": "",
+      "ownership": {
+        "role_id": "release-manager",
+        "role_title": "发布经理",
+        "execution_owner": "tester",
+        "write_targets": [
+          ".factory",
+          "docs"
+        ],
+        "source": "inferred"
+      },
+      "ownership_conflicts": [],
+      "plan": {
+        "action": "command-profiles",
+        "script_name": "factory-command-profiles",
+        "arguments": [
+          "daily-close",
+          "--project",
+          "/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmpnb1sydwi/managed-project",
+          "--owner",
+          "tester",
+          "--note",
+          "close day",
+          "--focus",
+          "handover"
+        ],
+        "label": "按意图执行命令画像 daily-close"
+      }
+    },
+    {
+      "id": "IA-20260416184152-commandprofi-2a32d2",
+      "status": "pending",
+      "created_at": "2026-04-16 18:41:52",
+      "updated_at": "2026-04-16 18:41:52",
+      "requested_by": "tester",
+      "intent": "今天收尾并生成会话入口",
+      "project_path": "/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmpnwr3clyj/managed-project",
+      "project_kind": "managed",
+      "frontend_id": "codex",
+      "action": "command-profiles",
+      "risk_level": "L2",
+      "approval": "summary_confirm",
+      "execution": "requires_confirmation",
+      "reasons": [
+        "检测到 `daily-close` 子目标语义。",
+        "该 profile 会附带生成会话入口。"
+      ],
+      "artifacts": [
+        "命令画像执行输出"
+      ],
+      "command_hint": "python3 /Users/uroborus/AiProject/shanforge/scripts/factory-dispatch command-profiles daily-close --project \"/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmpnwr3clyj/managed-project\" --owner \"<owner>\" --focus \"今天收尾并生成会话入口\"",
+      "note": "close day",
+      "focus": "handover",
+      "strict": false,
+      "selected_profile": "daily-close",
+      "selected_workflow": "",
+      "ownership": {
+        "role_id": "release-manager",
+        "role_title": "发布经理",
+        "execution_owner": "tester",
+        "write_targets": [
+          ".factory",
+          "docs"
+        ],
+        "source": "inferred"
+      },
+      "ownership_conflicts": [],
+      "plan": {
+        "action": "command-profiles",
+        "script_name": "factory-command-profiles",
+        "arguments": [
+          "daily-close",
+          "--project",
+          "/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmpnwr3clyj/managed-project",
+          "--owner",
+          "tester",
+          "--note",
+          "close day",
+          "--focus",
+          "handover"
+        ],
+        "label": "按意图执行命令画像 daily-close"
+      }
+    },
+    {
+      "id": "IA-20260416214414-commandprofi-b284d9",
+      "status": "pending",
+      "created_at": "2026-04-16 21:44:14",
+      "updated_at": "2026-04-16 21:44:14",
+      "requested_by": "tester",
+      "intent": "今天收尾并生成会话入口",
+      "project_path": "/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmpyxu2ez2v/managed-project",
+      "project_kind": "managed",
+      "frontend_id": "codex",
+      "action": "command-profiles",
+      "risk_level": "L2",
+      "approval": "summary_confirm",
+      "execution": "requires_confirmation",
+      "reasons": [
+        "检测到 `daily-close` 子目标语义。",
+        "该 profile 会附带生成会话入口。"
+      ],
+      "artifacts": [
+        "命令画像执行输出"
+      ],
+      "command_hint": "python3 /Users/uroborus/AiProject/shanforge/scripts/factory-dispatch command-profiles daily-close --project \"/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmpyxu2ez2v/managed-project\" --owner \"<owner>\" --focus \"今天收尾并生成会话入口\"",
+      "note": "close day",
+      "focus": "handover",
+      "strict": false,
+      "selected_profile": "daily-close",
+      "selected_workflow": "",
+      "ownership": {
+        "role_id": "release-manager",
+        "role_title": "发布经理",
+        "execution_owner": "tester",
+        "write_targets": [
+          ".factory",
+          "docs"
+        ],
+        "source": "inferred"
+      },
+      "ownership_conflicts": [],
+      "plan": {
+        "action": "command-profiles",
+        "script_name": "factory-command-profiles",
+        "arguments": [
+          "daily-close",
+          "--project",
+          "/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmpyxu2ez2v/managed-project",
+          "--owner",
+          "tester",
+          "--note",
+          "close day",
+          "--focus",
+          "handover"
+        ],
+        "label": "按意图执行命令画像 daily-close"
+      }
+    },
+    {
+      "id": "IA-20260416215352-commandprofi-1ff654",
+      "status": "pending",
+      "created_at": "2026-04-16 21:53:52",
+      "updated_at": "2026-04-16 21:53:52",
+      "requested_by": "tester",
+      "intent": "今天收尾并生成会话入口",
+      "project_path": "/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmpo6ahcefg/managed-project",
+      "project_kind": "managed",
+      "frontend_id": "codex",
+      "action": "command-profiles",
+      "risk_level": "L2",
+      "approval": "summary_confirm",
+      "execution": "requires_confirmation",
+      "reasons": [
+        "检测到 `daily-close` 子目标语义。",
+        "该 profile 会附带生成会话入口。"
+      ],
+      "artifacts": [
+        "命令画像执行输出"
+      ],
+      "command_hint": "python3 /Users/uroborus/AiProject/shanforge/scripts/factory-dispatch command-profiles daily-close --project \"/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmpo6ahcefg/managed-project\" --owner \"<owner>\" --focus \"今天收尾并生成会话入口\"",
+      "note": "close day",
+      "focus": "handover",
+      "strict": false,
+      "selected_profile": "daily-close",
+      "selected_workflow": "",
+      "ownership": {
+        "role_id": "release-manager",
+        "role_title": "发布经理",
+        "execution_owner": "tester",
+        "write_targets": [
+          ".factory",
+          "docs"
+        ],
+        "source": "inferred"
+      },
+      "ownership_conflicts": [],
+      "plan": {
+        "action": "command-profiles",
+        "script_name": "factory-command-profiles",
+        "arguments": [
+          "daily-close",
+          "--project",
+          "/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmpo6ahcefg/managed-project",
+          "--owner",
+          "tester",
+          "--note",
+          "close day",
+          "--focus",
+          "handover"
+        ],
+        "label": "按意图执行命令画像 daily-close"
+      }
+    },
+    {
+      "id": "IA-20260416220552-commandprofi-377f3c",
+      "status": "pending",
+      "created_at": "2026-04-16 22:05:52",
+      "updated_at": "2026-04-16 22:05:52",
+      "requested_by": "tester",
+      "intent": "今天收尾并生成会话入口",
+      "project_path": "/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmpi17voido/managed-project",
+      "project_kind": "managed",
+      "frontend_id": "codex",
+      "action": "command-profiles",
+      "risk_level": "L2",
+      "approval": "summary_confirm",
+      "execution": "requires_confirmation",
+      "reasons": [
+        "检测到 `daily-close` 子目标语义。",
+        "该 profile 会附带生成会话入口。"
+      ],
+      "artifacts": [
+        "命令画像执行输出"
+      ],
+      "command_hint": "python3 /Users/uroborus/AiProject/shanforge/scripts/factory-dispatch command-profiles daily-close --project \"/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmpi17voido/managed-project\" --owner \"<owner>\" --focus \"今天收尾并生成会话入口\"",
+      "note": "close day",
+      "focus": "handover",
+      "strict": false,
+      "selected_profile": "daily-close",
+      "selected_workflow": "",
+      "ownership": {
+        "role_id": "release-manager",
+        "role_title": "发布经理",
+        "execution_owner": "tester",
+        "write_targets": [
+          ".factory",
+          "docs"
+        ],
+        "source": "inferred"
+      },
+      "ownership_conflicts": [],
+      "plan": {
+        "action": "command-profiles",
+        "script_name": "factory-command-profiles",
+        "arguments": [
+          "daily-close",
+          "--project",
+          "/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmpi17voido/managed-project",
+          "--owner",
+          "tester",
+          "--note",
+          "close day",
+          "--focus",
+          "handover"
+        ],
+        "label": "按意图执行命令画像 daily-close"
+      }
+    },
+    {
+      "id": "IA-20260416231812-commandprofi-c74953",
+      "status": "pending",
+      "created_at": "2026-04-16 23:18:12",
+      "updated_at": "2026-04-16 23:18:12",
+      "requested_by": "tester",
+      "intent": "今天收尾并生成会话入口",
+      "project_path": "/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmpuucnwo61/managed-project",
+      "project_kind": "managed",
+      "frontend_id": "codex",
+      "action": "command-profiles",
+      "risk_level": "L2",
+      "approval": "summary_confirm",
+      "execution": "requires_confirmation",
+      "reasons": [
+        "检测到 `daily-close` 子目标语义。",
+        "该 profile 会附带生成会话入口。"
+      ],
+      "artifacts": [
+        "命令画像执行输出"
+      ],
+      "command_hint": "python3 /Users/uroborus/AiProject/shanforge/scripts/factory-dispatch command-profiles daily-close --project \"/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmpuucnwo61/managed-project\" --owner \"<owner>\" --focus \"今天收尾并生成会话入口\"",
+      "note": "close day",
+      "focus": "handover",
+      "strict": false,
+      "selected_profile": "daily-close",
+      "selected_workflow": "",
+      "ownership": {
+        "role_id": "release-manager",
+        "role_title": "发布经理",
+        "execution_owner": "tester",
+        "write_targets": [
+          ".factory",
+          "docs"
+        ],
+        "source": "inferred"
+      },
+      "ownership_conflicts": [],
+      "plan": {
+        "action": "command-profiles",
+        "script_name": "factory-command-profiles",
+        "arguments": [
+          "daily-close",
+          "--project",
+          "/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmpuucnwo61/managed-project",
+          "--owner",
+          "tester",
+          "--note",
+          "close day",
+          "--focus",
+          "handover"
+        ],
+        "label": "按意图执行命令画像 daily-close"
+      }
+    },
+    {
+      "id": "IA-20260416233004-commandprofi-4bb299",
+      "status": "pending",
+      "created_at": "2026-04-16 23:30:04",
+      "updated_at": "2026-04-16 23:30:04",
+      "requested_by": "tester",
+      "intent": "今天收尾并生成会话入口",
+      "project_path": "/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmppqw8ntj_/managed-project",
+      "project_kind": "managed",
+      "frontend_id": "codex",
+      "action": "command-profiles",
+      "risk_level": "L2",
+      "approval": "summary_confirm",
+      "execution": "requires_confirmation",
+      "reasons": [
+        "检测到 `daily-close` 子目标语义。",
+        "该 profile 会附带生成会话入口。"
+      ],
+      "artifacts": [
+        "命令画像执行输出"
+      ],
+      "command_hint": "python3 /Users/uroborus/AiProject/shanforge/scripts/factory-dispatch command-profiles daily-close --project \"/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmppqw8ntj_/managed-project\" --owner \"<owner>\" --focus \"今天收尾并生成会话入口\"",
+      "note": "close day",
+      "focus": "handover",
+      "strict": false,
+      "selected_profile": "daily-close",
+      "selected_workflow": "",
+      "ownership": {
+        "role_id": "release-manager",
+        "role_title": "发布经理",
+        "execution_owner": "tester",
+        "write_targets": [
+          ".factory",
+          "docs"
+        ],
+        "source": "inferred"
+      },
+      "ownership_conflicts": [],
+      "plan": {
+        "action": "command-profiles",
+        "script_name": "factory-command-profiles",
+        "arguments": [
+          "daily-close",
+          "--project",
+          "/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmppqw8ntj_/managed-project",
+          "--owner",
+          "tester",
+          "--note",
+          "close day",
+          "--focus",
+          "handover"
+        ],
+        "label": "按意图执行命令画像 daily-close"
+      }
+    },
+    {
+      "id": "IA-20260416235455-commandprofi-c1d88f",
+      "status": "pending",
+      "created_at": "2026-04-16 23:54:55",
+      "updated_at": "2026-04-16 23:54:55",
+      "requested_by": "tester",
+      "intent": "今天收尾并生成会话入口",
+      "project_path": "/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmpw2g66eor/managed-project",
+      "project_kind": "managed",
+      "frontend_id": "codex",
+      "action": "command-profiles",
+      "risk_level": "L2",
+      "approval": "summary_confirm",
+      "execution": "requires_confirmation",
+      "reasons": [
+        "检测到 `daily-close` 子目标语义。",
+        "该 profile 会附带生成会话入口。"
+      ],
+      "artifacts": [
+        "命令画像执行输出"
+      ],
+      "command_hint": "python3 /Users/uroborus/AiProject/shanforge/scripts/factory-dispatch command-profiles daily-close --project \"/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmpw2g66eor/managed-project\" --owner \"<owner>\" --focus \"今天收尾并生成会话入口\"",
+      "note": "close day",
+      "focus": "handover",
+      "strict": false,
+      "selected_profile": "daily-close",
+      "selected_workflow": "",
+      "ownership": {
+        "role_id": "release-manager",
+        "role_title": "发布经理",
+        "execution_owner": "tester",
+        "write_targets": [
+          ".factory",
+          "docs"
+        ],
+        "source": "inferred"
+      },
+      "ownership_conflicts": [],
+      "plan": {
+        "action": "command-profiles",
+        "script_name": "factory-command-profiles",
+        "arguments": [
+          "daily-close",
+          "--project",
+          "/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmpw2g66eor/managed-project",
+          "--owner",
+          "tester",
+          "--note",
+          "close day",
+          "--focus",
+          "handover"
+        ],
+        "label": "按意图执行命令画像 daily-close"
+      }
+    },
+    {
+      "id": "IA-20260417000900-commandprofi-0690fe",
+      "status": "pending",
+      "created_at": "2026-04-17 00:09:00",
+      "updated_at": "2026-04-17 00:09:00",
+      "requested_by": "tester",
+      "intent": "今天收尾并生成会话入口",
+      "project_path": "/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmpew5mpqhf/managed-project",
+      "project_kind": "managed",
+      "frontend_id": "codex",
+      "action": "command-profiles",
+      "risk_level": "L2",
+      "approval": "summary_confirm",
+      "execution": "requires_confirmation",
+      "reasons": [
+        "检测到 `daily-close` 子目标语义。",
+        "该 profile 会附带生成会话入口。"
+      ],
+      "artifacts": [
+        "命令画像执行输出"
+      ],
+      "command_hint": "python3 /Users/uroborus/AiProject/shanforge/scripts/factory-dispatch command-profiles daily-close --project \"/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmpew5mpqhf/managed-project\" --owner \"<owner>\" --focus \"今天收尾并生成会话入口\"",
+      "note": "close day",
+      "focus": "handover",
+      "strict": false,
+      "selected_profile": "daily-close",
+      "selected_workflow": "",
+      "ownership": {
+        "role_id": "release-manager",
+        "role_title": "发布经理",
+        "execution_owner": "tester",
+        "write_targets": [
+          ".factory",
+          "docs"
+        ],
+        "source": "inferred"
+      },
+      "ownership_conflicts": [],
+      "plan": {
+        "action": "command-profiles",
+        "script_name": "factory-command-profiles",
+        "arguments": [
+          "daily-close",
+          "--project",
+          "/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmpew5mpqhf/managed-project",
+          "--owner",
+          "tester",
+          "--note",
+          "close day",
+          "--focus",
+          "handover"
+        ],
+        "label": "按意图执行命令画像 daily-close"
+      }
+    },
+    {
+      "id": "IA-20260417002500-commandprofi-22fa8e",
+      "status": "pending",
+      "created_at": "2026-04-17 00:25:00",
+      "updated_at": "2026-04-17 00:25:00",
+      "requested_by": "tester",
+      "intent": "今天收尾并生成会话入口",
+      "project_path": "/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmpx1s38k1_/managed-project",
+      "project_kind": "managed",
+      "frontend_id": "codex",
+      "action": "command-profiles",
+      "risk_level": "L2",
+      "approval": "summary_confirm",
+      "execution": "requires_confirmation",
+      "reasons": [
+        "检测到 `daily-close` 子目标语义。",
+        "该 profile 会附带生成会话入口。"
+      ],
+      "artifacts": [
+        "命令画像执行输出"
+      ],
+      "command_hint": "python3 /Users/uroborus/AiProject/shanforge/scripts/factory-dispatch command-profiles daily-close --project \"/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmpx1s38k1_/managed-project\" --owner \"<owner>\" --focus \"今天收尾并生成会话入口\"",
+      "note": "close day",
+      "focus": "handover",
+      "strict": false,
+      "selected_profile": "daily-close",
+      "selected_workflow": "",
+      "ownership": {
+        "role_id": "release-manager",
+        "role_title": "发布经理",
+        "execution_owner": "tester",
+        "write_targets": [
+          ".factory",
+          "docs"
+        ],
+        "source": "inferred"
+      },
+      "ownership_conflicts": [],
+      "plan": {
+        "action": "command-profiles",
+        "script_name": "factory-command-profiles",
+        "arguments": [
+          "daily-close",
+          "--project",
+          "/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmpx1s38k1_/managed-project",
+          "--owner",
+          "tester",
+          "--note",
+          "close day",
+          "--focus",
+          "handover"
+        ],
+        "label": "按意图执行命令画像 daily-close"
+      }
+    },
+    {
+      "id": "IA-20260417005703-commandprofi-62a8c7",
+      "status": "pending",
+      "created_at": "2026-04-17 00:57:03",
+      "updated_at": "2026-04-17 00:57:03",
+      "requested_by": "tester",
+      "intent": "今天收尾并生成会话入口",
+      "project_path": "/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmptqlq8u7k/managed-project",
+      "project_kind": "managed",
+      "frontend_id": "codex",
+      "action": "command-profiles",
+      "risk_level": "L2",
+      "approval": "summary_confirm",
+      "execution": "requires_confirmation",
+      "reasons": [
+        "检测到 `daily-close` 子目标语义。",
+        "该 profile 会附带生成会话入口。"
+      ],
+      "artifacts": [
+        "命令画像执行输出"
+      ],
+      "command_hint": "python3 /Users/uroborus/AiProject/shanforge/scripts/factory-dispatch command-profiles daily-close --project \"/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmptqlq8u7k/managed-project\" --owner \"<owner>\" --focus \"今天收尾并生成会话入口\"",
+      "note": "close day",
+      "focus": "handover",
+      "strict": false,
+      "selected_profile": "daily-close",
+      "selected_workflow": "",
+      "ownership": {
+        "role_id": "release-manager",
+        "role_title": "发布经理",
+        "execution_owner": "tester",
+        "write_targets": [
+          ".factory",
+          "docs"
+        ],
+        "source": "inferred"
+      },
+      "ownership_conflicts": [],
+      "plan": {
+        "action": "command-profiles",
+        "script_name": "factory-command-profiles",
+        "arguments": [
+          "daily-close",
+          "--project",
+          "/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmptqlq8u7k/managed-project",
+          "--owner",
+          "tester",
+          "--note",
+          "close day",
+          "--focus",
+          "handover"
+        ],
+        "label": "按意图执行命令画像 daily-close"
+      }
+    },
+    {
+      "id": "IA-20260417011230-commandprofi-b01da0",
+      "status": "pending",
+      "created_at": "2026-04-17 01:12:30",
+      "updated_at": "2026-04-17 01:12:30",
+      "requested_by": "tester",
+      "intent": "今天收尾并生成会话入口",
+      "project_path": "/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmpn1uewjmr/managed-project",
+      "project_kind": "managed",
+      "frontend_id": "codex",
+      "action": "command-profiles",
+      "risk_level": "L2",
+      "approval": "summary_confirm",
+      "execution": "requires_confirmation",
+      "reasons": [
+        "检测到 `daily-close` 子目标语义。",
+        "该 profile 会附带生成会话入口。"
+      ],
+      "artifacts": [
+        "命令画像执行输出"
+      ],
+      "command_hint": "python3 /Users/uroborus/AiProject/shanforge/scripts/factory-dispatch command-profiles daily-close --project \"/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmpn1uewjmr/managed-project\" --owner \"<owner>\" --focus \"今天收尾并生成会话入口\"",
+      "note": "close day",
+      "focus": "handover",
+      "strict": false,
+      "selected_profile": "daily-close",
+      "selected_workflow": "",
+      "ownership": {
+        "role_id": "release-manager",
+        "role_title": "发布经理",
+        "execution_owner": "tester",
+        "write_targets": [
+          ".factory",
+          "docs"
+        ],
+        "source": "inferred"
+      },
+      "ownership_conflicts": [],
+      "plan": {
+        "action": "command-profiles",
+        "script_name": "factory-command-profiles",
+        "arguments": [
+          "daily-close",
+          "--project",
+          "/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmpn1uewjmr/managed-project",
+          "--owner",
+          "tester",
+          "--note",
+          "close day",
+          "--focus",
+          "handover"
+        ],
+        "label": "按意图执行命令画像 daily-close"
+      }
+    },
+    {
+      "id": "IA-20260417011651-commandprofi-3510a2",
+      "status": "pending",
+      "created_at": "2026-04-17 01:16:51",
+      "updated_at": "2026-04-17 01:16:51",
+      "requested_by": "tester",
+      "intent": "今天收尾并生成会话入口",
+      "project_path": "/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmpqrmwfxu5/managed-project",
+      "project_kind": "managed",
+      "frontend_id": "codex",
+      "action": "command-profiles",
+      "risk_level": "L2",
+      "approval": "summary_confirm",
+      "execution": "requires_confirmation",
+      "reasons": [
+        "检测到 `daily-close` 子目标语义。",
+        "该 profile 会附带生成会话入口。"
+      ],
+      "artifacts": [
+        "命令画像执行输出"
+      ],
+      "command_hint": "python3 /Users/uroborus/AiProject/shanforge/scripts/factory-dispatch command-profiles daily-close --project \"/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmpqrmwfxu5/managed-project\" --owner \"<owner>\" --focus \"今天收尾并生成会话入口\"",
+      "note": "close day",
+      "focus": "handover",
+      "strict": false,
+      "selected_profile": "daily-close",
+      "selected_workflow": "",
+      "ownership": {
+        "role_id": "release-manager",
+        "role_title": "发布经理",
+        "execution_owner": "tester",
+        "write_targets": [
+          ".factory",
+          "docs"
+        ],
+        "source": "inferred"
+      },
+      "ownership_conflicts": [],
+      "plan": {
+        "action": "command-profiles",
+        "script_name": "factory-command-profiles",
+        "arguments": [
+          "daily-close",
+          "--project",
+          "/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmpqrmwfxu5/managed-project",
+          "--owner",
+          "tester",
+          "--note",
+          "close day",
+          "--focus",
+          "handover"
+        ],
+        "label": "按意图执行命令画像 daily-close"
+      }
+    },
+    {
+      "id": "IA-20260417013751-commandprofi-e037f7",
+      "status": "pending",
+      "created_at": "2026-04-17 01:37:51",
+      "updated_at": "2026-04-17 01:37:51",
+      "requested_by": "tester",
+      "intent": "今天收尾并生成会话入口",
+      "project_path": "/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmppgm41n7j/managed-project",
+      "project_kind": "managed",
+      "frontend_id": "codex",
+      "action": "command-profiles",
+      "risk_level": "L2",
+      "approval": "summary_confirm",
+      "execution": "requires_confirmation",
+      "reasons": [
+        "检测到 `daily-close` 子目标语义。",
+        "该 profile 会附带生成会话入口。"
+      ],
+      "artifacts": [
+        "命令画像执行输出"
+      ],
+      "command_hint": "python3 /Users/uroborus/AiProject/shanforge/scripts/factory-dispatch command-profiles daily-close --project \"/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmppgm41n7j/managed-project\" --owner \"<owner>\" --focus \"今天收尾并生成会话入口\"",
+      "note": "close day",
+      "focus": "handover",
+      "strict": false,
+      "selected_profile": "daily-close",
+      "selected_workflow": "",
+      "ownership": {
+        "role_id": "release-manager",
+        "role_title": "发布经理",
+        "execution_owner": "tester",
+        "write_targets": [
+          ".factory",
+          "docs"
+        ],
+        "source": "inferred"
+      },
+      "ownership_conflicts": [],
+      "plan": {
+        "action": "command-profiles",
+        "script_name": "factory-command-profiles",
+        "arguments": [
+          "daily-close",
+          "--project",
+          "/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmppgm41n7j/managed-project",
+          "--owner",
+          "tester",
+          "--note",
+          "close day",
+          "--focus",
+          "handover"
+        ],
+        "label": "按意图执行命令画像 daily-close"
+      }
+    },
+    {
+      "id": "IA-20260417015915-commandprofi-670947",
+      "status": "pending",
+      "created_at": "2026-04-17 01:59:15",
+      "updated_at": "2026-04-17 01:59:15",
+      "requested_by": "tester",
+      "intent": "今天收尾并生成会话入口",
+      "project_path": "/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmpg2pmaahw/managed-project",
+      "project_kind": "managed",
+      "frontend_id": "codex",
+      "action": "command-profiles",
+      "risk_level": "L2",
+      "approval": "summary_confirm",
+      "execution": "requires_confirmation",
+      "reasons": [
+        "检测到 `daily-close` 子目标语义。",
+        "该 profile 会附带生成会话入口。"
+      ],
+      "artifacts": [
+        "命令画像执行输出"
+      ],
+      "command_hint": "python3 /Users/uroborus/AiProject/shanforge/scripts/factory-dispatch command-profiles daily-close --project \"/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmpg2pmaahw/managed-project\" --owner \"<owner>\" --focus \"今天收尾并生成会话入口\"",
+      "note": "close day",
+      "focus": "handover",
+      "strict": false,
+      "selected_profile": "daily-close",
+      "selected_workflow": "",
+      "ownership": {
+        "role_id": "release-manager",
+        "role_title": "发布经理",
+        "execution_owner": "tester",
+        "write_targets": [
+          ".factory",
+          "docs"
+        ],
+        "source": "inferred"
+      },
+      "ownership_conflicts": [],
+      "plan": {
+        "action": "command-profiles",
+        "script_name": "factory-command-profiles",
+        "arguments": [
+          "daily-close",
+          "--project",
+          "/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmpg2pmaahw/managed-project",
+          "--owner",
+          "tester",
+          "--note",
+          "close day",
+          "--focus",
+          "handover"
+        ],
+        "label": "按意图执行命令画像 daily-close"
+      }
+    },
+    {
+      "id": "IA-20260417092709-commandprofi-27df2c",
+      "status": "pending",
+      "created_at": "2026-04-17 09:27:09",
+      "updated_at": "2026-04-17 09:27:09",
+      "requested_by": "tester",
+      "intent": "今天收尾并生成会话入口",
+      "project_path": "/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmplkqggz1y/managed-project",
+      "project_kind": "managed",
+      "frontend_id": "codex",
+      "action": "command-profiles",
+      "risk_level": "L2",
+      "approval": "summary_confirm",
+      "execution": "requires_confirmation",
+      "reasons": [
+        "检测到 `daily-close` 子目标语义。",
+        "该 profile 会附带生成会话入口。"
+      ],
+      "artifacts": [
+        "命令画像执行输出"
+      ],
+      "command_hint": "python3 /Users/uroborus/AiProject/shanforge/scripts/factory-dispatch command-profiles daily-close --project \"/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmplkqggz1y/managed-project\" --owner \"<owner>\" --focus \"今天收尾并生成会话入口\"",
+      "note": "close day",
+      "focus": "handover",
+      "strict": false,
+      "selected_profile": "daily-close",
+      "selected_workflow": "",
+      "ownership": {
+        "role_id": "release-manager",
+        "role_title": "发布经理",
+        "execution_owner": "tester",
+        "write_targets": [
+          ".factory",
+          "docs"
+        ],
+        "source": "inferred"
+      },
+      "ownership_conflicts": [],
+      "plan": {
+        "action": "command-profiles",
+        "script_name": "factory-command-profiles",
+        "arguments": [
+          "daily-close",
+          "--project",
+          "/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmplkqggz1y/managed-project",
+          "--owner",
+          "tester",
+          "--note",
+          "close day",
+          "--focus",
+          "handover"
+        ],
+        "label": "按意图执行命令画像 daily-close"
+      }
+    },
+    {
+      "id": "IA-20260417095028-commandprofi-98e9cf",
+      "status": "pending",
+      "created_at": "2026-04-17 09:50:28",
+      "updated_at": "2026-04-17 09:50:28",
+      "requested_by": "tester",
+      "intent": "今天收尾并生成会话入口",
+      "project_path": "/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmpcf5o3uum/managed-project",
+      "project_kind": "managed",
+      "frontend_id": "codex",
+      "action": "command-profiles",
+      "risk_level": "L2",
+      "approval": "summary_confirm",
+      "execution": "requires_confirmation",
+      "reasons": [
+        "检测到 `daily-close` 子目标语义。",
+        "该 profile 会附带生成会话入口。"
+      ],
+      "artifacts": [
+        "命令画像执行输出"
+      ],
+      "command_hint": "python3 /Users/uroborus/AiProject/shanforge/scripts/factory-dispatch command-profiles daily-close --project \"/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmpcf5o3uum/managed-project\" --owner \"<owner>\" --focus \"今天收尾并生成会话入口\"",
+      "note": "close day",
+      "focus": "handover",
+      "strict": false,
+      "selected_profile": "daily-close",
+      "selected_workflow": "",
+      "ownership": {
+        "role_id": "release-manager",
+        "role_title": "发布经理",
+        "execution_owner": "tester",
+        "write_targets": [
+          ".factory",
+          "docs"
+        ],
+        "source": "inferred"
+      },
+      "ownership_conflicts": [],
+      "plan": {
+        "action": "command-profiles",
+        "script_name": "factory-command-profiles",
+        "arguments": [
+          "daily-close",
+          "--project",
+          "/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmpcf5o3uum/managed-project",
+          "--owner",
+          "tester",
+          "--note",
+          "close day",
+          "--focus",
+          "handover"
+        ],
+        "label": "按意图执行命令画像 daily-close"
+      }
+    },
+    {
+      "id": "IA-20260417101904-commandprofi-d743fc",
+      "status": "pending",
+      "created_at": "2026-04-17 10:19:04",
+      "updated_at": "2026-04-17 10:19:04",
+      "requested_by": "tester",
+      "intent": "今天收尾并生成会话入口",
+      "project_path": "/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmpnrwhk7hb/managed-project",
+      "project_kind": "managed",
+      "frontend_id": "codex",
+      "action": "command-profiles",
+      "risk_level": "L2",
+      "approval": "summary_confirm",
+      "execution": "requires_confirmation",
+      "reasons": [
+        "检测到 `daily-close` 子目标语义。",
+        "该 profile 会附带生成会话入口。"
+      ],
+      "artifacts": [
+        "命令画像执行输出"
+      ],
+      "command_hint": "python3 /Users/uroborus/AiProject/shanforge/scripts/factory-dispatch command-profiles daily-close --project \"/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmpnrwhk7hb/managed-project\" --owner \"<owner>\" --focus \"今天收尾并生成会话入口\"",
+      "note": "close day",
+      "focus": "handover",
+      "strict": false,
+      "selected_profile": "daily-close",
+      "selected_workflow": "",
+      "ownership": {
+        "role_id": "release-manager",
+        "role_title": "发布经理",
+        "execution_owner": "tester",
+        "write_targets": [
+          ".factory",
+          "docs"
+        ],
+        "source": "inferred"
+      },
+      "ownership_conflicts": [],
+      "plan": {
+        "action": "command-profiles",
+        "script_name": "factory-command-profiles",
+        "arguments": [
+          "daily-close",
+          "--project",
+          "/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmpnrwhk7hb/managed-project",
+          "--owner",
+          "tester",
+          "--note",
+          "close day",
+          "--focus",
+          "handover"
+        ],
+        "label": "按意图执行命令画像 daily-close"
+      }
+    },
+    {
+      "id": "IA-20260417113252-commandprofi-984037",
+      "status": "pending",
+      "created_at": "2026-04-17 11:32:52",
+      "updated_at": "2026-04-17 11:32:52",
+      "requested_by": "tester",
+      "intent": "今天收尾并生成会话入口",
+      "project_path": "/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmpt3xxkrpd/managed-project",
+      "project_kind": "managed",
+      "frontend_id": "codex",
+      "action": "command-profiles",
+      "risk_level": "L2",
+      "approval": "summary_confirm",
+      "execution": "requires_confirmation",
+      "reasons": [
+        "检测到 `daily-close` 子目标语义。",
+        "该 profile 会附带生成会话入口。"
+      ],
+      "artifacts": [
+        "命令画像执行输出"
+      ],
+      "command_hint": "python3 /Users/uroborus/AiProject/shanforge/scripts/factory-dispatch command-profiles daily-close --project \"/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmpt3xxkrpd/managed-project\" --owner \"<owner>\" --focus \"今天收尾并生成会话入口\"",
+      "note": "close day",
+      "focus": "handover",
+      "strict": false,
+      "selected_profile": "daily-close",
+      "selected_workflow": "",
+      "ownership": {
+        "role_id": "release-manager",
+        "role_title": "发布经理",
+        "execution_owner": "tester",
+        "write_targets": [
+          ".factory",
+          "docs"
+        ],
+        "source": "inferred"
+      },
+      "ownership_conflicts": [],
+      "plan": {
+        "action": "command-profiles",
+        "script_name": "factory-command-profiles",
+        "arguments": [
+          "daily-close",
+          "--project",
+          "/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmpt3xxkrpd/managed-project",
+          "--owner",
+          "tester",
+          "--note",
+          "close day",
+          "--focus",
+          "handover"
+        ],
+        "label": "按意图执行命令画像 daily-close"
+      }
+    },
+    {
+      "id": "IA-20260417115219-commandprofi-546477",
+      "status": "pending",
+      "created_at": "2026-04-17 11:52:19",
+      "updated_at": "2026-04-17 11:52:19",
+      "requested_by": "tester",
+      "intent": "今天收尾并生成会话入口",
+      "project_path": "/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmp9x7n94ep/managed-project",
+      "project_kind": "managed",
+      "frontend_id": "codex",
+      "action": "command-profiles",
+      "risk_level": "L2",
+      "approval": "summary_confirm",
+      "execution": "requires_confirmation",
+      "reasons": [
+        "检测到 `daily-close` 子目标语义。",
+        "该 profile 会附带生成会话入口。"
+      ],
+      "artifacts": [
+        "命令画像执行输出"
+      ],
+      "command_hint": "python3 /Users/uroborus/AiProject/shanforge/scripts/factory-dispatch command-profiles daily-close --project \"/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmp9x7n94ep/managed-project\" --owner \"<owner>\" --focus \"今天收尾并生成会话入口\"",
+      "note": "close day",
+      "focus": "handover",
+      "strict": false,
+      "selected_profile": "daily-close",
+      "selected_workflow": "",
+      "ownership": {
+        "role_id": "release-manager",
+        "role_title": "发布经理",
+        "execution_owner": "tester",
+        "write_targets": [
+          ".factory",
+          "docs"
+        ],
+        "source": "inferred"
+      },
+      "ownership_conflicts": [],
+      "plan": {
+        "action": "command-profiles",
+        "script_name": "factory-command-profiles",
+        "arguments": [
+          "daily-close",
+          "--project",
+          "/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmp9x7n94ep/managed-project",
+          "--owner",
+          "tester",
+          "--note",
+          "close day",
+          "--focus",
+          "handover"
+        ],
+        "label": "按意图执行命令画像 daily-close"
+      }
+    },
+    {
+      "id": "IA-20260417121452-commandprofi-5f7473",
+      "status": "pending",
+      "created_at": "2026-04-17 12:14:52",
+      "updated_at": "2026-04-17 12:14:52",
+      "requested_by": "tester",
+      "intent": "今天收尾并生成会话入口",
+      "project_path": "/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmpg6ml76fp/managed-project",
+      "project_kind": "managed",
+      "frontend_id": "codex",
+      "action": "command-profiles",
+      "risk_level": "L2",
+      "approval": "summary_confirm",
+      "execution": "requires_confirmation",
+      "reasons": [
+        "检测到 `daily-close` 子目标语义。",
+        "该 profile 会附带生成会话入口。"
+      ],
+      "artifacts": [
+        "命令画像执行输出"
+      ],
+      "command_hint": "python3 /Users/uroborus/AiProject/shanforge/scripts/factory-dispatch command-profiles daily-close --project \"/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmpg6ml76fp/managed-project\" --owner \"<owner>\" --focus \"今天收尾并生成会话入口\"",
+      "note": "close day",
+      "focus": "handover",
+      "strict": false,
+      "selected_profile": "daily-close",
+      "selected_workflow": "",
+      "ownership": {
+        "role_id": "release-manager",
+        "role_title": "发布经理",
+        "execution_owner": "tester",
+        "write_targets": [
+          ".factory",
+          "docs"
+        ],
+        "source": "inferred"
+      },
+      "ownership_conflicts": [],
+      "plan": {
+        "action": "command-profiles",
+        "script_name": "factory-command-profiles",
+        "arguments": [
+          "daily-close",
+          "--project",
+          "/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmpg6ml76fp/managed-project",
+          "--owner",
+          "tester",
+          "--note",
+          "close day",
+          "--focus",
+          "handover"
+        ],
+        "label": "按意图执行命令画像 daily-close"
+      }
+    },
+    {
+      "id": "IA-20260417121851-commandprofi-dd69d7",
+      "status": "pending",
+      "created_at": "2026-04-17 12:18:51",
+      "updated_at": "2026-04-17 12:18:51",
+      "requested_by": "tester",
+      "intent": "今天收尾并生成会话入口",
+      "project_path": "/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmp1ermwi44/managed-project",
+      "project_kind": "managed",
+      "frontend_id": "codex",
+      "action": "command-profiles",
+      "risk_level": "L2",
+      "approval": "summary_confirm",
+      "execution": "requires_confirmation",
+      "reasons": [
+        "检测到 `daily-close` 子目标语义。",
+        "该 profile 会附带生成会话入口。"
+      ],
+      "artifacts": [
+        "命令画像执行输出"
+      ],
+      "command_hint": "python3 /Users/uroborus/AiProject/shanforge/scripts/factory-dispatch command-profiles daily-close --project \"/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmp1ermwi44/managed-project\" --owner \"<owner>\" --focus \"今天收尾并生成会话入口\"",
+      "note": "close day",
+      "focus": "handover",
+      "strict": false,
+      "selected_profile": "daily-close",
+      "selected_workflow": "",
+      "ownership": {
+        "role_id": "release-manager",
+        "role_title": "发布经理",
+        "execution_owner": "tester",
+        "write_targets": [
+          ".factory",
+          "docs"
+        ],
+        "source": "inferred"
+      },
+      "ownership_conflicts": [],
+      "plan": {
+        "action": "command-profiles",
+        "script_name": "factory-command-profiles",
+        "arguments": [
+          "daily-close",
+          "--project",
+          "/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmp1ermwi44/managed-project",
+          "--owner",
+          "tester",
+          "--note",
+          "close day",
+          "--focus",
+          "handover"
+        ],
+        "label": "按意图执行命令画像 daily-close"
+      }
+    },
+    {
+      "id": "IA-20260417130251-commandprofi-0ae244",
+      "status": "pending",
+      "created_at": "2026-04-17 13:02:51",
+      "updated_at": "2026-04-17 13:02:51",
+      "requested_by": "tester",
+      "intent": "今天收尾并生成会话入口",
+      "project_path": "/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmpvli7nlen/managed-project",
+      "project_kind": "managed",
+      "frontend_id": "codex",
+      "action": "command-profiles",
+      "risk_level": "L2",
+      "approval": "summary_confirm",
+      "execution": "requires_confirmation",
+      "reasons": [
+        "检测到 `daily-close` 子目标语义。",
+        "该 profile 会附带生成会话入口。"
+      ],
+      "artifacts": [
+        "命令画像执行输出"
+      ],
+      "command_hint": "python3 /Users/uroborus/AiProject/shanforge/scripts/factory-dispatch command-profiles daily-close --project \"/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmpvli7nlen/managed-project\" --owner \"<owner>\" --focus \"今天收尾并生成会话入口\"",
+      "note": "close day",
+      "focus": "handover",
+      "strict": false,
+      "selected_profile": "daily-close",
+      "selected_workflow": "",
+      "ownership": {
+        "role_id": "release-manager",
+        "role_title": "发布经理",
+        "execution_owner": "tester",
+        "write_targets": [
+          ".factory",
+          "docs"
+        ],
+        "source": "inferred"
+      },
+      "ownership_conflicts": [],
+      "plan": {
+        "action": "command-profiles",
+        "script_name": "factory-command-profiles",
+        "arguments": [
+          "daily-close",
+          "--project",
+          "/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmpvli7nlen/managed-project",
+          "--owner",
+          "tester",
+          "--note",
+          "close day",
+          "--focus",
+          "handover"
+        ],
+        "label": "按意图执行命令画像 daily-close"
+      }
+    },
+    {
+      "id": "IA-20260417130851-commandprofi-705937",
+      "status": "pending",
+      "created_at": "2026-04-17 13:08:51",
+      "updated_at": "2026-04-17 13:08:51",
+      "requested_by": "tester",
+      "intent": "今天收尾并生成会话入口",
+      "project_path": "/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmp0rkkhlcw/managed-project",
+      "project_kind": "managed",
+      "frontend_id": "codex",
+      "action": "command-profiles",
+      "risk_level": "L2",
+      "approval": "summary_confirm",
+      "execution": "requires_confirmation",
+      "reasons": [
+        "检测到 `daily-close` 子目标语义。",
+        "该 profile 会附带生成会话入口。"
+      ],
+      "artifacts": [
+        "命令画像执行输出"
+      ],
+      "command_hint": "python3 /Users/uroborus/AiProject/shanforge/scripts/factory-dispatch command-profiles daily-close --project \"/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmp0rkkhlcw/managed-project\" --owner \"<owner>\" --focus \"今天收尾并生成会话入口\"",
+      "note": "close day",
+      "focus": "handover",
+      "strict": false,
+      "selected_profile": "daily-close",
+      "selected_workflow": "",
+      "ownership": {
+        "role_id": "release-manager",
+        "role_title": "发布经理",
+        "execution_owner": "tester",
+        "write_targets": [
+          ".factory",
+          "docs"
+        ],
+        "source": "inferred"
+      },
+      "ownership_conflicts": [],
+      "plan": {
+        "action": "command-profiles",
+        "script_name": "factory-command-profiles",
+        "arguments": [
+          "daily-close",
+          "--project",
+          "/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmp0rkkhlcw/managed-project",
+          "--owner",
+          "tester",
+          "--note",
+          "close day",
+          "--focus",
+          "handover"
+        ],
+        "label": "按意图执行命令画像 daily-close"
+      }
+    },
+    {
+      "id": "IA-20260417132328-commandprofi-a7480a",
+      "status": "pending",
+      "created_at": "2026-04-17 13:23:28",
+      "updated_at": "2026-04-17 13:23:28",
+      "requested_by": "tester",
+      "intent": "今天收尾并生成会话入口",
+      "project_path": "/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmpfb02join/managed-project",
+      "project_kind": "managed",
+      "frontend_id": "codex",
+      "action": "command-profiles",
+      "risk_level": "L2",
+      "approval": "summary_confirm",
+      "execution": "requires_confirmation",
+      "reasons": [
+        "检测到 `daily-close` 子目标语义。",
+        "该 profile 会附带生成会话入口。"
+      ],
+      "artifacts": [
+        "命令画像执行输出"
+      ],
+      "command_hint": "python3 /Users/uroborus/AiProject/shanforge/scripts/factory-dispatch command-profiles daily-close --project \"/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmpfb02join/managed-project\" --owner \"<owner>\" --focus \"今天收尾并生成会话入口\"",
+      "note": "close day",
+      "focus": "handover",
+      "strict": false,
+      "selected_profile": "daily-close",
+      "selected_workflow": "",
+      "ownership": {
+        "role_id": "release-manager",
+        "role_title": "发布经理",
+        "execution_owner": "tester",
+        "write_targets": [
+          ".factory",
+          "docs"
+        ],
+        "source": "inferred"
+      },
+      "ownership_conflicts": [],
+      "plan": {
+        "action": "command-profiles",
+        "script_name": "factory-command-profiles",
+        "arguments": [
+          "daily-close",
+          "--project",
+          "/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmpfb02join/managed-project",
+          "--owner",
+          "tester",
+          "--note",
+          "close day",
+          "--focus",
+          "handover"
+        ],
+        "label": "按意图执行命令画像 daily-close"
+      }
+    },
+    {
+      "id": "IA-20260417135443-commandprofi-4c6335",
+      "status": "pending",
+      "created_at": "2026-04-17 13:54:43",
+      "updated_at": "2026-04-17 13:54:43",
+      "requested_by": "tester",
+      "intent": "今天收尾并生成会话入口",
+      "project_path": "/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmpn6jws7v7/managed-project",
+      "project_kind": "managed",
+      "frontend_id": "codex",
+      "action": "command-profiles",
+      "risk_level": "L2",
+      "approval": "summary_confirm",
+      "execution": "requires_confirmation",
+      "reasons": [
+        "检测到 `daily-close` 子目标语义。",
+        "该 profile 会附带生成会话入口。"
+      ],
+      "artifacts": [
+        "命令画像执行输出"
+      ],
+      "command_hint": "python3 /Users/uroborus/AiProject/shanforge/scripts/factory-dispatch command-profiles daily-close --project \"/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmpn6jws7v7/managed-project\" --owner \"<owner>\" --focus \"今天收尾并生成会话入口\"",
+      "note": "close day",
+      "focus": "handover",
+      "strict": false,
+      "selected_profile": "daily-close",
+      "selected_workflow": "",
+      "ownership": {
+        "role_id": "release-manager",
+        "role_title": "发布经理",
+        "execution_owner": "tester",
+        "write_targets": [
+          ".factory",
+          "docs"
+        ],
+        "source": "inferred"
+      },
+      "ownership_conflicts": [],
+      "plan": {
+        "action": "command-profiles",
+        "script_name": "factory-command-profiles",
+        "arguments": [
+          "daily-close",
+          "--project",
+          "/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmpn6jws7v7/managed-project",
+          "--owner",
+          "tester",
+          "--note",
+          "close day",
+          "--focus",
+          "handover"
+        ],
+        "label": "按意图执行命令画像 daily-close"
+      }
+    },
+    {
+      "id": "IA-20260417144557-commandprofi-2f9724",
+      "status": "pending",
+      "created_at": "2026-04-17 14:45:57",
+      "updated_at": "2026-04-17 14:45:57",
+      "requested_by": "tester",
+      "intent": "今天收尾并生成会话入口",
+      "project_path": "/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmp9nnv771k/managed-project",
+      "project_kind": "managed",
+      "frontend_id": "codex",
+      "action": "command-profiles",
+      "risk_level": "L2",
+      "approval": "summary_confirm",
+      "execution": "requires_confirmation",
+      "reasons": [
+        "检测到 `daily-close` 子目标语义。",
+        "该 profile 会附带生成会话入口。"
+      ],
+      "artifacts": [
+        "命令画像执行输出"
+      ],
+      "command_hint": "python3 /Users/uroborus/AiProject/shanforge/scripts/factory-dispatch command-profiles daily-close --project \"/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmp9nnv771k/managed-project\" --owner \"<owner>\" --focus \"今天收尾并生成会话入口\"",
+      "note": "close day",
+      "focus": "handover",
+      "strict": false,
+      "selected_profile": "daily-close",
+      "selected_workflow": "",
+      "ownership": {
+        "role_id": "release-manager",
+        "role_title": "发布经理",
+        "execution_owner": "tester",
+        "write_targets": [
+          ".factory",
+          "docs"
+        ],
+        "source": "inferred"
+      },
+      "ownership_conflicts": [],
+      "plan": {
+        "action": "command-profiles",
+        "script_name": "factory-command-profiles",
+        "arguments": [
+          "daily-close",
+          "--project",
+          "/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmp9nnv771k/managed-project",
+          "--owner",
+          "tester",
+          "--note",
+          "close day",
+          "--focus",
+          "handover"
+        ],
+        "label": "按意图执行命令画像 daily-close"
+      }
+    },
+    {
+      "id": "IA-20260417150122-commandprofi-35e668",
+      "status": "pending",
+      "created_at": "2026-04-17 15:01:22",
+      "updated_at": "2026-04-17 15:01:22",
+      "requested_by": "tester",
+      "intent": "今天收尾并生成会话入口",
+      "project_path": "/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmpixkx5b6p/managed-project",
+      "project_kind": "managed",
+      "frontend_id": "codex",
+      "action": "command-profiles",
+      "risk_level": "L2",
+      "approval": "summary_confirm",
+      "execution": "requires_confirmation",
+      "reasons": [
+        "检测到 `daily-close` 子目标语义。",
+        "该 profile 会附带生成会话入口。"
+      ],
+      "artifacts": [
+        "命令画像执行输出"
+      ],
+      "command_hint": "python3 /Users/uroborus/AiProject/shanforge/scripts/factory-dispatch command-profiles daily-close --project \"/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmpixkx5b6p/managed-project\" --owner \"<owner>\" --focus \"今天收尾并生成会话入口\"",
+      "note": "close day",
+      "focus": "handover",
+      "strict": false,
+      "selected_profile": "daily-close",
+      "selected_workflow": "",
+      "ownership": {
+        "role_id": "release-manager",
+        "role_title": "发布经理",
+        "execution_owner": "tester",
+        "write_targets": [
+          ".factory",
+          "docs"
+        ],
+        "source": "inferred"
+      },
+      "ownership_conflicts": [],
+      "plan": {
+        "action": "command-profiles",
+        "script_name": "factory-command-profiles",
+        "arguments": [
+          "daily-close",
+          "--project",
+          "/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmpixkx5b6p/managed-project",
+          "--owner",
+          "tester",
+          "--note",
+          "close day",
+          "--focus",
+          "handover"
+        ],
+        "label": "按意图执行命令画像 daily-close"
+      }
+    },
+    {
+      "id": "IA-20260417151909-commandprofi-d9ee72",
+      "status": "pending",
+      "created_at": "2026-04-17 15:19:09",
+      "updated_at": "2026-04-17 15:19:09",
+      "requested_by": "tester",
+      "intent": "今天收尾并生成会话入口",
+      "project_path": "/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmpj39jwo_2/managed-project",
+      "project_kind": "managed",
+      "frontend_id": "codex",
+      "action": "command-profiles",
+      "risk_level": "L2",
+      "approval": "summary_confirm",
+      "execution": "requires_confirmation",
+      "reasons": [
+        "检测到 `daily-close` 子目标语义。",
+        "该 profile 会附带生成会话入口。"
+      ],
+      "artifacts": [
+        "命令画像执行输出"
+      ],
+      "command_hint": "python3 /Users/uroborus/AiProject/shanforge/scripts/factory-dispatch command-profiles daily-close --project \"/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmpj39jwo_2/managed-project\" --owner \"<owner>\" --focus \"今天收尾并生成会话入口\"",
+      "note": "close day",
+      "focus": "handover",
+      "strict": false,
+      "selected_profile": "daily-close",
+      "selected_workflow": "",
+      "ownership": {
+        "role_id": "release-manager",
+        "role_title": "发布经理",
+        "execution_owner": "tester",
+        "write_targets": [
+          ".factory",
+          "docs"
+        ],
+        "source": "inferred"
+      },
+      "ownership_conflicts": [],
+      "plan": {
+        "action": "command-profiles",
+        "script_name": "factory-command-profiles",
+        "arguments": [
+          "daily-close",
+          "--project",
+          "/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmpj39jwo_2/managed-project",
+          "--owner",
+          "tester",
+          "--note",
+          "close day",
+          "--focus",
+          "handover"
+        ],
+        "label": "按意图执行命令画像 daily-close"
+      }
+    },
+    {
+      "id": "IA-20260417154340-commandprofi-9d3680",
+      "status": "pending",
+      "created_at": "2026-04-17 15:43:40",
+      "updated_at": "2026-04-17 15:43:40",
+      "requested_by": "tester",
+      "intent": "今天收尾并生成会话入口",
+      "project_path": "/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmpmt2w8lsh/managed-project",
+      "project_kind": "managed",
+      "frontend_id": "codex",
+      "action": "command-profiles",
+      "risk_level": "L2",
+      "approval": "summary_confirm",
+      "execution": "requires_confirmation",
+      "reasons": [
+        "检测到 `daily-close` 子目标语义。",
+        "该 profile 会附带生成会话入口。"
+      ],
+      "artifacts": [
+        "命令画像执行输出"
+      ],
+      "command_hint": "python3 /Users/uroborus/AiProject/shanforge/scripts/factory-dispatch command-profiles daily-close --project \"/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmpmt2w8lsh/managed-project\" --owner \"<owner>\" --focus \"今天收尾并生成会话入口\"",
+      "note": "close day",
+      "focus": "handover",
+      "strict": false,
+      "selected_profile": "daily-close",
+      "selected_workflow": "",
+      "ownership": {
+        "role_id": "release-manager",
+        "role_title": "发布经理",
+        "execution_owner": "tester",
+        "write_targets": [
+          ".factory",
+          "docs"
+        ],
+        "source": "inferred"
+      },
+      "ownership_conflicts": [],
+      "plan": {
+        "action": "command-profiles",
+        "script_name": "factory-command-profiles",
+        "arguments": [
+          "daily-close",
+          "--project",
+          "/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmpmt2w8lsh/managed-project",
+          "--owner",
+          "tester",
+          "--note",
+          "close day",
+          "--focus",
+          "handover"
+        ],
+        "label": "按意图执行命令画像 daily-close"
+      }
+    },
+    {
+      "id": "IA-20260417155609-commandprofi-181794",
+      "status": "pending",
+      "created_at": "2026-04-17 15:56:09",
+      "updated_at": "2026-04-17 15:56:09",
+      "requested_by": "tester",
+      "intent": "今天收尾并生成会话入口",
+      "project_path": "/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmpudg14l9q/managed-project",
+      "project_kind": "managed",
+      "frontend_id": "codex",
+      "action": "command-profiles",
+      "risk_level": "L2",
+      "approval": "summary_confirm",
+      "execution": "requires_confirmation",
+      "reasons": [
+        "检测到 `daily-close` 子目标语义。",
+        "该 profile 会附带生成会话入口。"
+      ],
+      "artifacts": [
+        "命令画像执行输出"
+      ],
+      "command_hint": "python3 /Users/uroborus/AiProject/shanforge/scripts/factory-dispatch command-profiles daily-close --project \"/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmpudg14l9q/managed-project\" --owner \"<owner>\" --focus \"今天收尾并生成会话入口\"",
+      "note": "close day",
+      "focus": "handover",
+      "strict": false,
+      "selected_profile": "daily-close",
+      "selected_workflow": "",
+      "ownership": {
+        "role_id": "release-manager",
+        "role_title": "发布经理",
+        "execution_owner": "tester",
+        "write_targets": [
+          ".factory",
+          "docs"
+        ],
+        "source": "inferred"
+      },
+      "ownership_conflicts": [],
+      "plan": {
+        "action": "command-profiles",
+        "script_name": "factory-command-profiles",
+        "arguments": [
+          "daily-close",
+          "--project",
+          "/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmpudg14l9q/managed-project",
+          "--owner",
+          "tester",
+          "--note",
+          "close day",
+          "--focus",
+          "handover"
+        ],
+        "label": "按意图执行命令画像 daily-close"
+      }
+    },
+    {
+      "id": "IA-20260417160516-commandprofi-d5ef76",
+      "status": "pending",
+      "created_at": "2026-04-17 16:05:16",
+      "updated_at": "2026-04-17 16:05:16",
+      "requested_by": "tester",
+      "intent": "今天收尾并生成会话入口",
+      "project_path": "/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmpcl4xpn1_/managed-project",
+      "project_kind": "managed",
+      "frontend_id": "codex",
+      "action": "command-profiles",
+      "risk_level": "L2",
+      "approval": "summary_confirm",
+      "execution": "requires_confirmation",
+      "reasons": [
+        "检测到 `daily-close` 子目标语义。",
+        "该 profile 会附带生成会话入口。"
+      ],
+      "artifacts": [
+        "命令画像执行输出"
+      ],
+      "command_hint": "python3 /Users/uroborus/AiProject/shanforge/scripts/factory-dispatch command-profiles daily-close --project \"/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmpcl4xpn1_/managed-project\" --owner \"<owner>\" --focus \"今天收尾并生成会话入口\"",
+      "note": "close day",
+      "focus": "handover",
+      "strict": false,
+      "selected_profile": "daily-close",
+      "selected_workflow": "",
+      "ownership": {
+        "role_id": "release-manager",
+        "role_title": "发布经理",
+        "execution_owner": "tester",
+        "write_targets": [
+          ".factory",
+          "docs"
+        ],
+        "source": "inferred"
+      },
+      "ownership_conflicts": [],
+      "plan": {
+        "action": "command-profiles",
+        "script_name": "factory-command-profiles",
+        "arguments": [
+          "daily-close",
+          "--project",
+          "/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmpcl4xpn1_/managed-project",
+          "--owner",
+          "tester",
+          "--note",
+          "close day",
+          "--focus",
+          "handover"
+        ],
+        "label": "按意图执行命令画像 daily-close"
+      }
+    },
+    {
+      "id": "IA-20260417161858-commandprofi-bb9724",
+      "status": "pending",
+      "created_at": "2026-04-17 16:18:58",
+      "updated_at": "2026-04-17 16:18:58",
+      "requested_by": "tester",
+      "intent": "今天收尾并生成会话入口",
+      "project_path": "/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmp24du1pc7/managed-project",
+      "project_kind": "managed",
+      "frontend_id": "codex",
+      "action": "command-profiles",
+      "risk_level": "L2",
+      "approval": "summary_confirm",
+      "execution": "requires_confirmation",
+      "reasons": [
+        "检测到 `daily-close` 子目标语义。",
+        "该 profile 会附带生成会话入口。"
+      ],
+      "artifacts": [
+        "命令画像执行输出"
+      ],
+      "command_hint": "python3 /Users/uroborus/AiProject/shanforge/scripts/factory-dispatch command-profiles daily-close --project \"/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmp24du1pc7/managed-project\" --owner \"<owner>\" --focus \"今天收尾并生成会话入口\"",
+      "note": "close day",
+      "focus": "handover",
+      "strict": false,
+      "selected_profile": "daily-close",
+      "selected_workflow": "",
+      "ownership": {
+        "role_id": "release-manager",
+        "role_title": "发布经理",
+        "execution_owner": "tester",
+        "write_targets": [
+          ".factory",
+          "docs"
+        ],
+        "source": "inferred"
+      },
+      "ownership_conflicts": [],
+      "plan": {
+        "action": "command-profiles",
+        "script_name": "factory-command-profiles",
+        "arguments": [
+          "daily-close",
+          "--project",
+          "/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmp24du1pc7/managed-project",
+          "--owner",
+          "tester",
+          "--note",
+          "close day",
+          "--focus",
+          "handover"
+        ],
+        "label": "按意图执行命令画像 daily-close"
+      }
+    },
+    {
+      "id": "IA-20260417164455-commandprofi-ca3b18",
+      "status": "pending",
+      "created_at": "2026-04-17 16:44:55",
+      "updated_at": "2026-04-17 16:44:55",
+      "requested_by": "tester",
+      "intent": "今天收尾并生成会话入口",
+      "project_path": "/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmpbfr8bypv/managed-project",
+      "project_kind": "managed",
+      "frontend_id": "codex",
+      "action": "command-profiles",
+      "risk_level": "L2",
+      "approval": "summary_confirm",
+      "execution": "requires_confirmation",
+      "reasons": [
+        "检测到 `daily-close` 子目标语义。",
+        "该 profile 会附带生成会话入口。"
+      ],
+      "artifacts": [
+        "命令画像执行输出"
+      ],
+      "command_hint": "python3 /Users/uroborus/AiProject/shanforge/scripts/factory-dispatch command-profiles daily-close --project \"/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmpbfr8bypv/managed-project\" --owner \"<owner>\" --focus \"今天收尾并生成会话入口\"",
+      "note": "close day",
+      "focus": "handover",
+      "strict": false,
+      "selected_profile": "daily-close",
+      "selected_workflow": "",
+      "ownership": {
+        "role_id": "release-manager",
+        "role_title": "发布经理",
+        "execution_owner": "tester",
+        "write_targets": [
+          ".factory",
+          "docs"
+        ],
+        "source": "inferred"
+      },
+      "ownership_conflicts": [],
+      "plan": {
+        "action": "command-profiles",
+        "script_name": "factory-command-profiles",
+        "arguments": [
+          "daily-close",
+          "--project",
+          "/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmpbfr8bypv/managed-project",
+          "--owner",
+          "tester",
+          "--note",
+          "close day",
+          "--focus",
+          "handover"
+        ],
+        "label": "按意图执行命令画像 daily-close"
+      }
+    },
+    {
+      "id": "IA-20260417170118-commandprofi-4028ce",
+      "status": "pending",
+      "created_at": "2026-04-17 17:01:18",
+      "updated_at": "2026-04-17 17:01:18",
+      "requested_by": "tester",
+      "intent": "今天收尾并生成会话入口",
+      "project_path": "/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmpdonphmd4/managed-project",
+      "project_kind": "managed",
+      "frontend_id": "codex",
+      "action": "command-profiles",
+      "risk_level": "L2",
+      "approval": "summary_confirm",
+      "execution": "requires_confirmation",
+      "reasons": [
+        "检测到 `daily-close` 子目标语义。",
+        "该 profile 会附带生成会话入口。"
+      ],
+      "artifacts": [
+        "命令画像执行输出"
+      ],
+      "command_hint": "python3 /Users/uroborus/AiProject/shanforge/scripts/factory-dispatch command-profiles daily-close --project \"/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmpdonphmd4/managed-project\" --owner \"<owner>\" --focus \"今天收尾并生成会话入口\"",
+      "note": "close day",
+      "focus": "handover",
+      "strict": false,
+      "selected_profile": "daily-close",
+      "selected_workflow": "",
+      "ownership": {
+        "role_id": "release-manager",
+        "role_title": "发布经理",
+        "execution_owner": "tester",
+        "write_targets": [
+          ".factory",
+          "docs"
+        ],
+        "source": "inferred"
+      },
+      "ownership_conflicts": [],
+      "plan": {
+        "action": "command-profiles",
+        "script_name": "factory-command-profiles",
+        "arguments": [
+          "daily-close",
+          "--project",
+          "/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmpdonphmd4/managed-project",
+          "--owner",
+          "tester",
+          "--note",
+          "close day",
+          "--focus",
+          "handover"
+        ],
+        "label": "按意图执行命令画像 daily-close"
+      }
+    },
+    {
+      "id": "IA-20260417171216-commandprofi-182f82",
+      "status": "pending",
+      "created_at": "2026-04-17 17:12:16",
+      "updated_at": "2026-04-17 17:12:16",
+      "requested_by": "tester",
+      "intent": "今天收尾并生成会话入口",
+      "project_path": "/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmpw8ouun30/managed-project",
+      "project_kind": "managed",
+      "frontend_id": "codex",
+      "action": "command-profiles",
+      "risk_level": "L2",
+      "approval": "summary_confirm",
+      "execution": "requires_confirmation",
+      "reasons": [
+        "检测到 `daily-close` 子目标语义。",
+        "该 profile 会附带生成会话入口。"
+      ],
+      "artifacts": [
+        "命令画像执行输出"
+      ],
+      "command_hint": "python3 /Users/uroborus/AiProject/shanforge/scripts/factory-dispatch command-profiles daily-close --project \"/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmpw8ouun30/managed-project\" --owner \"<owner>\" --focus \"今天收尾并生成会话入口\"",
+      "note": "close day",
+      "focus": "handover",
+      "strict": false,
+      "selected_profile": "daily-close",
+      "selected_workflow": "",
+      "ownership": {
+        "role_id": "release-manager",
+        "role_title": "发布经理",
+        "execution_owner": "tester",
+        "write_targets": [
+          ".factory",
+          "docs"
+        ],
+        "source": "inferred"
+      },
+      "ownership_conflicts": [],
+      "plan": {
+        "action": "command-profiles",
+        "script_name": "factory-command-profiles",
+        "arguments": [
+          "daily-close",
+          "--project",
+          "/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmpw8ouun30/managed-project",
+          "--owner",
+          "tester",
+          "--note",
+          "close day",
+          "--focus",
+          "handover"
+        ],
+        "label": "按意图执行命令画像 daily-close"
+      }
+    },
+    {
+      "id": "IA-20260417172212-commandprofi-2bc3ab",
+      "status": "pending",
+      "created_at": "2026-04-17 17:22:12",
+      "updated_at": "2026-04-17 17:22:12",
+      "requested_by": "tester",
+      "intent": "今天收尾并生成会话入口",
+      "project_path": "/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmp5q6a84m9/managed-project",
+      "project_kind": "managed",
+      "frontend_id": "codex",
+      "action": "command-profiles",
+      "risk_level": "L2",
+      "approval": "summary_confirm",
+      "execution": "requires_confirmation",
+      "reasons": [
+        "检测到 `daily-close` 子目标语义。",
+        "该 profile 会附带生成会话入口。"
+      ],
+      "artifacts": [
+        "命令画像执行输出"
+      ],
+      "command_hint": "python3 /Users/uroborus/AiProject/shanforge/scripts/factory-dispatch command-profiles daily-close --project \"/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmp5q6a84m9/managed-project\" --owner \"<owner>\" --focus \"今天收尾并生成会话入口\"",
+      "note": "close day",
+      "focus": "handover",
+      "strict": false,
+      "selected_profile": "daily-close",
+      "selected_workflow": "",
+      "ownership": {
+        "role_id": "release-manager",
+        "role_title": "发布经理",
+        "execution_owner": "tester",
+        "write_targets": [
+          ".factory",
+          "docs"
+        ],
+        "source": "inferred"
+      },
+      "ownership_conflicts": [],
+      "plan": {
+        "action": "command-profiles",
+        "script_name": "factory-command-profiles",
+        "arguments": [
+          "daily-close",
+          "--project",
+          "/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmp5q6a84m9/managed-project",
+          "--owner",
+          "tester",
+          "--note",
+          "close day",
+          "--focus",
+          "handover"
+        ],
+        "label": "按意图执行命令画像 daily-close"
+      }
+    },
+    {
+      "id": "IA-20260417223342-commandprofi-fcc14b",
+      "status": "pending",
+      "created_at": "2026-04-17 22:33:42",
+      "updated_at": "2026-04-17 22:33:42",
+      "requested_by": "tester",
+      "intent": "今天收尾并生成会话入口",
+      "project_path": "/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmp2fq9i0e5/managed-project",
+      "project_kind": "managed",
+      "frontend_id": "codex",
+      "action": "command-profiles",
+      "risk_level": "L2",
+      "approval": "summary_confirm",
+      "execution": "requires_confirmation",
+      "reasons": [
+        "检测到 `daily-close` 子目标语义。",
+        "该 profile 会附带生成会话入口。"
+      ],
+      "artifacts": [
+        "命令画像执行输出"
+      ],
+      "command_hint": "python3 /Users/uroborus/AiProject/shanforge/scripts/factory-dispatch command-profiles daily-close --project \"/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmp2fq9i0e5/managed-project\" --owner \"<owner>\" --focus \"今天收尾并生成会话入口\"",
+      "note": "close day",
+      "focus": "handover",
+      "strict": false,
+      "selected_profile": "daily-close",
+      "selected_workflow": "",
+      "ownership": {
+        "role_id": "release-manager",
+        "role_title": "发布经理",
+        "execution_owner": "tester",
+        "write_targets": [
+          ".factory",
+          "docs"
+        ],
+        "source": "inferred"
+      },
+      "ownership_conflicts": [],
+      "plan": {
+        "action": "command-profiles",
+        "script_name": "factory-command-profiles",
+        "arguments": [
+          "daily-close",
+          "--project",
+          "/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmp2fq9i0e5/managed-project",
+          "--owner",
+          "tester",
+          "--note",
+          "close day",
+          "--focus",
+          "handover"
+        ],
+        "label": "按意图执行命令画像 daily-close"
+      }
+    },
+    {
+      "id": "IA-20260417224753-commandprofi-c80927",
+      "status": "pending",
+      "created_at": "2026-04-17 22:47:53",
+      "updated_at": "2026-04-17 22:47:53",
+      "requested_by": "tester",
+      "intent": "今天收尾并生成会话入口",
+      "project_path": "/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmpo0l9u6f4/managed-project",
+      "project_kind": "managed",
+      "frontend_id": "codex",
+      "action": "command-profiles",
+      "risk_level": "L2",
+      "approval": "summary_confirm",
+      "execution": "requires_confirmation",
+      "reasons": [
+        "检测到 `daily-close` 子目标语义。",
+        "该 profile 会附带生成会话入口。"
+      ],
+      "artifacts": [
+        "命令画像执行输出"
+      ],
+      "command_hint": "python3 /Users/uroborus/AiProject/shanforge/scripts/factory-dispatch command-profiles daily-close --project \"/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmpo0l9u6f4/managed-project\" --owner \"<owner>\" --focus \"今天收尾并生成会话入口\"",
+      "note": "close day",
+      "focus": "handover",
+      "strict": false,
+      "selected_profile": "daily-close",
+      "selected_workflow": "",
+      "ownership": {
+        "role_id": "release-manager",
+        "role_title": "发布经理",
+        "execution_owner": "tester",
+        "write_targets": [
+          ".factory",
+          "docs"
+        ],
+        "source": "inferred"
+      },
+      "ownership_conflicts": [],
+      "plan": {
+        "action": "command-profiles",
+        "script_name": "factory-command-profiles",
+        "arguments": [
+          "daily-close",
+          "--project",
+          "/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmpo0l9u6f4/managed-project",
+          "--owner",
+          "tester",
+          "--note",
+          "close day",
+          "--focus",
+          "handover"
+        ],
+        "label": "按意图执行命令画像 daily-close"
+      }
+    },
+    {
+      "id": "IA-20260417225501-commandprofi-5f55d9",
+      "status": "pending",
+      "created_at": "2026-04-17 22:55:01",
+      "updated_at": "2026-04-17 22:55:01",
+      "requested_by": "tester",
+      "intent": "今天收尾并生成会话入口",
+      "project_path": "/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmpe4u_qs_3/managed-project",
+      "project_kind": "managed",
+      "frontend_id": "codex",
+      "action": "command-profiles",
+      "risk_level": "L2",
+      "approval": "summary_confirm",
+      "execution": "requires_confirmation",
+      "reasons": [
+        "检测到 `daily-close` 子目标语义。",
+        "该 profile 会附带生成会话入口。"
+      ],
+      "artifacts": [
+        "命令画像执行输出"
+      ],
+      "command_hint": "python3 /Users/uroborus/AiProject/shanforge/scripts/factory-dispatch command-profiles daily-close --project \"/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmpe4u_qs_3/managed-project\" --owner \"<owner>\" --focus \"今天收尾并生成会话入口\"",
+      "note": "close day",
+      "focus": "handover",
+      "strict": false,
+      "selected_profile": "daily-close",
+      "selected_workflow": "",
+      "ownership": {
+        "role_id": "release-manager",
+        "role_title": "发布经理",
+        "execution_owner": "tester",
+        "write_targets": [
+          ".factory",
+          "docs"
+        ],
+        "source": "inferred"
+      },
+      "ownership_conflicts": [],
+      "plan": {
+        "action": "command-profiles",
+        "script_name": "factory-command-profiles",
+        "arguments": [
+          "daily-close",
+          "--project",
+          "/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmpe4u_qs_3/managed-project",
+          "--owner",
+          "tester",
+          "--note",
+          "close day",
+          "--focus",
+          "handover"
+        ],
+        "label": "按意图执行命令画像 daily-close"
+      }
+    },
+    {
+      "id": "IA-20260417230420-commandprofi-d4027c",
+      "status": "pending",
+      "created_at": "2026-04-17 23:04:20",
+      "updated_at": "2026-04-17 23:04:20",
+      "requested_by": "tester",
+      "intent": "今天收尾并生成会话入口",
+      "project_path": "/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmpjnw6m2de/managed-project",
+      "project_kind": "managed",
+      "frontend_id": "codex",
+      "action": "command-profiles",
+      "risk_level": "L2",
+      "approval": "summary_confirm",
+      "execution": "requires_confirmation",
+      "reasons": [
+        "检测到 `daily-close` 子目标语义。",
+        "该 profile 会附带生成会话入口。"
+      ],
+      "artifacts": [
+        "命令画像执行输出"
+      ],
+      "command_hint": "python3 /Users/uroborus/AiProject/shanforge/scripts/factory-dispatch command-profiles daily-close --project \"/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmpjnw6m2de/managed-project\" --owner \"<owner>\" --focus \"今天收尾并生成会话入口\"",
+      "note": "close day",
+      "focus": "handover",
+      "strict": false,
+      "selected_profile": "daily-close",
+      "selected_workflow": "",
+      "ownership": {
+        "role_id": "release-manager",
+        "role_title": "发布经理",
+        "execution_owner": "tester",
+        "write_targets": [
+          ".factory",
+          "docs"
+        ],
+        "source": "inferred"
+      },
+      "ownership_conflicts": [],
+      "plan": {
+        "action": "command-profiles",
+        "script_name": "factory-command-profiles",
+        "arguments": [
+          "daily-close",
+          "--project",
+          "/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmpjnw6m2de/managed-project",
+          "--owner",
+          "tester",
+          "--note",
+          "close day",
+          "--focus",
+          "handover"
+        ],
+        "label": "按意图执行命令画像 daily-close"
+      }
+    },
+    {
+      "id": "IA-20260417233356-commandprofi-fd7b8d",
+      "status": "pending",
+      "created_at": "2026-04-17 23:33:56",
+      "updated_at": "2026-04-17 23:33:56",
+      "requested_by": "tester",
+      "intent": "今天收尾并生成会话入口",
+      "project_path": "/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmp1sitphy_/managed-project",
+      "project_kind": "managed",
+      "frontend_id": "codex",
+      "action": "command-profiles",
+      "risk_level": "L2",
+      "approval": "summary_confirm",
+      "execution": "requires_confirmation",
+      "reasons": [
+        "检测到 `daily-close` 子目标语义。",
+        "该 profile 会附带生成会话入口。"
+      ],
+      "artifacts": [
+        "命令画像执行输出"
+      ],
+      "command_hint": "python3 /Users/uroborus/AiProject/shanforge/scripts/factory-dispatch command-profiles daily-close --project \"/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmp1sitphy_/managed-project\" --owner \"<owner>\" --focus \"今天收尾并生成会话入口\"",
+      "note": "close day",
+      "focus": "handover",
+      "strict": false,
+      "selected_profile": "daily-close",
+      "selected_workflow": "",
+      "ownership": {
+        "role_id": "release-manager",
+        "role_title": "发布经理",
+        "execution_owner": "tester",
+        "write_targets": [
+          ".factory",
+          "docs"
+        ],
+        "source": "inferred"
+      },
+      "ownership_conflicts": [],
+      "plan": {
+        "action": "command-profiles",
+        "script_name": "factory-command-profiles",
+        "arguments": [
+          "daily-close",
+          "--project",
+          "/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmp1sitphy_/managed-project",
+          "--owner",
+          "tester",
+          "--note",
+          "close day",
+          "--focus",
+          "handover"
+        ],
+        "label": "按意图执行命令画像 daily-close"
+      }
+    },
+    {
+      "id": "IA-20260418000908-commandprofi-a2f354",
+      "status": "pending",
+      "created_at": "2026-04-18 00:09:08",
+      "updated_at": "2026-04-18 00:09:08",
+      "requested_by": "tester",
+      "intent": "今天收尾并生成会话入口",
+      "project_path": "/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmpe6rh1qh_/managed-project",
+      "project_kind": "managed",
+      "frontend_id": "codex",
+      "action": "command-profiles",
+      "risk_level": "L2",
+      "approval": "summary_confirm",
+      "execution": "requires_confirmation",
+      "reasons": [
+        "检测到 `daily-close` 子目标语义。",
+        "该 profile 会附带生成会话入口。"
+      ],
+      "artifacts": [
+        "命令画像执行输出"
+      ],
+      "command_hint": "python3 /Users/uroborus/AiProject/shanforge/scripts/factory-dispatch command-profiles daily-close --project \"/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmpe6rh1qh_/managed-project\" --owner \"<owner>\" --focus \"今天收尾并生成会话入口\"",
+      "note": "close day",
+      "focus": "handover",
+      "strict": false,
+      "selected_profile": "daily-close",
+      "selected_workflow": "",
+      "ownership": {
+        "role_id": "release-manager",
+        "role_title": "发布经理",
+        "execution_owner": "tester",
+        "write_targets": [
+          ".factory",
+          "docs"
+        ],
+        "source": "inferred"
+      },
+      "ownership_conflicts": [],
+      "plan": {
+        "action": "command-profiles",
+        "script_name": "factory-command-profiles",
+        "arguments": [
+          "daily-close",
+          "--project",
+          "/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmpe6rh1qh_/managed-project",
+          "--owner",
+          "tester",
+          "--note",
+          "close day",
+          "--focus",
+          "handover"
+        ],
+        "label": "按意图执行命令画像 daily-close"
+      }
+    },
+    {
+      "id": "IA-20260418005231-commandprofi-e3476e",
+      "status": "pending",
+      "created_at": "2026-04-18 00:52:31",
+      "updated_at": "2026-04-18 00:52:31",
+      "requested_by": "tester",
+      "intent": "今天收尾并生成会话入口",
+      "project_path": "/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmpiiopymtp/managed-project",
+      "project_kind": "managed",
+      "frontend_id": "codex",
+      "action": "command-profiles",
+      "risk_level": "L2",
+      "approval": "summary_confirm",
+      "execution": "requires_confirmation",
+      "reasons": [
+        "检测到 `daily-close` 子目标语义。",
+        "该 profile 会附带生成会话入口。"
+      ],
+      "artifacts": [
+        "命令画像执行输出"
+      ],
+      "command_hint": "python3 /Users/uroborus/AiProject/shanforge/scripts/factory-dispatch command-profiles daily-close --project \"/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmpiiopymtp/managed-project\" --owner \"<owner>\" --focus \"今天收尾并生成会话入口\"",
+      "note": "close day",
+      "focus": "handover",
+      "strict": false,
+      "selected_profile": "daily-close",
+      "selected_workflow": "",
+      "ownership": {
+        "role_id": "release-manager",
+        "role_title": "发布经理",
+        "execution_owner": "tester",
+        "write_targets": [
+          ".factory",
+          "docs"
+        ],
+        "source": "inferred"
+      },
+      "ownership_conflicts": [],
+      "plan": {
+        "action": "command-profiles",
+        "script_name": "factory-command-profiles",
+        "arguments": [
+          "daily-close",
+          "--project",
+          "/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmpiiopymtp/managed-project",
+          "--owner",
+          "tester",
+          "--note",
+          "close day",
+          "--focus",
+          "handover"
+        ],
+        "label": "按意图执行命令画像 daily-close"
+      }
+    },
+    {
+      "id": "IA-20260418011503-commandprofi-b1769a",
+      "status": "pending",
+      "created_at": "2026-04-18 01:15:03",
+      "updated_at": "2026-04-18 01:15:03",
+      "requested_by": "tester",
+      "intent": "今天收尾并生成会话入口",
+      "project_path": "/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmpm9ouv55o/managed-project",
+      "project_kind": "managed",
+      "frontend_id": "codex",
+      "action": "command-profiles",
+      "risk_level": "L2",
+      "approval": "summary_confirm",
+      "execution": "requires_confirmation",
+      "reasons": [
+        "检测到 `daily-close` 子目标语义。",
+        "该 profile 会附带生成会话入口。"
+      ],
+      "artifacts": [
+        "命令画像执行输出"
+      ],
+      "command_hint": "python3 /Users/uroborus/AiProject/shanforge/scripts/factory-dispatch command-profiles daily-close --project \"/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmpm9ouv55o/managed-project\" --owner \"<owner>\" --focus \"今天收尾并生成会话入口\"",
+      "note": "close day",
+      "focus": "handover",
+      "strict": false,
+      "selected_profile": "daily-close",
+      "selected_workflow": "",
+      "ownership": {
+        "role_id": "release-manager",
+        "role_title": "发布经理",
+        "execution_owner": "tester",
+        "write_targets": [
+          ".factory",
+          "docs"
+        ],
+        "source": "inferred"
+      },
+      "ownership_conflicts": [],
+      "plan": {
+        "action": "command-profiles",
+        "script_name": "factory-command-profiles",
+        "arguments": [
+          "daily-close",
+          "--project",
+          "/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmpm9ouv55o/managed-project",
+          "--owner",
+          "tester",
+          "--note",
+          "close day",
+          "--focus",
+          "handover"
+        ],
+        "label": "按意图执行命令画像 daily-close"
+      }
+    },
+    {
+      "id": "IA-20260418172007-commandprofi-869ef8",
+      "status": "pending",
+      "created_at": "2026-04-18 17:20:07",
+      "updated_at": "2026-04-18 17:20:07",
+      "requested_by": "tester",
+      "intent": "今天收尾并生成会话入口",
+      "project_path": "/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmpa8yh9914/managed-project",
+      "project_kind": "managed",
+      "frontend_id": "codex",
+      "action": "command-profiles",
+      "risk_level": "L2",
+      "approval": "summary_confirm",
+      "execution": "requires_confirmation",
+      "reasons": [
+        "检测到 `daily-close` 子目标语义。",
+        "该 profile 会附带生成会话入口。"
+      ],
+      "artifacts": [
+        "命令画像执行输出"
+      ],
+      "command_hint": "python3 /Users/uroborus/AiProject/shanforge/scripts/factory-dispatch command-profiles daily-close --project \"/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmpa8yh9914/managed-project\" --owner \"<owner>\" --focus \"今天收尾并生成会话入口\"",
+      "note": "close day",
+      "focus": "handover",
+      "strict": false,
+      "selected_profile": "daily-close",
+      "selected_workflow": "",
+      "ownership": {
+        "role_id": "release-manager",
+        "role_title": "发布经理",
+        "execution_owner": "tester",
+        "write_targets": [
+          ".factory",
+          "docs"
+        ],
+        "source": "inferred"
+      },
+      "ownership_conflicts": [],
+      "plan": {
+        "action": "command-profiles",
+        "script_name": "factory-command-profiles",
+        "arguments": [
+          "daily-close",
+          "--project",
+          "/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmpa8yh9914/managed-project",
+          "--owner",
+          "tester",
+          "--note",
+          "close day",
+          "--focus",
+          "handover"
+        ],
+        "label": "按意图执行命令画像 daily-close"
+      }
+    },
+    {
+      "id": "IA-20260418173323-commandprofi-392000",
+      "status": "pending",
+      "created_at": "2026-04-18 17:33:23",
+      "updated_at": "2026-04-18 17:33:23",
+      "requested_by": "tester",
+      "intent": "今天收尾并生成会话入口",
+      "project_path": "/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmpfy2mrvc5/managed-project",
+      "project_kind": "managed",
+      "frontend_id": "codex",
+      "action": "command-profiles",
+      "risk_level": "L2",
+      "approval": "summary_confirm",
+      "execution": "requires_confirmation",
+      "reasons": [
+        "检测到 `daily-close` 子目标语义。",
+        "该 profile 会附带生成会话入口。"
+      ],
+      "artifacts": [
+        "命令画像执行输出"
+      ],
+      "command_hint": "python3 /Users/uroborus/AiProject/shanforge/scripts/factory-dispatch command-profiles daily-close --project \"/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmpfy2mrvc5/managed-project\" --owner \"<owner>\" --focus \"今天收尾并生成会话入口\"",
+      "note": "close day",
+      "focus": "handover",
+      "strict": false,
+      "selected_profile": "daily-close",
+      "selected_workflow": "",
+      "ownership": {
+        "role_id": "release-manager",
+        "role_title": "发布经理",
+        "execution_owner": "tester",
+        "write_targets": [
+          ".factory",
+          "docs"
+        ],
+        "source": "inferred"
+      },
+      "ownership_conflicts": [],
+      "plan": {
+        "action": "command-profiles",
+        "script_name": "factory-command-profiles",
+        "arguments": [
+          "daily-close",
+          "--project",
+          "/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmpfy2mrvc5/managed-project",
+          "--owner",
+          "tester",
+          "--note",
+          "close day",
+          "--focus",
+          "handover"
+        ],
+        "label": "按意图执行命令画像 daily-close"
+      }
+    },
+    {
+      "id": "IA-20260604213026-commandprofi-525fd7",
+      "status": "pending",
+      "created_at": "2026-06-04 21:30:26",
+      "updated_at": "2026-06-04 21:30:26",
+      "requested_by": "tester",
+      "intent": "今天收尾并生成会话入口",
+      "project_path": "/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmpakb13rtu/managed-project",
+      "project_kind": "managed",
+      "frontend_id": "codex",
+      "action": "command-profiles",
+      "risk_level": "L2",
+      "approval": "summary_confirm",
+      "execution": "requires_confirmation",
+      "reasons": [
+        "检测到 `daily-close` 子目标语义。",
+        "该 profile 会附带生成会话入口。"
+      ],
+      "artifacts": [
+        "命令画像执行输出"
+      ],
+      "command_hint": "python3 /Users/uroborus/AiProject/shanforge/scripts/factory-dispatch command-profiles daily-close --project \"/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmpakb13rtu/managed-project\" --owner \"<owner>\" --focus \"今天收尾并生成会话入口\"",
+      "note": "close day",
+      "focus": "handover",
+      "strict": false,
+      "selected_profile": "daily-close",
+      "selected_workflow": "",
+      "ownership": {
+        "role_id": "release-manager",
+        "role_title": "发布经理",
+        "execution_owner": "tester",
+        "write_targets": [
+          ".factory",
+          "docs"
+        ],
+        "source": "inferred"
+      },
+      "ownership_conflicts": [],
+      "plan": {
+        "action": "command-profiles",
+        "script_name": "factory-command-profiles",
+        "arguments": [
+          "daily-close",
+          "--project",
+          "/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmpakb13rtu/managed-project",
+          "--owner",
+          "tester",
+          "--note",
+          "close day",
+          "--focus",
+          "handover"
+        ],
+        "label": "按意图执行命令画像 daily-close"
+      }
+    },
+    {
+      "id": "IA-20260620095325-commandprofi-734e32",
+      "status": "pending",
+      "created_at": "2026-06-20 09:53:25",
+      "updated_at": "2026-06-20 09:53:25",
+      "requested_by": "tester",
+      "intent": "今天收尾并生成会话入口",
+      "project_path": "/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmp6u7qzzfi/managed-project",
+      "project_kind": "managed",
+      "frontend_id": "codex",
+      "action": "command-profiles",
+      "risk_level": "L2",
+      "approval": "summary_confirm",
+      "execution": "requires_confirmation",
+      "reasons": [
+        "检测到 `daily-close` 子目标语义。",
+        "该 profile 会附带生成会话入口。"
+      ],
+      "artifacts": [
+        "命令画像执行输出"
+      ],
+      "command_hint": "python3 /Users/uroborus/AiProject/shanforge/scripts/factory-dispatch command-profiles daily-close --project \"/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmp6u7qzzfi/managed-project\" --owner \"<owner>\" --focus \"今天收尾并生成会话入口\"",
+      "note": "close day",
+      "focus": "handover",
+      "strict": false,
+      "selected_profile": "daily-close",
+      "selected_workflow": "",
+      "ownership": {
+        "role_id": "release-manager",
+        "role_title": "发布经理",
+        "execution_owner": "tester",
+        "write_targets": [
+          ".factory",
+          "docs"
+        ],
+        "source": "inferred"
+      },
+      "ownership_conflicts": [],
+      "plan": {
+        "action": "command-profiles",
+        "script_name": "factory-command-profiles",
+        "arguments": [
+          "daily-close",
+          "--project",
+          "/var/folders/zt/9v3d_j0x747348s_5wdxw5j00000gn/T/tmp6u7qzzfi/managed-project",
           "--owner",
           "tester",
           "--note",

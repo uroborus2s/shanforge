@@ -1,0 +1,43 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "WriterRoomProject",
+  "type": "object",
+  "required": ["project_id", "story_seed", "workflow", "production_mode", "agent_sequence", "status"],
+  "properties": {
+    "project_id": {"type": "string"},
+    "story_seed": {"type": "string"},
+    "workflow": {"type": "string", "const": "codex-native-writer-room"},
+    "production_mode": {
+      "type": "string",
+      "enum": ["series", "episode", "writeback", "migration"]
+    },
+    "canonical_project_paths": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "bible/world.md",
+          "bible/geography.md",
+          "bible/factions.md",
+          "bible/timeline.md",
+          "bible/characters.md",
+          "bible/scenes.md",
+          "bible/continuity.md",
+          "bible/visual-style.md",
+          "outline/series-outline.md",
+          "outline/episode-outline-index.md",
+          "synopsis/story-synopsis.md",
+          "memory/current-state.md"
+        ]
+      }
+    },
+    "agent_sequence": {
+      "type": "array",
+      "items": {"type": "string"}
+    },
+    "status": {"type": "string", "enum": ["initialized", "running", "completed", "warning", "blocked"]},
+    "target_score": {"type": "integer", "minimum": 0, "maximum": 100},
+    "revision_budget": {"type": "integer", "minimum": 0}
+  },
+  "additionalProperties": true
+}

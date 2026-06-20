@@ -14,7 +14,7 @@ import textwrap
 import time
 import uuid
 from contextlib import contextmanager
-from datetime import datetime
+from datetime import UTC, datetime
 from functools import lru_cache
 from pathlib import Path, PurePosixPath
 from typing import Iterable, Sequence
@@ -1221,7 +1221,7 @@ def detect_docs_profile(project_root: Path, *, project_name: str = "", idea: str
         ),
     }
     profile["source"] = "auto-detect"
-    profile["detected_at"] = datetime.utcnow().isoformat() + "Z"
+    profile["detected_at"] = datetime.now(UTC).isoformat().replace("+00:00", "Z")
     return normalize_docs_profile(profile)
 
 

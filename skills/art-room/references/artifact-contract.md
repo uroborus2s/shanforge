@@ -42,6 +42,14 @@ Codex coordinator writes files to disk after checking the envelope.
 - Do not include absolute paths in child-agent output; the parent resolves them.
 - Do not generate image files from planning child agents. Image creation is a
   parent-coordinated Codex background thread step.
+- Do not place ad hoc `*-audit*`, `*-review*`, `*-score*`, `*-rewrite*`,
+  `*-after-fix*`, retry, scratch, or run-specific intermediate files in the
+  root of `art/` or `{episode-id}/art/`.
+- Route non-canonical artifacts to fixed subdirectories:
+  `reports/` for QC and approval summaries, `audits/` for consistency,
+  readability, rewrite, and after-fix audits, `reviews/` for per-asset prompt
+  review notes, and `runs/{run-id}/` for worker scratch, retries, and
+  superseded thread plans/results.
 
 ## Required Handoff Fields
 

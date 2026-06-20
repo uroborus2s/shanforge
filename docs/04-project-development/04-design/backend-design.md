@@ -60,7 +60,7 @@ RuntimeAPI / CLI Gateway
 | 领域服务接口 | `src/application/ports/domain_services.py` | application 定义它依赖的领域服务 |
 | 领域实现 | `src/domain/*/service.py` | 业务语义 owner |
 | 内核与运行时 | `src/runtime/agent_kernel/`, `src/runtime/context/`, `src/runtime/capability/`, `src/runtime/llm/`, `src/runtime/approval/`, `src/runtime/delegation/` | 技术能力编排 |
-| 持久化与 provider | `src/settings/**`, `src/settings/composition/container.py` | 真实实现和装配 |
+| 持久化与 provider | `src/settings/**`, `src/settings/composition/{component_bindings.py,container.py}`, sibling `shanforge-di` | 真实实现、本地业务绑定和装配 |
 
 ## 4. 关键专题链路
 

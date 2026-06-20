@@ -1,0 +1,21 @@
+{
+  "generated_from": "shanforge/assets ChatGPT Image files, normalized for writer-room simulator",
+  "background": "office-bg.png",
+  "foreground": "office-foreground.png",
+  "agents": {
+    "agent-male-standing.png": "ChatGPT Image 2026年5月31日 15_53_06.png",
+    "agent-male-idle.png": "ChatGPT Image 2026年5月31日 15_53_08 (1).png",
+    "agent-male-sitting.png": "ChatGPT Image 2026年5月31日 15_53_18 (2).png",
+    "agent-male-walking.png": "ChatGPT Image 2026年5月31日 15_53_18 (3).png",
+    "agent-male-talking.png": "ChatGPT Image 2026年5月31日 15_53_18 (4).png",
+    "agent-female-standing.png": "ChatGPT Image 2026年5月31日 15_53_18 (5).png",
+    "agent-female-sitting.png": "ChatGPT Image 2026年5月31日 15_53_18 (6).png",
+    "agent-female-walking.png": "ChatGPT Image 2026年5月31日 15_53_36 (7).png",
+    "agent-female-talking.png": "ChatGPT Image 2026年5月31日 15_53_36 (7).png"
+  },
+  "notes": [
+    "Original character and foreground files were RGB images with baked checkerboard backgrounds.",
+    "This derived set flood-fills edge-connected checkerboard pixels into real alpha transparency.",
+    "Only two character identities are present, so the prototype reuses them across roles with labels and status rings."
+  ]
+}

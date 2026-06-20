@@ -100,7 +100,10 @@
 
 - 当前跨层具体对象装配统一收口在 `src/settings/composition/`。
 - 除 `src/settings/composition/` 外，其他目录禁止做跨层对象拼装、服务定位或容器式偷穿透。
-- `settings/composition` 是“并入后的 bootstrap/support 模块”，不是业务领域；后续若重构，只能更纯，不能更散。
+- `settings/composition` 是“并入后的 bootstrap/support 模块”和本地业务绑定层，不是业务领域；后续若重构，只能更纯，不能更散。
+- 反射式 / 注册式 / DI 技术内核统一外置到独立库 `shanforge-di`；`shanforge` 仓内禁止重新引入 `loader / registry / resolver / manifest / factory` 一类自研内核。
+- `application / domain / runtime` 不得直接调用 resolver/loader/factory 获取具体实现；这些层只能消费已注入好的接口对象。
+- 前端、用户配置和业务策略对象只允许出现 `provider_id / backend_id / profile_id / policy_id` 这类业务字符串。
 
 ### Hermes 复用规则
 
@@ -109,6 +112,7 @@
 - 允许在函数实现层参考 Hermes 的成熟行为、算法和防护思路。
 - 若引入 Hermes 风格的桥接代码、provider 适配或反腐封装，正式落点应在 `src/settings/`。
 - 禁止让 `domain`、`application` 因为复用 Hermes 而直接持有 Hermes 私有协议、对象或主循环语义。
+- 若 Hermes 具体实现需要被动态选择，应通过 `src/settings/composition/component_bindings.py` 的业务绑定和外部 `shanforge-di` 管理，不得把 Hermes class path 暴露到业务层。
 
 ### 基础能力层编码规则
 

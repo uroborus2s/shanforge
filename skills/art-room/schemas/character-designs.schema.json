@@ -1,0 +1,86 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Art Room Character Designs",
+  "type": "object",
+  "additionalProperties": true,
+  "required": ["version", "characters"],
+  "properties": {
+    "version": {"type": "string"},
+    "characters": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": true,
+        "required": [
+          "asset_id",
+          "file",
+          "asset_type",
+          "asset_subtype",
+          "display_name",
+          "identity_lock",
+          "body_metrics",
+          "episode_state",
+          "card_layout",
+          "output_format_requirements",
+          "continuity_refs",
+          "source_refs",
+          "usage"
+        ],
+        "properties": {
+          "asset_id": {"type": "string"},
+          "file": {"type": "string", "pattern": "^[^/]{1,20}\\.[^./]+$"},
+          "asset_type": {"type": "string", "const": "character"},
+          "asset_subtype": {
+            "type": "string",
+            "enum": ["character_master_card", "character_episode_state_card"]
+          },
+          "display_name": {"type": "string"},
+          "identity_lock": {"type": "object", "additionalProperties": true},
+          "body_metrics": {
+            "type": "object",
+            "additionalProperties": true,
+            "required": ["height", "weight_build", "body_ratio", "silhouette", "scale_refs"],
+            "properties": {
+              "height": {"type": "string"},
+              "weight_build": {"type": "string"},
+              "body_ratio": {"type": "string"},
+              "silhouette": {"type": "string"},
+              "scale_refs": {"type": "array", "items": {"type": "string"}}
+            }
+          },
+          "episode_state": {"type": "object", "additionalProperties": true},
+          "card_layout": {"type": "array", "items": {"type": "string"}},
+          "output_format_requirements": {
+            "type": "object",
+            "additionalProperties": true,
+            "required": [
+              "master_card_background",
+              "cutout_background",
+              "required_views",
+              "detail_crops",
+              "scale_reference_required"
+            ],
+            "properties": {
+              "master_card_background": {"type": "string", "const": "neutral_plain"},
+              "cutout_background": {"type": "string", "const": "transparent_alpha"},
+              "required_views": {
+                "type": "array",
+                "minItems": 4,
+                "items": {"type": "string"}
+              },
+              "detail_crops": {
+                "type": "array",
+                "minItems": 1,
+                "items": {"type": "string"}
+              },
+              "scale_reference_required": {"type": "boolean", "const": true}
+            }
+          },
+          "continuity_refs": {"type": "array", "items": {"type": "string"}},
+          "source_refs": {"type": "array", "items": {"type": "string"}},
+          "usage": {"type": "array", "items": {"type": "string"}}
+        }
+      }
+    }
+  }
+}

@@ -1,10 +1,10 @@
 # 多 Agent 协作看板摘要
 
 - 时间：2026-04-13 23:05:24
-- 当前阶段：PLAN
+- 当前阶段：IMPLEMENTATION
 - 看板负责人：Codex
-- 焦点：v2 开发进度
-- 活跃工作项：0
+- 焦点：TASK-016 child digest 收口与 provider/profile 治理
+- 活跃工作项：3
 - 开放风险：0
 - 待审批票据：0
 - 未分派工作项：0
@@ -27,7 +27,7 @@
 - 共享技能：brainstorming、document-templates、doc-coauthoring
 - 优先文档：.factory/project.json、AGENTS.md、GEMINI.md
 - 写入集合：无
-- 当前工作项：无
+- 当前工作项：同步阶段事实源、刷新看板与测试摘要，收口本轮实现状态。
 - 推荐动作：
   - `python3 /Users/uroborus/AiProject/shanforge/scripts/factory-dispatch session --project /Users/uroborus/AiProject/shanforge --owner Codex --focus 'v2 开发进度'`
   - `python3 /Users/uroborus/AiProject/shanforge/scripts/factory-dispatch workbench --project /Users/uroborus/AiProject/shanforge --role coordinator --owner Codex --focus 'v2 开发进度'`
@@ -38,7 +38,7 @@
 - 共享技能：api-design、backend-patterns、frontend-patterns、doc-coauthoring
 - 优先文档：.factory/project.json、AGENTS.md、GEMINI.md
 - 写入集合：无
-- 当前工作项：无
+- 当前工作项：收口 `TASK-016` 的 child digest 读模型，并继续推进 profile 化与契约测试增强。
 - 推荐动作：
   - `python3 /Users/uroborus/AiProject/shanforge/scripts/factory-dispatch session --project /Users/uroborus/AiProject/shanforge --owner Codex --focus 'v2 开发进度'`
   - `python3 /Users/uroborus/AiProject/shanforge/scripts/factory-dispatch workbench --project /Users/uroborus/AiProject/shanforge --role solution-architect --owner Codex --focus 'v2 开发进度'`
@@ -49,7 +49,7 @@
 - 共享技能：ui-ux-pro-max、frontend-patterns、doc-coauthoring
 - 优先文档：.factory/project.json、AGENTS.md、GEMINI.md
 - 写入集合：无
-- 当前工作项：无
+- 当前工作项：同步 `.factory/memory/`、测试结论与下一顺位任务。
 - 推荐动作：
   - `python3 /Users/uroborus/AiProject/shanforge/scripts/factory-dispatch session --project /Users/uroborus/AiProject/shanforge --owner Codex --focus 'v2 开发进度'`
   - `python3 /Users/uroborus/AiProject/shanforge/scripts/factory-dispatch workbench --project /Users/uroborus/AiProject/shanforge --role ux-designer --owner Codex --focus 'v2 开发进度'`

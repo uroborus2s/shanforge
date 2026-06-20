@@ -72,6 +72,20 @@ class ExecutionEngine:
             },
         )
         response = self.llm_runtime.invoke(request)
+        model_bindings = list(session.context.get("model_bindings", ()))
+        model_bindings.append(
+            {
+                "provider_id": response.model_ref.provider,
+                "model_id": response.model_ref.model,
+                "source": "execution",
+                "step_id": step.id,
+                "metadata": {
+                    "policy_provider": effective_policy.provider,
+                    "policy_model": effective_policy.model,
+                },
+            }
+        )
+        session.context["model_bindings"] = tuple(model_bindings)
         return self.normalizer.from_model_response(response)
 
     def _execute_capability_step(

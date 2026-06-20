@@ -63,14 +63,33 @@ class WebAccessService:
         filters: dict[str, object] | None,
         context: CapabilityInvocationContext,
     ) -> tuple[WebSearchHit, ...]:
-        raise NotImplementedError("Scaffold only: implement web search in TASK-017.")
+        del context
+        provider = self._require_search_provider()
+        normalized_limit = max(1, min(limit, 10))
+        results = provider.search(query, limit=normalized_limit, filters=filters)
+        return tuple(
+            WebSearchHit(
+                url=str(item.get("url") or ""),
+                title=str(item.get("title") or item.get("url") or ""),
+                snippet=str(item.get("snippet") or ""),
+                rank=int(item.get("rank") or index),
+                metadata={
+                    key: value
+                    for key, value in item.items()
+                    if key not in {"url", "title", "snippet", "rank"}
+                },
+            )
+            for index, item in enumerate(results, start=1)
+        )
 
     def fetch_url(
         self,
         url: str,
         context: CapabilityInvocationContext,
     ) -> WebDocument:
-        raise NotImplementedError("Scaffold only: implement URL fetch in TASK-017.")
+        del context
+        payload = self._require_document_provider().fetch(url)
+        return self._document_from_payload(url, payload)
 
     def extract_document(
         self,
@@ -78,11 +97,46 @@ class WebAccessService:
         mode: str,
         context: CapabilityInvocationContext,
     ) -> WebDocument:
-        raise NotImplementedError("Scaffold only: implement document extraction in TASK-017.")
+        del context
+        payload = self._require_document_provider().extract(url, mode)
+        return self._document_from_payload(url, payload)
 
     def normalize_citation(
         self,
         document: WebDocument,
         context: CapabilityInvocationContext,
     ) -> CapabilityCitation:
-        raise NotImplementedError("Scaffold only: implement citation normalization in TASK-017.")
+        del context
+        locator = str(document.metadata.get("locator") or "") or None
+        return CapabilityCitation(
+            source_uri=document.url,
+            title=document.title,
+            locator=locator,
+        )
+
+    def _document_from_payload(
+        self,
+        url: str,
+        payload: dict[str, object],
+    ) -> WebDocument:
+        return WebDocument(
+            url=str(payload.get("url") or url),
+            title=str(payload.get("title") or "") or None,
+            content=str(payload.get("content") or ""),
+            extracted_text=str(payload.get("extracted_text") or ""),
+            metadata={
+                key: value
+                for key, value in payload.items()
+                if key not in {"url", "title", "content", "extracted_text"}
+            },
+        )
+
+    def _require_search_provider(self) -> WebSearchProviderPort:
+        if self.search_provider is None:
+            raise RuntimeError("Web search provider is not configured.")
+        return self.search_provider
+
+    def _require_document_provider(self) -> WebDocumentProviderPort:
+        if self.document_provider is None:
+            raise RuntimeError("Web document provider is not configured.")
+        return self.document_provider

@@ -4,7 +4,9 @@ version = "0.2.0.dev0"
 description = "Abstract agent platform workspace for business-oriented Agent Apps and workflows."
 readme = "README.md"
 requires-python = ">=3.14"
-dependencies = []
+dependencies = [
+  "shanforge-di",
+]
 
 [dependency-groups]
 dev = [
@@ -15,6 +17,9 @@ dev = [
 
 [tool.uv]
 package = false
+
+[tool.uv.sources]
+shanforge-di = { path = "../shanforge-di", editable = true }
 
 [tool.ruff]
 line-length = 100

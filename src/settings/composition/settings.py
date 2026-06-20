@@ -10,6 +10,10 @@ class Settings:
 
     default_provider: str = "mock"
     default_model: str = "mock-chat"
+    default_profile_id: str = "local-dev"
+    profile_catalog_path: str | None = None
+    provider_catalog_path: str | None = None
+    backend_catalog_path: str | None = None
     workspace_root: str | None = None
     project_skills_root: str | None = None
     global_skills_root: str | None = None
@@ -17,6 +21,7 @@ class Settings:
     skill_state_path: str | None = None
     allowed_writeset_prefixes: tuple[str, ...] = ()
     memory_store_root: str | None = None
+    memory_provider_root: str | None = None
     memory_summarizer_provider: str | None = None
     memory_summarizer_model: str | None = None
     memory_summarizer_extract_model: str | None = None
@@ -40,6 +45,10 @@ class Settings:
         return cls(
             default_provider=os.getenv("SHANFORGE_DEFAULT_PROVIDER", "mock"),
             default_model=os.getenv("SHANFORGE_DEFAULT_MODEL", "mock-chat"),
+            default_profile_id=os.getenv("SHANFORGE_DEFAULT_PROFILE_ID", "local-dev"),
+            profile_catalog_path=os.getenv("SHANFORGE_PROFILE_CATALOG_PATH") or None,
+            provider_catalog_path=os.getenv("SHANFORGE_PROVIDER_CATALOG_PATH") or None,
+            backend_catalog_path=os.getenv("SHANFORGE_BACKEND_CATALOG_PATH") or None,
             workspace_root=os.getenv("SHANFORGE_WORKSPACE_ROOT") or None,
             project_skills_root=os.getenv("SHANFORGE_PROJECT_SKILLS_ROOT") or None,
             global_skills_root=os.getenv("SHANFORGE_GLOBAL_SKILLS_ROOT") or None,
@@ -47,6 +56,7 @@ class Settings:
             skill_state_path=os.getenv("SHANFORGE_SKILL_STATE_PATH") or None,
             allowed_writeset_prefixes=prefixes,
             memory_store_root=os.getenv("SHANFORGE_MEMORY_STORE_ROOT") or None,
+            memory_provider_root=os.getenv("SHANFORGE_MEMORY_PROVIDER_ROOT") or None,
             memory_summarizer_provider=os.getenv("SHANFORGE_MEMORY_SUMMARIZER_PROVIDER") or None,
             memory_summarizer_model=os.getenv("SHANFORGE_MEMORY_SUMMARIZER_MODEL") or None,
             memory_summarizer_extract_model=(

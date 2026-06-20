@@ -1,0 +1,26 @@
+#!/usr/bin/env python3
+
+from __future__ import annotations
+
+import sys
+from pathlib import Path
+
+
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+SRC_ROOT = PROJECT_ROOT / "src"
+for candidate in (SRC_ROOT, PROJECT_ROOT):
+    candidate_text = str(candidate)
+    if candidate_text not in sys.path:
+        sys.path.insert(0, candidate_text)
+
+from access.cli.main import main as run_demo  # noqa: E402
+from settings.composition import build_default_container  # noqa: E402
+
+
+def main() -> None:
+    container = build_default_container()
+    run_demo(container.runtime_api)
+
+
+if __name__ == "__main__":
+    main()

@@ -1,5 +1,6 @@
 # 变更摘要
 
+- 2026-07-04：将 `skills/stratix-nodejs-backend/` 重命名为 `skills/stratix-service/`，并基于 `/Users/uroborus/NodeProject/wps/obsync-root` 当前源码和文档事实更新 skill 本体、OpenAI 元数据与 references。新版把 Stratix 后端开发模式改为 `create-stratix` 初始化、`stratix` forge 命令生成/诊断/启动/配置/发布门禁、AI 按业务场景自主选择最小 preset/plugin；同步补充 `STRATIX_SENSITIVE_CONFIG`、`.env`、默认 key 与显式 `STRATIX_ENCRYPTION_KEY` 的加解密边界，并新增 `tests/test_stratix_service_skill.py` 固定新名称、CLI 分工、插件选择和敏感配置规则。
 - 2026-06-14：新增 `skills/browser-control/` 中文 skill 和 `tests/test_browser_control_skill.py`，将本地浏览器控制收口为明确工具路由：用户指定“本地浏览器 / browser-use / 真实浏览器访问 URL”时优先使用 `browser-use` CLI；显式 `@Browser` 使用 Codex 内嵌浏览器，显式 `@Chrome` 或登录态需求使用 Codex Chrome 插件。skill 已补齐启用后的示例用法、`browser-use --headed --session browser-control --json open <URL>` 默认命令、页面状态读取、截图/点击/输入常用命令，以及 cookies、上传、表单提交、登录态和权限类动作的确认边界。
 - 2026-06-01：新增 `skills/prompt-room/` Codex-native 提示词工程部 skill，承接最终剧本、导演分镜和美术资产包，输出 `prompts/comfyui-*` prompt/asset/workflow/tuning 工程产物与 `reports/comfyui-prompt-qc.md`；新增 7 个角色任务卡、ComfyUI prompting/tuning reference、schema 与结构测试。
 - 2026-05-31：新增 `skills/writer-room/` Codex-native 编剧室 skill，明确由主 Codex 线程调度 11 个 Codex 子 agent 完成 brief、outline、角色、场景、初稿、诊断、改写、连续性、评分、记忆和进化建议；新增角色任务卡、artifact contract、评分 rubric、模板、schema 与结构测试，并同步 `writer-room-simulator-design.md` 的正式设计口径。

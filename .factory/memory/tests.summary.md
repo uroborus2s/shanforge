@@ -1,6 +1,6 @@
 # 测试摘要
 
-- 更新时间：2026-06-20 00:00:00
+- 更新时间：2026-07-04 00:00:00
 - 当前验证重点：`v2` 平台契约、文档结构、JSON 结构和 Python 回归测试
 
 ## 当前质量门
@@ -23,6 +23,7 @@
 
 ## 最近验证结果
 
+- 2026-07-04：`stratix-nodejs-backend` 重命名为 `stratix-service` 后，新增 `tests/test_stratix_service_skill.py` 覆盖新 skill 名称、旧目录退役、`@stratix/create` / `@stratix/forge` 工具链分工、`obsync-root` 根质量命令、插件/preset 选择、移除 tasks preset、`STRATIX_SENSITIVE_CONFIG` 与 `STRATIX_ENCRYPTION_KEY` 规则，以及 `agents/openai.yaml` 新默认提示。当前 shell 中 `uv` 不在 PATH，改用仓库 `.venv` 执行验证：`.venv/bin/pytest tests/test_stratix_service_skill.py` 通过，`5 passed`；`.venv/bin/ruff check tests/test_stratix_service_skill.py` 通过；`python3 skills/skill-creator/scripts/quick_validate.py skills/stratix-service` 通过；任务范围 `git diff --check` 通过。
 - 2026-06-20：新增 `tests/test_bug_fix_root_cause_skill_rules.py`，固定 `tdd-workflow`、`ai-regression-testing`、`ai-first-engineering`、`python-uv-project` 中“修 Bug 必须先定位根因，禁止用未验证兜底替代修复”的规则；`.venv/bin/pytest tests/test_bug_fix_root_cause_skill_rules.py` 通过，`4 passed`；`.venv/bin/ruff check tests/test_bug_fix_root_cause_skill_rules.py` 通过；`python3 skills/skill-creator/scripts/quick_validate.py` 分别验证上述 4 个 skill 均通过。当前 shell 中 `uv` 不在 PATH，定向测试改用仓库既有 `.venv` 工具执行。
 - 2026-06-14：新增 `browser-control` skill 后，执行 `python3 skills/skill-creator/scripts/quick_validate.py skills/browser-control` 通过，确认 skill frontmatter 与结构有效；`uv run pytest tests/test_browser_control_skill.py` 通过，`4 passed`，覆盖本地浏览器触发描述、`browser-use` 优先路由、启用后的 URL 打开示例、安全确认与输出契约；`uv run ruff check tests/test_browser_control_skill.py` 通过。
 - 2026-06-07：修正 `art-room` 分集状态卡目录路由后，新增 `tests/test_art_room_skill.py` 覆盖 master card 与 episode state card 的路径分流规则，确认 `asset-manifest`、`art-image-prompts`、`asset-index` 和 `thread-plan.output_format_contracts` 都按 `asset_type + asset_subtype` 约束 canonical path；`python3 -m json.tool` 已验证相关 schema 可解析，`uv run pytest tests/test_art_room_skill.py` 通过，`13 passed`，`uv run pytest tests/test_ai_drama_production_skill_plan_doc.py` 通过，`8 passed`，`uv run ruff check tests/test_art_room_skill.py` 通过。

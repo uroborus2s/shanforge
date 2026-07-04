@@ -16,6 +16,7 @@
 - 设计交付物数：1
 
 ## 最近条目
+- 2026-07-04：已将 `skills/stratix-nodejs-backend/` 重命名为 `skills/stratix-service/`，并按 `/Users/uroborus/NodeProject/wps/obsync-root` 的当前事实重写 Stratix 后端服务 skill。新版固定 `@stratix/create` 负责 `create-stratix` 初始化、`@stratix/forge` 负责项目内 `stratix` 命令，明确 AI 按业务目标自主选择最小 template/preset/plugin 组合，不再使用旧 `@stratix/cli` 单包叙事或已移除的 tasks preset；同时补齐完整开发循环、插件选择、`.env` / `STRATIX_SENSITIVE_CONFIG` / `STRATIX_ENCRYPTION_KEY` 的开发与生产配置规则。
 - 2026-06-14：新增中文 `browser-control` skill，作为本地浏览器控制入口。skill 明确当用户说“用本地浏览器访问 URL / browser-use / 真实浏览器”时优先走本机 `browser-use` CLI，并固定默认用法 `browser-use --headed --session browser-control --json open <URL>` + `state` 回读；同时区分 Codex Browser、Codex Chrome、Computer Use 的适用边界，补齐表单提交、cookies、上传、登录态、权限和敏感数据的动作时确认规则。新增结构测试 `tests/test_browser_control_skill.py`。
 - 2026-06-07：已修正 `art-room` 资产目录契约：项目级 `assets/` 只承载全剧复用母资产和全剧 style reference；`character_episode_state_card`、`prop_episode_state_card`、`location_episode_scene_card` 等带 episode 语义的状态卡必须写入 `{episode-id}/assets/characters/`、`{episode-id}/assets/props/`、`{episode-id}/assets/locations/` 或 `{episode-id}/assets/costumes/`。`asset-manifest`、`art-image-prompts`、`asset-index` 与 `thread-plan.output_format_contracts` 已增加 subtype 路径分流约束，避免 `c001e01` 这类分集状态卡落入全局资产目录。
 - 2026-06-05：已继续优化 `art-room` 资产生产契约：`art-image-prompts.json` 新增 `copy_ready`，固定 `positive_prompt / negative_prompt / chatgpt_image_prompt / gemini_image_prompt`，便于人工直接复制给图片模型；资产准备、manifest 与 thread plan 新增创建顺序和依赖字段；角色设计 schema 新增 `body_metrics`，物品/服装设计 schema 新增 `physical_dimensions`，用于更稳定地控制身高体态、比例、长宽高、重量感和材质厚度。

@@ -1,5 +1,9 @@
 # Skill Updates Summary
 
+## 2026-07-04
+
+- 已将 `skills/stratix-nodejs-backend/` 重命名为 `skills/stratix-service/`。新版 skill 以 `/Users/uroborus/NodeProject/wps/obsync-root` 为事实来源，明确当前工具链是 `@stratix/create@1.1.0` 的 `create-stratix` 与 `@stratix/forge@1.1.0` 的项目内 `stratix` 命令，而不是旧 `@stratix/cli` 单包。skill 已补齐 AI 自主选择 template/preset/plugin、完整开发循环、`obsync-root` 根质量命令、插件选择决策树，以及 `.env` / `STRATIX_SENSITIVE_CONFIG` / `STRATIX_ENCRYPTION_KEY` 的开发和生产环境规则；新增 `references/environment-config.md` 与 `tests/test_stratix_service_skill.py` 固定关键约束。
+
 ## 2026-06-20
 
 - 已将“修 Bug 必须先定位根因，禁止用未验证兜底替代修复”沉淀为 bug 修复类 skill 的共同约束：`tdd-workflow` 新增 Bug 根因先于修复规则和根因记录模板；`ai-regression-testing` 新增 Bug 根因修复门槛，明确回归测试不是为兜底方案背书；`ai-first-engineering` 新增团队级 Bug 修复纪律；`python-uv-project` 新增 Python 调试/修复时的根因与防兜底规则。新增 `tests/test_bug_fix_root_cause_skill_rules.py` 固定这些约束，避免后续 skill 演进时丢失。

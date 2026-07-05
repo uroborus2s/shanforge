@@ -61,6 +61,8 @@
 - `docs/04-project-development/04-design/ux-ui-design.md` -> `.factory/memory/ui.summary.md`, `.factory/memory/design-assets.summary.md`
 - `docs/04-project-development/05-development-process/implementation-plan.md` -> `.factory/memory/runtime-brief.md`
 - `docs/04-project-development/05-development-process/memory-governance-implementation-plan.md` -> `.factory/memory/tasks.summary.md`, `.factory/memory/runtime-brief.md`
+- `docs/04-project-development/05-development-process/project-management-control-plane.md` -> `.factory/memory/tasks.summary.md`, `.factory/memory/current-state.md`
+- `docs/04-project-development/05-development-process/superpowers-workflow-integration-plan.md` -> `.factory/memory/tasks.summary.md`, `.factory/memory/skill-updates.summary.md`, `.factory/memory/runtime-brief.md`
 - `docs/04-project-development/05-development-process/index.md` -> `.factory/memory/runtime-brief.md`
 - `docs/04-project-development/05-development-process/software-development-process.md` -> `.factory/memory/runtime-brief.md`
 - `docs/04-project-development/06-testing-verification/index.md` -> `.factory/memory/runtime-brief.md`

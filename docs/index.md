@@ -183,6 +183,15 @@ mkdocs:
             - title: 实施计划
               path: 04-project-development/05-development-process/implementation-plan.md
               access: private
+            - title: Superpowers 流程集成实施方案
+              path: 04-project-development/05-development-process/superpowers-workflow-integration-plan.md
+              access: private
+            - title: 项目管理控制面集成方案
+              path: 04-project-development/05-development-process/project-management-control-plane.md
+              access: private
+            - title: 记忆治理专项实施计划
+              path: 04-project-development/05-development-process/memory-governance-implementation-plan.md
+              access: private
         - title: 测试与验证
           children:
             - title: 概览

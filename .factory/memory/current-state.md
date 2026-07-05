@@ -16,6 +16,10 @@
 - 设计交付物数：1
 
 ## 最近条目
+- 2026-07-05 18:36：用户已确认 `SF-SP-010` 独立复审结果，状态记为 `human_approved`。下一步只有在用户明确要求提交 / commit 时才进入提交流程；提交必须只纳入 `SF-SP-010` 范围和当前确认 hunk。
+- 2026-07-05 18:20：`SF-SP-010` iteration-1 独立复审通过，reviewer `codex-sf-sp-010-rereviewer-20260705` 给出 `approved / 95`。复审确认旧下一步文案、PM 导航目标检查和 JSONL evidence 一致性均已修复；当前 gate 是 `pending_human_confirmation`，不得自动提交或关闭。
+- 2026-07-05 18:14：`SF-SP-010` iteration-1 独立 review 返回 `changes_requested / 82`。已修复三项反馈：Superpowers 方案旧下一步文案、PM 控制面导航目标存在性测试、JSONL evidence 命令与计数记录；当前状态 `ready_for_re_review`，下一步必须做真实独立复审。
+- 2026-07-05 18:05：`SF-SP-009` 已提交为 `9296f58`，`SF-SP-010` 已进入文档、导航、memory 同步开发。当前范围是同步 Superpowers 方案当前进展、开发过程导航、根文档导航、`.factory/memory/doc-map.md`、summary 和测试报告入口；实现完成后必须先进入真实独立 review，不能自批完成。
 - 2026-07-05 17:39：`SF-SP-009` 已进入黑盒流程 eval 开发并完成 iteration-1 实现，状态为 `ready_for_review`。本轮新增 `skills/using-shanforge/references/black-box-flow-eval.md`，并在 `using-shanforge` 中加入 `SF-SP-009` / 黑盒流程评估入口；场景覆盖一句话需求、bug 修复、review 反馈、压缩恢复、完成声明和自评隔离，评分门要求总分 `>= 90` 且 critical assertion 不得为 `0`。验证：红灯 `4 failed`，绿灯 `4 passed`，邻近 workflow 回归 `26 passed`，ruff、skill validator 和 `git diff --check` 通过。下一步必须做独立 review。
 - 2026-07-05 17:50：`SF-SP-009` iteration-1 独立 review 返回 `changes_requested / 84`，指出评分归一化公式缺失、结构测试偏弱，以及正式计划仍写 4 类场景。已修复：黑盒 eval reference 增加最高分、实际分和百分制总分公式；结构测试补每场景 critical assertion 与证据字段断言；正式计划改为 6 类场景。验证：加严红灯 `3 failed`，修复后 `6 passed`，邻近 workflow 回归 `28 passed`，ruff、validator、JSONL 和 `git diff --check` 通过。下一步是真实独立复审。
 - 2026-07-05 17:53：`SF-SP-009` iteration-1 独立复审通过，reviewer `codex-sf-sp-009-rereviewer-20260705` 给出 `approved / 95`。复审确认评分公式、结构测试和 6 类场景口径均已修复；当前 gate 是 `pending_human_confirmation`，不得自动提交或进入 `SF-SP-010`。

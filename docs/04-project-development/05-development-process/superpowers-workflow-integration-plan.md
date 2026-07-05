@@ -777,13 +777,14 @@ next_skill: requesting-code-review
 
 - `SF-SP-001`：方案和 memory summary 已把中心脚本主控降级为迁移来源；仍需后续独立 review 确认项目入口规则没有残留冲突。
 - `SF-SP-002`：已新增首版 `skills/project-memory/`，包含 `SKILL.md`、会话启动清单、相关性判断、会话卡模板、ledger 事件模板、current-state 更新清单和 OpenAI 元数据；已通过 task review approved，但尚未提交或进入 PR 闭环，不能关闭整体工作项。
-- `SF-SP-003`：已完成已有 skill 的 references 迁移切片并通过 task review：PRD、技术设计、根因定位、evidence、提交说明 rubric 已分别进入 `requirements-engineering`、`document-templates`、`tdd-workflow`、`gitcommitzh`。`writing-plans` 已在 `SF-SP-004` 新增 work item plan、task brief 和 plan review 模板；review、完成验证、独立调试等后续 workflow skill 的 references 仍未完成。
+- `SF-SP-003`：已完成已有 skill 的 references 迁移切片并通过 task review：PRD、技术设计、根因定位、evidence、提交说明 rubric 已分别进入 `requirements-engineering`、`document-templates`、`tdd-workflow`、`gitcommitzh`。后续 workflow skill 的 references 已随 `SF-SP-004`、`SF-SP-006`、`SF-SP-007`、`SF-SP-008`、`SF-SP-009` 继续落入对应 skill；整体流程集成当前只剩 `SF-SP-010` 文档、导航、memory 同步收口。
 - `SF-SP-004`：已新增首版 `skills/writing-plans/`，包含 `SKILL.md`、work item plan 模板、task brief 模板、plan review 模板和中文 OpenAI 元数据；已通过 task review approved，但尚未提交或进入 PR 闭环，不能关闭整体流程集成计划。
 - `SF-SP-005`：iteration-2 真实独立评审曾为 `changes_requested / 78`；iteration-3 已修复执行 skill reference 协调 review 流程、旧 `human_approved` 叙事和旧分支收尾 skill 引用，并补负向测试。iteration-3 真实独立复审结论为 `approved / 92`，已由用户确认 `human_approved`。
 - `SF-SP-006`：iteration-1 真实独立评审曾为 `changes_requested / 84`；iteration-2 已修复 `same_thread` / `needs_independent_review` 状态语义、`receiving-code-review` memory/review-ledger 同步规则和 metadata prompt。iteration-2 真实独立复审结论为 `approved / 95`，已由用户确认 `human_approved`。
 - `SF-SP-007`：iteration-1 已补真实独立评审，结论为 `approved / 95`；上游 `SF-SP-005`、`SF-SP-006` 阻塞已解除，已由用户确认进入 `SF-SP-008`。
-- `SF-SP-008`：当前已完成 PR 闭环与提交规则收口并通过真实独立 review，主 review 为 `approved / 94`，范围隔离复审为 `approved / 94`，已获用户 `human_approved`。范围是让 `gitcommitzh` 与 review / evidence / memory sync / work item ledger 对齐；提交前必须核对 review、evidence、memory sync 和 work item ledger；`gitcommitzh` 只做本地提交，不创建、不推送、不合并 PR。根据执行纪律缺口，已撤销中心脚本 gate 方案，改为 skill-native 收尾门：输出完成、提交或关闭 work item 前必须重读最新 work item ledger 和 review ledger；若仍为 `ready_for_review` 或存在 `next_required_action`，只能报告阻塞 gate 和下一步动作。根据范围复审反馈，混合 `.factory/memory/` 文件只能暂存当前任务 hunk，无法拆分时必须停止并拆成独立提交。下一步是在提交 SF-SP-008 后进入 `SF-SP-009`。
-- `SF-SP-009`：当前已进入黑盒流程 eval 开发，范围是一句话需求、bug 修复、review 反馈、压缩恢复、完成声明和自评隔离的场景契约与评分断言；不新增中心脚本 gate，只在 `using-shanforge` reference 中固化 eval 输入、critical assertion、fast smoke / full regression 和证据格式。
+- `SF-SP-008`：已完成 PR 闭环与提交规则收口并通过真实独立 review，主 review 为 `approved / 94`，范围隔离复审为 `approved / 94`，已获用户 `human_approved`，并已提交为 `e048784`。范围是让 `gitcommitzh` 与 review / evidence / memory sync / work item ledger 对齐；提交前必须核对 review、evidence、memory sync 和 work item ledger；`gitcommitzh` 只做本地提交，不创建、不推送、不合并 PR。根据执行纪律缺口，已撤销中心脚本 gate 方案，改为 skill-native 收尾门：输出完成、提交或关闭 work item 前必须重读最新 work item ledger 和 review ledger；若仍为 `ready_for_review` 或存在 `next_required_action`，只能报告阻塞 gate 和下一步动作。根据范围复审反馈，混合 `.factory/memory/` 文件只能暂存当前任务 hunk，无法拆分时必须停止并拆成独立提交。
+- `SF-SP-009` 已提交为 `9296f58`。已完成黑盒流程 eval、独立复审 `approved / 95` 和人工确认；范围是一句话需求、bug 修复、review 反馈、压缩恢复、完成声明和自评隔离的场景契约与评分断言。不新增中心脚本 gate，只在 `using-shanforge` reference 中固化 eval 输入、critical assertion、fast smoke / full regression 和证据格式。
+- `SF-SP-010` 已进入文档、导航、memory 同步开发；范围是本方案当前进展、开发过程导航、根文档导航、`.factory/memory/doc-map.md`、summary 和测试报告入口同步。实现完成后只能进入真实独立 review，不能自批完成。
 
 ## 13. 分阶段计划
 
@@ -882,10 +883,9 @@ next_skill: requesting-code-review
 
 ## 17. 下一步
 
-推荐先执行：
+当前只剩 `SF-SP-010` 文档、导航、memory 同步收口：
 
-1. `SF-SP-001`：把现有“脚本主控”规则从方案和项目入口中拆掉。
-2. `SF-SP-002`：新增 `project-memory` skill，接管会话恢复、读取范围和 ledger 模板。
-3. `SF-SP-003`：把 PRD、设计、计划、review、evidence 等模板迁移到各 skill 的 `references/`。
-
-这三项完成后，再拷贝改造 Superpowers 的计划、执行、评审和验证类 skill。否则流程会继续依赖脚本或临时提示词，不能真正形成“基于项目记忆和当前状态”的软件工厂。
+1. 完成 `SF-SP-010` 的独立 review loop，修复 `changes_requested` 后重新复审。
+2. 复审通过后停在 `pending_human_confirmation`，等待人工确认。
+3. 人工确认后再按 `gitcommitzh` 提交流程提交当前任务相关 hunk；若导航引用未跟踪文档，目标文档必须一并纳入同一可审阅提交范围。
+4. 提交后再判断 Superpowers 流程集成计划是否可关闭或是否需要进入 PR 闭环。

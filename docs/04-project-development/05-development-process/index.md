@@ -13,4 +13,10 @@
 
 1. [软件开发流程](./software-development-process.md)
 2. [实施计划](./implementation-plan.md)
-3. [记忆治理专项实施计划](./memory-governance-implementation-plan.md)
+3. [Superpowers 流程集成实施方案](./superpowers-workflow-integration-plan.md)
+4. [项目管理控制面集成方案](./project-management-control-plane.md)
+5. [记忆治理专项实施计划](./memory-governance-implementation-plan.md)
+
+## 3. 验证入口
+
+- [测试报告](../06-testing-verification/test-report.md)

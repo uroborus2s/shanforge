@@ -1,5 +1,9 @@
 # 变更摘要
 
+- 2026-07-05：用户确认 `SF-SP-010` 独立复审结果，状态记为 `human_approved`。当前未自动提交；只有用户明确要求提交 / commit 时才进入 `gitcommitzh` 提交流程。
+- 2026-07-05：`SF-SP-010` iteration-1 独立复审通过。复审 reviewer `codex-sf-sp-010-rereviewer-20260705` 给出 `approved / 95`，确认旧下一步文案、PM 导航目标检查和 JSONL evidence 一致性均已修复；当前停在 `pending_human_confirmation`。
+- 2026-07-05：修复 `SF-SP-010` iteration-1 独立 review 反馈。独立 reviewer `codex-sf-sp-010-independent-reviewer-20260705` 给出 `changes_requested / 82`，指出 Superpowers 方案仍有旧下一步文案、PM 控制面导航目标未被测试固定、JSONL evidence 使用占位命令且计数不一致；已修复并进入 `ready_for_re_review`。
+- 2026-07-05：`SF-SP-009` 已提交为 `9296f58`，`SF-SP-010` 已进入文档、导航、memory 同步开发。当前收口范围是 Superpowers 方案当前进展、开发过程导航、根文档导航、`.factory/memory/doc-map.md`、summary 和测试报告入口；新增结构测试先复现导航缺口与 stale summary 缺口。
 - 2026-07-05：进入并完成 `SF-SP-009` 黑盒流程 eval iteration-1 实现。新增 `skills/using-shanforge/references/black-box-flow-eval.md`，在 `using-shanforge` 中加入 `SF-SP-009` / 黑盒流程评估入口，并新增 `tests/test_black_box_workflow_eval.py` 固定六类场景、评分门、失败门和无脚本 gate 回退。场景覆盖一句话需求、bug 修复、review 反馈、压缩恢复、完成声明和自评隔离；当前状态为 `ready_for_review`，下一步是真实独立 review。
 - 2026-07-05：修复 `SF-SP-009` iteration-1 独立 review 反馈。独立 reviewer 给出 `changes_requested / 84`，要求补评分公式 / 归一化并增强结构测试；已补黑盒 eval 评分公式、Actual / Max / Normalized score 证据字段、每场景 critical assertion 可评分断言，并将正式计划任务表统一为 6 类场景。当前状态 `ready_for_re_review`。
 - 2026-07-05：`SF-SP-009` iteration-1 独立复审通过。复审 reviewer `codex-sf-sp-009-rereviewer-20260705` 给出 `approved / 95`，确认评分公式、结构测试和 6 类场景口径均已修复；当前停在 `pending_human_confirmation`。

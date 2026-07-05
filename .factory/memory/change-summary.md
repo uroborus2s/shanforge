@@ -1,5 +1,9 @@
 # 变更摘要
 
+- 2026-07-05：用户确认 `SF-SP-001/002/003/004` 独立 review / 复审结果通过，并授权提交相关任务。四项已写入 `human_approved`；本轮提交范围收敛为 Superpowers `SF-SP-001` 到 `SF-SP-007` 的 workflow skill、references、tests、work item 证据和必要 memory 同步。
+- 2026-07-05：完成 Superpowers 剩余收尾 review loop。已创建并整合 `SF-SP-001/002/003/004` 的独立 review / 复审子任务结果：`SF-SP-001 approved / 94`、`SF-SP-002 approved / 92`、`SF-SP-003 approved / 93`、`SF-SP-004 approved / 95`。修复项包括 `project-memory` 不能输出下一步 skill、memory ledger 示例从 `next_skill` 改为 `next_status` / `next_required_action`、`SF-SP-003` downstream reference 路径存在性、helper code 迁移结论和结构测试。四项均已写入 review 文件、evidence、work item ledger 和 review-ledger，当前停在 `pending_human_confirmation`。
+- 2026-07-05：完成 Superpowers 流程集成收尾校准。正式计划不再停留在“当前只剩 `SF-SP-010`”的过期叙事；`SF-SP-010` 已提交为 `3b0e9a5`。新增 `.factory/workitems/SF-SP-010/reports/superpowers-workflow-integration-closeout-report.md`，按 ledger、review ledger 和本地 commit 区分本地闭环完成、功能评审通过但提交未闭环、未完成或部分完成三类状态。当前结论是本地闭环 `3 / 10`，不能声明整体计划已完成。
+- 2026-07-05：继续补 Superpowers 收尾缺口。新增 `SF-SP-001` work item ledger、coverage evidence、coverage closure report 和 review brief，将“拆除脚本主控设计”记录为已被后续 skill-native 流程任务覆盖但仍需真实独立 review。同步收紧收尾报告：`SF-SP-002/003/004` 的旧 task review 均含单线程 fallback，不能按最新独立性硬门视为最终独立评审。
 - 2026-07-05：用户确认 `SF-SP-010` 独立复审结果，状态记为 `human_approved`。当前未自动提交；只有用户明确要求提交 / commit 时才进入 `gitcommitzh` 提交流程。
 - 2026-07-05：`SF-SP-010` iteration-1 独立复审通过。复审 reviewer `codex-sf-sp-010-rereviewer-20260705` 给出 `approved / 95`，确认旧下一步文案、PM 导航目标检查和 JSONL evidence 一致性均已修复；当前停在 `pending_human_confirmation`。
 - 2026-07-05：修复 `SF-SP-010` iteration-1 独立 review 反馈。独立 reviewer `codex-sf-sp-010-independent-reviewer-20260705` 给出 `changes_requested / 82`，指出 Superpowers 方案仍有旧下一步文案、PM 控制面导航目标未被测试固定、JSONL evidence 使用占位命令且计数不一致；已修复并进入 `ready_for_re_review`。

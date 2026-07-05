@@ -16,6 +16,9 @@
 - 设计交付物数：1
 
 ## 最近条目
+- 2026-07-05 20:20：用户明确确认 `SF-SP-001/002/003/004` 通过并要求提交相关任务。四项 ledger 和 review-ledger 已写入 `human_approved`；下一步进入 `gitcommitzh` 本地提交，只能提交 Superpowers `SF-SP-001` 到 `SF-SP-007` 相关 hunk / 文件，排除 PM、Stratix、art-room / director-room / writer-room 删除等无关工作区改动。
+- 2026-07-05 20:05：按用户要求继续完成 Superpowers 剩余收尾任务并创建复审子任务。`SF-SP-001` 独立 review `approved / 94`，`SF-SP-004` 独立 review `approved / 95`；`SF-SP-002` 修复 `project-memory` 路由残留和 memory sync evidence 后，独立复审 `approved / 92`；`SF-SP-003` 修复 downstream reference 路径、helper 迁移结论和结构测试后，独立复审 `approved / 93`。`SF-SP-001/002/003/004` 均已进入 `pending_human_confirmation`，不能自动视为 `human_approved`；`SF-SP-008` 已提交为 `e048784`，`SF-SP-009` 已提交为 `9296f58`，`SF-SP-010` 已提交为 `3b0e9a5`。下一步是人工确认，然后对 `SF-SP-001` 到 `SF-SP-007` 做范围隔离提交 / PR 闭环。
+- 2026-07-05 19:10：继续 Superpowers 流程集成收尾。已补 `SF-SP-001` work item ledger、coverage evidence、closure report 和 review brief，状态为 `ready_for_review`；旧 `SF-SP-002/003/004` task review 均含单线程 fallback 口径，按最新独立性硬门不能当最终独立评审。当前本地闭环仍为 `3 / 10`：`SF-SP-008=e048784`、`SF-SP-009=9296f58`、`SF-SP-010=3b0e9a5`；`SF-SP-001/002/003/004` 需要真实独立 review，`SF-SP-005/006/007` 需要范围隔离提交。
 - 2026-07-05 18:36：用户已确认 `SF-SP-010` 独立复审结果，状态记为 `human_approved`。下一步只有在用户明确要求提交 / commit 时才进入提交流程；提交必须只纳入 `SF-SP-010` 范围和当前确认 hunk。
 - 2026-07-05 18:20：`SF-SP-010` iteration-1 独立复审通过，reviewer `codex-sf-sp-010-rereviewer-20260705` 给出 `approved / 95`。复审确认旧下一步文案、PM 导航目标检查和 JSONL evidence 一致性均已修复；当前 gate 是 `pending_human_confirmation`，不得自动提交或关闭。
 - 2026-07-05 18:14：`SF-SP-010` iteration-1 独立 review 返回 `changes_requested / 82`。已修复三项反馈：Superpowers 方案旧下一步文案、PM 控制面导航目标存在性测试、JSONL evidence 命令与计数记录；当前状态 `ready_for_re_review`，下一步必须做真实独立复审。

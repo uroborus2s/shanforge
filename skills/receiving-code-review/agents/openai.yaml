@@ -1,0 +1,4 @@
+interface:
+  display_name: "处理代码评审反馈"
+  short_description: "处理 review feedback 前先核实技术正确性，再逐项修复、验证或 pushback。"
+  default_prompt: "使用 $receiving-code-review：读取 review feedback，先核实是否清楚、技术正确、是否与用户决策冲突，再逐项处理；写 triage、response、验证证据和 ledger，禁止盲改和表演式同意。"

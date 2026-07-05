@@ -78,6 +78,10 @@ Bug 症状：
 是否涉及兜底/降级：是/否；如果是，说明它为什么是既有契约而不是掩盖根因。
 ```
 
+更完整的 Bug 根因定位清单见 [root-cause-checklist.md](references/root-cause-checklist.md)。
+任务完成前的验证证据格式见 [evidence-report-template.md](references/evidence-report-template.md)。
+TDD、调试和完成前验证的合并质量门见 [tdd-debugging-verification-gate.md](references/tdd-debugging-verification-gate.md)。
+
 ### 步骤 2: 生成测试用例 (Generate Test Cases)
 为每个用户旅程创建全面的测试用例：
 

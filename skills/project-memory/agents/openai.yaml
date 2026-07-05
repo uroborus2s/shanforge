@@ -1,0 +1,4 @@
+interface:
+  display_name: "项目记忆"
+  short_description: "恢复 Shanforge 项目上下文，限制读取范围并更新 ledger。"
+  default_prompt: "使用 $project-memory 恢复 Shanforge 项目上下文：先读 .factory/memory 压缩入口，限制读取范围并更新 ledger，再把待决事项交回 using-shanforge 判断。"

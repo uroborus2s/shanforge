@@ -1,0 +1,147 @@
+from __future__ import annotations
+
+from pathlib import Path
+
+REPO_ROOT = Path(__file__).resolve().parents[1]
+SKILL_DIR = REPO_ROOT / "skills" / "writing-plans"
+
+
+def read(path: str) -> str:
+    return (REPO_ROOT / path).read_text(encoding="utf-8")
+
+
+def test_writing_plans_skill_localizes_superpowers_semantics() -> None:
+    skill = read("skills/writing-plans/SKILL.md")
+
+    assert "name: writing-plans" in skill
+    assert "多步骤任务" in skill
+    assert "动代码前" in skill
+    assert "已批准的 spec、需求、设计或 work item brief" in skill
+    assert ".factory/workitems/<WORKITEM-ID>/plan.md" in skill
+    assert ".factory/workitems/<WORKITEM-ID>/task-briefs/" in skill
+    assert "docs/superpowers/plans" not in skill
+
+    for phrase in (
+        "先锁定文件结构",
+        "每个文件只有一个清晰职责",
+        "一个任务必须能独立产生可测试结果",
+        "Red",
+        "Green",
+        "精确文件路径",
+        "真实命令",
+        "期望输出",
+        "禁止占位符",
+        "计划自审",
+        "plan review",
+        "本 skill 不写下一步 skill",
+        "只写 plan、task brief、review handoff 和状态回写",
+        "needs:",
+    ):
+        assert phrase in skill
+
+    assert "执行阶段交给 `subagent-driven-development`" not in skill
+    assert "## 执行交接" not in skill
+
+
+def test_writing_plans_references_define_plan_and_task_templates() -> None:
+    expected = {
+        "skills/writing-plans/references/workitem-plan-template.md": (
+            "# <功能名称> 实施计划",
+            "给执行者",
+            "交还 `using-shanforge` 流程总控判断下一步",
+            "目标：",
+            "架构：",
+            "技术栈：",
+            "## 输入",
+            "## 范围",
+            "| 类型 | 路径 | 职责 |",
+            "任务 N",
+            "- [ ]",
+            "步骤 1：红灯，编写失败测试",
+            "步骤 2：运行测试并确认失败",
+            "运行命令",
+            "期望输出",
+            "步骤 5：证据和记忆同步",
+            ".factory/memory/",
+            "## 计划自审",
+        ),
+        "skills/writing-plans/references/task-brief-template.md": (
+            "# 任务简报",
+            "## 工作项",
+            "目标",
+            "输入",
+            "已批准计划",
+            "相关规格 / 需求 / 设计",
+            "允许修改",
+            "禁止修改",
+            "写红灯测试",
+            "验证命令",
+            "输出报告",
+            "验证证据：",
+            "实现报告：",
+            "评审输入简报：",
+        ),
+        "skills/writing-plans/references/plan-review-template.md": (
+            "# 计划评审",
+            "## 输入",
+            "## 检查项",
+            "| 类别 | 检查内容 |",
+            "完整性",
+            "规格一致性",
+            "任务拆分",
+            "可构建性",
+            "**状态：** 通过 | 发现问题",
+            "下一步由 `using-shanforge` 流程总控判断",
+        ),
+    }
+
+    for path, phrases in expected.items():
+        content = read(path)
+        for phrase in phrases:
+            assert phrase in content
+
+    workitem_plan = read("skills/writing-plans/references/workitem-plan-template.md")
+    plan_review = read("skills/writing-plans/references/plan-review-template.md")
+    assert "REQUIRED NEXT SKILL" not in workitem_plan
+    assert "subagent-driven-development` or `executing-plans" not in workitem_plan
+    assert "计划可交给 `subagent-driven-development`" not in plan_review
+
+    all_references = "\n".join(read(path) for path in expected)
+    for phrase in (
+        "# <Feature Name> Implementation Plan",
+        "**Goal:**",
+        "**Architecture:**",
+        "**Tech Stack:**",
+        "## Inputs",
+        "## Scope",
+        "## Files",
+        "## Tasks",
+        "Run:",
+        "Expected output:",
+        "# Task brief",
+        "## Work item",
+        "# Plan Review",
+        "## What to Check",
+        "## Output Format",
+        "**Status:** Approved | Issues Found",
+        "Recommendations",
+        "Completeness",
+        "Spec Alignment",
+        "Task Decomposition",
+        "Buildability",
+        "checkbox",
+        "memory sync",
+        "FAIL with the missing behavior or contract error",
+        "<command>",
+        "<expected output>",
+    ):
+        assert phrase not in all_references
+
+
+def test_writing_plans_openai_metadata_is_chinese() -> None:
+    metadata_path = SKILL_DIR / "agents" / "openai.yaml"
+    metadata = metadata_path.read_text(encoding="utf-8")
+
+    assert 'display_name: "编写实施计划"' in metadata
+    assert "work item plan" in metadata
+    assert "任务 brief" in metadata

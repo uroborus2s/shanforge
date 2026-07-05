@@ -1,6 +1,6 @@
 # 测试摘要
 
-- 更新时间：2026-07-05 13:22:51
+- 更新时间：2026-07-05 20:05:57
 - 当前验证重点：`v2` 平台契约、文档结构、JSON 结构和 Python 回归测试
 
 ## 当前质量门
@@ -10,6 +10,10 @@
 - `.factory/memory/graph/traceability.json` JSON 解析
 
 ## 最近验证
+
+- 2026-07-05：Superpowers `SF-SP-001` 到 `SF-SP-007` 提交前验证通过。`SF-SP-001/002/003/004` 已写入用户 `human_approved`，`SF-SP-005/006/007` 已有独立 review 和人工确认；本轮只暂存 Superpowers 相关 hunk，排除 PM、Stratix 和三间房删除。验证：`.venv/bin/pytest tests/test_project_memory_skill.py tests/test_superpowers_reference_migration.py tests/test_sf_sp_010_documentation_navigation.py tests/test_pr_commit_workflow_rules.py tests/test_independent_review_gate.py tests/test_writing_plans_skill.py tests/test_execution_workflow_skills.py tests/test_review_workflow_skills.py tests/test_verification_debugging_workflow_skills.py` 通过 `43 passed`；对应 `.venv/bin/ruff check` 通过；`SF-SP-001/002/003/004/005/006/007/010` work item ledger 与 `.factory/memory/review-ledger.jsonl` 逐行 JSONL 解析通过，计数 `4 + 7 + 7 + 7 + 10 + 9 + 7 + 8 + 45 = 104`；`git diff --cached --check` 通过。
+- 2026-07-05：Superpowers 流程集成收尾校准将结构测试从“当前只剩 `SF-SP-010`”更新为“`SF-SP-010` 已提交为 `3b0e9a5`，整体计划进入 001-007 收尾闭环”。验证：`.venv/bin/pytest tests/test_sf_sp_010_documentation_navigation.py tests/test_superpowers_reference_migration.py` 通过 `8 passed`；`.venv/bin/ruff check tests/test_sf_sp_010_documentation_navigation.py tests/test_superpowers_reference_migration.py` 通过；`.factory/workitems/SF-SP-010/ledger.jsonl` 与 `.factory/memory/review-ledger.jsonl` JSONL 解析通过，计数 `8 + 29 = 37`；`git diff --check` 通过。
+- 2026-07-05：继续 Superpowers 收尾，补 `SF-SP-001` ledger / coverage evidence / review brief，并把收尾测试更新为最新独立性硬门口径。验证：`.venv/bin/pytest tests/test_sf_sp_010_documentation_navigation.py tests/test_superpowers_reference_migration.py tests/test_pr_commit_workflow_rules.py tests/test_independent_review_gate.py` 通过 `18 passed`；对应 ruff 通过；`SF-SP-001`、`SF-SP-010` ledger 与 review-ledger JSONL 解析通过，计数 `1 + 8 + 29 = 38`；`git diff --check` 通过。
 
 - 2026-07-05：`SF-SP-010` 独立 review 反馈后加严导航与 stale 方案测试。新增链接目标存在性、Superpowers `## 17. 下一步` 当前状态和 doc-map PM 控制面映射断言后，目标测试 `.venv/bin/pytest tests/test_sf_sp_010_documentation_navigation.py tests/test_superpowers_reference_migration.py` 通过 `7 passed`；ruff 通过；SF-SP-010 ledger 与全局 review-ledger JSONL 解析通过，复审入档后为 `6 + 28 = 34` 条；`git diff --check` 通过。独立复审 reviewer 给出 `approved / 95`。
 - 2026-07-05：`SF-SP-010` 新增文档、导航、memory 同步结构测试。红灯 `.venv/bin/pytest tests/test_sf_sp_010_documentation_navigation.py tests/test_superpowers_reference_migration.py` 为 `2 failed, 4 passed`，暴露根导航缺少 `memory-governance-implementation-plan.md`、开发过程索引缺少测试报告入口，以及 Superpowers 方案 / memory 仍停在 `SF-SP-009` 开发叙事。补齐导航、当前进展和 summary 后，同一命令通过 `6 passed`；`.venv/bin/ruff check tests/test_sf_sp_010_documentation_navigation.py tests/test_superpowers_reference_migration.py` 通过；SF-SP-010 ledger 与全局 review-ledger JSONL 解析通过；`git diff --check` 通过。

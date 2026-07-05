@@ -93,10 +93,10 @@ def test_workflow_plan_tracks_sf_sp_008_commit_closure_rules() -> None:
     )
 
     for phrase in (
-        "`SF-SP-008`：",
-        "PR 闭环与提交规则",
-        "提交前必须核对 review、evidence、memory sync 和 work item ledger",
-        "`gitcommitzh` 只做本地提交",
-        "不创建、不推送、不合并 PR",
+        "| `SF-SP-008` | PR 闭环与提交规则 |",
+        "提交必须使用 `gitcommitzh`",
+        "`gitcommitzh` 只做本地提交，不创建、不推送、不合并 PR",
+        "代码类 work item 已进入 PR 闭环",
+        "本地提交不能冒充 push、PR 或 merge",
     ):
         assert phrase in plan

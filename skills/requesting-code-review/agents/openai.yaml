@@ -1,0 +1,4 @@
+interface:
+  display_name: "请求代码评审"
+  short_description: "组织 Shanforge task review、PR review、独立 review task、评分表和人工确认门。"
+  default_prompt: "使用 $requesting-code-review：为当前 work item 收集 task brief、implementer report、verification evidence 和 diff package，执行 task review 或 PR review。仅真实独立 review 输出 review_score；同线程只输出 author_self_check_score，并把结果写入 reviews、ledger 和 review-ledger。"

@@ -218,16 +218,26 @@ skills/project-memory/
 | UI 设计交付模板 | `skills/ui-ux-pro-max/references/ui-design-spec-template.md` |
 | work item 计划模板 | `skills/writing-plans/references/workitem-plan-template.md` |
 | 子任务 brief 模板 | `skills/writing-plans/references/task-brief-template.md` |
+| plan review 模板 | `skills/writing-plans/references/plan-review-template.md` |
 | task review 模板 | `skills/requesting-code-review/references/task-review-template.md` |
 | PR review 模板 | `skills/requesting-code-review/references/pr-review-template.md` |
 | 独立裁判任务模板 | `skills/requesting-code-review/references/independent-review-task-template.md` |
-| bug 根因定位流程 | `skills/systematic-debugging/references/root-cause-checklist.md` |
-| 验证证据模板 | `skills/verification-before-completion/references/evidence-report-template.md` |
+| review feedback triage 模板 | `skills/receiving-code-review/references/feedback-triage-template.md` |
+| review response 模板 | `skills/receiving-code-review/references/review-response-template.md` |
+| bug 根因定位流程 | `skills/systematic-debugging/references/root-cause-investigation-template.md` |
+| 验证证据模板 | `skills/verification-before-completion/references/completion-evidence-template.md` |
 | 提交说明规则 | `skills/gitcommitzh/references/commit-message-rubric.md` |
 
 ### 6.4 helper code 放什么
 
 当某个流程动作目标明确、重复执行、适合确定性处理时，可以在 skill 内放 `py/js` helper code。
+
+SF-SP-003 helper code 迁移结论：
+
+- 本轮 Superpowers workflow 迁移没有新增必须迁出的全局 helper code。
+- 新增和改造的 workflow skill 只使用 `SKILL.md`、`references/`、`agents/openai.yaml` 和结构测试表达契约。
+- 已存在的 skill-scoped helper code 继续由原 skill owner 管理，例如 `brainstorming/scripts/` 的可视化伴侣 helper，不作为 SF-SP-003 的阻塞迁移项。
+- 后续若某个 workflow skill 新增确定性 helper，必须在该 skill 的 `references/` 中写明输入、输出、边界和测试证据。
 
 允许放入 skill helper code 的典型场景：
 
@@ -775,16 +785,30 @@ next_skill: requesting-code-review
 
 ### 12.1 当前实施进展
 
-- `SF-SP-001`：方案和 memory summary 已把中心脚本主控降级为迁移来源；仍需后续独立 review 确认项目入口规则没有残留冲突。
-- `SF-SP-002`：已新增首版 `skills/project-memory/`，包含 `SKILL.md`、会话启动清单、相关性判断、会话卡模板、ledger 事件模板、current-state 更新清单和 OpenAI 元数据；已通过 task review approved，但尚未提交或进入 PR 闭环，不能关闭整体工作项。
-- `SF-SP-003`：已完成已有 skill 的 references 迁移切片并通过 task review：PRD、技术设计、根因定位、evidence、提交说明 rubric 已分别进入 `requirements-engineering`、`document-templates`、`tdd-workflow`、`gitcommitzh`。后续 workflow skill 的 references 已随 `SF-SP-004`、`SF-SP-006`、`SF-SP-007`、`SF-SP-008`、`SF-SP-009` 继续落入对应 skill；整体流程集成当前只剩 `SF-SP-010` 文档、导航、memory 同步收口。
-- `SF-SP-004`：已新增首版 `skills/writing-plans/`，包含 `SKILL.md`、work item plan 模板、task brief 模板、plan review 模板和中文 OpenAI 元数据；已通过 task review approved，但尚未提交或进入 PR 闭环，不能关闭整体流程集成计划。
-- `SF-SP-005`：iteration-2 真实独立评审曾为 `changes_requested / 78`；iteration-3 已修复执行 skill reference 协调 review 流程、旧 `human_approved` 叙事和旧分支收尾 skill 引用，并补负向测试。iteration-3 真实独立复审结论为 `approved / 92`，已由用户确认 `human_approved`。
-- `SF-SP-006`：iteration-1 真实独立评审曾为 `changes_requested / 84`；iteration-2 已修复 `same_thread` / `needs_independent_review` 状态语义、`receiving-code-review` memory/review-ledger 同步规则和 metadata prompt。iteration-2 真实独立复审结论为 `approved / 95`，已由用户确认 `human_approved`。
-- `SF-SP-007`：iteration-1 已补真实独立评审，结论为 `approved / 95`；上游 `SF-SP-005`、`SF-SP-006` 阻塞已解除，已由用户确认进入 `SF-SP-008`。
-- `SF-SP-008`：已完成 PR 闭环与提交规则收口并通过真实独立 review，主 review 为 `approved / 94`，范围隔离复审为 `approved / 94`，已获用户 `human_approved`，并已提交为 `e048784`。范围是让 `gitcommitzh` 与 review / evidence / memory sync / work item ledger 对齐；提交前必须核对 review、evidence、memory sync 和 work item ledger；`gitcommitzh` 只做本地提交，不创建、不推送、不合并 PR。根据执行纪律缺口，已撤销中心脚本 gate 方案，改为 skill-native 收尾门：输出完成、提交或关闭 work item 前必须重读最新 work item ledger 和 review ledger；若仍为 `ready_for_review` 或存在 `next_required_action`，只能报告阻塞 gate 和下一步动作。根据范围复审反馈，混合 `.factory/memory/` 文件只能暂存当前任务 hunk，无法拆分时必须停止并拆成独立提交。
-- `SF-SP-009` 已提交为 `9296f58`。已完成黑盒流程 eval、独立复审 `approved / 95` 和人工确认；范围是一句话需求、bug 修复、review 反馈、压缩恢复、完成声明和自评隔离的场景契约与评分断言。不新增中心脚本 gate，只在 `using-shanforge` reference 中固化 eval 输入、critical assertion、fast smoke / full regression 和证据格式。
-- `SF-SP-010` 已进入文档、导航、memory 同步开发；范围是本方案当前进展、开发过程导航、根文档导航、`.factory/memory/doc-map.md`、summary 和测试报告入口同步。实现完成后只能进入真实独立 review，不能自批完成。
+收尾校准时间：`2026-07-05 19:01:54 +0800`。
+
+事实口径：`.factory/workitems/*/ledger.jsonl`、`.factory/memory/review-ledger.jsonl` 和本地 git commit。当前没有远端 PR / push / merge 证据，因此只统计本地闭环。
+
+| ID | 当前判定 | 已有证据 | 剩余动作 |
+|---|---|---|---|
+| `SF-SP-001` | 已人工确认，提交未闭环 | iteration-1 独立 review `approved / 94`；用户已确认 `human_approved` | 对当前任务产物做范围隔离提交 / PR 闭环 |
+| `SF-SP-002` | 已人工确认，提交未闭环 | iteration-2 独立复审 `approved / 92`；用户已确认 `human_approved`；`project-memory` 路由残留、memory sync evidence 和 ledger 示例已修复 | 对当前任务产物做范围隔离提交 / PR 闭环 |
+| `SF-SP-003` | 已人工确认，提交未闭环 | iteration-2 独立复审 `approved / 93`；用户已确认 `human_approved`；downstream references、helper 迁移结论和结构测试已补齐 | 对当前任务产物做范围隔离提交 / PR 闭环 |
+| `SF-SP-004` | 已人工确认，提交未闭环 | iteration-2 独立 review `approved / 95`；用户已确认 `human_approved` | 对当前任务产物做范围隔离提交 / PR 闭环 |
+| `SF-SP-005` | 功能评审通过，提交未闭环 | iteration-3 独立复审 `approved / 92`，用户 `human_approved` | 对当前任务产物做范围隔离提交 / PR 闭环 |
+| `SF-SP-006` | 功能评审通过，提交未闭环 | iteration-2 独立复审 `approved / 95`，用户 `human_approved` | 对当前任务产物做范围隔离提交 / PR 闭环 |
+| `SF-SP-007` | 功能评审通过，提交未闭环 | iteration-1 独立评审 `approved / 95`，用户 `human_approved` | 对当前任务产物做范围隔离提交 / PR 闭环 |
+| `SF-SP-008` | 本地闭环完成 | 主 review `approved / 94`，范围复审 `approved / 94`，用户 `human_approved`，本地提交 `e048784` | 远端 PR / push / merge 尚未执行 |
+| `SF-SP-009` | 本地闭环完成 | 独立复审 `approved / 95`，用户 `human_approved`，本地提交 `9296f58` | 远端 PR / push / merge 尚未执行 |
+| `SF-SP-010` | 本地闭环完成 | 独立复审 `approved / 95`，用户 `human_approved`，本地提交 `3b0e9a5` | 远端 PR / push / merge 尚未执行 |
+
+收尾结论：
+
+- 计划内显式 `SF-SP-*` 任务只有 10 个，没有 `SF-SP-011`。
+- 严格按“review + 人工确认 + 本地提交”计，本地闭环完成 `3 / 10`：`SF-SP-008`、`SF-SP-009`、`SF-SP-010`。
+- 独立评审通过但待人工确认 `0 / 10`。
+- 已人工确认但提交未闭环 `7 / 10`：`SF-SP-001`、`SF-SP-002`、`SF-SP-003`、`SF-SP-004`、`SF-SP-005`、`SF-SP-006`、`SF-SP-007`。
+- 因此不能声明整个 Superpowers 流程集成计划已完成；当前进入计划收尾闭环，不新增功能任务。
 
 ## 13. 分阶段计划
 
@@ -883,9 +907,8 @@ next_skill: requesting-code-review
 
 ## 17. 下一步
 
-当前只剩 `SF-SP-010` 文档、导航、memory 同步收口：
+当前不新增 `SF-SP-011`。下一步只做收尾闭环：
 
-1. 完成 `SF-SP-010` 的独立 review loop，修复 `changes_requested` 后重新复审。
-2. 复审通过后停在 `pending_human_confirmation`，等待人工确认。
-3. 人工确认后再按 `gitcommitzh` 提交流程提交当前任务相关 hunk；若导航引用未跟踪文档，目标文档必须一并纳入同一可审阅提交范围。
-4. 提交后再判断 Superpowers 流程集成计划是否可关闭或是否需要进入 PR 闭环。
+1. 对 `SF-SP-001` 到 `SF-SP-007` 已通过的产物做范围隔离提交，禁止混入无关脏改动。
+2. 复跑第 14 节黑盒评估和第 15 节验收标准对应的最小验证集。
+3. 若项目要求远端 PR 闭环，再基于这些本地提交创建 PR；本地提交不能冒充 push、PR 或 merge。

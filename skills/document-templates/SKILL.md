@@ -51,6 +51,7 @@ description: "Software project lifecycle document system for D3. Use when Codex 
 - 需要完整目录结构、根索引职责和模块边界时，读 [references/repository-structure.md](references/repository-structure.md)
 - 需要判断不同项目应该补哪些文档时，读 [references/document-catalog.md](references/document-catalog.md)
 - 需要看稳定 ID、阶段关口、旧目录映射和重构命令流程时，读 [references/traceability-and-gates.md](references/traceability-and-gates.md)
+- 需要把已批准需求转成轻量技术设计时，读 [references/technical-design-template.md](references/technical-design-template.md)
 
 ## 文档组织原则
 

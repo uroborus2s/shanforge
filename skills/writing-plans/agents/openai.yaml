@@ -1,0 +1,4 @@
+interface:
+  display_name: "编写实施计划"
+  short_description: "把已批准输入转成 Shanforge work item plan、任务 brief、验证策略和 review gate。"
+  default_prompt: "使用 $writing-plans：根据已批准的 spec、需求、设计或 work item brief，生成 .factory/workitems/<WORKITEM-ID>/plan.md 和 task-briefs，包含文件结构、TDD 步骤、真实命令、期望输出、memory 同步和 review gate。"

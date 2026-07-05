@@ -768,7 +768,7 @@ next_skill: requesting-code-review
 | `SF-SP-006` | 拷贝改造评审类 skill | `requesting-code-review`、`receiving-code-review`、review package 约定、运动员/裁判隔离规则 | `1.5` 人天 |
 | `SF-SP-007` | 验证与调试 gate | `systematic-debugging`、`verification-before-completion`、`tdd-workflow` 融合规则 | `1.5` 人天 |
 | `SF-SP-008` | PR 闭环与提交规则 | `gitcommitzh` 与 review / evidence / memory sync 的衔接规则 | `1.0` 人天 |
-| `SF-SP-009` | 黑盒流程 eval | 一句话需求、bug 修复、review 反馈、压缩恢复 4 类场景和评分断言 | `2.0` 人天 |
+| `SF-SP-009` | 黑盒流程 eval | 一句话需求、bug 修复、review 反馈、压缩恢复、完成声明、自评隔离 6 类场景和评分断言 | `2.0` 人天 |
 | `SF-SP-010` | 文档、导航、memory 同步 | 本方案、summary、doc-map、测试报告入口更新 | `0.5` 人天 |
 
 总估算：`13.5` 人天。
@@ -783,6 +783,7 @@ next_skill: requesting-code-review
 - `SF-SP-006`：iteration-1 真实独立评审曾为 `changes_requested / 84`；iteration-2 已修复 `same_thread` / `needs_independent_review` 状态语义、`receiving-code-review` memory/review-ledger 同步规则和 metadata prompt。iteration-2 真实独立复审结论为 `approved / 95`，已由用户确认 `human_approved`。
 - `SF-SP-007`：iteration-1 已补真实独立评审，结论为 `approved / 95`；上游 `SF-SP-005`、`SF-SP-006` 阻塞已解除，已由用户确认进入 `SF-SP-008`。
 - `SF-SP-008`：当前已完成 PR 闭环与提交规则收口并通过真实独立 review，主 review 为 `approved / 94`，范围隔离复审为 `approved / 94`，已获用户 `human_approved`。范围是让 `gitcommitzh` 与 review / evidence / memory sync / work item ledger 对齐；提交前必须核对 review、evidence、memory sync 和 work item ledger；`gitcommitzh` 只做本地提交，不创建、不推送、不合并 PR。根据执行纪律缺口，已撤销中心脚本 gate 方案，改为 skill-native 收尾门：输出完成、提交或关闭 work item 前必须重读最新 work item ledger 和 review ledger；若仍为 `ready_for_review` 或存在 `next_required_action`，只能报告阻塞 gate 和下一步动作。根据范围复审反馈，混合 `.factory/memory/` 文件只能暂存当前任务 hunk，无法拆分时必须停止并拆成独立提交。下一步是在提交 SF-SP-008 后进入 `SF-SP-009`。
+- `SF-SP-009`：当前已进入黑盒流程 eval 开发，范围是一句话需求、bug 修复、review 反馈、压缩恢复、完成声明和自评隔离的场景契约与评分断言；不新增中心脚本 gate，只在 `using-shanforge` reference 中固化 eval 输入、critical assertion、fast smoke / full regression 和证据格式。
 
 ## 13. 分阶段计划
 

@@ -58,6 +58,17 @@ description: 每次 Shanforge 会话开始、上下文恢复、阶段切换、wo
 不新增单独的 `project-management` skill。
 PM 状态页是流程总控的按需输出，不改变工作 skill 的职责。
 
+## 黑盒流程评估
+
+当用户要求 `SF-SP-009`、黑盒流程 eval、流程回归评估或验证 workflow 行为时：
+
+1. 读取 `references/black-box-flow-eval.md`。
+2. 按 `fast smoke` 或 `full regression` 场景输入评估行为。
+3. 只把真实观察到的读取、写入、命令和状态回写记为证据。
+4. 若任一 critical assertion 失败，不得宣称流程通过。
+
+黑盒流程评估只验证 workflow 行为，不新增中心脚本 gate，不替代独立 review、人工确认、提交或 PR 闭环。
+
 ## 路由表
 
 | 当前状态 | 下一步 skill | 选择条件 | 工作 skill 只需回写 |

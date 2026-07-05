@@ -5,6 +5,10 @@
 
 ## 流程集成计划
 
+- 2026-07-05：`SF-SP-009` 已进入黑盒流程 eval 开发并完成 iteration-1 实现，当前为 `ready_for_review`，下一步是真实独立 review。新增 `skills/using-shanforge/references/black-box-flow-eval.md`，并在 `using-shanforge` 中加入 `SF-SP-009` / 黑盒流程评估入口；eval contract 覆盖一句话需求、bug 修复、review 反馈、压缩恢复、完成声明和自评隔离，定义 `fast smoke`、`full regression`、证据格式、`2/1/0` 评分和 critical assertion 失败门。不新增中心脚本 gate，不调用外部模型 judge。
+- 2026-07-05：`SF-SP-009` iteration-1 独立 review 为 `changes_requested / 84`，已按反馈修复并进入 `ready_for_re_review`。修复项包括评分归一化公式、证据格式中的 Actual / Max / Normalized score、每场景 critical assertion 可评分结构测试，以及正式计划 6 类场景口径。验证：加严红灯 `3 failed`，修复后目标测试 `6 passed`，邻近 workflow 回归 `28 passed`，ruff、skill validator、JSONL 和 `git diff --check` 通过。
+- 2026-07-05：`SF-SP-009` iteration-1 独立复审已通过，状态为 `approved / 95`，当前 gate 为 `pending_human_confirmation`。人工确认前不得提交、关闭 work item 或进入 `SF-SP-010`。
+- 2026-07-05：用户已确认 `SF-SP-009` iteration-1 独立复审，状态为 `human_approved`，并要求进入提交流程后开始 `SF-SP-010` 开发。提交范围必须仅包含 `SF-SP-009` 黑盒 eval 契约、测试、review/evidence/report/ledger 和相关 memory hunk。
 - 2026-07-05：`SF-SP-008` 已完成真实独立 review 并获用户 `human_approved`。主 review 为 `approved / 94`，范围隔离复审为 `approved / 94`；用户要求进入提交流程，提交后直接进入 `SF-SP-009` 开发。针对 loop 未闭环问题，已追加 skill-native 收尾门并撤销中心脚本 gate 方案；`using-shanforge` / `gitcommitzh` 在完成声明、提交或关闭 work item 前必须重读最新 work item ledger 和 review ledger。针对范围复审反馈，混合 `.factory/memory/` 文件只能暂存当前任务 hunk，无法拆分时停止并拆成独立提交。
 - 2026-07-05：PM HTML 页面已升级为完整项目管理查看面。`status-dashboard.html` 作为总览，包含甘特图、项目任务看板、评审链路总览、WBS 和 PM 十模块入口；`workitems.html` 作为任务详情，按任务摘要、事件时间线、评审链路和每轮评审结果详情展示；`pm-details.html` 作为十模块明细，并提供完整项目进度入口。页面仍只是渲染视图，事实源仍是 `.factory/pm/`、`.factory/workitems/*/ledger.jsonl` 和 review / evidence 文件。
 - 2026-07-05：`SF-SP-008` 已完成首版实现并进入 `ready_for_review`。本轮新增 `skills/gitcommitzh/references/pr-closure-checklist.md`，并更新 `gitcommitzh`、`using-shanforge`、Codex 工具参考、Superpowers 流程方案和结构测试，固定提交前必须核对 review、evidence、memory sync 和 work item ledger；`gitcommitzh` 只做本地提交，不创建、不推送、不合并 PR。用户“现在开始继续做 SF-SP-008”已记录为接受 `SF-SP-005/006/007` 独立 review 结果并进入本任务的人工确认事件。整体流程集成仍需 `SF-SP-009` 和 `SF-SP-010` 收口。

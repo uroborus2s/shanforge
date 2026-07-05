@@ -61,14 +61,23 @@ import type { StratixConfig } from '@stratix/core';
 import database from '@stratix/database';
 import redis from '@stratix/redis';
 
+const required = <T>(value: T | undefined, name: string): T => {
+  if (value === undefined || value === null || value === '') {
+    throw new Error(`Missing sensitive config: ${name}`);
+  }
+  return value;
+};
+
 export default (sensitiveConfig: Record<string, any> = {}): StratixConfig => {
+  const appConfig = sensitiveConfig.app || {};
+  const serverConfig = sensitiveConfig.server || {};
   const databaseConfig = sensitiveConfig.database || {};
   const redisConfig = sensitiveConfig.redis || {};
 
   return {
     server: {
-      host: process.env.HOST || '0.0.0.0',
-      port: Number(process.env.PORT || 3000)
+      host: required(serverConfig.host, 'server.host'),
+      port: Number(required(serverConfig.port, 'server.port'))
     },
     plugins: [
       {
@@ -77,13 +86,12 @@ export default (sensitiveConfig: Record<string, any> = {}): StratixConfig => {
         options: {
           connections: {
             default: {
-              type: 'mysql',
-              host: databaseConfig.host || process.env.DB_HOST || 'localhost',
-              port: Number(databaseConfig.port || process.env.DB_PORT || 3306),
-              database: databaseConfig.database || process.env.DB_NAME || 'app',
-              username:
-                databaseConfig.username || process.env.DB_USERNAME || 'root',
-              password: databaseConfig.password || process.env.DB_PASSWORD || ''
+              type: appConfig.databaseType || 'mysql',
+              host: required(databaseConfig.host, 'database.host'),
+              port: Number(required(databaseConfig.port, 'database.port')),
+              database: required(databaseConfig.database, 'database.database'),
+              username: required(databaseConfig.username, 'database.username'),
+              password: required(databaseConfig.password, 'database.password')
             }
           }
         }
@@ -93,10 +101,10 @@ export default (sensitiveConfig: Record<string, any> = {}): StratixConfig => {
         plugin: redis,
         options: {
           single: {
-            host: redisConfig.host || process.env.REDIS_HOST || 'localhost',
-            port: Number(redisConfig.port || process.env.REDIS_PORT || 6379),
-            password: redisConfig.password || process.env.REDIS_PASSWORD || undefined,
-            db: Number(redisConfig.db || process.env.REDIS_DB || 0)
+            host: required(redisConfig.host, 'redis.host'),
+            port: Number(required(redisConfig.port, 'redis.port')),
+            password: redisConfig.password || undefined,
+            db: Number(redisConfig.db || 0)
           }
         }
       }

@@ -131,11 +131,25 @@ stratix release gate --dry-run --manifest .stratix/production-manifest.json
 stratix start --type web --config ./src/stratix.config.ts --host 0.0.0.0 --port 3000
 ```
 
+## 2026-07-05 实测风险
+
+在 Node 24.14.1、npm 11.11.0、pnpm 11.9.0 下，用 `npx --yes @stratix/create@1.1.0` 生成 `app api --preset testing --no-install` 后：
+
+- `pnpm exec stratix doctor` 通过，输出 `Doctor checks passed.`。
+- `pnpm test:run` 通过，默认测试 `2 passed`。
+- `pnpm build` 失败：`HealthController.ts` 中的 `operationId` 不属于 `FastifySchema`。
+- `pnpm exec stratix build-manifest --output .stratix/production-manifest.json` 通过。
+- `pnpm exec stratix release gate --dry-run --manifest .stratix/production-manifest.json` 失败：生成项目缺少 security / audit 类脚本。
+- `pnpm exec stratix openapi` 失败：`Unknown openapi command`。
+- `pnpm exec stratix start ...` 在 Node 24 下失败：forge start 使用 `createRequire(...).resolve('@stratix/core')`，但 `@stratix/core@1.1.0` 的 exports 只有 import 条件。
+
+遇到这些失败时，不要手写绕过或宣称上线通过。先记录命令、版本、stderr，并把结论标为 blocked，除非当前项目已验证出兼容版本或已修生成模板。
+
 ## 配置命令
 
 ```bash
 stratix config validate sensitive.local.json --required database --strict
-stratix config generate-key --length 32 --format hex
+export STRATIX_ENCRYPTION_KEY="<32-byte-raw-string>"
 stratix config encrypt sensitive.local.json --key "$STRATIX_ENCRYPTION_KEY" --output .env.sensitive
 stratix config decrypt "$STRATIX_SENSITIVE_CONFIG" --key "$STRATIX_ENCRYPTION_KEY" --output tmp/decrypted.json
 ```

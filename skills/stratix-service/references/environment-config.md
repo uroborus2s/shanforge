@@ -2,19 +2,11 @@
 
 ## 普通开发环境
 
-本地开发可用普通 `.env` 文件承载非加密变量：
+所有应用配置先写入 JSON，再加密成 `STRATIX_SENSITIVE_CONFIG`。普通 `.env` 不承载应用配置，只保留进程级变量：
 
 ```dotenv
 NODE_ENV=development
-PORT=3000
-HOST=0.0.0.0
-DB_HOST=127.0.0.1
-DB_PORT=3306
-DB_NAME=app
-DB_USERNAME=root
-DB_PASSWORD=
-REDIS_HOST=127.0.0.1
-REDIS_PORT=6379
+STRATIX_ENCRYPTION_KEY=12345678901234567890123456789012
 ```
 
 `loadEnvironment()` 在没有进程级 `STRATIX_SENSITIVE_CONFIG` 时按顺序加载：
@@ -32,13 +24,11 @@ REDIS_PORT=6379
 
 ```bash
 NODE_ENV=production
-PORT=3000
-HOST=0.0.0.0
 STRATIX_ENCRYPTION_KEY="12345678901234567890123456789012"
 STRATIX_SENSITIVE_CONFIG="iv.authTag.encrypted"
 ```
 
-生产环境不要依赖默认加密 key，也不要依赖 `.env.local`。
+生产环境不要依赖默认加密 key，也不要依赖 `.env.local`。不要把明文应用配置提交进仓库。
 
 ## 敏感配置 JSON
 
@@ -46,6 +36,10 @@ STRATIX_SENSITIVE_CONFIG="iv.authTag.encrypted"
 
 ```json
 {
+  "server": {
+    "host": "0.0.0.0",
+    "port": 3000
+  },
   "database": {
     "host": "127.0.0.1",
     "port": 3306,

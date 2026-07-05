@@ -37,6 +37,10 @@ def test_cli_workflow_covers_obsync_root_and_end_to_end_development() -> None:
         "stratix generate business-repository workflow-execution",
         "stratix build-manifest --output .stratix/production-manifest.json",
         "stratix release gate --dry-run --manifest .stratix/production-manifest.json",
+        "2026-07-05 实测风险",
+        "operationId",
+        "createRequire",
+        "Unknown openapi command",
     ):
         assert phrase in content
 
@@ -72,6 +76,51 @@ def test_sensitive_config_rules_are_explicit() -> None:
         "stratix config decrypt \"$STRATIX_SENSITIVE_CONFIG\" --key",
     ):
         assert phrase in content
+
+
+def test_generated_apps_must_use_encrypted_sensitive_config() -> None:
+    skill = read_skill_file("SKILL.md")
+    environment = read_skill_file("references/environment-config.md")
+    scaffold = read_skill_file("references/scaffolds.md")
+
+    for phrase in (
+        "新生成应用的配置默认全部来自 `sensitiveConfig`",
+        "不得用 `DB_HOST`、`REDIS_HOST`、`WPS_APP_SECRET`",
+        "配置安全门",
+        "不能完成加密、解密和注入验证时，结论只能是 blocked",
+    ):
+        assert phrase in skill
+
+    for phrase in (
+        "所有应用配置先写入 JSON，再加密成 `STRATIX_SENSITIVE_CONFIG`",
+        "普通 `.env` 不承载应用配置",
+        "server",
+        "database",
+        "redis",
+    ):
+        assert phrase in environment
+
+    assert "process.env.DB_" not in scaffold
+    assert "process.env.REDIS_" not in scaffold
+    assert "process.env.HOST" not in scaffold
+    assert "process.env.PORT" not in scaffold
+    assert "const appConfig = sensitiveConfig.app" in scaffold
+
+
+def test_cli_upgrade_guard_requires_live_capability_probe() -> None:
+    content = read_skill_file("SKILL.md")
+
+    for phrase in (
+        "如果 `create-stratix list` 或 `stratix list` 失败",
+        "确认当前执行的是 Stratix 1.1.x",
+        "项目内优先使用 `pnpm exec stratix`",
+        "先用 `--help` 或 npm 包版本确认新命令",
+        "不得猜测 template、preset 或插件名",
+        "只选择业务明确需要的插件",
+    ):
+        assert phrase in content
+
+    assert "stratix config generate-key --length 32 --format hex" not in content
 
 
 def test_openai_metadata_points_to_new_skill_name() -> None:

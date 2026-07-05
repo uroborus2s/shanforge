@@ -1,0 +1,4 @@
+interface:
+  display_name: "shanforge"
+  short_description: "作为 Shanforge 流程总控判断当前环节，选择唯一下一步 skill，并要求工作 skill 只回写状态。"
+  default_prompt: "使用 $using-shanforge 启动 Shanforge 会话：先用 project-memory 恢复当前阶段、work item 和 ledger，再像 CTO 一样判断当前环节，选择唯一下一步 skill。工作 skill 只产出状态、证据和 needs，不决定前置或后继流程。"

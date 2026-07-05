@@ -84,9 +84,11 @@ description: 审查 Git 工作区、暂存区和 diff，按当前任务相关改
 
 最小检查：
 
+- 先重读当前 work item ledger 最新事件和 review ledger；若仍有 `next_required_action` 或阻塞状态，停止提交并报告待办 gate。
 - work item ledger 已能说明当前任务状态、review 结论、verification evidence 和 memory sync。
 - `.factory/memory/review-ledger.jsonl` 中的真实独立 review 记录已与 work item ledger 对齐。
 - 若 ledger 或 review 显示 `pending_human_confirmation`，必须看到用户明确 `human_approved` 或同轮明确要求继续提交。
+- 同一 `.factory/memory/` 文件混有其他任务条目时，只能暂存当前任务 hunk；无法拆分时停止并拆成独立提交。
 - 禁止把未确认的 reviewer approved 当作提交闭环依据；`approved` 只代表 reviewer 通过，不等于人工确认。
 - 提交范围必须只包含当前任务相关代码、文档、测试和 `.factory/memory/` 同步文件。
 - gitcommitzh 不负责创建、推送或合并 PR；它只做当前分支本地提交。
@@ -106,6 +108,7 @@ description: 审查 Git 工作区、暂存区和 diff，按当前任务相关改
 
 检查项：
 
+- 最新 ledger 事件已通过收尾门；若仍有 `next_required_action` 或阻塞状态，不得继续生成“已完成”或执行 `git commit`。
 - review 结论是否来自真实独立 reviewer，或是否已明确登记为用户覆盖继续。
 - verification evidence 是否是本轮新鲜证据。
 - memory sync 是否覆盖代码、文档、测试和 `.factory/memory/`。
@@ -139,6 +142,7 @@ description: 审查 Git 工作区、暂存区和 diff，按当前任务相关改
   - 判断 staged 内容是否属于本次任务，unstaged 内容是否应排除或需用户确认。
   - 除非用户明确要求纳入未暂存部分，禁止对该路径再次执行 `git add -- <path>`。
 - 如果同时存在未暂存或未追踪文件，必须明确说明哪些属于当前任务、哪些进入本次提交、哪些排除。
+- 如果同一 `.factory/memory/` 文件混有其他任务条目，必须用 patch staging 或等价方式只纳入当前任务 hunk；不能整文件纳入。
 - 如果要纳入未追踪文件，提交前必须读取文件内容或用等价方式生成可审阅 diff；执行 `git add -- <file>` 后，还必须读取 `git diff --cached -- <file>` 核查新增内容。
 - 如果没有暂存区改动，再从工作区中识别当前任务相关文件。
 - 如果用户明确要求提交、暂存区为空、且没有指定文件子集，先列出当前任务候选文件；范围清晰时用 `git add -- <明确文件列表>`，范围不清晰时停止并要求用户确认。

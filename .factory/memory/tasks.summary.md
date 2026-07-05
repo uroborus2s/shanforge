@@ -5,6 +5,7 @@
 
 ## 流程集成计划
 
+- 2026-07-05：`SF-SP-008` 已完成真实独立 review 并获用户 `human_approved`。主 review 为 `approved / 94`，范围隔离复审为 `approved / 94`；用户要求进入提交流程，提交后直接进入 `SF-SP-009` 开发。针对 loop 未闭环问题，已追加 skill-native 收尾门并撤销中心脚本 gate 方案；`using-shanforge` / `gitcommitzh` 在完成声明、提交或关闭 work item 前必须重读最新 work item ledger 和 review ledger。针对范围复审反馈，混合 `.factory/memory/` 文件只能暂存当前任务 hunk，无法拆分时停止并拆成独立提交。
 - 2026-07-05：PM HTML 页面已升级为完整项目管理查看面。`status-dashboard.html` 作为总览，包含甘特图、项目任务看板、评审链路总览、WBS 和 PM 十模块入口；`workitems.html` 作为任务详情，按任务摘要、事件时间线、评审链路和每轮评审结果详情展示；`pm-details.html` 作为十模块明细，并提供完整项目进度入口。页面仍只是渲染视图，事实源仍是 `.factory/pm/`、`.factory/workitems/*/ledger.jsonl` 和 review / evidence 文件。
 - 2026-07-05：`SF-SP-008` 已完成首版实现并进入 `ready_for_review`。本轮新增 `skills/gitcommitzh/references/pr-closure-checklist.md`，并更新 `gitcommitzh`、`using-shanforge`、Codex 工具参考、Superpowers 流程方案和结构测试，固定提交前必须核对 review、evidence、memory sync 和 work item ledger；`gitcommitzh` 只做本地提交，不创建、不推送、不合并 PR。用户“现在开始继续做 SF-SP-008”已记录为接受 `SF-SP-005/006/007` 独立 review 结果并进入本任务的人工确认事件。整体流程集成仍需 `SF-SP-009` 和 `SF-SP-010` 收口。
 - 2026-07-05：`SF-SP-005` 和 `SF-SP-006` 的独立复审已完成并入档。`SF-SP-005` iteration-3 为 `approved / 92`，`SF-SP-006` iteration-2 为 `approved / 95`；两者 review 文件、evidence、work item ledger 和 `.factory/memory/review-ledger.jsonl` 均已同步。该轮当时共同 gate 是 `pending_human_confirmation`，随后已由用户确认进入 `SF-SP-008`。

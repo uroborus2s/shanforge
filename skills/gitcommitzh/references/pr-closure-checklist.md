@@ -17,6 +17,7 @@
 
 ## 提交前必须确认
 
+- 先重读当前 work item ledger 最新事件和 review ledger；若仍有 `next_required_action` 或阻塞状态，不得提交或宣称 work item 完成。
 - work item ledger 能说明当前状态。
 - review package 存在，且阻塞级 review feedback 已处理。
 - 真实独立 review 的 `reviewer_type / reviewer_id / reviewer_independence_evidence` 已记录。
@@ -24,6 +25,7 @@
 - 若状态是 `pending_human_confirmation`，必须看到用户明确确认，或同轮明确要求继续提交。
 - verification evidence 是本轮新鲜结果，包含命令、exit code、失败数量和真实输出摘要。
 - 代码、文档、测试和 `.factory/memory/` 已同步。
+- 同一 `.factory/memory/` 文件混有其他任务条目时，只能暂存当前任务 hunk；无法拆分时停止并拆成独立提交。
 - 提交范围只覆盖当前任务相关文件。
 - 排除无关脏改动、临时文件、其他 work item 产物和未核实生成物。
 

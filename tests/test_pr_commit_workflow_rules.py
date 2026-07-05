@@ -19,6 +19,9 @@ def test_gitcommitzh_requires_pr_closure_preflight() -> None:
         "verification evidence",
         "memory sync",
         "human_approved",
+        "重读当前 work item ledger 最新事件",
+        "next_required_action",
+        "同一 `.factory/memory/` 文件混有其他任务条目时",
         "pending_human_confirmation",
         "禁止把未确认的 reviewer approved 当作提交闭环依据",
         "gitcommitzh 不负责创建、推送或合并 PR",
@@ -39,6 +42,9 @@ def test_pr_closure_checklist_links_review_evidence_memory_and_git_scope() -> No
         "verification evidence",
         "代码、文档、测试和 `.factory/memory/` 已同步",
         "git diff --cached --name-only",
+        "重读当前 work item ledger 最新事件",
+        "next_required_action",
+        "同一 `.factory/memory/` 文件混有其他任务条目时",
         "git diff -- <files>",
         "排除无关脏改动",
         "提交后回写",
@@ -54,12 +60,30 @@ def test_flow_controller_routes_commit_only_after_confirmation_and_sync() -> Non
 
     assert "人工已确认且要求提交" in skill
     assert "review / evidence / memory sync 已齐备" in skill
+    assert "重读当前 work item ledger 最新事件" in skill
+    assert "next_required_action" in skill
     assert "当前任务范围" in skill
     assert "禁止把提交作为 review 或人工确认的替代品" in skill
 
     assert "提交当前任务范围" in codex_tools
     assert "提交全部工作" not in codex_tools
     assert "work item、review、evidence 和 memory sync 记录" in codex_tools
+
+
+def test_pr_commit_rules_do_not_reintroduce_script_gate() -> None:
+    dispatch_gate = "factory-dispatch " + "loop" + "-gate"
+    script_gate = "factory-workitem" + "-" + "loop" + "-" + "gate"
+    paths = [
+        "skills/using-shanforge/SKILL.md",
+        "skills/gitcommitzh/SKILL.md",
+        "skills/gitcommitzh/references/pr-closure-checklist.md",
+        "scripts/factory-dispatch",
+    ]
+    combined = "\n".join(read(path) for path in paths)
+
+    assert dispatch_gate not in combined
+    assert script_gate not in combined
+    assert not (REPO_ROOT / "scripts" / script_gate).exists()
 
 
 def test_workflow_plan_tracks_sf_sp_008_commit_closure_rules() -> None:

@@ -43,6 +43,7 @@ description: 每次 Shanforge 会话开始、上下文恢复、阶段切换、wo
 5. 从路由表选择唯一下一步 skill。
 6. 输出输入包：读取文件、允许修改范围、禁止动作、期望状态回写。
 7. 工作 skill 完成后，只接收状态回写，不让工作 skill 自己决定下一步。
+8. 输出“完成”、进入提交或关闭 work item 前，必须重读当前 work item ledger 最新事件和 review ledger；若仍有 `next_required_action`，或状态仍是 `ready_for_review`、`changes_requested`、`needs_independent_review`、`pending_human_confirmation`、`self_check_passed`，只能报告阻塞 gate 和下一步动作。
 
 ## PM 状态页
 
@@ -109,6 +110,7 @@ PM 状态页是流程总控的按需输出，不改变工作 skill 的职责。
 
 进入 `gitcommitzh` 前必须确认：
 
+- 已重读当前 work item ledger 最新事件和 review ledger；若仍有 `next_required_action` 或阻塞状态，不得进入提交或宣称任务完成。
 - work item ledger、review ledger、verification evidence 和 memory sync 已齐备。
 - 当前任务范围清楚，提交只覆盖当前任务范围。
 - 若 review 只到 `pending_human_confirmation`，必须有用户 `human_approved` 或同轮明确继续提交的指令。

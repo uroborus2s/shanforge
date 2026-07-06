@@ -2,6 +2,7 @@
 
 ## 2026-07-04
 
+- 2026-07-06 补充：新增 `skills/stratix-admin-web/`，作为 Stratix 管理后台前端开发规范 skill。触发范围覆盖 `web-admin`、`admin-page`、`admin-crud`、管理后台页面和后台公共组件；核心流程固定为先总结页面清单和相似组件，再开发已确认复用的公共 UI 组件，最后逐页实现页面逻辑。组件提升规则按 ponytail 口径收紧：两个不同页面出现相同 UI 和交互契约才提取公共组件，不写万能表格、万能表单或为未来预留的框架化抽象。
 - 2026-07-05 补充：`ui-ux-pro-max` 已从上游 `nextlevelbuilder/ui-ux-pro-max-skill` 的远端 `main` 更新到 `4baa399d00da806f83ed93652172f66943205153`。本次替换采用上游 `.claude/skills/ui-ux-pro-max/` 作为可直接运行的 skill 版本，更新了主 `SKILL.md`、设计系统脚本、产品/颜色/图标/动效/移动端等数据集，并新增 `app-interface / design / draft / google-fonts / motion` 数据和 `angular / laravel / threejs` 栈数据。验证：`python3 skills/ui-ux-pro-max/scripts/search.py "saas dashboard professional" --design-system -p "Smoke"` 成功，`python3 skills/skill-creator/scripts/quick_validate.py skills/ui-ux-pro-max` 通过。
 - 2026-07-05 补充：`SF-SP-009` 已新增黑盒流程 eval 契约。`using-shanforge` 现在在用户要求 `SF-SP-009`、黑盒流程 eval 或 workflow 回归评估时读取 `references/black-box-flow-eval.md`；该 reference 定义 `fast smoke` / `full regression`、证据格式、`2/1/0` 评分、`>= 90` 通过门和 critical assertion 失败门，覆盖一句话需求、bug 修复、review 反馈、压缩恢复、完成声明和自评隔离。不新增中心脚本 gate，不替代独立 review、人工确认、提交或 PR 闭环。
 - 2026-07-05 补充：根据 `SF-SP-009` 独立 review 反馈，黑盒 eval reference 已补评分归一化公式：每条 critical assertion 单独按 `2/1/0` 计分，最高可能得分为纳入场景 critical assertion 总数乘以 2，总分为 `round(实际得分 / 最高可能得分 * 100)`；证据格式新增 Actual / Max / Normalized score。结构测试同步增强，防止只存在六个标题但断言空泛。

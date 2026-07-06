@@ -132,6 +132,11 @@
       "purpose": "实现 React 组件、状态管理、数据流和可访问的响应式界面模式。"
     },
     {
+      "name": "stratix-admin-web",
+      "path": "skills/stratix-admin-web/SKILL.md",
+      "purpose": "开发 Stratix 管理后台前端时，先盘点相似 UI、提取公共组件，再逐页实现页面逻辑。"
+    },
+    {
       "name": "ui-ux-pro-max",
       "path": "skills/ui-ux-pro-max/SKILL.md",
       "purpose": "生成 UI 体系、配色、字体和页面结构建议。"

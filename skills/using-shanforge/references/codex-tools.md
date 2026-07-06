@@ -23,7 +23,7 @@ BRANCH=$(git branch --show-current)
 - `BRANCH` 为空 -> detached HEAD，不能从 sandbox 直接建分支、push 或建 PR。
 
 这些信号只用于判断当前 Codex 环境是否允许本地分支、commit、push 或 PR 动作。
-需要执行本地提交时，流程总控应路由到 `gitcommitzh`，提交当前任务范围，并保留 work item、review、evidence 和 memory sync 记录。
+任务完成且有可提交改动时，流程总控应默认路由到 `gitcommitzh`，提交当前任务范围，并保留 work item、review、evidence 和 memory sync 记录；用户明确要求暂不提交时除外。
 
 ## Codex App 收尾
 

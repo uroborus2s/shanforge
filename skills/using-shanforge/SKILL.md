@@ -86,7 +86,7 @@ PM 状态页是流程总控的按需输出，不改变工作 skill 的职责。
 | review 要求修改 | `receiving-code-review` | 存在明确 review feedback | `ready_for_review` 或 `blocked` |
 | 缺完成证据 | `verification-before-completion` | 需要新鲜验证证据 | `verification_passed` 或 `verification_failed` |
 | reviewer 已 approved | 无工作 skill | 必须进入人工确认 | `pending_human_confirmation` |
-| 人工已确认且要求提交 | `gitcommitzh` | 用户明确要求提交 / commit，且 review / evidence / memory sync 已齐备 | `commit_done` |
+| 人工已确认且有可提交改动 | `gitcommitzh` | review / evidence / memory sync 已齐备，当前任务产生文件改动，且用户未明确要求暂不提交 | `commit_done` |
 
 若某个计划中的 skill 尚未安装或尚未本地化，输出 `blocked: missing_skill`，不得让工作 skill 临时代替它。
 
@@ -124,7 +124,8 @@ PM 状态页是流程总控的按需输出，不改变工作 skill 的职责。
 - 已重读当前 work item ledger 最新事件和 review ledger；若仍有 `next_required_action` 或阻塞状态，不得进入提交或宣称任务完成。
 - work item ledger、review ledger、verification evidence 和 memory sync 已齐备。
 - 当前任务范围清楚，提交只覆盖当前任务范围。
-- 若 review 只到 `pending_human_confirmation`，必须有用户 `human_approved` 或同轮明确继续提交的指令。
+- 若 review 只到 `pending_human_confirmation`，必须有用户 `human_approved`。
+- 人工确认后若当前任务有可提交改动，默认进入 `gitcommitzh`；不得再要求用户额外说“提交”。
 - 禁止把提交作为 review 或人工确认的替代品。
 - 禁止把本地提交描述成远端 PR 已创建、已推送或已合并。
 

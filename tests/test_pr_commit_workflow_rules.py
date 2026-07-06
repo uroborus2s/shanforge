@@ -58,13 +58,15 @@ def test_flow_controller_routes_commit_only_after_confirmation_and_sync() -> Non
     skill = read("skills/using-shanforge/SKILL.md")
     codex_tools = read("skills/using-shanforge/references/codex-tools.md")
 
-    assert "人工已确认且要求提交" in skill
+    assert "人工已确认且有可提交改动" in skill
     assert "review / evidence / memory sync 已齐备" in skill
+    assert "不得再要求用户额外说“提交”" in skill
     assert "重读当前 work item ledger 最新事件" in skill
     assert "next_required_action" in skill
     assert "当前任务范围" in skill
     assert "禁止把提交作为 review 或人工确认的替代品" in skill
 
+    assert "任务完成且有可提交改动" in codex_tools
     assert "提交当前任务范围" in codex_tools
     assert "提交全部工作" not in codex_tools
     assert "work item、review、evidence 和 memory sync 记录" in codex_tools

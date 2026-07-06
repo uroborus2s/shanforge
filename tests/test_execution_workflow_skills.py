@@ -24,7 +24,17 @@ def test_subagent_driven_development_skill_is_shanforge_localized() -> None:
     assert "DONE_WITH_CONCERNS" in skill
     assert "NEEDS_CONTEXT" in skill
     assert "BLOCKED" in skill
-    assert "禁止并行派发多个实现子 agent" in skill
+    for phrase in (
+        "同一依赖层中 dependencies 已完成",
+        "无文件冲突",
+        "无未确认 Gate",
+        "共享契约已定",
+        "每张可并行任务卡创建一个独立子任务并行执行",
+        "完成后由主控汇总",
+    ):
+        assert phrase in skill
+    assert "禁止并行派发多个实现子 agent" not in skill
+    assert "不并发、不跳号" not in skill
     assert "工作结果：" in skill
     assert "needs:" in skill
     assert "本 skill 不决定完成后交给谁" in skill

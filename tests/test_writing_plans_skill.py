@@ -24,7 +24,9 @@ def test_writing_plans_skill_localizes_superpowers_semantics() -> None:
     for phrase in (
         "先锁定文件结构",
         "每个文件只有一个清晰职责",
+        "一个任务卡对应一个可验收交付物",
         "一个任务必须能独立产生可测试结果",
+        "任务内部 checklist",
         "Red",
         "Green",
         "精确文件路径",
@@ -41,6 +43,8 @@ def test_writing_plans_skill_localizes_superpowers_semantics() -> None:
 
     assert "执行阶段交给 `subagent-driven-development`" not in skill
     assert "## 执行交接" not in skill
+    assert "推荐粒度是 2-5 分钟" not in skill
+    assert "一步只做一个动作" not in skill
 
 
 def test_writing_plans_references_define_plan_and_task_templates() -> None:

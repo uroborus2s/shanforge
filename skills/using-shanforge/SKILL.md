@@ -69,6 +69,33 @@ PM 状态页是流程总控的按需输出，不改变工作 skill 的职责。
 
 黑盒流程评估只验证 workflow 行为，不新增中心脚本 gate，不替代独立 review、人工确认、提交或 PR 闭环。
 
+## 远端 PR / push / merge handoff
+
+当用户要求 push、创建 PR、更新 PR 或 merge，或本地提交后需要远端闭环时：
+
+1. 读取 `references/remote-pr-handoff.md`。
+2. `using-shanforge` 只判断 gate、状态词和证据是否齐备；远端执行 owner 按 handoff 契约选择。
+3. `gitcommitzh` 只负责本地提交，不负责远端 PR / push / merge。
+4. 缺本地提交、远端目标、远端工具权限或可审计 evidence 时，只能输出 `remote_handoff_blocked` 或 `remote_failed`。
+5. 不得把本地 commit、计划、口头说明或 dry-run 写成已 push、PR 已创建或已 merge。
+
+## 场景路由与 baseline gate
+
+`using-shanforge` 是四类场景、baseline work item、gate 和关闭规则的唯一流程 owner。
+
+| 场景 | 场景 ID | 路由判断 | gate |
+|---|---|---|---|
+| 新项目 | `new_project` | 用户提出新项目、产品或系统从零开始 | 先创建 Project baseline 输入包；缺 baseline work item 时不得进入普通实现任务 |
+| 增加需求 | `add_requirement` | 用户提出新增功能或能力 | 路由到 `requirements-engineering`，必须检查 baseline 影响 |
+| 变更需求 | `change_requirement` | 用户要求修改已有需求、验收标准或范围 | 必须定位原 Requirement，并要求版本历史 |
+| 修复 bug | `fix_bug` | 用户报告失败、异常、回归或测试失败 | 路由到复现和根因；缺复现、根因或回归测试时不得声明修复完成 |
+
+baseline work item 规则：
+
+- 领域划分、总体架构、数据库基线、API 基线和整体 UI 设计属于 baseline work item。
+- 普通需求影响领域、架构、数据库、API 或 UI baseline 时，先创建或更新 `BASE-*`，并反向关联该需求。
+- 缺 evidence 时阻塞关闭；缺 review、verification、人工确认或最终审计问题报告时，不得关闭、提交或进入下一阶段。
+
 ## 路由表
 
 | 当前状态 | 下一步 skill | 选择条件 | 工作 skill 只需回写 |
@@ -140,12 +167,19 @@ PM 状态页是流程总控的按需输出，不改变工作 skill 的职责。
 执行结果：通过 / 部分通过 / 失败
 评审结论：approved | changes_requested
 评分：<N> / 100
+最终审计问题报告：<path>
+阻塞问题：Critical / Important / Minor 摘要
+已修复问题：<列表或 none>
+残留风险：<列表或 none>
+验证证据：<path 或命令摘要>
 
 请确认：
 1. 通过，进入下一阶段
 2. 要求修改，并给出修改点
 3. 暂停
 ```
+
+人工确认信息不能只输出评分；必须给出最终审计问题报告，列清 review 发现、修复状态、残留风险和验证证据。
 
 人工没有明确确认前，不得进入下一阶段，不得关闭 work item，不得提交“最终完成”结论。
 

@@ -1,6 +1,6 @@
 ---
 name: python-uv-project
-description: 约束 Python 项目的工程规范与工具链。当项目使用 Python 开发，或用户提到 uv、pyproject.toml、pytest、ruff、mypy、FastAPI、Typer、Django、CLI、服务端、自动化脚本等 Python 工程搭建、重构、调试、评审时使用。统一要求用 uv 管理 Python 版本、虚拟环境、依赖、锁文件和工具运行；修 Bug 时必须先复现并定位根因，禁止用未验证兜底替代修复。
+description: 约束 Python 项目的工程规范与工具链。当项目使用 Python 开发，或用户提到 uv、pyproject.toml、pytest、ruff、mypy、FastAPI、Typer、Django、CLI、服务端、自动化脚本等 Python 工程搭建、重构、评审时使用。统一要求用 uv 管理 Python 版本、虚拟环境、依赖、锁文件和工具运行；Python Bug 的复现、根因和修复流程由 systematic-debugging 或 tdd-workflow 接管，本 skill 只提供 uv 与工具链约束。
 ---
 
 # Python UV Project
@@ -26,6 +26,10 @@ description: 约束 Python 项目的工程规范与工具链。当项目使用 P
 - 维护 `pyproject.toml`、`uv.lock`、`src/`、`tests/`、`scripts/`。
 - 设计 Python 服务、CLI、自动化任务或库项目结构。
 - 评审 Python 项目的依赖管理、测试、格式化、类型检查是否合规。
+
+## 与 Bug 修复流程的边界
+
+遇到 Python Bug、pytest 失败或线上异常时，不由本 skill 单独接管修复流程。根因不明时先用 `systematic-debugging` 复现并定位直接原因、根源原因和证据；根因已清楚且需要写回归测试时由 `tdd-workflow` 推进 Red/Green。修 Bug 时必须先复现并定位根因。本 skill 只约束这些流程中的 Python 工具链：使用 `uv run` 执行测试、lint、类型检查和脚本，维护 `pyproject.toml` / `uv.lock`，并禁止用未验证兜底替代修复。
 
 ## 默认项目结构
 
@@ -140,3 +144,25 @@ uv run pytest
 ## 按需加载资料
 
 - 需要创建或修正 `pyproject.toml` 时，读取 `references/pyproject.template.toml`。
+
+## 状态回写与失败语义
+
+在 Shanforge work item 中使用时，输出标准状态包：
+
+```text
+工作结果：
+- work_item: <WORKITEM-ID>
+- skill: python-uv-project
+- status: ready_for_review | blocked | needs_user_input
+- outputs:
+  - <changed file path>
+- evidence:
+  - <uv run pytest / ruff / mypy output summary>
+- ledger_event: <event id or none>
+- needs:
+  - review | verification | user_input | debugging | none
+```
+
+`blocked` 用于 `uv` 不可用、项目配置冲突、锁文件无法同步、质量命令失败且根因未解决，或允许文件范围不足以修复工具链事实的情况。
+
+`needs_user_input` 用于 Python 版本、依赖取舍、迁移范围、旧工具链是否保留或外部服务配置必须由用户决定的情况。

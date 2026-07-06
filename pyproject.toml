@@ -24,7 +24,6 @@ shanforge-di = { path = "../shanforge-di", editable = true }
 [tool.ruff]
 line-length = 100
 target-version = "py314"
-extend-include = ["scripts/*"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "W"]
@@ -35,6 +34,6 @@ addopts = "-ra"
 
 [tool.mypy]
 python_version = "3.14"
-files = ["scripts/factory_core.py"]
+files = ["src"]
 warn_unused_configs = true
 pretty = true

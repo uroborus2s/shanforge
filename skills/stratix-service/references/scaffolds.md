@@ -5,7 +5,7 @@
 API 项目：
 
 ```bash
-create-stratix app api demo-api --preset database,testing --no-install
+create-stratix app api demo-api --preset testing --no-install
 cd demo-api
 pnpm install
 stratix doctor

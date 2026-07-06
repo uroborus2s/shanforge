@@ -6,6 +6,7 @@ description: 有已批准的 spec、需求、设计或 work item brief，且多�
 # 编写实施计划
 
 本 skill 把已批准输入转成可执行计划。它只负责编写计划，不直接改代码。
+计划只能生成候选执行输入，不执行代码。
 
 ## 触发
 
@@ -44,6 +45,7 @@ description: 有已批准的 spec、需求、设计或 work item brief，且多�
 - 每个文件只有一个清晰职责。
 - 一个任务必须能独立产生可测试结果。
 - 每个任务包含 Red 和 Green 步骤。
+- 每个任务必须包含设计方案、接口设计、UI 或 `N/A`、测试设计、开发、单测、review 和集成测试。
 - 每个代码步骤写精确文件路径、实际内容、真实命令和期望输出。
 - 计划必须禁止占位符。
 - 计划完成后做计划自审，再请求 plan review。
@@ -59,13 +61,15 @@ description: 有已批准的 spec、需求、设计或 work item brief，且多�
 6. 对每个文件说明职责、owner、所属层、接口边界和禁止耦合。
 7. 把计划拆成小任务；每个任务必须能独立验证。
 8. 每个任务写 Red、Green、review、memory sync 步骤。
-9. 每步写真实命令和期望输出；代码步骤必须写实际代码或明确补丁形状。
-10. 写测试策略：定向测试、邻近回归、全量回归和不运行项。
-11. 写文档同步和 `.factory/memory/` 同步要求。
-12. 写 review gate：implementer 只能到 `ready_for_review`，通过必须来自独立 review。
-13. 按 [workitem-plan-template.md](references/workitem-plan-template.md) 保存计划。
-14. 按 [task-brief-template.md](references/task-brief-template.md) 生成任务 brief。
-15. 按 [plan-review-template.md](references/plan-review-template.md) 做自审和 review handoff。
+9. 每个任务写设计方案、接口设计、UI 或 `N/A`、测试设计、开发、单测、review 和集成测试。
+10. UI 写 `N/A` 时必须写原因；缺测试设计则失败，UI 写 `N/A` 但无原因则失败，发现占位语则失败。
+11. 每步写真实命令和期望输出；代码步骤必须写实际代码或明确补丁形状。
+12. 写测试策略：定向测试、邻近回归、全量回归和不运行项。
+13. 写文档同步和 `.factory/memory/` 同步要求。
+14. 写 review gate：implementer 只能到 `ready_for_review`，通过必须来自独立 review。
+15. 按 [workitem-plan-template.md](references/workitem-plan-template.md) 保存计划。
+16. 按 [task-brief-template.md](references/task-brief-template.md) 生成任务 brief。
+17. 按 [plan-review-template.md](references/plan-review-template.md) 做自审和 review handoff。
 
 ## 任务粒度
 

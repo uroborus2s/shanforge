@@ -4,6 +4,14 @@ import re
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
+TRANSCRIPT = (
+    REPO_ROOT
+    / ".factory"
+    / "workitems"
+    / "SKILL-FLOW-AUDIT-001"
+    / "evidence"
+    / "iteration-4-s1-s6-dry-run-transcript.md"
+)
 
 
 def read(path: str) -> str:
@@ -14,6 +22,15 @@ def scenario_bodies(reference: str) -> dict[str, str]:
     matches = re.finditer(
         r"^### (SF-SP-009-S\d)：.*?\n(?P<body>.*?)(?=^### SF-SP-009-S\d：|\Z)",
         reference,
+        re.MULTILINE | re.DOTALL,
+    )
+    return {match.group(1): match.group("body") for match in matches}
+
+
+def transcript_bodies(transcript: str) -> dict[str, str]:
+    matches = re.finditer(
+        r"^## (SF-SP-009-S\d)\n(?P<body>.*?)(?=^## SF-SP-009-S\d|\Z)",
+        transcript,
         re.MULTILINE | re.DOTALL,
     )
     return {match.group(1): match.group("body") for match in matches}
@@ -94,6 +111,44 @@ def test_black_box_flow_eval_evidence_format_is_complete() -> None:
         assert field in reference
 
 
+def test_iteration_4_s1_s6_dry_run_transcript_records_required_fields() -> None:
+    transcript = TRANSCRIPT.read_text(encoding="utf-8")
+    bodies = transcript_bodies(transcript)
+
+    assert set(bodies) == {f"SF-SP-009-S{index}" for index in range(1, 7)}
+    assert "Overall actual score: 35" in transcript
+    assert "Overall max score: 36" in transcript
+    assert "Overall normalized score: 97" in transcript
+
+    required_fields = (
+        "Scenario:",
+        "Input:",
+        "Allowed context:",
+        "Observed actions:",
+        "Files read:",
+        "Files written:",
+        "Commands run:",
+        "Critical assertions:",
+        "Actual score:",
+        "Max score:",
+        "Normalized score:",
+        "Failure reason:",
+    )
+
+    for scenario_id, body in bodies.items():
+        for field in required_fields:
+            assert field in body, f"{scenario_id} missing {field}"
+
+        max_score = re.search(r"Max score:\s*(\d+)", body)
+        actual_score = re.search(r"Actual score:\s*(\d+)", body)
+        normalized_score = re.search(r"Normalized score:\s*(\d+)", body)
+
+        assert max_score and int(max_score.group(1)) == 6, scenario_id
+        assert actual_score and int(actual_score.group(1)) >= 5, scenario_id
+        assert normalized_score and int(normalized_score.group(1)) >= 83, scenario_id
+        assert "[0/2]" not in body, scenario_id
+
+
 def test_flow_controller_links_sf_sp_009_eval_without_script_gate() -> None:
     skill = read("skills/using-shanforge/SKILL.md")
     reference = read("skills/using-shanforge/references/black-box-flow-eval.md")
@@ -112,12 +167,38 @@ def test_flow_controller_links_sf_sp_009_eval_without_script_gate() -> None:
         assert phrase not in skill
 
 
+def test_flow_controller_owns_flow_contract_scenarios_and_gates() -> None:
+    skill = read("skills/using-shanforge/SKILL.md")
+    reference = read("skills/using-shanforge/references/black-box-flow-eval.md")
+
+    for phrase in (
+        "new_project",
+        "add_requirement",
+        "change_requirement",
+        "fix_bug",
+        "baseline work item",
+        "缺 evidence 时阻塞关闭",
+        "最终审计问题报告",
+        "不能只输出评分",
+    ):
+        assert phrase in skill
+
+    for phrase in (
+        "FLOW-S1-new-project-baseline",
+        "FLOW-S2-add-requirement-baseline-impact",
+        "FLOW-S3-change-requirement-version-history",
+        "FLOW-S4-fix-bug-root-cause",
+        "FLOW-S5-missing-evidence-blocks-close",
+    ):
+        assert phrase in reference
+
+
 def test_workflow_plan_tracks_sf_sp_009_development_scope() -> None:
     plan = read(
         "docs/04-project-development/05-development-process/"
         "superpowers-workflow-integration-plan.md"
     )
 
-    assert "`SF-SP-009`：当前已进入黑盒流程 eval 开发" in plan
-    assert "一句话需求、bug 修复、review 反馈、压缩恢复、完成声明和自评隔离" in plan
-    assert "不新增中心脚本 gate" in plan
+    assert "| `SF-SP-009` | 本地闭环完成 |" in plan
+    assert "一句话需求、bug 修复、review 反馈、压缩恢复、完成声明、自评隔离" in plan
+    assert "不新增仓库级流程主控脚本" in plan

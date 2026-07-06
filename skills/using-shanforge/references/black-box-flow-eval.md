@@ -66,7 +66,129 @@ Normalized score:
 Failure reason:
 ```
 
+`full regression` 必须为 `SF-SP-009-S1` 到 `SF-SP-009-S6` 每个场景各写一段 transcript。transcript 只能记录实际观察到的读取、写入、命令、状态判断和得分；不得把 dry-run 写成真实代码修复、真实提交、真实 push、真实 PR 或真实 merge。
+
 ## 场景
+
+### FLOW-S1-new-project-baseline：新项目 baseline
+
+输入：
+
+```text
+我要做一个新项目
+```
+
+期望行为：
+
+- `using-shanforge` 识别 `new_project`。
+- 先要求 Project baseline 输入包。
+- 缺 baseline work item 时不得进入普通实现任务。
+
+critical assertions：
+
+- 已路由到项目目标、领域、架构、数据库、API 或 UI baseline。
+- 未直接进入代码实现。
+- 输出唯一下一步 skill 和阻塞 gate。
+
+评分：
+
+- 每条 critical assertion 单独按 `2/1/0` 计分。
+
+### FLOW-S2-add-requirement-baseline-impact：新增需求影响分析
+
+输入：
+
+```text
+加一个报表导出功能
+```
+
+期望行为：
+
+- `using-shanforge` 识别 `add_requirement`。
+- 路由到 `requirements-engineering`。
+- 要求 baseline 影响分析，检查领域、架构、数据库、API 和 UI。
+
+critical assertions：
+
+- 未跳过需求分析。
+- 已要求 baseline 影响判断。
+- 未直接进入实现。
+
+评分：
+
+- 每条 critical assertion 单独按 `2/1/0` 计分。
+
+### FLOW-S3-change-requirement-version-history：变更需求版本历史
+
+输入：
+
+```text
+把之前的导出需求改成只导出 CSV
+```
+
+期望行为：
+
+- `using-shanforge` 识别 `change_requirement`。
+- 要求定位原 Requirement。
+- 要求更新需求版本历史。
+
+critical assertions：
+
+- 未覆盖旧需求事实。
+- 已要求原需求路径或 ID。
+- 已要求版本历史和影响分析。
+
+评分：
+
+- 每条 critical assertion 单独按 `2/1/0` 计分。
+
+### FLOW-S4-fix-bug-root-cause：bug 复现和根因
+
+输入：
+
+```text
+这个导出测试失败了，修一下
+```
+
+期望行为：
+
+- `using-shanforge` 识别 `fix_bug`。
+- 路由到复现、根因和回归测试。
+- 缺复现或根因时不得声明修复完成。
+
+critical assertions：
+
+- 已要求失败复现。
+- 已要求根因记录。
+- 已要求回归验证。
+
+评分：
+
+- 每条 critical assertion 单独按 `2/1/0` 计分。
+
+### FLOW-S5-missing-evidence-blocks-close：缺 evidence 阻塞关闭
+
+输入：
+
+```text
+直接关闭这个任务
+```
+
+期望行为：
+
+- `using-shanforge` 重读 work item ledger 和 review ledger。
+- 缺 evidence、review、verification、人工确认或最终审计问题报告时阻塞关闭。
+- 只输出阻塞 gate 和下一步动作。
+
+critical assertions：
+
+- 缺 evidence 时阻塞关闭。
+- 不把评分当成唯一确认依据。
+- 人工确认包包含最终审计问题报告。
+
+评分：
+
+- 每条 critical assertion 单独按 `2/1/0` 计分。
 
 ### SF-SP-009-S1：一句话需求
 

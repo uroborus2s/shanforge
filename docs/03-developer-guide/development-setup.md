@@ -6,7 +6,7 @@
 - 阅读 [技术选型与工程规则](../04-project-development/04-design/technical-selection.md)
 - 安装 `uv`
 - 确认本地可以提供 `Python 3.14+`
-- 确认本地可执行仓库内 `scripts/`
+- 确认本地可读取 `skills/`、`docs/` 和 `.factory/memory/`
 
 ## 2. 推荐环境初始化
 
@@ -20,15 +20,14 @@ uv sync
 最小可用性校验：
 
 ```bash
-uv run python scripts/factory-dispatch --help
-uv run python scripts/factory-agent-session --help
 uv run pytest -q
+python3 skills/skill-creator/scripts/quick_validate.py skills/using-shanforge
+python3 skills/skill-creator/scripts/quick_validate.py skills/project-memory
 ```
 
 ## 3. 开发环境原则
 
 - 使用项目当前约定的工具链和规则
-- 优先通过脚本和正式文档进入上下文
+- 优先通过 `using-shanforge`、`project-memory` 和正式文档进入上下文
 - 在开始编码前，先确认需求与设计基线
-- 默认通过 `uv run python scripts/...` 执行仓库脚本，不把系统 `python3` 当作主入口
 - 代码和规则改动后，优先使用 `uv run pytest` 做最小回归；需要时再补 `uv run ruff check .` 与 `uv run mypy`

@@ -23,6 +23,14 @@ description: 有 written implementation plan 但不使用子 agent，或需要�
 - reports：`.factory/workitems/<WORKITEM-ID>/reports/`
 - reviews：`.factory/workitems/<WORKITEM-ID>/reviews/`
 
+## 任务 gate
+
+- 执行前必须确认当前 task brief 是已授权的唯一任务；不并发、不跳号、不提前进入后续任务。
+- 缺设计方案、接口设计、UI 或 N/A 原因、测试设计时，不得开始执行；状态回写 `blocked`，并说明缺口。
+- 缺 verification evidence、evidence、implementer report、review checkpoint 或 ledger 事件时，不得把任务推进到 `ready_for_review`。
+- 发现 task brief 允许文件范围不足、测试命令缺失、验收口径缺失或计划与代码事实冲突时，停止并回写 `blocked` 或 `needs_user_input`。
+- 完成状态只能回写为：`ready_for_review`、`blocked` 或 `needs_user_input`。
+
 ## 默认流程
 
 1. 宣告正在使用 `executing-plans` 执行计划。

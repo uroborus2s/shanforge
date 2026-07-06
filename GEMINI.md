@@ -18,8 +18,8 @@
 - 必要时按 `doc-map.md` 单文件回源正式文档
 
 全局补充协议：
-- `skills/software-factory-cli/references/ai-runtime-protocol.md`
-- `skills/software-factory-cli/references/ai-role-charter.md`
+- `skills/using-shanforge/SKILL.md`
+- `skills/project-memory/SKILL.md`
 
 Gemini 默认职责：
 - 需求、分析、架构、影响分析、复核
@@ -35,7 +35,7 @@ Gemini 默认职责：
 - 禁止默认把阶段 `docs/` 文档列入“先读”。
 - 禁止每次开工都去读 `project-charter.md`、`input.md`、`user-guide.md` 或其他人类长文。
 - 禁止跳过 `.factory/memory/*` 直接回源正式文档。
-- 禁止把 skill 当成命令目录；命令执行统一走 `factory-dispatch`、`action-registry` 和 `scripts/factory-*`。
+- 禁止把 skill 当成命令目录；流程路由由 `using-shanforge` 判断，工作 skill 只回写状态、证据和 `needs`。
 - `AGENTS.md` / `GEMINI.md` 只保留稳定协作入口，不写安装结果、测试状态或当天运行结论。
 - 编写需求后，如 summary 不足，再单文件回源 `requirements-verification.md`。
 - 进入实现前必须单文件回源 `technical-selection.md`。

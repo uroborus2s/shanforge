@@ -47,7 +47,7 @@ Stratix.run({
 
 当前实现不会“先从 `.env.local` 读出 `STRATIX_SENSITIVE_CONFIG`，再回头解密”。因此：
 
-- 普通 `.env` 适合放 `PORT`、`HOST`、`DB_HOST` 这类非加密运行变量，配置文件可通过 `process.env` 读取。
+- 普通 `.env` 只适合放 `NODE_ENV`、`STRATIX_ENCRYPTION_KEY` 等进程级变量；应用配置应从解密后的 `sensitiveConfig` 读取，不要从 `process.env` 读取。
 - 加密敏感配置必须在调用 `Stratix.run()` 之前已经存在于进程环境中。
 - 如果用 `stratix config encrypt ... --output .env.sensitive` 生成文件，运行前需要由 shell、进程管理器、容器平台或自定义启动器预加载它。
 

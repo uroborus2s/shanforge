@@ -47,7 +47,7 @@
 - `src/settings/composition/` 现已收口为 `shanforge` 本地唯一 composition root 与 business binding 层；反射 / registry / resolver / lifecycle 等纯技术内核已外置到 sibling `shanforge-di`，业务层仍不直接接触 class path。
 - 基础设置层可以实现 `domain-owned` 持久化端口与 `runtime-owned` provider 接口，但这些接口的 owner 仍属于上层消费者。
 - 对上服务界面已明确分成四类：access 拥有应用用例接口，application 拥有领域服务接口，domain 拥有基础能力接口，runtime 拥有 provider 接口；基础设置层只负责实现，不拥有接口。
-- access 层本轮已完成接口 owner 收口：`src/access/api/*` 统一改为消费 access-owned use case 协议；本地 demo 的容器装配不再留在 `src/access/cli/main.py`，而是由 `scripts/shanforge-cli` 这个外部 CLI host 承担。
+- access 层已完成接口 owner 收口：`src/access/api/*` 统一改为消费 access-owned use case 协议；本地 CLI demo 已删除，不再保留 `src/access/cli/` 或 `scripts/shanforge-cli`。
 - draw.io 架构视图的关键标签也已同步改为“基础能力层”“domain-owned 持久化端口 + runtime-owned provider 接口”等正式术语，不再保留旧的“平台核心能力层”或错误的接口实现归属。
 - Hermes 复用策略已收紧为“只在基础设置层实现区复用”，执行顺序固定为“封装复用 > 选择性迁入 > 新写实现”。
 - 基础能力层开发顺序已收口为：`统一信封与上下文 -> 能力包目录与类型骨架 -> 读平面函数签名 -> 行动平面函数签名 -> 具体函数实现(可复用 Hermes) -> 可选能力试验 -> 回归测试`。

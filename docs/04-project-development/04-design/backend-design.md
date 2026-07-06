@@ -42,7 +42,7 @@
 当前正式主链已经明确为：
 
 ```text
-RuntimeAPI / CLI Gateway
+RuntimeAPI / Protocol Gateway
   -> ExecutionService
   -> SessionDomainService + MemoryDomainService + WorkflowDomainService
   -> AgentKernel
@@ -54,7 +54,7 @@ RuntimeAPI / CLI Gateway
 
 | 环节 | 代码位置 | 说明 |
 |---|---|---|
-| 网关入口 | `src/access/api/`, `src/access/cli/`, `src/access/http/`, `src/access/mcp/`, `src/access/chat/`, `src/access/automation/` | 绑定协议、归一化请求 |
+| 网关入口 | `src/access/api/`, `src/access/http/`, `src/access/mcp/`, `src/access/chat/`, `src/access/automation/` | 绑定协议、归一化请求 |
 | 应用用例 | `src/access/ports/application_use_cases.py` | access 定义它依赖的应用接口 |
 | 执行编排 | `src/application/execution/service.py` | `prepare -> run -> complete -> distill -> persist` 主链 |
 | 领域服务接口 | `src/application/ports/domain_services.py` | application 定义它依赖的领域服务 |

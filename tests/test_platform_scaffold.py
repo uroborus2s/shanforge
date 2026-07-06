@@ -4,7 +4,8 @@ import unittest
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
-from access.cli.commands.run_demo import build_demo_manifest
+from conftest import build_runtime_test_manifest
+
 from domain.agent_app.manifest import AgentAppManifest
 from domain.agent_app.models import AgentAppMetadata
 from domain.memory.models import (
@@ -28,7 +29,7 @@ class PlatformScaffoldTests(unittest.TestCase):
         container = build_default_container()
 
         result = container.runtime_api.run_manifest(
-            manifest=build_demo_manifest(),
+            manifest=build_runtime_test_manifest(),
             user_input="Create the first platform scaffold.",
         )
 
@@ -135,7 +136,7 @@ class PlatformScaffoldTests(unittest.TestCase):
 
     def test_second_session_receives_recalled_memory_from_first_session(self):
         container = build_default_container()
-        manifest = build_demo_manifest()
+        manifest = build_runtime_test_manifest()
 
         first = container.runtime_api.run_manifest(
             manifest=manifest,
@@ -153,7 +154,7 @@ class PlatformScaffoldTests(unittest.TestCase):
         self.assertGreaterEqual(len(container.memory_dataset_store.entries), 1)
 
     def test_file_backed_memory_persists_across_container_instances(self):
-        manifest = build_demo_manifest()
+        manifest = build_runtime_test_manifest()
         with TemporaryDirectory() as temp_dir:
             settings = Settings(memory_store_root=temp_dir)
 
@@ -181,7 +182,7 @@ class PlatformScaffoldTests(unittest.TestCase):
             )
 
     def test_file_backed_lifecycle_queue_persists_review_status_across_containers(self):
-        manifest = build_demo_manifest()
+        manifest = build_runtime_test_manifest()
         with TemporaryDirectory() as temp_dir:
             settings = Settings(memory_store_root=temp_dir)
 
@@ -290,7 +291,7 @@ class PlatformScaffoldTests(unittest.TestCase):
                 memory_summarizer_extract_model="mock-memory-extract",
             )
         )
-        manifest = build_demo_manifest()
+        manifest = build_runtime_test_manifest()
 
         result = container.runtime_api.run_manifest(
             manifest=manifest,
@@ -311,7 +312,7 @@ class PlatformScaffoldTests(unittest.TestCase):
                 memory_promotion_min_confidence_by_kind={"procedural": 0.9},
             )
         )
-        manifest = build_demo_manifest()
+        manifest = build_runtime_test_manifest()
 
         result = container.runtime_api.run_manifest(
             manifest=manifest,
@@ -326,7 +327,7 @@ class PlatformScaffoldTests(unittest.TestCase):
         container = build_default_container()
 
         result = container.runtime_api.run_manifest(
-            manifest=build_demo_manifest(),
+            manifest=build_runtime_test_manifest(),
             user_input="Create the first platform scaffold.",
         )
 
@@ -363,7 +364,7 @@ class PlatformScaffoldTests(unittest.TestCase):
             )
 
             result = container.runtime_api.run_manifest(
-                manifest=build_demo_manifest(),
+                manifest=build_runtime_test_manifest(),
                 user_input="Create the first platform scaffold.",
             )
             manifest = container.memory_api.explain_session_assembly(result.session.id)

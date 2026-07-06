@@ -60,6 +60,13 @@ description: 准备声明完成、修复、通过、可提交、可开 PR 或进
 - 未运行项、偏离原因和风险已写明。
 - evidence 文件已落盘。
 
+## 关闭 gate
+
+- 关闭前必须检查新鲜命令、exit code、输出和 evidence。
+- 无 evidence 不能关闭。
+- review 不能替代 verification。
+- verification 不能替代 human confirmation。
+
 ## 失败处理
 
 - 如果验证失败，只能报告真实状态。

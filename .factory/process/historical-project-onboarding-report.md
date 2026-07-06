@@ -16,7 +16,6 @@
 - `docs/01-getting-started/index.md`
 - `docs/01-getting-started/project-overview.md`
 - `docs/01-getting-started/quick-start.md`
-- `docs/02-user-guide/command-cheatsheet.md`
 - `docs/02-user-guide/index.md`
 - `docs/02-user-guide/prompt-templates.md`
 - `docs/02-user-guide/user-guide.md`
@@ -66,6 +65,6 @@
 
         ## 下一步建议
 
-        - 先阅读 `.factory/memory/agent-session.md` 和 `.factory/process/state-doctor-report.md`。
+        - 先阅读 `.factory/memory/agent-session.md`。
         - 若已有线上问题，优先创建 `BUG-*`。
         - 若已有新增需求，优先创建 `CR-*` 并补齐需求与设计文档。

@@ -25,7 +25,7 @@
 
 ```mermaid
 flowchart TD
-    UI["用户界面层<br/>外部 Web 项目 / 外部 CLI 前台"] --> GW["接口 / 网关层<br/>API 接口 / CLI 命令网关"]
+    UI["用户界面层<br/>外部 Web 项目 / 外部 CLI 前台"] --> GW["接口 / 网关层<br/>API 接口 / 协议网关"]
     GW --> ORCH["业务调度层<br/>Use Case / Session 编排"]
     ORCH --> MODEL["业务模型层<br/>AgentApp / Workflow / Session / Memory / Context / Model / Capability / Approval / Delegation / Response"]
     MODEL --> CAP["基础能力层<br/>File / Store / Search / Vector / LLM / Embedding / Tool / Workspace / Rule / Skill / Profile / Approval Channel / Delegation Transport"]
@@ -48,7 +48,7 @@ flowchart TD
 本仓当前主要负责后 5 层中的 5 个实现区域：
 
 - 不负责完整用户界面层产品实现。
-- 负责接口/网关层中的 API 接口和 CLI 命令网关。
+- 负责接口/网关层中的 API 接口和协议网关。
 - 负责业务调度层、业务模型层、基础能力层。
 - 负责基础设置层中的本地实现、外部系统桥接和容器装配。
 
@@ -203,7 +203,7 @@ Hermes 对 `v2` 的真正启发，不是目录形态，而是能力切分方式�
 本轮架构重构后，正式口径只有一套：
 
 - 用户界面层由仓外 Web 项目和外部 CLI 前台承担。
-- 本仓实现接口/网关层中的 API 与 CLI 命令网关。
+- 本仓实现接口/网关层中的 API 与协议网关；本地 CLI demo 已删除。
 - `src/application/` 是薄业务调度层。
 - `src/domain/` 是业务模型层，也是平台业务逻辑 owner。
 - `src/runtime/` 是基础能力层，只提供通用技术能力。

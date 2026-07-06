@@ -1,95 +1,89 @@
 ---
 name: webapp-testing
-description: 使用 Playwright 与本地 Web 应用程序进行交互和测试的工具集。支持验证前端功能、调试 UI 行为、捕获浏览器截图以及查看浏览器日志。
+description: 使用 Playwright 或项目已有测试栈验证本地 Web 应用。适用于可重复的本地页面检查、交互断言、截图、控制台日志和回归验证；一次性操作真实浏览器、登录态 Chrome、外部网站或用户明确要求 browser-use 时交给 `browser-control`。
 ---
 
-# Web 应用程序测试
+# Web 应用测试
 
-若要测试本地 Web 应用程序，请编写原生的 Python Playwright 脚本。
+## 与 browser-control 的边界
 
-**可用的辅助脚本**：
-- `scripts/with_server.py` - 管理服务器生命周期（支持多个服务器）
+- 用 `webapp-testing`：本地应用、localhost、可重复脚本、断言、截图证据、控制台日志、回归验证。
+- 用 `browser-control`：用户要“用本地浏览器/Chrome/browser-use 打开”、依赖现有登录态或扩展、检查当前浏览器标签、外部网站、一次性人工式点击读取。
+- 不确定时先看任务是否需要可重复验证。需要可重复验证就用本 skill。
 
-**务必先运行带有 `--help` 参数的脚本**以查看用法。在未尝试运行脚本并发现绝对需要自定义解决方案之前，不要阅读源代码。这些脚本可能非常大，从而污染你的上下文窗口。它们的存在是为了作为“黑盒”脚本直接调用，而不是被吸纳到你的上下文窗口中。
+## 任务分支
 
-## 决策树：选择你的方法
+| 分支 | 动作 |
+|---|---|
+| 项目已有测试栈 | 优先用仓内现有 Playwright/Vitest/Cypress/npm 脚本；不要强行新写 Python 脚本。 |
+| 静态 HTML | 读取 HTML 识别选择器，必要时用 `file://` 跑最小 Playwright 检查。 |
+| 动态本地应用，服务器未运行 | 先执行 `python scripts/with_server.py --help`，再用它包住 dev server 和测试脚本。 |
+| 动态本地应用，服务器已运行 | 导航、等待稳定、截图/DOM 勘查，再写最小断言。 |
+| 调试失败页面 | 捕获 screenshot、HTML、console logs、network error 摘要；先定位失败点再改代码。 |
 
-```
-用户任务 → 是否为静态 HTML？
-    ├─ 是 → 直接读取 HTML 文件以识别选择器
-    │         ├─ 成功 → 使用选择器编写 Playwright 脚本
-    │         └─ 失败/不完整 → 视为动态（见下文）
-    │
-    └─ 否 (动态 Web 应用) → 服务器是否已在运行？
-        ├─ 否 → 运行：python scripts/with_server.py --help
-        │        然后使用辅助脚本 + 编写简化的 Playwright 脚本
-        │
-        └─ 是 → “先勘查后行动”模式：
-            1. 导航并等待 networkidle
-            2. 截图或检查 DOM
-            3. 从渲染状态识别选择器
-            4. 使用发现的选择器执行操作
-```
+辅助脚本作为黑盒使用，先看帮助，不先读源码：
 
-## 示例：使用 with_server.py
-
-要启动服务器，请先运行 `--help`，然后使用该辅助脚本：
-
-**单个服务器：**
 ```bash
+python scripts/with_server.py --help
 python scripts/with_server.py --server "npm run dev" --port 5173 -- python your_automation.py
 ```
 
-**多个服务器（例如：后端 + 前端）：**
-```bash
-python scripts/with_server.py \
-  --server "cd backend && python server.py" --port 3000 \
-  --server "cd frontend && npm run dev" --port 5173 \
-  -- python your_automation.py
-```
+## 最小 Playwright 模式
 
-要创建自动化脚本，只需包含 Playwright 逻辑（服务器由辅助脚本自动管理）：
 ```python
 from playwright.sync_api import sync_playwright
 
 with sync_playwright() as p:
-    browser = p.chromium.launch(headless=True) # 始终以无头模式启动 chromium
+    browser = p.chromium.launch(headless=True)
     page = browser.new_page()
-    page.goto('http://localhost:5173') # 服务器已在运行且就绪
-    page.wait_for_load_state('networkidle') # 关键：等待 JS 执行完成
-    # ... 你的自动化逻辑
+    page.goto("http://localhost:5173")
+    page.wait_for_load_state("networkidle")
+    page.screenshot(path="/tmp/webapp-test.png", full_page=True)
     browser.close()
 ```
 
-## “先勘查后行动”模式
+## 安全写入
 
-1. **检查渲染后的 DOM**：
-   ```python
-   page.screenshot(path='/tmp/inspect.png', full_page=True)
-   content = page.content()
-   page.locator('button').all()
-   ```
+- 测试脚本、截图和日志写到 `/tmp`、任务 evidence 目录或用户指定路径。
+- 不修改应用数据、远端环境或真实账号，除非用户明确要求并说明测试数据。
+- 表单提交、删除、支付、发信等有副作用的流程必须使用测试环境或先停在确认前。
+- 不把临时测试脚本当正式测试提交，除非用户要求保留。
 
-2. **从检查结果中识别选择器**
+## 验证
 
-3. **使用发现的选择器执行操作**
+- 对关键交互写断言，不只截图。
+- 动态应用在读取 DOM 前等待稳定状态；必要时等待具体 selector。
+- 失败时保留截图、URL、控制台错误和断言信息。
+- 移动端或响应式问题要至少检查目标 viewport。
 
-## 常见陷阱
+## 输出清单
 
-❌ **不要**在动态应用中等待 `networkidle` 之前检查 DOM。
-✅ **务必**在检查之前等待 `page.wait_for_load_state('networkidle')`。
+交付时列出：
 
-## 最佳实践
+- 被测 URL、启动命令和端口。
+- 使用的测试命令或临时脚本路径。
+- 截图、日志或 HTML evidence 路径。
+- 断言结果、失败数量和未覆盖风险。
 
-- **将捆绑的脚本视为黑盒** - 在完成任务时，考虑 `scripts/` 中是否有脚本可以提供帮助。这些脚本能可靠地处理常见的复杂工作流，而不会撑大上下文窗口。先使用 `--help` 查看用法，然后直接调用。
-- 为同步脚本使用 `sync_playwright()`。
-- 完成后务必关闭浏览器。
-- 使用描述性选择器：`text=`、`role=`、CSS 选择器或 ID。
-- 添加适当的等待：`page.wait_for_selector()` 或 `page.wait_for_timeout()`。
+## 失败处理
 
-## 参考文件
+- dev server 启动失败、端口冲突、依赖缺失：`status: blocked`，列出命令和 stderr。
+- 需要登录态、扩展或真实浏览器状态：`status: needs_user_input` 或转交 `browser-control` 边界说明。
+- 断言失败：`status: blocked`，保留证据并说明复现步骤。
+- 只能完成截图无断言：报告 partial，不宣称回归通过。
 
-- **examples/** - 显示常见模式的示例：
-  - `element_discovery.py` - 发现页面上的按钮、链接和输入框
-  - `static_html_automation.py` - 为本地 HTML 使用 file:// URL
-  - `console_logging.py` - 在自动化过程中捕获控制台日志
+## Shanforge 状态包
+
+```text
+工作结果：
+- work_item: <WORKITEM-ID>
+- skill: webapp-testing
+- status: ready_for_review | blocked | needs_user_input
+- outputs:
+  - <script/screenshot/log path>
+- evidence:
+  - <command/url/assertion summary>
+- ledger_event: <event id or none>
+- needs:
+  - review | verification | user_input | none
+```

@@ -27,6 +27,16 @@ def test_requesting_code_review_skill_is_shanforge_localized() -> None:
     assert "同线程作者自检的 review 输出状态只能是 `self_check_passed`" in skill
     assert "同线程作者自检后的下一 gate 状态必须是 `needs_independent_review`" in skill
     assert "禁止把 `needs_independent_review` 写成 review 通过结论" in skill
+    assert "工作结果：" in skill
+    assert "- work_item: <WORKITEM-ID>" in skill
+    assert "- skill: requesting-code-review" in skill
+    assert (
+        "- status: approved | changes_requested | self_check_passed | blocked | needs_user_input"
+        in skill
+    )
+    assert "- ledger_event: <review ledger event id or none>" in skill
+    assert "`blocked` 用于缺 task brief" in skill
+    assert "`needs_user_input` 用于 review 类型" in skill
     assert "与其他 skill 的关系" not in skill
     assert "subagent-driven-development" not in skill
     assert "executing-plans" not in skill
@@ -81,6 +91,17 @@ def test_requesting_code_review_references_define_review_packages() -> None:
             assert phrase in content
 
 
+def test_review_gate_rejects_self_approval_and_requires_reviewer_na_decision() -> None:
+    skill = read("skills/requesting-code-review/SKILL.md")
+
+    for phrase in (
+        "作者自检不能 `approved`",
+        "N/A 必须由 reviewer 明确接受或拒绝",
+        "未被 reviewer 接受的 N/A 不得通过 review",
+    ):
+        assert phrase in skill
+
+
 def test_receiving_code_review_skill_requires_verification_before_changes() -> None:
     skill = read("skills/receiving-code-review/SKILL.md")
 
@@ -99,6 +120,13 @@ def test_receiving_code_review_skill_requires_verification_before_changes() -> N
     assert ".factory/memory/tasks.summary.md" in skill
     assert "memory sync" in skill
     assert "receiving-code-review" in skill
+    assert "工作结果：" in skill
+    assert "- work_item: <WORKITEM-ID>" in skill
+    assert "- skill: receiving-code-review" in skill
+    assert "- status: ready_for_review | blocked | needs_user_input" in skill
+    assert "- ledger_event: <work item ledger event id or none>" in skill
+    assert "`blocked` 用于 feedback 来源缺失" in skill
+    assert "`needs_user_input` 用于 feedback 不清楚" in skill
     assert "requesting-code-review" not in skill
     assert "You're absolutely right" not in skill
     assert "Great point" not in skill

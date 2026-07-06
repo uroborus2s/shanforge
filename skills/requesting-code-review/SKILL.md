@@ -70,6 +70,7 @@ description: 完成任务、阶段性实现、PR 前或需要独立裁判时使�
 - `reviewer_id` 必须能定位 reviewer、线程、账号或外部评审来源。
 - `reviewer_independence_evidence` 必须说明 reviewer 未参与实现，且只读取文件化输入包。
 - `same_thread` 表示当前会话作者自检，不是真实独立评审。
+- 作者自检不能 `approved`。
 - 同线程作者自检只能输出 `self_check_passed`，只能写 `author_self_check_score`，不得写 `review_score`。
 - 禁止把同线程复核写成 `approved`。
 - 同线程作者自检的 review 输出状态只能是 `self_check_passed`。
@@ -78,6 +79,13 @@ description: 完成任务、阶段性实现、PR 前或需要独立裁判时使�
 - 没有真实独立 reviewer 证据时，下一 gate 状态必须是 `needs_independent_review`。
 - 需要子 agent 但用户未授权时，必须停止并请求授权。
 - 没有独立证据时，禁止写 `pending_human_confirmation`。
+
+## N/A 审查门
+
+- N/A 必须由 reviewer 明确接受或拒绝。
+- reviewer 接受 N/A 时，必须写明接受理由和覆盖范围。
+- reviewer 拒绝 N/A 时，必须列为 `changes_requested` 或登记为用户接受风险。
+- 未被 reviewer 接受的 N/A 不得通过 review。
 
 ## Severity
 
@@ -99,4 +107,22 @@ description: 完成任务、阶段性实现、PR 前或需要独立裁判时使�
 
 ## 完成状态
 
-本 skill 的完成状态是 review 文件和 ledger 事件已写入，并输出 `review_status`、`next_gate_status` 与 `needs`。没有独立评审证据时，`review_status` 只能是 `self_check_passed`，`next_gate_status` 必须是 `needs_independent_review`。是否进入下一阶段，由人工确认门和流程总控决定。
+本 skill 的完成状态是 review 文件和 ledger 事件已写入，并输出标准状态包。没有独立评审证据时，`status` 只能是 `self_check_passed`，`next_gate_status` 必须是 `needs_independent_review`。是否进入下一阶段，由人工确认门和流程总控决定。
+
+```text
+工作结果：
+- work_item: <WORKITEM-ID>
+- skill: requesting-code-review
+- status: approved | changes_requested | self_check_passed | blocked | needs_user_input
+- outputs:
+  - <review file path>
+- evidence:
+  - <diff package / reviewer independence evidence / verification summary>
+- ledger_event: <review ledger event id or none>
+- needs:
+  - feedback_fix | independent_review | human_confirmation | user_input | none
+```
+
+`blocked` 用于缺 task brief、implementer report、verification evidence、diff package、reviewer 独立性证据或 ledger 写入能力，导致不能给出可信 review 结论的情况。
+
+`needs_user_input` 用于 review 类型、授权子 agent、N/A 风险接受、review 范围或外部 reviewer 身份必须由用户确认的情况。

@@ -767,7 +767,7 @@
         <mxCell id="dep_run_title" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=16;fontStyle=1;" value="运行调用方向：请求向下，runtime 通过自有 ports 调下层实现" vertex="1">
           <mxGeometry height="40" width="860" x="180" y="100" as="geometry" />
         </mxCell>
-        <mxCell id="dep_r1" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f4cccc;strokeColor=#cc6666;fontSize=16;" value="接口/网关层&lt;br/&gt;接收 API / CLI Gateway 请求" vertex="1">
+        <mxCell id="dep_r1" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f4cccc;strokeColor=#cc6666;fontSize=16;" value="接口/网关层&lt;br/&gt;接收 API / Protocol Gateway 请求" vertex="1">
           <mxGeometry height="80" width="250" x="200" y="165" as="geometry" />
         </mxCell>
         <mxCell id="dep_r2" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#cfe2f3;strokeColor=#6c8ebf;fontSize=16;" value="平台编排层&lt;br/&gt;选择 App、解析流程、组织执行" vertex="1">

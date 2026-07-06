@@ -37,6 +37,37 @@ def test_subagent_driven_development_skill_is_shanforge_localized() -> None:
     assert "gitcommitzh" not in skill
 
 
+def test_execution_skills_block_when_task_gate_inputs_are_missing() -> None:
+    expected_phrases = (
+        "任务 gate",
+        "缺设计方案、接口设计、UI 或 N/A 原因、测试设计时，不得开始执行",
+        "缺 verification evidence、evidence、implementer report、review checkpoint "
+        "或 ledger 事件时，不得把任务推进到 `ready_for_review`",
+        "完成状态只能回写为：`ready_for_review`、`blocked` 或 `needs_user_input`",
+    )
+
+    for path in (
+        "skills/executing-plans/SKILL.md",
+        "skills/subagent-driven-development/SKILL.md",
+    ):
+        skill = read(path)
+        for phrase in expected_phrases:
+            assert phrase in skill
+
+
+def test_subagent_driven_development_does_not_route_next_skill() -> None:
+    skill = read("skills/subagent-driven-development/SKILL.md")
+
+    for phrase in (
+        "子 agent 不决定下一步 skill",
+        "只执行分配给它的 task brief",
+        "不判断后续 skill",
+        "不进入下一任务决策",
+        "不反向决定流程路由",
+    ):
+        assert phrase in skill
+
+
 def test_subagent_references_define_handoff_and_review_templates() -> None:
     expected = {
         "skills/subagent-driven-development/references/implementer-task-template.md": (
@@ -98,8 +129,9 @@ def test_execution_workflow_docs_do_not_keep_stale_review_state() -> None:
     )
     codex_tools = read("skills/using-shanforge/references/codex-tools.md")
 
-    assert "| `SF-SP-005` | 功能评审通过，提交未闭环 |" in plan
+    assert "| `SF-SP-005` | 本地闭环完成 |" in plan
     assert "iteration-3 独立复审 `approved / 92`" in plan
+    assert "本地提交 `efac627`" in plan
     assert not re.search(
         r"`SF-SP-005`.*human_approved.*可以进入 `SF-SP-006`",
         plan,
@@ -107,6 +139,25 @@ def test_execution_workflow_docs_do_not_keep_stale_review_state() -> None:
     assert "finishing-a-development-branch" not in plan
     assert "finishing-a-development-branch" not in codex_tools
     assert "gitcommitzh" in codex_tools
+
+
+def test_development_loop_separates_test_code_verification_and_review_tasks() -> None:
+    plan = read(
+        "docs/04-project-development/05-development-process/"
+        "superpowers-workflow-integration-plan.md"
+    )
+
+    for phrase in (
+        "测试任务、实现任务、验证任务和评审任务必须分离",
+        "Test Writer",
+        "Implementer",
+        "Verifier",
+        "Reviewer",
+        "同一执行者不得同时承担实现和最终评审",
+        "验证任务只能运行命令和记录证据",
+        "评审任务只能判断 pass/fail",
+    ):
+        assert phrase in plan
 
 
 def test_executing_plans_skill_is_inline_fallback() -> None:

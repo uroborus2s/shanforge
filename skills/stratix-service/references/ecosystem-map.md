@@ -37,11 +37,11 @@
 
 - `database`
   - 包：`@stratix/database`
-  - 环境键：`DB_HOST`、`DB_PORT`、`DB_NAME`、`DB_USERNAME`、`DB_PASSWORD`
+  - 配置路径：`sensitiveConfig.database.host`、`port`、`database`、`username`、`password`
   - 适合：CRUD、后台 API、业务数据服务、状态表和 checkpoint。
 - `redis`
   - 包：`@stratix/redis`
-  - 环境键：`REDIS_HOST`、`REDIS_PORT`、`REDIS_PASSWORD`、`REDIS_DB`
+  - 配置路径：`sensitiveConfig.redis.host`、`port`、`password`、`db`
   - 适合：缓存、锁、去重、发布订阅。
 - `queue`
   - 包：`@stratix/queue`
@@ -49,11 +49,11 @@
   - 适合：异步消费、延迟执行、削峰填谷。
 - `ossp`
   - 包：`@stratix/ossp`
-  - 环境键：`OSSP_ENDPOINT`、`OSSP_ACCESS_KEY`、`OSSP_SECRET_KEY`
+  - 配置路径：`sensitiveConfig.ossp.endpoint`、`accessKey`、`secretKey`
   - 适合：对象存储、上传下载、预签名链接。
 - `was-v7`
   - 包：`@stratix/was-v7`
-  - 环境键：`WPS_APP_ID`、`WPS_APP_SECRET`、`WPS_BASE_URL`
+  - 配置路径：`sensitiveConfig.wasV7.appId`、`appSecret`、`baseUrl`
   - 适合：WPS 通讯录、日历、消息、网盘等开放平台能力。
 - `testing`
   - 包：Vitest 相关 dev dependencies
@@ -65,7 +65,7 @@
   - 包：`msw`
   - 适合：`web-admin` 本地 mock。
 - `gateway-core`
-  - 环境键：`UPSTREAM_URL`
+  - 配置路径：`sensitiveConfig.gateway.upstreamUrl`
   - 适合：`gateway` 项目的上游默认配置。
 
 ## 决策顺序

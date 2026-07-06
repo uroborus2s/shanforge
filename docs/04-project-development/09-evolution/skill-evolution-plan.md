@@ -24,7 +24,7 @@
 
 ## 3. 当前优先事项
 
-1. 校验 `brainstorming`、`software-factory-cli` 等相关 skill 与 4 大模块文档路径、最新升级入口和公开/私有分层保持一致。
+1. 校验 `brainstorming`、`using-shanforge`、`document-templates` 等相关 skill 与 4 大模块文档路径、最新升级入口和公开/私有分层保持一致。
 2. 后续补一个专门的变更影响分析 skill，用于需求 / 接口 / 函数变更后的文档联动更新。
 3. 再补“受影响文档自动补齐”能力，把检查和修复闭环打通。
 

@@ -29,6 +29,18 @@ def test_verification_before_completion_skill_requires_fresh_evidence() -> None:
     assert "docs/superpowers" not in skill
 
 
+def test_verification_blocks_closure_without_fresh_command_output_and_evidence() -> None:
+    skill = read("skills/verification-before-completion/SKILL.md")
+
+    for phrase in (
+        "关闭前必须检查新鲜命令、exit code、输出和 evidence",
+        "无 evidence 不能关闭",
+        "review 不能替代 verification",
+        "verification 不能替代 human confirmation",
+    ):
+        assert phrase in skill
+
+
 def test_verification_references_define_completion_evidence_package() -> None:
     expected = {
         "skills/verification-before-completion/references/completion-evidence-template.md": (

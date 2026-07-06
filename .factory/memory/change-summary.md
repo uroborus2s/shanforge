@@ -1,5 +1,6 @@
 # 变更摘要
 
+- 2026-07-05：完成 Superpowers 流程集成状态旧口径清理。`SF-SP-001` 到 `SF-SP-007` 已提交为 `efac627`，连同 `e048784`、`9296f58`、`3b0e9a5` 形成 `SF-SP-001` 到 `SF-SP-010` 的本地闭环；`superpowers-workflow-integration-plan.md`、closeout report、`AGENTS.md`、`runtime-brief.md` 和 `agent-session.md` 已同步更新，不再把中心脚本作为新 workflow 主控入口。
 - 2026-07-05：用户确认 `SF-SP-001/002/003/004` 独立 review / 复审结果通过，并授权提交相关任务。四项已写入 `human_approved`；本轮提交范围收敛为 Superpowers `SF-SP-001` 到 `SF-SP-007` 的 workflow skill、references、tests、work item 证据和必要 memory 同步。
 - 2026-07-05：完成 Superpowers 剩余收尾 review loop。已创建并整合 `SF-SP-001/002/003/004` 的独立 review / 复审子任务结果：`SF-SP-001 approved / 94`、`SF-SP-002 approved / 92`、`SF-SP-003 approved / 93`、`SF-SP-004 approved / 95`。修复项包括 `project-memory` 不能输出下一步 skill、memory ledger 示例从 `next_skill` 改为 `next_status` / `next_required_action`、`SF-SP-003` downstream reference 路径存在性、helper code 迁移结论和结构测试。四项均已写入 review 文件、evidence、work item ledger 和 review-ledger，当前停在 `pending_human_confirmation`。
 - 2026-07-05：完成 Superpowers 流程集成收尾校准。正式计划不再停留在“当前只剩 `SF-SP-010`”的过期叙事；`SF-SP-010` 已提交为 `3b0e9a5`。新增 `.factory/workitems/SF-SP-010/reports/superpowers-workflow-integration-closeout-report.md`，按 ledger、review ledger 和本地 commit 区分本地闭环完成、功能评审通过但提交未闭环、未完成或部分完成三类状态。当前结论是本地闭环 `3 / 10`，不能声明整体计划已完成。

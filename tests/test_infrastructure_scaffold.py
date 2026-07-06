@@ -5,7 +5,8 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-from access.cli.commands.run_demo import build_demo_manifest
+from conftest import build_runtime_test_manifest
+
 from domain.gateway.models import GatewayResult
 from settings.composition import Settings, build_default_container
 
@@ -66,7 +67,7 @@ class InfrastructureScaffoldTests(unittest.TestCase):
         )
 
         result = container.runtime_api.run_manifest(
-            manifest=build_demo_manifest(),
+            manifest=build_runtime_test_manifest(),
             user_input="Create the first platform scaffold.",
         )
 

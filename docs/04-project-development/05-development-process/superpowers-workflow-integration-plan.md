@@ -33,7 +33,7 @@ references 负责模板、schema、检查清单和固定方法
 
 - 不把 `using-superpowers` 原样作为项目最高控制协议。
 - 不把 Superpowers 的 `docs/superpowers/specs`、`docs/superpowers/plans` 路径原样搬进本项目。
-- 不再把中心 CLI、`factory-dispatch`、`action-registry` 或 `scripts/` 作为新流程主控。
+- 不再把中心 CLI、动作注册表或全局脚本作为新流程主控。
 - 不默认创建开发分支；只有用户明确要求或项目工作流要求时，才进入分支 / PR 工作流。
 - 不强制“每个 2-5 分钟小步骤都提交一次 git”。提交单位应是当前任务相关、可审阅、可回滚的最小工作单元。
 - 不把长文档模板写进 `AGENTS.md`、`GEMINI.md` 或 `.factory/memory/`。
@@ -127,17 +127,11 @@ verification / review / PR / memory sync
 - 正式文档层只承载人类可审计事实，不承担默认运行时上下文。
 - `.factory/memory/` 只写压缩事实和索引，不写长模板、长报告和临时推理过程。
 
-## 5. `factory-agent-session` 的处置
+## 5. 旧会话脚本的处置
 
 ### 5.1 当前事实
 
-`factory-agent-session` 当前不是 skill。它是仓库内脚本：
-
-```text
-scripts/factory-agent-session
-```
-
-它现在做的事包括：
+旧会话脚本已从当前流程中退场。它原来做的事包括：
 
 1. 读取项目配置、项目锁、阶段、角色、工作项、变更、缺陷、风险和最近执行记录。
 2. 生成推荐读取清单。
@@ -148,7 +142,7 @@ scripts/factory-agent-session
 
 ### 5.2 目标变化
 
-它不再作为新架构入口继续增强。目标是把它拆成一个 skill：
+它不再作为新架构入口继续增强，职责已经拆入：
 
 ```text
 skills/project-memory/
@@ -171,7 +165,18 @@ skills/project-memory/
 | 下一步动作建议 | `using-shanforge` 调用相关 workflow skill 判断 |
 | 机器 JSON 输出 | 默认取消；确需结构化数据时写入 references 定义的 JSONL ledger |
 
-迁移完成后，旧脚本标记为 deprecated，默认不调用；新流程文档、AGENTS 规则和 skill 不再引用它。物理删除脚本作为后续清理任务单独执行，避免和流程迁移混在一次变更里。
+迁移完成后，旧脚本、旧中心命令、历史项目纳管脚本和旧用户命令文档已从当前流程中删除或改写。新流程文档、AGENTS 规则和 skill 不再把它当入口。
+
+清理边界：
+
+| 分类 | 处理 |
+|---|---|
+| 会话恢复、读取范围、会话卡 | 已迁入 `project-memory` |
+| 下一步路由、人工确认门 | 已迁入 `using-shanforge` |
+| 提交前检查 | 已迁入 `gitcommitzh` |
+| task review / PR review | 已迁入 `requesting-code-review` |
+| 确定性小工具 | 只允许进入对应 `skills/<skill>/scripts/`，不能留成仓库级流程主控 |
+| legacy CLI / 旧用户命令 | 已清理调用方、文档和测试后删除 |
 
 ## 6. Skill 与 references 规则
 
@@ -271,7 +276,7 @@ helper code 的硬规则：
 - 新增中心调度脚本来替代 skill 判断。
 - 把全局 `scripts/` 当成开发流程主控。
 - 在 skill 内新增隐藏执行器；任何 helper code 都必须被 `SKILL.md` 显式声明。
-- 为每个流程动作做一个 `factory-*` CLI。
+- 为每个流程动作做一个仓库级 CLI。
 - 让 AGENTS 只写“调用某脚本”，而不是写清楚 skill 流程。
 
 ## 7. 完整开发流程
@@ -379,6 +384,19 @@ helper code 的硬规则：
 7. 实现者只能把任务状态写成 `ready_for_review`，不能写成 `done / approved`。
 8. 生成独立 review task，由未参与实现的 reviewer 子 agent 或新任务执行。
 9. 独立 task review 通过后，才能写入 work item ledger 的完成事件。
+
+TDD loop 必须拆成隔离任务：
+
+测试任务、实现任务、验证任务和评审任务必须分离。
+
+| 子任务 | 允许做什么 | 禁止做什么 |
+|---|---|---|
+| Test Writer | 写失败测试、验收用例和复现说明 | 写生产代码、批准实现 |
+| Implementer | 写最小生产代码，让测试通过 | 改评审结论、跳过测试 |
+| Verifier | 运行完整命令、读取输出、记录 evidence | 修改实现、替实现者解释失败 |
+| Reviewer | 读取 diff、测试和 evidence，按 rubric 判断 pass/fail | 重写实现、把自评当批准 |
+
+同一执行者不得同时承担实现和最终评审。验证任务只能运行命令和记录证据；评审任务只能判断 pass/fail 并给出修改要求。
 
 提交策略：
 
@@ -603,7 +621,7 @@ PR / 提交边界：
 | Skill | 当前状态 | 作用 |
 |---|---|---|
 | `using-shanforge` | 已有，需改造 | 会话入口，只做轻量引导，不塞长规则 |
-| `project-memory` | 已新增首版，待独立 review | 替代 `factory-agent-session`，负责会话恢复、读取范围、记忆同步 |
+| `project-memory` | 已新增首版，待独立 review | 负责会话恢复、读取范围、记忆同步 |
 | `agent-harness-construction` | 已有 | 设计 AI 行动空间、观察格式和约束 |
 | `ai-first-engineering` | 已有 | AI 主导开发团队的工程运营原则 |
 
@@ -632,7 +650,6 @@ PR / 提交边界：
 |---|---|---|
 | `python-uv-project` | 已有 | Python / uv / pytest / ruff / mypy 工程规则 |
 | `api-design` | 已有 | REST/API 设计规则 |
-| `backend-patterns` | 已有 | 后端架构和服务端模式 |
 | `frontend-patterns` | 已有 | React 前端模式 |
 | `webapp-testing` | 已有 | Playwright 前端黑盒验证 |
 
@@ -785,19 +802,19 @@ next_skill: requesting-code-review
 
 ### 12.1 当前实施进展
 
-收尾校准时间：`2026-07-05 19:01:54 +0800`。
+收尾校准时间：`2026-07-05 20:20:00 +0800`。
 
 事实口径：`.factory/workitems/*/ledger.jsonl`、`.factory/memory/review-ledger.jsonl` 和本地 git commit。当前没有远端 PR / push / merge 证据，因此只统计本地闭环。
 
 | ID | 当前判定 | 已有证据 | 剩余动作 |
 |---|---|---|---|
-| `SF-SP-001` | 已人工确认，提交未闭环 | iteration-1 独立 review `approved / 94`；用户已确认 `human_approved` | 对当前任务产物做范围隔离提交 / PR 闭环 |
-| `SF-SP-002` | 已人工确认，提交未闭环 | iteration-2 独立复审 `approved / 92`；用户已确认 `human_approved`；`project-memory` 路由残留、memory sync evidence 和 ledger 示例已修复 | 对当前任务产物做范围隔离提交 / PR 闭环 |
-| `SF-SP-003` | 已人工确认，提交未闭环 | iteration-2 独立复审 `approved / 93`；用户已确认 `human_approved`；downstream references、helper 迁移结论和结构测试已补齐 | 对当前任务产物做范围隔离提交 / PR 闭环 |
-| `SF-SP-004` | 已人工确认，提交未闭环 | iteration-2 独立 review `approved / 95`；用户已确认 `human_approved` | 对当前任务产物做范围隔离提交 / PR 闭环 |
-| `SF-SP-005` | 功能评审通过，提交未闭环 | iteration-3 独立复审 `approved / 92`，用户 `human_approved` | 对当前任务产物做范围隔离提交 / PR 闭环 |
-| `SF-SP-006` | 功能评审通过，提交未闭环 | iteration-2 独立复审 `approved / 95`，用户 `human_approved` | 对当前任务产物做范围隔离提交 / PR 闭环 |
-| `SF-SP-007` | 功能评审通过，提交未闭环 | iteration-1 独立评审 `approved / 95`，用户 `human_approved` | 对当前任务产物做范围隔离提交 / PR 闭环 |
+| `SF-SP-001` | 本地闭环完成 | iteration-1 独立 review `approved / 94`；用户 `human_approved`；本地提交 `efac627` | 远端 PR / push / merge 尚未执行 |
+| `SF-SP-002` | 本地闭环完成 | iteration-2 独立复审 `approved / 92`；用户 `human_approved`；本地提交 `efac627` | 远端 PR / push / merge 尚未执行 |
+| `SF-SP-003` | 本地闭环完成 | iteration-2 独立复审 `approved / 93`；用户 `human_approved`；本地提交 `efac627` | 远端 PR / push / merge 尚未执行 |
+| `SF-SP-004` | 本地闭环完成 | iteration-2 独立 review `approved / 95`；用户 `human_approved`；本地提交 `efac627` | 远端 PR / push / merge 尚未执行 |
+| `SF-SP-005` | 本地闭环完成 | iteration-3 独立复审 `approved / 92`；用户 `human_approved`；本地提交 `efac627` | 远端 PR / push / merge 尚未执行 |
+| `SF-SP-006` | 本地闭环完成 | iteration-2 独立复审 `approved / 95`；用户 `human_approved`；本地提交 `efac627` | 远端 PR / push / merge 尚未执行 |
+| `SF-SP-007` | 本地闭环完成 | iteration-1 独立评审 `approved / 95`；用户 `human_approved`；本地提交 `efac627` | 远端 PR / push / merge 尚未执行 |
 | `SF-SP-008` | 本地闭环完成 | 主 review `approved / 94`，范围复审 `approved / 94`，用户 `human_approved`，本地提交 `e048784` | 远端 PR / push / merge 尚未执行 |
 | `SF-SP-009` | 本地闭环完成 | 独立复审 `approved / 95`，用户 `human_approved`，本地提交 `9296f58` | 远端 PR / push / merge 尚未执行 |
 | `SF-SP-010` | 本地闭环完成 | 独立复审 `approved / 95`，用户 `human_approved`，本地提交 `3b0e9a5` | 远端 PR / push / merge 尚未执行 |
@@ -805,10 +822,10 @@ next_skill: requesting-code-review
 收尾结论：
 
 - 计划内显式 `SF-SP-*` 任务只有 10 个，没有 `SF-SP-011`。
-- 严格按“review + 人工确认 + 本地提交”计，本地闭环完成 `3 / 10`：`SF-SP-008`、`SF-SP-009`、`SF-SP-010`。
+- 严格按“review + 人工确认 + 本地提交”计，本地闭环完成 `10 / 10`。
 - 独立评审通过但待人工确认 `0 / 10`。
-- 已人工确认但提交未闭环 `7 / 10`：`SF-SP-001`、`SF-SP-002`、`SF-SP-003`、`SF-SP-004`、`SF-SP-005`、`SF-SP-006`、`SF-SP-007`。
-- 因此不能声明整个 Superpowers 流程集成计划已完成；当前进入计划收尾闭环，不新增功能任务。
+- 已人工确认但提交未闭环 `0 / 10`。
+- 功能实现和本地提交闭环已完成；当前不能冒充远端 PR / push / merge 已完成。
 
 ## 13. 分阶段计划
 
@@ -907,8 +924,7 @@ next_skill: requesting-code-review
 
 ## 17. 下一步
 
-当前不新增 `SF-SP-011`。下一步只做收尾闭环：
+当前不新增 `SF-SP-011`。计划内功能开发和本地提交闭环已完成：
 
-1. 对 `SF-SP-001` 到 `SF-SP-007` 已通过的产物做范围隔离提交，禁止混入无关脏改动。
-2. 复跑第 14 节黑盒评估和第 15 节验收标准对应的最小验证集。
-3. 若项目要求远端 PR 闭环，再基于这些本地提交创建 PR；本地提交不能冒充 push、PR 或 merge。
+1. 若项目要求远端闭环，再基于本地提交创建 PR；本地提交不能冒充 push、PR 或 merge。
+2. 旧全局流程脚本已删除；新增工具只允许作为 skill-scoped helper code 放进对应 skill，不新增仓库级流程主控脚本。

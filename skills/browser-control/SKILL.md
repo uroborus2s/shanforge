@@ -114,6 +114,26 @@ browser-use --session browser-control --json close
 
 不要把“准备打开”说成“已经打开”。只有命令或工具返回成功后才能报告成功。
 
+若在 Shanforge work item 中使用，保留上述用户可读汇报，同时补标准状态包：
+
+```text
+工作结果：
+- work_item: <WORKITEM-ID>
+- skill: browser-control
+- status: ready_for_review | blocked | needs_user_input
+- outputs:
+  - <screenshot / downloaded file / notes path>
+- evidence:
+  - <browser-use state / screenshot path / plugin observation summary>
+- ledger_event: <event id or none>
+- needs:
+  - review | verification | user_input | none
+```
+
+`blocked` 用于浏览器工具不可用、URL 无法访问、页面加载失败、截图或状态读取命令失败，且当前会话无法通过最小重试恢复的情况。
+
+`needs_user_input` 用于需要登录、验证码、权限授权、账号/支付/隐私确认、缺少目标 URL，或继续操作会产生外部副作用的情况。
+
 ## 启用后的用法示例
 
 用户可以这样指定使用本地浏览器：

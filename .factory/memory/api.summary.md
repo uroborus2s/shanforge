@@ -54,5 +54,5 @@
   - domain 下行能力接口：`MemoryRecordRepositoryPort`、`EvidenceRepositoryPort`、`MemoryDatasetRepositoryPort`
   - runtime provider 接口：`StructuredStoreProviderPort`、`SearchIndexProviderPort`、`VectorIndexProviderPort`、`RuleSourceProviderPort`、`ProfileSourceProviderPort`
 - 记忆治理专项设计现明确不建议引入一个过大的“统一记忆工具接口”；正式建议继续按 `repository / reasoning / semantic search / archive query / provider augmentation` 分口，由领域聚合这些能力，而不是让领域知道具体后端。
-- access 层本轮已继续清理：`src/access/api/*` 不再依赖 application concrete classes，`src/access/cli/main.py` 只保留注入式 gateway，默认容器装配已移到 `scripts/shanforge-cli` 这个外部 CLI host。
+- access 层当前以 `src/access/api/*` 和协议入口为主；本地 CLI demo 已删除，默认容器装配不再通过 `scripts/shanforge-cli` 暴露。
 - 下一轮需要正式化的治理与通道端口包括：`ApprovalPolicyPort`、`SandboxPolicyPort`、`DelegationTransportPort`、`EventLogPort`、`ArtifactBlobStorePort` 和 `GatewayPort`。

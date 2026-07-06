@@ -2,6 +2,13 @@
 
 更新 `.factory/memory/` 时只写已观察到的事实。
 
+## 事实源优先级
+
+- 正式文档和 work item ledger 高于 memory summary。
+- summary 不复制完整正文；只写 ID、状态、当前 gate、关键约束和索引。
+- summary 与正式文档冲突时，以正式文档和 ledger 为准。
+- PM generated 非事实源；不得从 `.factory/pm/generated/status-dashboard.html` 反推唯一事实。
+
 ## 必查
 
 - 本轮真实改动文件。
@@ -29,5 +36,5 @@
 ## 推荐记录格式
 
 ```markdown
-- 2026-07-05：新增 `skills/project-memory/`，将 `factory-agent-session` 的会话恢复、读取范围、ledger 模板和 current-state 更新清单拆入 skill references。新增 `tests/test_project_memory_skill.py` 固定结构约束；定向验证 `<命令>` `<结果>`。
+- 2026-07-05：新增 `skills/project-memory/`，将旧会话脚本的会话恢复、读取范围、ledger 模板和 current-state 更新清单拆入 skill references。新增 `tests/test_project_memory_skill.py` 固定结构约束；定向验证 `<命令>` `<结果>`。
 ```

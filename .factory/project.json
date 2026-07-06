@@ -14,8 +14,8 @@
   "v2_scope_note": "当前产品范围是抽象 Agent 平台。业务通过 Agent App Manifest、Workflow DSL、ModelPolicy、Platform Ports 和 Capability Registry 接入平台内核。",
   "stage": "IMPLEMENTATION",
   "ai_runtime_docs": [
-    "skills/software-factory-cli/references/ai-runtime-protocol.md",
-    "skills/software-factory-cli/references/ai-role-charter.md"
+    "skills/using-shanforge/SKILL.md",
+    "skills/project-memory/SKILL.md"
   ],
   "human_workflow_docs": [
     "docs/index.md",
@@ -112,11 +112,6 @@
       "purpose": "设计资源导向的 API，包括状态码、校验、分页和错误契约。"
     },
     {
-      "name": "backend-patterns",
-      "path": "skills/backend-patterns/SKILL.md",
-      "purpose": "设计服务层、仓储层、中间件、校验和数据访问模式。"
-    },
-    {
       "name": "python-uv-project",
       "path": "skills/python-uv-project/SKILL.md",
       "purpose": "在 Python 项目中统一使用 uv 管理 Python 版本、虚拟环境、依赖、锁文件与开发工具，并约束 pyproject、pytest、ruff、mypy 工作流。"
@@ -181,10 +176,8 @@
       ],
       "docs": [
         "docs/04-project-development/04-design/technical-selection.md",
-        ".factory/process/multi-agent-board.md",
         ".factory/process/role-handoffs.md",
-        ".factory/process/execution-log.md",
-        ".factory/process/chat-bootstrap.md"
+        ".factory/process/execution-log.md"
       ],
       "skill_names": [
         "brainstorming",
@@ -295,7 +288,6 @@
       ],
       "skill_names": [
         "api-design",
-        "backend-patterns",
         "frontend-patterns",
         "doc-coauthoring"
       ],
@@ -304,11 +296,6 @@
           "name": "api-design",
           "path": "skills/api-design/SKILL.md",
           "purpose": "设计资源导向的 API，包括状态码、校验、分页和错误契约。"
-        },
-        {
-          "name": "backend-patterns",
-          "path": "skills/backend-patterns/SKILL.md",
-          "purpose": "设计服务层、仓储层、中间件、校验和数据访问模式。"
         },
         {
           "name": "frontend-patterns",
@@ -398,16 +385,10 @@
         "docs/04-project-development/06-testing-verification/test-plan.md"
       ],
       "skill_names": [
-        "backend-patterns",
         "api-design",
         "tdd-workflow"
       ],
       "skills": [
-        {
-          "name": "backend-patterns",
-          "path": "skills/backend-patterns/SKILL.md",
-          "purpose": "设计服务层、仓储层、中间件、校验和数据访问模式。"
-        },
         {
           "name": "api-design",
           "path": "skills/api-design/SKILL.md",
@@ -772,73 +753,8 @@
   ],
   "last_project_compress_at": "2026-04-09 13:35:50",
   "last_project_compress_owner": "Codex",
-  "last_chat_bootstrap_at": "2026-04-12 03:38:36",
-  "last_chat_bootstrap_tool": "opencode",
-  "last_chat_bootstrap_role": "coordinator",
-  "chat_bootstraps": [
-    {
-      "tool": "generic",
-      "role": "coordinator",
-      "owner": "Codex",
-      "focus": "验证严格 AI 入口",
-      "output": ".factory/memory/chat-bootstrap.generic.coordinator.md",
-      "created_at": "2026-04-07 22:46:47"
-    },
-    {
-      "tool": "generic",
-      "role": "coordinator",
-      "owner": "Codex",
-      "focus": "验证 slash 展开模板",
-      "output": ".factory/memory/chat-bootstrap.generic.coordinator.md",
-      "created_at": "2026-04-12 01:17:00"
-    },
-    {
-      "tool": "generic",
-      "role": "coordinator",
-      "owner": "Codex",
-      "focus": "验证最终写入 Git 原文约束",
-      "output": ".factory/memory/chat-bootstrap.generic.coordinator.md",
-      "created_at": "2026-04-12 01:27:51"
-    },
-    {
-      "tool": "opencode",
-      "role": "coordinator",
-      "owner": "Codex",
-      "focus": "验证明确提交即授权",
-      "output": ".factory/memory/chat-bootstrap.opencode.coordinator.md",
-      "created_at": "2026-04-12 01:39:52"
-    },
-    {
-      "tool": "opencode",
-      "role": "coordinator",
-      "owner": "Codex",
-      "focus": "验证暂存区为空自动 git add",
-      "output": ".factory/memory/chat-bootstrap.opencode.coordinator.md",
-      "created_at": "2026-04-12 01:55:05"
-    },
-    {
-      "tool": "opencode",
-      "role": "coordinator",
-      "owner": "Codex",
-      "focus": "验证提交后完整回显",
-      "output": ".factory/memory/chat-bootstrap.opencode.coordinator.md",
-      "created_at": "2026-04-12 02:38:40"
-    },
-    {
-      "tool": "opencode",
-      "role": "coordinator",
-      "owner": "Codex",
-      "focus": "验证真实 hash 后才算提交",
-      "output": ".factory/memory/chat-bootstrap.opencode.coordinator.md",
-      "created_at": "2026-04-12 03:32:09"
-    },
-    {
-      "tool": "opencode",
-      "role": "coordinator",
-      "owner": "Codex",
-      "focus": "验证单轮提交交付",
-      "output": ".factory/memory/chat-bootstrap.opencode.coordinator.md",
-      "created_at": "2026-04-12 03:38:36"
-    }
-  ]
+  "last_chat_bootstrap_at": null,
+  "last_chat_bootstrap_tool": null,
+  "last_chat_bootstrap_role": null,
+  "chat_bootstraps": []
 }

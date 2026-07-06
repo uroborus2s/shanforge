@@ -8,7 +8,7 @@
 - `using-shanforge` 已是流程总控，直接负责按需生成状态看板。
 - `.factory/pm/` 保存事实。
 - `references/status-dashboard-template.html` 保存 HTML 模板。
-- `.factory/pm/generated/status-dashboard.html` 是生成结果，不是事实源。
+- `.factory/pm/generated/status-dashboard.html` 是按需刷新后的当前状态报告，不是事实源。
 
 ## 读取
 
@@ -50,20 +50,26 @@
 .factory/pm/generated/status-dashboard.html
 .factory/pm/generated/pm-details.html
 .factory/pm/generated/workitems.html
+.factory/pm/generated/requirements-lifecycle.html
 ```
 
 链接规则：
 
 - 首页链接必须指向渲染后的 HTML 视图，不直接打开 `.md`、`.jsonl` 原文。
-- 首页必须包含项目甘特图、项目任务看板、评审链路总览、WBS 和 PM 十模块入口。
+- 首页必须直接包含需求实时跟踪表、项目甘特图、项目任务看板、评审链路总览、WBS、需求生命周期详情入口和 PM 十模块入口。
+- 需求实时跟踪表必须在 `status-dashboard.html` 首页内展示，不得只链接到独立详情页。
 - 项目甘特图显示任务推进阶段，不作为工时估算事实。
-- 项目任务看板至少区分：待独立评审、待人工确认、已通过 / 切片通过、后续 / 风险。
+- 项目任务看板固定按项目状态分四列：未开始任务、正在进行、已完成、已经审批。
+- 不要把看板主列做成流程门分类；评审门、人工确认、风险等信息放进卡片说明或评审链路。
 - 评审链路总览必须按任务、轮次、评审类型、结果、评分、下一动作展示，并链接到 work item 详情页内的评审锚点。
 - Excel 十模块标题链接到 `generated/pm-details.html#<module>`。
 - WBS / work item 链接到 `generated/workitems.html#<workitem-id>`。
 - 风险标题链接到 `generated/pm-details.html#risks`。
 - 变更标题链接到 `generated/pm-details.html#changes`。
 - 状态报告、会议纪要和项目总结链接到 `generated/pm-details.html` 对应锚点。
+- 需求生命周期入口链接到 `generated/requirements-lifecycle.html`。
+- 首页需求实时跟踪表和需求生命周期页必须按 `需求 -> 分析 -> 任务 -> 设计 -> 开发 -> 测试 -> review -> 人工确认 -> 提交/PR -> 关闭` 展示，并列出每个关联任务的当前状态和下一动作。
+- 每个关联任务必须有可点击锚点，能在当前状态报告内快速跳到该任务状态；有 work item 详情页时再补充链接到 `generated/workitems.html#<workitem-id>`。
 - PM 详情页和 work item 详情页内部把源路径作为文字展示，不作为默认点击目标。
 - Work item 详情页必须把每个任务渲染成任务摘要、事件时间线、评审链路和评审结果详情。
 - 每一轮评审结果必须有人能读懂的结论、评分、阻塞项、修复状态和下一 gate；禁止只展示原始 JSONL 或 Markdown 文本。

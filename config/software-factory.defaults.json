@@ -6,8 +6,8 @@
   ],
   "default_active_mode": "cli_direct",
   "ai_runtime_docs": [
-    "skills/software-factory-cli/references/ai-runtime-protocol.md",
-    "skills/software-factory-cli/references/ai-role-charter.md"
+    "skills/using-shanforge/SKILL.md",
+    "skills/project-memory/SKILL.md"
   ],
   "human_workflow_docs": [
     "docs/index.md",
@@ -57,11 +57,6 @@
       "name": "api-design",
       "path": "skills/api-design/SKILL.md",
       "purpose": "设计资源导向的 API，包括状态码、校验、分页和错误契约。"
-    },
-    {
-      "name": "backend-patterns",
-      "path": "skills/backend-patterns/SKILL.md",
-      "purpose": "设计服务层、仓储层、中间件、校验和数据访问模式。"
     },
     {
       "name": "python-uv-project",

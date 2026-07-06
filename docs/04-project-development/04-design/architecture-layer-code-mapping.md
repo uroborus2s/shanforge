@@ -24,7 +24,7 @@
 额外说明：
 
 - 用户界面层主要由仓外 Web 项目和外部 CLI 前台承担。
-- 当前仓库不实现完整 UI，但实现接口 / 网关层中的 API 接口与 CLI 命令网关。
+- 当前仓库不实现完整 UI，也不保留本地 CLI demo；接口 / 网关层当前以 API 与协议入口为主。
 
 ---
 
@@ -33,7 +33,7 @@
 | 架构层 | 代码或宿主 | 作用 |
 |---|---|---|
 | 用户界面层 | 仓外 Web 项目、外部 CLI 前台 | 最终人机交互 |
-| 接口 / 网关层 | `src/access/` | 收口 API、CLI、HTTP、MCP 等入口 |
+| 接口 / 网关层 | `src/access/` | 收口 API、HTTP、MCP 等入口 |
 | 业务调度层 | `src/application/` | 编排 session 和 use case |
 | 业务模型层 | `src/domain/` | 定义稳定领域模型、契约和规则 |
 | 基础能力层 | `src/runtime/` | 提供文件、存储、检索、向量、模型、规则源、技能源等统一能力 |
@@ -123,7 +123,6 @@ src/settings 对应基础设置层正式代码根。
 src/
   access/
     api/
-    cli/
     ports/
 
   application/
@@ -171,7 +170,6 @@ src/
 | 架构层 | 模块 | 真实代码位置 | 说明 |
 |---|---|---|---|
 | 接口 / 网关层 | API 门面 | `src/access/api/` | `app_api.py`、`runtime_api.py`、`workflow_api.py` |
-| 接口 / 网关层 | CLI 命令网关 | `src/access/cli/` | `main.py`、`commands/run_demo.py`；本地 demo launcher 由 `scripts/shanforge-cli` 作为外部 CLI host 承担 |
 | 接口 / 网关层 | 应用用例接口 | `src/access/ports/application_use_cases.py` | `RuntimeExecutionUseCase`、`MemoryInspectionUseCase` 等 |
 | 业务调度层 | App 编译 | `src/application/app_compilation/` | manifest -> app |
 | 业务调度层 | Workflow 解析 | `src/application/workflow_resolution/` | 选择实际 workflow |

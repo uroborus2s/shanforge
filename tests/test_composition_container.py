@@ -3,7 +3,8 @@ from __future__ import annotations
 import unittest
 from tempfile import TemporaryDirectory
 
-from access.cli.commands.run_demo import build_demo_manifest
+from conftest import build_runtime_test_manifest
+
 from settings.composition import Settings, build_default_container
 
 HERMES_REPO_ROOT = "/Users/uroborus/AiProject/hermes-agent"
@@ -53,7 +54,7 @@ class CompositionContainerTests(unittest.TestCase):
             )
 
             result = container.runtime_api.run_manifest(
-                manifest=build_demo_manifest(),
+                manifest=build_runtime_test_manifest(),
                 user_input="Create the first platform scaffold.",
             )
             manifest = container.memory_api.explain_session_assembly(result.session.id)

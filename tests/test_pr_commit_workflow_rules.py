@@ -72,6 +72,36 @@ def test_flow_controller_routes_commit_only_after_confirmation_and_sync() -> Non
     assert "work item、review、evidence 和 memory sync 记录" in codex_tools
 
 
+def test_remote_pr_handoff_contract_defines_minimum_remote_closure() -> None:
+    skill = read("skills/using-shanforge/SKILL.md")
+    contract = read("skills/using-shanforge/references/remote-pr-handoff.md")
+
+    assert "references/remote-pr-handoff.md" in skill
+    assert "gitcommitzh` 只负责本地提交，不负责远端 PR / push / merge" in skill
+
+    for phrase in (
+        "Owner",
+        "输入",
+        "本地提交前提",
+        "可用远端工具",
+        "Evidence",
+        "失败语义",
+        "状态词",
+        "禁止冒充规则",
+        "using-shanforge",
+        "gitcommitzh`，只负责本地 commit",
+        "remote_handoff_ready",
+        "remote_handoff_blocked",
+        "remote_push_done",
+        "remote_pr_opened",
+        "remote_merge_done",
+        "PR URL 或编号",
+        "merge commit",
+        "禁止让 `gitcommitzh` 承担远端 PR / push / merge owner",
+    ):
+        assert phrase in contract
+
+
 def test_pr_commit_rules_do_not_reintroduce_script_gate() -> None:
     dispatch_gate = "factory-dispatch " + "loop" + "-gate"
     script_gate = "factory-workitem" + "-" + "loop" + "-" + "gate"
@@ -79,7 +109,6 @@ def test_pr_commit_rules_do_not_reintroduce_script_gate() -> None:
         "skills/using-shanforge/SKILL.md",
         "skills/gitcommitzh/SKILL.md",
         "skills/gitcommitzh/references/pr-closure-checklist.md",
-        "scripts/factory-dispatch",
     ]
     combined = "\n".join(read(path) for path in paths)
 

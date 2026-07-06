@@ -47,18 +47,18 @@
 - 不跳阶段。
 - 代码类工作必须走 PR 闭环后再关单。
 - 任何已接受变更都要同步代码、文档、测试、`.factory/memory/`。
-- 遇到阻塞、空转或质量漂移时，优先执行 `factory-dispatch recovery`。
+- 遇到阻塞、空转或质量漂移时，优先交回 `using-shanforge` 判断唯一下一步，并由对应 skill 产出状态、证据和 `needs`。
 - 发现问题时优先做模式级修复，再把有效做法沉淀到 `evolution-baseline.md`。
 - 任务单位是人天，最小精度 0.5，但不是默认拆分步长。
 - 禁止默认把阶段 `docs/` 列入“先读”。
 - 禁止每次开工都全文读取 `docs/`、`user-guide`、演进长文或设计长文。
 - 禁止跳过 `.factory/memory/*` 而直接回源人类文档。
 - 禁止把正式文档回源候选理解为默认运行时输入。
-- 禁止把 skill 当成动作注册表或命令目录；命令执行统一走 `factory-dispatch`、`action-registry` 和 `scripts/factory-*`。
+- 禁止把 skill 当成动作注册表或命令目录；流程路由由 `using-shanforge` 判断，旧中心命令和全局流程脚本已退场。
 - 进入实现前必须回源核对 `docs/04-project-development/04-design/technical-selection.md` 的正式事实。
 
 ## 当前推荐动作
 
-- `python3 scripts/factory-dispatch session --project "." --owner "Codex"`
-- `python3 scripts/factory-dispatch board --project "." --owner "Codex" --focus "当前协作焦点"`
-- `python3 scripts/factory-dispatch doctor --project "." --owner "Codex" --scope full`
+- 先用 `project-memory` 恢复最小上下文、当前 work item 和 ledger。
+- 再交给 `using-shanforge` 判断唯一下一步 skill。
+- 若要提交，必须先满足 review、verification、memory sync 和人工确认，再使用 `gitcommitzh`。

@@ -1,0 +1,3 @@
+{"risk_id":"PM-RISK-001","title":"工作 skill 重新承担流程路由","level":"high","status":"open","impact":"流程修改时需要同步多个 skill，导致边界漂移和重复维护。","mitigation":"固定 using-shanforge 为唯一流程总控；工作 skill 只输出状态、产物、证据和 needs；测试禁止硬编码下一步 skill。","owner":"流程总控"}
+{"risk_id":"PM-RISK-002","title":"references 中文化或模板语义不完整","level":"medium","status":"open","impact":"AI 可能继续读取英文模板或缺失约束，导致执行不符合中文流程规范。","mitigation":"skill-creator 固化中文短句、含义保留清单、作者/评审隔离和旧短语扫描。","owner":"Skill 维护者"}
+{"risk_id":"PM-RISK-003","title":"PM 状态页与 ledger 不一致","level":"medium","status":"open","impact":"人类页面可能展示过期状态，影响项目判断。","mitigation":"generated/status-dashboard.html 只作为展示层；事实以 .factory/workitems/*/ledger.jsonl、risk-register.jsonl 和 change-register.jsonl 为准。由 using-shanforge 按需重新渲染。","owner":"项目协调者"}

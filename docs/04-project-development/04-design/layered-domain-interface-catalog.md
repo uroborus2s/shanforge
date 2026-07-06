@@ -36,8 +36,8 @@
 
 | 层      | 作用                | owner 逻辑                                | 下行依赖                   |
 | ------ | ----------------- | --------------------------------------- | ---------------------- |
-| 用户界面层  | Web、CLI Host、人机交互 | 页面、命令体验、交互编排                            | 接口/网关层 API/CLI Gateway |
-| 接口/网关层 | API、CLI 命令网关、协议收口 | 请求绑定、协议转换、出入参归一化                        | 业务调度层应用用例              |
+| 用户界面层  | Web、CLI Host、人机交互 | 页面、命令体验、交互编排                            | 接口/网关层 API / Protocol Gateway |
+| 接口/网关层 | API 与协议收口 | 请求绑定、协议转换、出入参归一化                        | 业务调度层应用用例              |
 | 业务调度层  | 用例编排、事务边界、流程协同    | run app、describe workflow、query session | 业务模型层领域服务              |
 | 业务模型层  | 平台业务规则与领域逻辑       | 记忆、会话、流程、上下文、审批、委派、响应                   | 基础能力层统一能力              |
 | 基础能力层  | 通用技术能力抽象          | 文件、存储、检索、模型、工具、规则源、时间、工作区等能力编排          | 基础设置层 provider         |
@@ -59,7 +59,7 @@
 
 | 领域模块 | 说明 | 代码落点 |
 |---|---|---|
-| `runtime_gateway` | 运行 Agent/App/Workflow 的统一入口 | `src/access/api/`, `src/access/cli/` |
+| `runtime_gateway` | 运行 Agent/App/Workflow 的统一入口 | `src/access/api/` |
 | `app_gateway` | app materialize / describe 入口 | `src/access/api/` |
 | `workflow_gateway` | workflow describe / choose 入口 | `src/access/api/` |
 | `session_gateway` | session 查询与调试入口 | `src/access/api/` 目标接口 |

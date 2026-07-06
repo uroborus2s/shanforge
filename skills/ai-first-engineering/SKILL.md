@@ -7,6 +7,18 @@ description: 适用于 AI 代理生成大部分实施产出的团队的工程运
 
 在为使用 AI 辅助代码生成的团队设计流程、评审和架构时，请使用此技能。
 
+## 适用边界
+
+适用于制定 AI 参与的软件工程规则、评审标准、测试策略和团队协作模式。
+
+不适用于：
+
+- 直接实现某个业务功能或 bug fix。
+- 替代 `writing-plans` 写实施计划。
+- 替代 `requesting-code-review` 或人工确认做最终裁判。
+- 替代 `document-templates` 创建正式项目文档。
+- 只有单次代码解释、普通重构建议或工具使用说明的场景。
+
 ## 流程转变
 
 1. 规划质量比打字速度更重要。
@@ -58,3 +70,34 @@ AI 代理修 Bug 时容易用“兜底分支”快速压掉症状，但这会把
 - Bug 修复测试必须覆盖根因路径，而不是只验证兜底输出。
 - 明确边缘情况的断言。
 - 对接口边界进行集成检查。
+
+## 输出契约
+
+交付物应是工程规则、流程建议或评审意见，不直接代替下游执行。输出至少包含：
+
+- 适用范围和不适用范围。
+- 当前风险或流程缺口。
+- 建议规则，按 must / should / optional 分级。
+- 需要保留的 gate，以及可以合并或删除的重复 gate。
+- 最小验证证据或衡量指标。
+- 未决问题。
+
+若作为 Shanforge 工作 skill，只回写：
+
+```text
+工作结果：
+- skill: ai-first-engineering
+- status: ready_for_review | blocked | needs_user_input
+- outputs:
+  - <path 或 inline summary>
+- evidence:
+  - <path 或依据>
+- needs:
+  - review | verification | user_input | none
+```
+
+## blocked 语义
+
+只有当目标团队、仓库事实、现有流程或风险边界缺失，导致规则无法安全落地时，返回 `blocked` 或 `needs_user_input`。
+
+不要因为缺少完整组织画像就停止；能给出局部规则时先交付局部规则，并明确适用边界。

@@ -50,9 +50,14 @@ def test_python_uv_project_applies_root_cause_rule_to_python_debugging() -> None
 
     for phrase in (
         "修 Bug 时必须先复现并定位根因",
+        "Python Bug 的复现、根因和修复流程由 systematic-debugging 或 tdd-workflow 接管",
+        "本 skill 只约束这些流程中的 Python 工具链",
         "禁止用宽泛 `except Exception`、返回空集合、默认成功、"
         "静默跳过、宽松解析或额外 fallback 掩盖根因",
         "直接原因、根源原因和证据",
         "防回归测试必须断言根因路径",
+        "工作结果：",
+        "- skill: python-uv-project",
+        "- status: ready_for_review | blocked | needs_user_input",
     ):
         assert phrase in content

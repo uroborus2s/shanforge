@@ -138,6 +138,31 @@ def test_writing_plans_references_define_plan_and_task_templates() -> None:
         assert phrase not in all_references
 
 
+def test_writing_plan_templates_require_design_test_and_review_slices() -> None:
+    skill = read("skills/writing-plans/SKILL.md")
+    workitem_plan = read("skills/writing-plans/references/workitem-plan-template.md")
+    task_brief = read("skills/writing-plans/references/task-brief-template.md")
+
+    assert "计划只能生成候选执行输入，不执行代码" in skill
+
+    for phrase in (
+        "设计方案",
+        "接口设计",
+        "UI 或 `N/A`",
+        "UI 写 `N/A` 时必须写原因",
+        "测试设计",
+        "开发",
+        "单测",
+        "review",
+        "集成测试",
+        "缺测试设计则失败",
+        "UI 写 `N/A` 但无原因则失败",
+        "发现占位语则失败",
+    ):
+        assert phrase in workitem_plan
+        assert phrase in task_brief
+
+
 def test_writing_plans_openai_metadata_is_chinese() -> None:
     metadata_path = SKILL_DIR / "agents" / "openai.yaml"
     metadata = metadata_path.read_text(encoding="utf-8")

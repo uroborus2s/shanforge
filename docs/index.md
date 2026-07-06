@@ -28,9 +28,6 @@ mkdocs:
         - title: 提示词速查
           path: 02-user-guide/prompt-templates.md
           access: public
-        - title: 命令速查
-          path: 02-user-guide/command-cheatsheet.md
-          access: public
     - title: 开发者指南
       children:
         - title: 概览
@@ -85,6 +82,9 @@ mkdocs:
               access: private
             - title: 产品需求文档（PRD）
               path: 04-project-development/03-requirements/prd.md
+              access: private
+            - title: 流程契约需求文档
+              path: 04-project-development/03-requirements/process-workflow-contract-requirements.md
               access: private
         - title: 需求分析文档
           path: 04-project-development/03-requirements/requirements-analysis.md
@@ -185,6 +185,9 @@ mkdocs:
               access: private
             - title: Superpowers 流程集成实施方案
               path: 04-project-development/05-development-process/superpowers-workflow-integration-plan.md
+              access: private
+            - title: 流程契约实施方案
+              path: 04-project-development/05-development-process/process-workflow-contract-implementation-plan.md
               access: private
             - title: 项目管理控制面集成方案
               path: 04-project-development/05-development-process/project-management-control-plane.md

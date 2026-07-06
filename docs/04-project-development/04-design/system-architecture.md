@@ -20,7 +20,7 @@
 
 ```mermaid
 flowchart LR
-    UI["用户界面层<br/>外部 Web / 外部 CLI 前台"] --> GW["接口 / 网关层<br/>API / CLI Gateway"]
+    UI["用户界面层<br/>外部 Web / 外部 CLI 前台"] --> GW["接口 / 网关层<br/>API / Protocol Gateway"]
     GW --> APP["业务调度层<br/>Use Cases / Orchestration"]
     APP --> DOMAIN["业务模型层<br/>AgentApp / Workflow / Session / Memory / Context / Model / Capability / Approval / Delegation / Response"]
     DOMAIN --> RUNTIME["基础能力层<br/>File / Store / Search / Vector / LLM / Embedding / Tool / Workspace / Rule / Skill / Profile / Approval Channel / Delegation Transport"]
@@ -32,7 +32,7 @@ flowchart LR
 | 层 | 职责 | 当前代码或宿主 |
 |---|---|---|
 | 用户界面层 | 面向最终用户交互、展示和操作 | 仓外 Web 项目、外部 CLI 前台 |
-| 接口/网关层 | 提供 API 接口、CLI 命令网关和协议收口 | `src/access/` |
+| 接口/网关层 | 提供 API 接口和协议收口 | `src/access/` |
 | 业务调度层 | 编排一次完整业务执行和会话生命周期 | `src/application/` |
 | 业务模型层 | 持有平台业务逻辑、稳定领域对象和领域规则 | `src/domain/` |
 | 基础能力层 | 提供通用技术能力抽象，并实现领域所需的统一能力 | `src/runtime/` |
@@ -65,7 +65,7 @@ flowchart LR
 | `MOD-008` Approval | 业务模型层 | 基础能力层 + 基础设置层 | 审批语义归领域，通道与实现走下层 |
 | `MOD-009` Delegation | 业务模型层 | 基础能力层 + 基础设置层 | 委派业务语义归领域 |
 | `MOD-010` Session & Evidence | 业务模型层 | 基础能力层 + 基础设置层 | 会话与证据模型归领域，存储实现走下层 |
-| `MOD-011` Interface & Gateway Entry | 接口/网关层 | 无 | API / CLI Gateway |
+| `MOD-011` Interface & Gateway Entry | 接口/网关层 | 无 | API / Protocol Gateway |
 | `MOD-012` Consumer-Owned Ports | 跟随消费者 | 无 | 不构成单独层 |
 | `MOD-013` Base Setting Implementations | 基础设置层 | 无 | provider、store、bridge、container |
 | `MOD-014` Response | 业务模型层 | 基础能力层 | 输出语义归领域，验证和统计能力走下层 |

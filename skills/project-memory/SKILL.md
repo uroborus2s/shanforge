@@ -28,7 +28,7 @@ description: 每次 Shanforge 会话恢复、上下文压缩后继续工作、�
 
 - 会话入口来自 `.factory/memory/`，不是阶段 `docs/` 长文。
 - `project-memory` 接管会话恢复、读取范围、会话卡和 ledger 模板。
-- `factory-agent-session` 只是迁移来源，不再作为目标入口继续增强。
+- 旧会话脚本只作为已迁移来源记录，不再作为目标入口继续增强。
 - 具体开发动作仍由 `brainstorming`、`writing-plans`、`executing-plans`、`tdd-workflow`、`requesting-code-review` 等 skill 执行。
 - 实现者不能自批完成；完成状态必须依赖验证、评审和 memory sync 证据。
 
@@ -55,6 +55,15 @@ description: 每次 Shanforge 会话恢复、上下文压缩后继续工作、�
 - 进入实现前必须回源技术选型和相关架构边界。
 - summary 不足以回答当前任务时，按 `.factory/memory/doc-map.md` 单文件回源。
 
+## 事实源优先级
+
+- 正式文档和 work item ledger 高于 memory summary。
+- `docs/` 承载人类可审计正式事实。
+- `.factory/workitems/<ID>/ledger.jsonl`、`evidence/`、`reviews/` 和 `reports/` 承载执行事实。
+- `.factory/memory/*.summary.md` 只写 ID、状态、当前 gate、关键约束和索引；summary 不复制完整正文。
+- PM generated 非事实源；不得把 `.factory/pm/generated/status-dashboard.html` 作为唯一事实源。
+- summary 或 PM view 与正式文档、ledger 冲突时，以正式文档和 ledger 为准。
+
 ## 输出
 
 简短输出即可：
@@ -76,8 +85,8 @@ description: 每次 Shanforge 会话恢复、上下文压缩后继续工作、�
 
 ## 禁止
 
-- 不得把 `factory-dispatch`、`action-registry` 或全局 `scripts/` 当成新流程主控。
-- 不得把 `factory-agent-session` 的推荐命令照搬为新入口。
+- 不得把旧中心命令、动作注册表或全局脚本当成新流程主控。
+- 不得把旧会话脚本的推荐命令照搬为新入口。
 - 不得把计划中未执行的动作写成完成事实。
 - 不得因为上下文不足而散读整仓文档。
 - 不得把实现者自评写成 `approved` 或 `done`。

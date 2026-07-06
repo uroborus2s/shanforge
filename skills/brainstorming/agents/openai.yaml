@@ -1,0 +1,4 @@
+interface:
+  display_name: "头脑风暴"
+  short_description: "基于当前阶段和 work item 澄清意图、范围、约束和方案，形成可评审 brief 与状态回写包。"
+  default_prompt: "使用 $brainstorming 处理创造性工作：先读取 shanforge 当前状态和 work item，判断是否真的需要头脑风暴；一次一个问题澄清目标、约束和成功标准，提出 2-3 种方案并说明推荐理由。需要视觉表达时按需提供浏览器可视化伴侣；批准后的 brief、ledger、设计资产和 memory 按 shanforge 路径保存。完成后只回写 status、outputs、approval、evidence、ledger_event 和 needs；流程路由由 using-shanforge 判断。"

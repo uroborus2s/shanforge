@@ -23,9 +23,9 @@ def test_project_memory_skill_declares_session_recovery_scope() -> None:
     assert "输出压缩后的会话卡，并写清本轮排除的背景文件" in content
     assert "若已有同一 work item 的新鲜会话卡，复用它" in content
     assert "禁止默认读取阶段 `docs/` 长文" in content
-    assert "`factory-agent-session` 只是迁移来源" in content
+    assert "旧会话脚本只作为已迁移来源记录" in content
     assert (
-        "不得把 `factory-dispatch`、`action-registry` 或全局 `scripts/` 当成新流程主控"
+        "不得把旧中心命令、动作注册表或全局脚本当成新流程主控"
         in content
     )
 
@@ -85,6 +85,40 @@ def test_project_memory_ledger_schema_prevents_repeat_work() -> None:
         assert phrase in content
 
     assert '"next_skill"' not in content
+
+
+def test_project_memory_declares_fact_source_priority_and_summary_limits() -> None:
+    content = read_skill_file("SKILL.md")
+    relevance_gate = read_skill_file("references/relevance-gate.md")
+    update_checklist = read_skill_file("references/current-state-update-checklist.md")
+    doc_map = (REPO_ROOT / ".factory" / "memory" / "doc-map.md").read_text(
+        encoding="utf-8"
+    )
+
+    for phrase in (
+        "事实源优先级",
+        "正式文档和 work item ledger 高于 memory summary",
+        "summary 不复制完整正文",
+        "PM generated 非事实源",
+        "不得把 `.factory/pm/generated/status-dashboard.html` 作为唯一事实源",
+    ):
+        assert phrase in content
+
+    for phrase in (
+        "summary 不复制完整正文",
+        "summary 与正式文档冲突时，以正式文档和 ledger 为准",
+        "PM generated 非事实源",
+    ):
+        assert phrase in relevance_gate
+        assert phrase in update_checklist
+
+    for phrase in (
+        "事实源优先级",
+        "正式文档和 work item ledger 高于 memory summary",
+        "PM generated 非事实源",
+        "不作为事实源",
+    ):
+        assert phrase in doc_map
 
 
 def test_project_memory_openai_metadata_is_chinese() -> None:

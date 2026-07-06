@@ -1,97 +1,85 @@
 ---
 name: xlsx
-description: 处理 Excel 电子表格 (.xlsx, .xls, .csv)。用于读取、写入、分析、修改、格式化和创建 Excel 文件。当用户提到“电子表格”、“Excel”、“数据表”、“xlsx”或想要分析结构化数据时使用。
+description: 读取、分析、修改、格式化、生成或验证 Excel / `.xlsx` / `.xls` / `.csv` 文件时使用。只在用户明确要求电子表格交付物、Excel 文件处理、工作簿格式或表格数据文件时触发；普通数据解释不自动接管。
 ---
 
-# Excel 处理 (XLSX)
+# Excel / XLSX 处理
 
-此技能用于处理 Excel 文件。主要使用 Python (`pandas`, `openpyxl`) 来执行操作。
+## 任务分支
 
-## 核心原则
+| 分支 | 动作 |
+|---|---|
+| 读取 / 结构检查 | 用 `pandas.ExcelFile` 或 `openpyxl.load_workbook` 读取 sheet 名、列名、行数和前几行；不要把二进制 Excel 当文本读。 |
+| 数据分析 | 用 `pandas` 计算汇总、筛选、透视或导出；保留脚本或命令摘要。 |
+| 修改现有工作簿 | 用 `openpyxl`，尽量保留格式、公式、合并单元格和多 sheet 结构。 |
+| 创建新工作簿 | 用 `pandas` 或 `openpyxl` 写新文件；需要样式、列宽、冻结窗格或公式时用 `openpyxl`。 |
+| CSV 编码 | 中文 CSV 先识别或尝试 `utf-8`、`gbk`、`gb18030`；不要静默丢字符。 |
+| 验证 / 重算 | 读取输出文件，核对 sheet、列、行数、关键公式和值；需要时运行 `python scripts/recalc.py` 或 `python scripts/office/validate.py output.xlsx`。 |
 
-1. **优先使用 Python**: 处理 Excel 文件时，始终编写并执行 Python 脚本，使用 `pandas` 或 `openpyxl` 库。不要尝试直接作为文本读取二进制文件。
-2. **先检查结构**: 在对文件进行复杂操作之前，先读取 Sheet 名称和前几行数据 (`head()`) 以了解结构。
-3. **保留格式**: 如果用户要求修改现有文件，尽量保留原有的格式（如单元格颜色、字体），除非用户另有说明。使用 `openpyxl` 而不是 `pandas` 进行纯格式修改通常更安全。
-4. **中文支持**: 在读取或写入包含中文的 CSV 文件时，注意编码问题（通常尝试 `utf-8` 或 `gbk`/`gb18030`）。
+## 安全写入
 
-## 常用操作指南
+- 默认写新文件，例如 `input_modified.xlsx`、`input_filtered.xlsx`、`output.xlsx`。
+- 除非用户明确要求，不覆盖原始工作簿或 CSV。
+- 修改前先读取 workbook 结构；多 sheet 文件不能只看第一个 sheet 就改。
+- 涉及公式、隐藏 sheet、合并单元格、筛选器、样式或图表时优先 `openpyxl`，不要用 `pandas` 重写整个工作簿。
+- 大文件只读取必要列或分块处理；无法完整验证时报告 partial。
 
-### 1. 读取数据 (Reading)
-
-使用 `pandas` 读取数据是最快的方法。
+## 最小示例
 
 ```python
 import pandas as pd
 
-# 读取所有 Sheet 名称
-try:
-    xl = pd.ExcelFile('data.xlsx')
-    print(f"Sheet names: {xl.sheet_names}")
-    
-    # 读取第一个 Sheet 或指定 Sheet
-    df = pd.read_excel('data.xlsx', sheet_name=0)
-    # 打印前几行，使用 markdown 格式以便在对话中清晰显示
-    print(df.head().to_markdown(index=False, numalign="left", stralign="left"))
-except Exception as e:
-    print(f"Error reading excel: {e}")
+xl = pd.ExcelFile("data.xlsx")
+print(xl.sheet_names)
+df = pd.read_excel("data.xlsx", sheet_name=0)
+print(df.head().to_markdown(index=False))
 ```
-
-### 2. 分析数据 (Analysis)
-
-获取数据后，提供数据的摘要统计，帮助用户理解数据概况。
-
-- 检查列名 (`df.columns`)
-- 检查缺失值 (`df.isnull().sum()`)
-- 检查数据类型 (`df.dtypes`)
-- 基本统计 (`df.describe()`)
-
-### 3. 修改和写入 (Writing)
-
-写入文件时，确保不会意外覆盖用户的重要文件，除非那是明确的意图。建议先保存为新文件名（如 `_modified.xlsx`）。
-
-```python
-# 写入到新文件
-df.to_excel('output.xlsx', index=False)
-```
-
-### 4. 格式化 (Formatting)
-
-如果用户需要调整列宽、颜色或样式，或者需要操作复杂的 Excel 特性（如公式、合并单元格），请使用 `openpyxl`。
 
 ```python
 from openpyxl import load_workbook
-from openpyxl.utils import get_column_letter
 
-wb = load_workbook('output.xlsx')
+wb = load_workbook("input.xlsx")
 ws = wb.active
-
-# 示例：自动调整列宽
-for column in ws.columns:
-    max_length = 0
-    column_letter = get_column_letter(column[0].column)
-    for cell in column:
-        try:
-            if len(str(cell.value)) > max_length:
-                max_length = len(str(cell.value))
-        except:
-            pass
-    adjusted_width = (max_length + 2)
-    ws.column_dimensions[column_letter].width = adjusted_width
-
-wb.save('output_formatted.xlsx')
+ws["A1"] = "updated"
+wb.save("input_modified.xlsx")
 ```
 
-## 示例
+## 输出清单
 
-**输入**: "帮我把这个 sales.xlsx 里的 'Amount' 这一列总和算一下，然后把超过 1000 的行存到一个新文件 high_value.xlsx 里。"
+交付时列出：
 
-**执行步骤**:
-1. 编写 Python 脚本读取 `sales.xlsx`。
-2. 计算 `Amount` 列的总和并打印结果。
-3. 筛选 `df[df['Amount'] > 1000]`。
-4. 将筛选后的 DataFrame 保存为 `high_value.xlsx`。
+- 输入文件路径、sheet 数和处理的 sheet。
+- 输出文件路径。
+- 行数、列数、筛选条件、公式或格式修改摘要。
+- 编码判断和转换结果（CSV 时）。
+- 验证命令和结果。
 
-## 故障排除
+## 验证
 
-- **依赖缺失**: 如果环境缺少 `pandas` 或 `openpyxl`，请尝试使用 `pip install` 安装它们。
-- **大文件**: 对于非常大的 Excel 文件，考虑使用 `chunksize` 参数分块读取，或仅读取需要的列 (`usecols`)。
+- 重新打开输出文件。
+- 核对 sheet 名、行数、列名、关键单元格、公式和值。
+- 格式修改要抽查列宽、样式、冻结窗格、合并单元格或条件格式。
+- CSV 要检查编码和特殊字符。
+
+## 失败处理
+
+- 文件缺失、损坏、密码保护或依赖缺失：`status: blocked`，写清失败命令。
+- sheet、列名、输出路径或覆盖意图不明确：`status: needs_user_input`。
+- 写入成功但重读验证失败：`status: blocked`。
+- 只完成部分 sheet 或部分行：报告 partial，并列出未处理范围。
+
+## Shanforge 状态包
+
+```text
+工作结果：
+- work_item: <WORKITEM-ID>
+- skill: xlsx
+- status: ready_for_review | blocked | needs_user_input
+- outputs:
+  - <output.xlsx/csv>
+- evidence:
+  - <structure/readback/recalc/validate summary>
+- ledger_event: <event id or none>
+- needs:
+  - review | verification | user_input | none
+```

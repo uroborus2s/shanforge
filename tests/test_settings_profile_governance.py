@@ -9,7 +9,8 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 from urllib.parse import parse_qs, urlparse
 
-from access.cli.commands.run_demo import build_demo_manifest
+from conftest import build_runtime_test_manifest
+
 from domain.memory.models import (
     MemoryKind,
     MemoryLifecycleQueueFilter,
@@ -504,7 +505,7 @@ class SettingsProfileGovernanceTests(unittest.TestCase):
             )
 
             result = container.runtime_api.run_manifest(
-                manifest=build_demo_manifest(),
+                manifest=build_runtime_test_manifest(),
                 user_input="Create the first platform scaffold.",
             )
             manifest = container.memory_api.explain_session_assembly(result.session.id)
@@ -594,7 +595,7 @@ class SettingsProfileGovernanceTests(unittest.TestCase):
             )
 
             result = container.runtime_api.run_manifest(
-                manifest=build_demo_manifest(),
+                manifest=build_runtime_test_manifest(),
                 user_input="Create the first platform scaffold.",
             )
             manifest = container.memory_api.explain_session_assembly(result.session.id)
@@ -663,7 +664,7 @@ class SettingsProfileGovernanceTests(unittest.TestCase):
             )
 
             result = container.runtime_api.run_manifest(
-                manifest=build_demo_manifest(),
+                manifest=build_runtime_test_manifest(),
                 user_input="Create the first platform scaffold.",
             )
             manifest = container.memory_api.explain_session_assembly(result.session.id)
@@ -729,7 +730,7 @@ class SettingsProfileGovernanceTests(unittest.TestCase):
             self.assertEqual(container.model_registry.default_policy.model, "ghost-model")
 
             result = container.runtime_api.run_manifest(
-                manifest=build_demo_manifest(),
+                manifest=build_runtime_test_manifest(),
                 user_input="Create the first platform scaffold.",
             )
             manifest = container.memory_api.explain_session_assembly(result.session.id)
@@ -805,7 +806,7 @@ class SettingsProfileGovernanceTests(unittest.TestCase):
             )
 
             result = container.runtime_api.run_manifest(
-                manifest=build_demo_manifest(),
+                manifest=build_runtime_test_manifest(),
                 user_input="Create the first platform scaffold.",
             )
             manifest = container.memory_api.explain_session_assembly(result.session.id)
@@ -882,13 +883,13 @@ class SettingsProfileGovernanceTests(unittest.TestCase):
                 "JsonlAugmentationMemoryProvider",
             )
             first_container.runtime_api.run_manifest(
-                manifest=build_demo_manifest(),
+                manifest=build_runtime_test_manifest(),
                 user_input="Create the first platform scaffold.",
             )
 
             second_container = build_default_container(settings=settings)
             second = second_container.runtime_api.run_manifest(
-                manifest=build_demo_manifest(),
+                manifest=build_runtime_test_manifest(),
                 user_input="Continue the scaffold with durable external memory.",
             )
             preview = second_container.memory_api.preview_recall(second.session.id, limit=2)
@@ -1018,13 +1019,13 @@ class SettingsProfileGovernanceTests(unittest.TestCase):
                 "JsonlVectorAugmentationMemoryProvider",
             )
             first_container.runtime_api.run_manifest(
-                manifest=build_demo_manifest(),
+                manifest=build_runtime_test_manifest(),
                 user_input="Create the first platform scaffold.",
             )
 
             second_container = build_default_container(settings=settings)
             second = second_container.runtime_api.run_manifest(
-                manifest=build_demo_manifest(),
+                manifest=build_runtime_test_manifest(),
                 user_input="Continue the platform scaffold with vector external memory.",
             )
             preview = second_container.memory_api.preview_recall(second.session.id, limit=2)
@@ -1183,7 +1184,7 @@ class SettingsProfileGovernanceTests(unittest.TestCase):
                 )
 
                 result = container.runtime_api.run_manifest(
-                    manifest=build_demo_manifest(),
+                    manifest=build_runtime_test_manifest(),
                     user_input="Continue the platform scaffold with remote memory.",
                 )
                 preview = container.memory_api.preview_recall(result.session.id, limit=2)
@@ -1397,7 +1398,7 @@ class SettingsProfileGovernanceTests(unittest.TestCase):
                     )
                 )
                 result = container.runtime_api.run_manifest(
-                    manifest=build_demo_manifest(),
+                    manifest=build_runtime_test_manifest(),
                     user_input="Continue the platform scaffold with canonical remote keys.",
                 )
                 preview = container.memory_api.preview_recall(result.session.id, limit=2)
@@ -1496,7 +1497,7 @@ class SettingsProfileGovernanceTests(unittest.TestCase):
                     )
                 )
                 result = container.runtime_api.run_manifest(
-                    manifest=build_demo_manifest(),
+                    manifest=build_runtime_test_manifest(),
                     user_input="Continue the platform scaffold with canonical validation.",
                 )
                 preview = container.memory_api.preview_recall(result.session.id, limit=2)
@@ -1570,7 +1571,7 @@ class SettingsProfileGovernanceTests(unittest.TestCase):
                     )
                 )
                 result = container.runtime_api.run_manifest(
-                    manifest=build_demo_manifest(),
+                    manifest=build_runtime_test_manifest(),
                     user_input="Continue the platform scaffold with canonical failure policy.",
                 )
                 preview = container.memory_api.preview_recall(result.session.id, limit=2)
@@ -1650,7 +1651,7 @@ class SettingsProfileGovernanceTests(unittest.TestCase):
                 )
 
                 result = container.runtime_api.run_manifest(
-                    manifest=build_demo_manifest(),
+                    manifest=build_runtime_test_manifest(),
                     user_input="Continue the platform scaffold with remote validation.",
                 )
                 preview = container.memory_api.preview_recall(result.session.id, limit=2)
@@ -1772,7 +1773,7 @@ class SettingsProfileGovernanceTests(unittest.TestCase):
                     )
                 )
                 result = container.runtime_api.run_manifest(
-                    manifest=build_demo_manifest(),
+                    manifest=build_runtime_test_manifest(),
                     user_input="Continue the platform scaffold with rotated remote secrets.",
                 )
                 preview = container.memory_api.preview_recall(result.session.id, limit=2)
@@ -1883,7 +1884,7 @@ class SettingsProfileGovernanceTests(unittest.TestCase):
                     )
                 )
                 result = container.runtime_api.run_manifest(
-                    manifest=build_demo_manifest(),
+                    manifest=build_runtime_test_manifest(),
                     user_input="Continue the platform scaffold with writeback success.",
                 )
                 preview = container.memory_api.preview_recall(result.session.id, limit=2)
@@ -1992,7 +1993,7 @@ class SettingsProfileGovernanceTests(unittest.TestCase):
                     )
                 )
                 result = container.runtime_api.run_manifest(
-                    manifest=build_demo_manifest(),
+                    manifest=build_runtime_test_manifest(),
                     user_input="Apply lifecycle writeback to remote provider.",
                 )
                 container.memory_store.save_memory_record(
@@ -2100,7 +2101,7 @@ class SettingsProfileGovernanceTests(unittest.TestCase):
                     )
                 )
                 result = container.runtime_api.run_manifest(
-                    manifest=build_demo_manifest(),
+                    manifest=build_runtime_test_manifest(),
                     user_input="Continue the platform scaffold with writeback validation.",
                 )
                 preview = container.memory_api.preview_recall(result.session.id, limit=2)

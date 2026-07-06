@@ -83,6 +83,7 @@ HTML 是按需生成的展示结果，不是新的事实源。
   change-register.jsonl
   closure-report.md
   generated/status-dashboard.html
+  generated/requirements-lifecycle.html
 ```
 
 职责划分：
@@ -100,7 +101,8 @@ HTML 是按需生成的展示结果，不是新的事实源。
 | `status-reports/*.md` | 周期状态报告 | 按需 |
 | `change-register.jsonl` | 变更台账 | 按需 |
 | `closure-report.md` | 复盘和项目总结 | 按需 |
-| `generated/status-dashboard.html` | 人类浏览器状态页，不作为事实源 | 否 |
+| `generated/status-dashboard.html` | 人类浏览器状态页，内含需求实时跟踪表，不作为事实源 | 否 |
+| `generated/requirements-lifecycle.html` | 需求到关联任务的生命周期详情页，不作为事实源 | 否 |
 
 `generated/status-dashboard.html` 只服务人类快速查看。
 AI 不默认读取 HTML，因为 HTML 包含展示噪音。
@@ -190,6 +192,7 @@ PM 控制面必须区分四种状态：
 
 ```text
 .factory/pm/generated/status-dashboard.html
+.factory/pm/generated/requirements-lifecycle.html
 ```
 
 页面定位：
@@ -204,12 +207,13 @@ PM 控制面必须区分四种状态：
 首版页面应包含：
 
 1. 项目摘要：项目名、阶段、更新时间、总体状态。
-2. 管理门禁：计划、执行、评审、验证、人工确认、PR / 提交。
-3. WBS / work item 表：ID、目标、状态、下一动作、证据。
-4. 风险区：风险等级、影响、责任人、缓解措施、状态。
-5. 变更区：变更原因、影响范围、审批状态。
-6. 最近状态报告：本轮完成、未完成、阻塞、下一步。
-7. 链接区：跳转到 work item、evidence、review、正式文档。
+2. 需求实时跟踪表：需求、分析、关联任务、设计、开发、测试、review、人工确认、提交 / PR 和关闭状态。
+3. 管理门禁：计划、执行、评审、验证、人工确认、PR / 提交。
+4. WBS / work item 表：ID、目标、状态、下一动作、证据。
+5. 风险区：风险等级、影响、责任人、缓解措施、状态。
+6. 变更区：变更原因、影响范围、审批状态。
+7. 最近状态报告：本轮完成、未完成、阻塞、下一步。
+8. 链接区：跳转到 work item、evidence、review、正式文档。
 
 设计原则：
 
@@ -217,6 +221,8 @@ PM 控制面必须区分四种状态：
 - 默认展示当前项目状态，历史细节折叠。
 - 状态颜色只表达管理语义：正常、待评审、待人工确认、阻塞、高风险。
 - 页面可离线打开，不依赖服务端。
+- 状态页首页必须直接展示需求实时跟踪表；需求生命周期详情页只是补充视图。
+- 每个关联任务必须能在状态页首页通过页内锚点快速看到状态和下一动作；有 work item 详情页时再补充跳转链接。
 
 ## 7. Skill 边界
 

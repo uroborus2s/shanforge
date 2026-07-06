@@ -2,6 +2,13 @@
 
 默认只读 summary。只有当前问题需要事实缺口时，才回源正式文档或其他长文件。
 
+## 事实源优先级
+
+- 正式文档和 work item ledger 高于 memory summary。
+- summary 不复制完整正文；只保留 ID、状态、当前 gate、关键约束和索引。
+- summary 与正式文档冲突时，以正式文档和 ledger 为准。
+- PM generated 非事实源；`.factory/pm/generated/status-dashboard.html` 只能作为展示视图。
+
 ## 允许读取
 
 - 当前任务直接修改的正式文档。

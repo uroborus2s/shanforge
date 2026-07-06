@@ -20,4 +20,3 @@
 - `configuration.md`
 - `usage.md`
 - `prompt-templates.md`
-- `command-cheatsheet.md`

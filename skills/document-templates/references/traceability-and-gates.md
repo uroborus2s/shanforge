@@ -180,10 +180,10 @@
 
 | 场景 | 推荐入口 | 说明 |
 |---|---|---|
-| 空目录新项目 | `factory-init` | 创建最小治理骨架和新结构 |
-| 历史未纳管项目 | `factory-dispatch historical-project-onboarding` + `document-templates` skill | 先补治理骨架，再手工重构 `docs/` |
+| 空目录新项目 | `using-shanforge` -> `document-templates` | 判断项目状态后创建最小治理骨架和新结构 |
+| 历史未纳管项目 | 先交给 `using-shanforge` 判断是否需要项目纳管，再用 `document-templates` skill | 先建真实状态基线，再重构文档 |
 | 已纳管但旧目录结构 | `document-templates` skill + `docs-stratego source validate` | 直接按 4 大模块重构并校验 |
-| 只有需求文档落后 | `factory-requirements-upgrade` | 只升级需求文档，不替代整套重构 |
+| 只有需求文档落后 | `requirements-engineering` + `document-templates` | 只升级需求文档，不替代整套重构 |
 
 ### 2. docs 标准升级主路径
 

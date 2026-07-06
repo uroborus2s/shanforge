@@ -1,6 +1,6 @@
 ---
 name: document-templates
-description: "Software project lifecycle document system for D3. Use when Codex needs to create, review, organize, or evolve human-readable project documentation for software work, including project charter, requirements, architecture, module boundaries, API and interface contracts, delivery plans, testing documents, release and deployment guides, operations runbooks, handover materials, user guides, admin guides, and traceability artifacts."
+description: "创建、审查、整理和升级软件项目正式文档体系。适用于项目章程、需求、架构、模块边界、API/接口契约、交付计划、测试、发布、运维、交接、用户指南、管理员指南和追踪矩阵；默认按 docs-stratego 的 4 大模块组织。"
 ---
 
 # 文档模板技能：面向 `docs-stratego` 的 4 大模块文档系统
@@ -25,12 +25,25 @@ description: "Software project lifecycle document system for D3. Use when Codex 
 3. 判断文档模块：入门说明 | 用户指南 | 开发者指南 | 内部项目开发文档
 4. 判断暴露面：最终用户使用 | 二次开发/API/SDK/插件扩展 | 自托管/运维 | 仅内部维护
 
+## 适用边界
+
+适用于软件项目正式文档体系的创建、整理、迁移和结构校验。
+
+不适用于：
+
+- 单篇文章、博客、新闻稿或营销内容。
+- 需求尚未澄清时直接生成完整文档包。
+- 代码实现、测试修复、review gate、人工确认或本地提交。
+- 没有项目事实来源时批量制造空文档。
+
+流程 gate 只在这里做文档侧检查；阶段路由、独立 review、人工确认和提交闭环由 Shanforge 流程总控处理，不在本 skill 内重复执行。
+
 ## 默认工作流
 
 1. 先判断项目是不是已经有正式 `docs/` 和 `.factory/`。
-2. 对已有项目，不再调用 `factory-docs-*` 旧脚本；改为直接用 `document-templates` skill 维护文档，并用 `docs-stratego` CLI 收口校验：
+2. 对已有项目，不再调用旧仓库脚本；改为直接用 `document-templates` skill 维护文档，并用 `docs-stratego` CLI 收口校验：
    - PyPI 已发布 CLI：`uvx --from docs-stratego docs-stratego source validate --repo-path .`
-   - 如项目尚未纳入软件工厂治理，可先执行 `factory-dispatch historical-project-onboarding --project "." --owner "<owner>" --goal "<goal>"`，但这一步不再承担 docs 重构职责
+   - 如项目尚未纳入软件工厂治理，先交给 `using-shanforge` 判断是否需要项目纳管
 3. 按项目暴露面决定 4 大模块是否都需要：
    - `01-getting-started`：大多数项目默认需要
    - `02-user-guide`：只要有人实际使用或维护，默认需要
@@ -44,6 +57,16 @@ description: "Software project lifecycle document system for D3. Use when Codex 
    - 若项目需要接入 `docs-stratego` 聚合站点，在聚合仓执行 `docs-stratego source add/remove/sync/build`
    - 若项目需要源仓自动通知聚合仓，再执行 `docs-stratego source scaffold-notify`
 
+## 正式文档治理规则
+
+- 正式文档只放在 `docs/` 的登记路径下。
+- 新增正式文档必须在同一改动中同步 `docs/index.md` 或 `.factory/memory/doc-map.md`。
+- 修改正式文档必须追加 `版本历史`。
+- 每份正式文档必须包含中文 `版本信息` 和 `版本历史`。
+- 临时文档只能放在 `.factory/workitems/<WORKITEM-ID>/evidence/`、`reports/`、`reviews/` 或 `.factory/pm/generated/`。
+- `.factory/pm/generated/` 只是展示层，不作为事实源。
+- 临时推理、草稿、review 输入包和验证输出不要写进 `docs/`。
+
 ## 先读哪些参考
 
 按需读取，不要一次性加载全部：
@@ -51,6 +74,7 @@ description: "Software project lifecycle document system for D3. Use when Codex 
 - 需要完整目录结构、根索引职责和模块边界时，读 [references/repository-structure.md](references/repository-structure.md)
 - 需要判断不同项目应该补哪些文档时，读 [references/document-catalog.md](references/document-catalog.md)
 - 需要看稳定 ID、阶段关口、旧目录映射和重构命令流程时，读 [references/traceability-and-gates.md](references/traceability-and-gates.md)
+- 需要创建正式文档时，读 [references/formal-document-template.md](references/formal-document-template.md)
 - 需要把已批准需求转成轻量技术设计时，读 [references/technical-design-template.md](references/technical-design-template.md)
 
 ## 文档组织原则
@@ -214,13 +238,13 @@ docs/
 
 ### 空目录新项目
 
-- 用 `factory-init`
+- 先交给 `using-shanforge` 判断项目状态和首个工作 skill
 - 不要手工拼一套伪 `docs/` 骨架
-- 初始化后再按当前项目事实裁剪 4 大模块
+- 确认项目事实后再按当前项目裁剪 4 大模块
 
 ### 历史未纳管项目
 
-1. 如需先纳入软件工厂治理，可执行 `factory-dispatch historical-project-onboarding --project "." --owner "<owner>" --goal "<goal>"`
+1. 如需先纳入软件工厂治理，先交给 `using-shanforge` 判断是否需要项目纳管
 2. 用 `document-templates` skill 按 4 大模块手工重构 `docs/`
 3. 执行 `uvx --from docs-stratego docs-stratego source validate --repo-path .`
 4. 最后人工复核根导航里的 `public/private` 页面级权限
@@ -234,7 +258,7 @@ docs/
 
 ### 只有需求文档结构过旧
 
-- 用 `factory-requirements-upgrade`
+- 用 `requirements-engineering` 和 `document-templates` 修正需求文档结构
 - 这不是完整文档体系重构，也不能替代历史项目纳管
 
 ### 与 `docs-stratego` 站点集成
@@ -262,6 +286,36 @@ docs/
 当用户请求“重构现有文档”时：
 
 1. 先识别旧目录、旧索引还是未纳管状态
-2. 直接用 `document-templates` skill 做目录和正文重构，不再调用 `factory-docs-*`
+2. 直接用 `document-templates` skill 做目录和正文重构，不再调用旧仓库脚本
 3. 重构后执行 `docs-stratego source validate`
 4. 同步更新受影响的正式文档、追踪矩阵和必要的 `.factory/memory/`
+
+## 状态回写与失败语义
+
+非 Shanforge work item 的简短答复至少包含：
+
+- 本次文档动作：初始化 | 标准升级/重构 | 增量补文档 | 校验收口。
+- 影响路径。
+- 已用模板或参考文件。
+- 结构校验命令和结果。
+- 未决事实、未生成文档和原因。
+
+若在 Shanforge work item 中使用，只返回状态包；流程路由、review、人工确认和提交仍由流程总控判断：
+
+```text
+工作结果：
+- work_item: <WORKITEM-ID>
+- skill: document-templates
+- status: ready_for_review | blocked | needs_user_input
+- outputs:
+  - <path>
+- evidence:
+  - <docs-stratego validate 输出或核查说明>
+- ledger_event: <event id or none>
+- needs:
+  - review | verification | user_input | none
+```
+
+`blocked` 只用于项目状态、目标读者、文档事实源或校验工具缺失，导致无法安全创建或迁移正式文档的情况。能安全补单页时，不因完整文档包未完成而阻塞。
+
+`needs_user_input` 用于必须由用户决定的文档范围、公开级别、目标读者、是否纳管或冲突事实取舍。缺少这些决定时，不批量生成正式文档。

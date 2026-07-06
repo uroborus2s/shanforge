@@ -1,104 +1,189 @@
 ---
 name: brainstorming
-description: "在进行任何创造性工作（创建功能、构建组件、添加功能或修改行为）之前，你必须使用此技能。在实施之前探索用户意图、需求和设计。"
+description: "创造性工作进入需求、设计、计划或实现前使用；基于 shanforge 当前阶段、work item 状态和用户意图，澄清范围、比较方案、形成可审阅 brief 或设计输入。"
 ---
 
-# 头脑风暴：将想法转化为设计
+# 头脑风暴
 
-## 概览 (Overview)
+把一个想法收敛成可进入需求、设计或计划的输入。它只负责创意澄清、方案探索、设计批准前的输入质量。
 
-通过自然的协作对话，帮助将想法转化为完全成型的设计和规范。
+## 核心原则
 
-首先了解当前项目上下文，然后一次问一个问题来完善想法。一旦你明白要构建什么，就展示设计并获得用户批准。
+- 先看当前阶段和 work item，再决定是否需要头脑风暴。
+- 不把所有请求强行转换成从零开始的设计流程。
+- 不靠提示词硬门控项目流转；流转依据是 `.factory/memory/`、work item 状态、ledger 和用户批准。
+- 设计未获批准前，不得把同一个 work item 推进到计划或实现。
+- 如果 work item 已在 `PLAN`、`IMPLEMENTATION`、`TESTING` 或更后阶段，只在出现新增范围、重大歧义或用户要求重新设计时使用本 skill。
 
-<HARD-GATE>
-在展示设计并获得用户批准之前，不要调用任何实施技能、编写任何代码、搭建任何项目框架或采取任何实施行动。这适用于每个项目，无论其看起来多么简单。
-</HARD-GATE>
+## 上下文输入边界
 
-## 反模式：“这太简单了，不需要设计”
+本 skill 默认**不直接展开读取项目背景文件清单**。
 
-每个项目都要经过这个过程。代办事项列表、单功能实用程序、配置更改——所有这些项目都是如此。“简单”的项目往往因为未经验证的假设而导致最多无用的工作负荷。设计可以很简短（对于真正简单的项目可能只有几句话），但你必须展示它并获得批准。
+优先使用当前对话、`project-memory` 输出的会话卡、当前 work item brief 和 ledger 中已经压缩过的信息。若这些输入已经能说明当前阶段、work item、用户目标和禁止动作，不再读取 `.factory/memory/` 源文件。
 
-## 检查清单 (Checklist)
+上下文不足时，先交给 `project-memory` 恢复最小会话卡，而不是在本 skill 里重复读取：
 
-对于这些项目，你必须为每一项创建一个任务并按顺序完成：
-
-1. **探索项目上下文** — 检查文件、文档、最近的提交记录
-2. **提出澄清问题** — 每次一个，了解目的/约束条件/成功标准
-3. **提出 2-3 种方案** — 附带权衡分析和你的建议
-4. **展示设计** — 根据复杂性分阶段展示，在每一部分之后获取用户批准
-5. **编写头脑风暴记录** — 保存到 `docs/04-project-development/02-discovery/brainstorm-record.md` 并提交
-6. **过渡到需求阶段** — 执行 `/requirements` 命令来生成 PRD
-
-## 流程图 (Process Flow)
-
-```dot
-digraph brainstorming {
-    "探索项目上下文" [shape=box];
-    "提出澄清问题" [shape=box];
-    "提出 2-3 种方案" [shape=box];
-    "展示设计部分" [shape=box];
-    "用户是否批准设计？" [shape=diamond];
-    "编写设计文档" [shape=box];
-    "执行 /requirements 命令" [shape=doublecircle];
-
-    "探索项目上下文" -> "提出澄清问题";
-    "提出澄清问题" -> "提出 2-3 种方案";
-    "提出 2-3 种方案" -> "展示设计部分";
-    "展示设计部分" -> "用户是否批准设计？";
-    "用户是否批准设计？" -> "展示设计部分" [label="不，修改"];
-    "用户是否批准设计？" -> "编写头脑风暴记录" [label="是"];
-    "编写头脑风暴记录" -> "执行 /requirements 命令";
-}
+```text
+阶段：<stage>
+工作项：<WORKITEM-ID 或 none>
+已读摘要：<summary names>
+禁止动作：<do-not-repeat / do-not-skip gates>
+相关输入：<brief / ledger / direct files>
 ```
 
-**终点状态是执行 `/requirements`。** 不要调用 frontend-design、mcp-builder 或任何其他实施技能。头脑风暴之后执行的唯一命令就是 `/requirements`。
+只在以下情况才增量读取文件：
 
-## 过程 (The Process)
+- 当前 work item 已知，且需要查看 `.factory/workitems/<WORKITEM-ID>/brief.md` 或 `ledger.jsonl`。
+- 用户本轮直接要求修改或核对某个文件。
+- 会话卡明确指出某个 summary 存在事实缺口。
+- 需要把已批准的头脑风暴结果写回对应 summary。
 
-**理解想法：**
-- 首先检查当前的项目状态（文件、文档、最近提交等）
-- 一次提一个问题来完善想法
-- 只要可能，优先使用选择题，但开放式问题也可以
-- 每条消息只问一个问题 - 如果需要进一步探索某个主题，请将其拆分为多个问题
-- 专注于弄清楚：项目目标、约束条件、成功判断标准
+读取前先说明原因和预期产出。不得为了“稳妥”读取 `role-charter.project.md`、`doc-map.md`、`project.json`、`current-state.md`、`tasks.summary.md` 等一组背景文件。需要正式事实时，由 `project-memory` 的相关性判断门按单文件回源。
 
-**探索多种方案：**
-- 提出 2-3 种具有不同权衡情况的替代方案
-- 以对话式的口吻展示各个选项，并附带您的推荐理由
-- 重点介绍你所推荐的方案并解释原因
+## 触发判断
 
-**展示设计：**
-- 当你确信自己理解了要构建的内容后，请展示设计方案
-- 视复杂程度调整各部分的篇幅：如果直截了当，则只需几句话；如果有细微差别，则可能需要 200-300 字
-- 在每个部分之后询问这看起来是否合适
-- 需要涵盖：架构、组件、数据流、错误处理机制、测试方案
-- 如果有讲不通的地方，做好返回去进行澄清的准备
+使用本 skill：
 
-## 设计之后 (After the Design)
+- 用户提出新功能、新产品、新组件、新交互、新流程或行为修改。
+- 当前 work item 还没有清晰目标、范围、非目标或成功标准。
+- 需求、设计或计划前发现关键假设未确认。
+- 实现中出现范围变化，需要回到用户意图层重新确认。
+- 用户直接要求 brainstorming、头脑风暴、方案比较、先想清楚。
 
-**初始化项目文档目录：**
-- 在当前项目下创建 `docs/` 目录结构
-- 参考 `document-templates` 技能获取完整目录结构
-- 如果目录已存在则跳过
+不要使用本 skill：
 
-**编写头脑风暴记录：**
-- 将探索过程和结论写入 `docs/04-project-development/02-discovery/brainstorm-record.md`
-- 使用 `document-templates` 技能中的"头脑风暴记录"模板
-- 记录内容包含：项目背景、用户意图、探索过程、方案比较、最终决定、约束条件
-- 将记录提交到 Git
+- work item 已有批准的 brief、计划和测试策略，用户只是要求继续执行。
+- 用户要求修复已定位 bug，且问题不涉及需求重定义。
+- 用户只要求代码评审、提交、运行测试、同步记忆或解释现有事实。
+- 当前应该由 `project-memory` 恢复上下文，或由 `writing-plans` / 实现类 skill 执行已批准计划。
 
-**过渡到需求阶段：**
-- 调用 `/requirements` 命令以生成正式的 PRD（产品需求文档）
-- `/requirements` 会自动读取头脑风暴记录作为输入
-- 请勿直接调用实施技能。`/requirements` 就是下一步要做的。
+## 工作项状态判断
 
-## 关键原则 (Key Principles)
+| 当前状态 | 本 skill 动作 | 状态回写 |
+|---|---|---|
+| 无 work item 或仅有一句话想法 | 澄清目标、约束、成功标准；形成 work item brief 草稿 | `status: needs_user_input`；`needs: work_item_registration` |
+| `BRAINSTORM` 或 brief 不完整 | 一次一个问题补齐 brief；提出 2-3 个方案 | `status: needs_user_input \| ready_for_review`；`needs: approval \| review` |
+| 已有 brief，缺需求结构 | 不重启头脑风暴；记录需求结构缺口 | `status: ready_for_review`；`needs: requirements` |
+| 已有需求，缺设计决策 | 只澄清设计分歧；记录设计缺口 | `status: ready_for_review`；`needs: design` |
+| 设计已批准，缺计划 | 不继续提问；记录计划缺口 | `status: ready_for_review`；`needs: plan` |
+| 已在实现或测试 | 只处理范围变更；否则退出并说明无需头脑风暴 | `status: blocked \| needs_user_input`；`needs: none \| scope_decision` |
 
-- **一次提一个问题** - 不要用多个问题让用户感到应接不暇
-- **优先考虑选择题** - 在可能的情况下，比开放式问题更容易回答
-- **无情贯彻 YAGNI (你不需要它)** - 从所有设计中移除不必要的功能
-- **探索替代方案** - 必须在定案之前提出 2-3 种不同的方案
-- **增量式验证** - 展示设计方案，在继续之前获得用户批准
-- **保持灵活性** - 遇到讲不通的地方时，回过头去进行澄清
+流程路由由 `using-shanforge` 根据阶段、work item 状态和 ledger 判断。本 skill 只回写 brief、批准状态、outputs、evidence、ledger_event 和 `needs`。
 
+## 默认流程
+
+1. **确认状态**：基于会话卡或当前输入说明阶段、work item、是否需要头脑风暴；缺上下文时先交给 `project-memory`。
+2. **识别范围**：如果请求包含多个独立子系统，先建议拆成多个 work item。
+3. **一次一个问题**：优先选择题；问题聚焦目的、约束、成功标准或关键决策。
+4. **提出 2-3 种方案**：先给推荐方案，再说明权衡。
+5. **展示设计或 brief**：简单任务写成短 brief；复杂任务分架构、组件、数据流、错误处理、测试和文档同步。
+6. **取得用户批准**：每个关键章节或关键选择都要让用户确认。
+7. **落盘**：按“文件保存位置”写入 work item、正式文档和 memory。
+8. **自审**：检查占位、矛盾、歧义、范围漂移和未同步项。
+9. **状态回写**：输出状态回写包，包含 brief、批准状态、产物路径、证据、ledger_event 和 `needs`。
+
+## 文件保存位置
+
+首选 work item 目录：
+
+```text
+.factory/workitems/<WORKITEM-ID>/
+  brief.md
+  ledger.jsonl
+  design-assets/
+    brainstorm/<SESSION-ID>/
+```
+
+保存规则：
+
+- 小改动和单个功能的头脑风暴结果写入 `.factory/workitems/<WORKITEM-ID>/brief.md`。
+- 过程事件、用户批准、视觉选择和状态回写事件写入 `.factory/workitems/<WORKITEM-ID>/ledger.jsonl`。
+- 项目级发现、产品定位或全局范围变化，才更新 `docs/04-project-development/02-discovery/brainstorm-record.md`。
+- 需要正式需求时，把 `needs` 标记为 `requirements`，由流程总控决定后续处理。
+- 需要正式设计时，把 `needs` 标记为 `design`，由流程总控决定后续处理。
+- 视觉探索中间文件放在 `.factory/workitems/<WORKITEM-ID>/design-assets/brainstorm/<SESSION-ID>/`。
+- 被采纳的真实设计交付物同步登记到 `docs/04-project-development/04-design/assets/` 或对应设计文档，并刷新 `.factory/memory/design-assets.summary.md`。
+- shanforge 正式产物统一使用本节列出的 work item、`docs/04-project-development/` 和 `.factory/memory/` 路径。
+
+## Brief 模板
+
+```markdown
+# <WORKITEM-ID> Brief
+
+## 目标
+
+## 非目标
+
+## 背景与当前状态
+
+## 用户意图
+
+## 方案比较
+
+## 已批准方案
+
+## 成功标准
+
+## 影响范围
+
+## 需要同步的文档、测试和 memory
+
+## 未决问题
+```
+
+## 自审清单
+
+落盘后快速检查：
+
+1. 是否还有 `TBD`、`TODO`、占位章节或含糊词。
+2. 目标、非目标、方案、成功标准是否互相矛盾。
+3. 范围是否适合一个 work item；不适合就拆分。
+4. 需求是否可能被两种方式理解；若是，选定一种并明写。
+5. 是否写清批准状态、产物路径、证据、ledger_event、`needs` 和未决问题。
+6. 是否同步 `.factory/memory/tasks.summary.md`、`current-state.md` 或相关 summary。
+
+作者自检不能把状态推进到 `approved` 或 `done`。涉及 skill、流程或代码改动时，只能推进到 `ready_for_review`，再交给独立 reviewer。
+
+## 可视化伴侣
+
+可视化伴侣是浏览器辅助工具，不是默认模式。
+
+只在用户看图比读文字更容易理解时提供，例如界面稿、布局、架构图、流程图或视觉方案对比。概念问题、范围问题、文本方案比较和技术权衡继续在终端处理。
+
+第一次确实需要视觉表达时，单独发送：
+
+> 接下来这部分可能看图更清楚。我可以边聊边在浏览器标签页里做界面稿、图表和对比。它会把临时文件保存到当前 work item 的 design-assets 目录，也可能消耗较多上下文额度。要我打开吗？
+
+这条消息必须单独发送。用户同意后，继续前先读：
+
+`skills/brainstorming/visual-companion.md`
+
+## 状态回写包
+
+```text
+工作结果：
+- work_item: <WORKITEM-ID 或 待登记>
+- skill: brainstorming
+- status: ready_for_review | needs_user_input | blocked
+- brief: <summary 或 .factory/workitems/<WORKITEM-ID>/brief.md>
+- approval:
+  - approved: <yes/no>
+  - points: <批准点或 none>
+- outputs:
+  - <brief/docs/memory paths>
+- evidence:
+  - <conversation summary 或 evidence paths>
+- ledger_event: <.factory/workitems/<WORKITEM-ID>/ledger.jsonl event id 或 path>
+- needs:
+  - work_item_registration | approval | requirements | design | plan | review | none
+```
+
+## 关键纪律
+
+- 一次只问一个问题。
+- 能用选择题就用选择题。
+- 方案比较必须有推荐和理由。
+- 坚持 YAGNI，不把未请求功能塞进设计。
+- 保留用户明确批准的决策，不在后续自行改写。
+- 发现当前阶段、work item 或 ledger 与对话记忆冲突时，以 `.factory/memory/`、ledger、git 事实和 evidence 为准。
+- `needs` 只是状态回写，不是 skill 路由决策；流程路由由 `using-shanforge` 判断。

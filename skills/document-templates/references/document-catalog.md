@@ -33,7 +33,6 @@
 | `configuration.md` | 条件 | 管理员、实施者 | 说明配置项、密钥、差异和修改方法 |
 | `usage.md` | 条件 | 用户、实施者 | 补充按场景组织的使用说明 |
 | `prompt-templates.md` | 条件 | AI 协作者 | 提供 Prompt 模板和使用时机 |
-| `command-cheatsheet.md` | 条件 | 高阶使用者、维护者 | 下钻到命令入口、参数和预期结果 |
 
 最小交付：
 
@@ -43,7 +42,7 @@
 以下场景建议补充：
 
 - 自托管或实施交付：补 `installation.md`、`configuration.md`、`admin-guide.md`
-- 强依赖 AI 协作：补 `prompt-templates.md`、`command-cheatsheet.md`
+- 强依赖 AI 协作：补 `prompt-templates.md`
 
 ## 3. `03-developer-guide`
 

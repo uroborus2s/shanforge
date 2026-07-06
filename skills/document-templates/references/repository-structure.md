@@ -26,8 +26,7 @@ docs/
 │   ├── installation.md
 │   ├── configuration.md
 │   ├── usage.md
-│   ├── prompt-templates.md
-│   └── command-cheatsheet.md
+│   └── prompt-templates.md
 ├── 03-developer-guide/
 │   ├── index.md
 │   ├── application-development.md
@@ -240,3 +239,6 @@ traceability   -> 04-project-development/10-traceability
 - 新项目优先按 4 大模块直接建目录，不要再落旧生命周期顶层结构
 - 历史项目优先走升级命令，不手工大搬家
 - 任何页面新增、删除或移动后，同步刷新根 `docs/index.md` 与相关目录首页
+- 新增正式页面后，同步根 `docs/index.md`；需要 AI 恢复时同步 `.factory/memory/doc-map.md`
+- 临时过程材料不得放入 `docs/`
+- 正式文档模板必须包含中文 `版本信息` 和 `版本历史`

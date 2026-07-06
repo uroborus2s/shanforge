@@ -48,6 +48,12 @@ class BrowserControlSkillTests(unittest.TestCase):
             "只有命令或工具返回成功后才能报告成功",
             "工具：说明使用了",
             "目标：当前 URL 和页面标题",
+            "工作结果：",
+            "- skill: browser-control",
+            "- status: ready_for_review | blocked | needs_user_input",
+            "- ledger_event: <event id or none>",
+            "`blocked` 用于浏览器工具不可用",
+            "`needs_user_input` 用于需要登录、验证码、权限授权",
         ):
             self.assertIn(phrase, content)
 

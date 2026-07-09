@@ -1,26 +1,4 @@
----
-name: spring-boot-development-standards
-description: Spring Boot / Java 项目的技术开发规范、代码评审和小范围重构约束。用于用户提到 Spring Boot、Spring MVC、Spring Data、Spring Security、Java 后端分层、接口实现、Bug 修复纪律、工具方法复用或 Java 设计模式时；Bug 根因调查仍由 systematic-debugging 接管。
----
-
-# Spring Boot 开发规范
-
-用于约束 Spring Boot 项目的工程结构、编码风格、Review 和修复纪律。目标是少写代码、写对位置、可测试、可维护。
-
-## 触发
-
-- 新建或维护 Spring Boot / Java 后端项目。
-- 设计 Controller、Service、Repository、配置、DTO、异常处理和测试。
-- 评审 Spring Boot 代码是否符合团队开发规范。
-- 重构重复工具函数、过深嵌套、坏味道 Service 或滥用设计模式。
-- 处理 Spring Boot Bug 修复方案时，需要确认是否针对根因。
-
-## 边界
-
-- Bug 根因不清楚时，先进入 `systematic-debugging`；本 skill 不替代复现、日志、调用链和根因报告。
-- API 契约设计优先交给 `api-design`；本 skill 只约束 Spring Boot 落地方式。
-- 数据库、消息队列、缓存和安全配置按项目现有栈执行，不为“以后可能”加框架。
-- 用户只问概念时直接回答，不创建项目结构或文档。
+# Java / Spring Boot 代码规范
 
 ## Ponytail 约束
 
@@ -66,7 +44,7 @@ config          Spring 配置和 Bean 装配
 - Domain 尽量不依赖 Spring 注解；需要依赖时说明原因。
 - 配置类只装配 Bean，不塞业务流程。
 
-## Java 设计模式
+## 面向对象和设计模式
 
 善用面向对象，但不表演设计模式。
 
@@ -123,32 +101,3 @@ config          Spring 配置和 Bean 装配
 - 设计模式是否对应真实变化轴，是否减少了重复或分支。
 - 输入校验、鉴权、事务、错误响应和日志是否完整。
 - 是否运行了项目已有测试、lint、格式化或构建命令。
-
-## 输出
-
-实现或评审时输出：
-
-- 改动文件或评审位置。
-- 复用的已有工具、模式或 Spring 能力。
-- 删除或拒绝新增的抽象。
-- 验证命令和结果。
-
-Shanforge work item 状态包：
-
-```text
-工作结果：
-- work_item: <WORKITEM-ID or none>
-- skill: spring-boot-development-standards
-- status: ready_for_review | blocked | needs_user_input
-- outputs:
-  - <changed file path or review notes>
-- evidence:
-  - <test/lint/build/root-cause evidence summary>
-- ledger_event: <event id or none>
-- needs:
-  - review | verification | root_cause | user_input | none
-```
-
-`blocked` 用于 Bug 根因不明、项目现有模式冲突、关键配置缺失、测试无法运行且无法判断风险，或用户要求的抽象与最小可维护实现冲突。
-
-`needs_user_input` 用于 Spring Boot 版本、分层边界、设计模式取舍、公共工具 owner、安全策略或兼容策略必须由用户决定的情况。

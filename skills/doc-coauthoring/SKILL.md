@@ -30,7 +30,7 @@ description: 文档协同创作技能。用于和用户共同起草、改写、�
 
 ## 输出契约
 
-完成时回写：
+非 Shanforge work item 的轻量交付至少回写：
 
 - `status`: `done` 或 `blocked`
 - `outputs`: 文档路径、章节草稿、修订摘要或评审意见
@@ -38,7 +38,21 @@ description: 文档协同创作技能。用于和用户共同起草、改写、�
 - `verification`: 通读结果、结构检查、事实/链接检查、模板符合性；未运行要说明原因
 - `needs`: 仍需确认的事实、受众、语气、审批人或发布位置
 
-本技能只回写文档工作状态，不替 `using-shanforge` 决定下一步 skill。
+若在 Shanforge work item 中使用，只回写状态包，不替 `using-shanforge` 决定 review、人工确认、提交或下一步 skill：
+
+```text
+工作结果：
+- work_item: <WORKITEM-ID or none>
+- skill: doc-coauthoring
+- status: ready_for_review | blocked | needs_user_input
+- outputs:
+  - <document path or review notes>
+- evidence:
+  - <input files, source notes, read-through checklist, or .factory/workitems/<WORKITEM-ID>/evidence path>
+- ledger_event: <event id or none>
+- needs:
+  - review | user_input | none
+```
 
 ## 验证要求
 
@@ -48,4 +62,8 @@ description: 文档协同创作技能。用于和用户共同起草、改写、�
 
 ## Blocked 语义
 
-只有缺少关键事实且无法合理占位时才返回 `blocked`，例如目标读者未知、事实来源不可访问、用户要求引用但未给来源、现有文档冲突无法判断。`blocked` 必须列出缺口、已完成部分和继续所需的最小输入。
+只有缺少关键事实且无法合理占位时才返回 `blocked`，例如事实来源不可访问、用户要求引用但未给来源、现有文档冲突无法判断。`blocked` 必须列出缺口、已完成部分和继续所需的最小输入。
+
+`needs_user_input` 用于必须由用户决定目标读者、语气、审批人、发布位置或冲突事实取舍的情况；能用明确占位继续起草时不要阻塞。
+
+项目化执行时，沿用 [工作 Skill 回写契约](../using-shanforge/references/work-skill-return-contract.md)；本 skill 的现有专业输出和失败语义不变。

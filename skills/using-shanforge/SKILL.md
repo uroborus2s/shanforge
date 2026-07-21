@@ -1,6 +1,6 @@
 ---
 name: using-shanforge
-description: 每次 Shanforge 会话开始、上下文恢复、阶段切换、work item 状态变化，或不确定下一步 skill 时使用；作为流程总控 / CTO 判断当前环节、选择唯一下一步 skill，并要求工作 skill 只回写状态。
+description: 项目状态查询、任务延续、项目事实修改、阶段切换、work item 状态变化，或无法判断请求是否需要项目化时使用；作为流程总控 / CTO 判断当前环节、选择唯一下一步 skill，并要求工作 skill 只回写状态。无项目影响的直接回答和轻量分析走快速通道。
 ---
 <SUBAGENT-STOP>
 若为执行特定任务的子代理，忽略本 skill。
@@ -20,12 +20,13 @@ description: 每次 Shanforge 会话开始、上下文恢复、阶段切换、wo
 你负责：
 
 - 恢复当前会话、阶段、work item 和 ledger 状态。
+- 在内部路由前先形成用户可理解的项目位置快照。
 - 判断当前处于意图澄清、需求、设计、计划、执行、验证、评审、人工确认、提交还是收尾。
-- 选择唯一下一步 skill，并说明选择理由。
+- 先确定唯一下一动作，再选择唯一下一步 skill，并说明内部路由理由。
 - 给工作 skill 提供输入文件、允许范围、禁止动作和期望状态回写。
 - 接收工作 skill 的状态回写，再决定下一步。
 - 当人类要求查看项目状态时，按需渲染 PM 状态页。
-- 在 `pending_human_confirmation` 时停止并请求人工确认。
+- 只有确认属于真实人工 Gate 时，才在 `pending_human_confirmation` 停止并请求人工确认。
 
 你不负责：
 
@@ -34,16 +35,123 @@ description: 每次 Shanforge 会话开始、上下文恢复、阶段切换、wo
 - 代替人工确认 `human_approved`。
 - 把完整流程写进每个工作 skill。
 
+## 简单任务快速通道
+
+入口必须分两阶段，禁止为了判断请求是否简单而预先恢复项目状态。
+
+阶段一只使用当前消息做初判：
+
+1. 先根据当前消息判定处理模式。
+2. `direct_answer` 与 `lightweight_analysis` 只使用当前消息、当前对话和完成答案所需的直接文件。
+3. 快速通道不得读取 `.factory/memory/agent-session.md`，不得读取 work item ledger。
+4. 快速通道不得写任何仓内文件，不创建 WorkItem、TaskCard、ledger、evidence、review 或 memory，不输出项目位置快照，不返回工作 skill 状态包。
+5. 只返回当前会话答案或结构化分析；任何仓内持久化都属于项目影响，必须进入阶段二。
+
+出现下列任一信号时不得使用快速通道，必须升级为项目化流程：
+
+- 继续或恢复既有任务。
+- 查询当前项目状态。
+- 当前消息包含 WorkItem / TaskCard ID。
+- 新增或修改项目事实，包括源代码、skill、测试、正式文档、需求、设计、ledger、memory 或 gate。
+- 创建、更新或保存任何仓内文件。
+- 要求追踪、验收、review、提交或发布。
+- 当前对话无法安全判断是否有项目影响。
+
+阶段二只处理升级后的请求：再使用 `project-memory` 恢复项目上下文、当前 work item 和最新 ledger，然后按完整流程继续。
+
 ## 默认流程
 
-1. 先使用 `project-memory` 恢复最小上下文、当前 work item 和 ledger。
-2. 判断当前状态，不默认读取 `docs/` 长文。
-3. 检查是否存在 `pending_human_confirmation`。若存在，停止并向人工给出确认包。
-4. 判断当前环节和阻塞项。
-5. 从路由表选择唯一下一步 skill。
-6. 输出输入包：读取文件、允许修改范围、禁止动作、期望状态回写。
-7. 工作 skill 完成后，只接收状态回写，不让工作 skill 自己决定下一步。
-8. 输出“完成”、进入提交或关闭 work item 前，必须重读当前 work item ledger 最新事件和 review ledger；若仍有 `next_required_action`，或状态仍是 `ready_for_review`、`changes_requested`、`needs_independent_review`、`pending_human_confirmation`、`self_check_passed`，只能报告阻塞 gate 和下一步动作。
+1. 按“简单任务快速通道”先根据当前消息判定处理模式。
+2. 命中 `direct_answer` 或 `lightweight_analysis` 时直接返回，不进入后续项目流程。
+3. 其余请求再使用 `project-memory` 恢复项目上下文、当前 work item 和 ledger。
+4. 判断当前状态，不默认读取 `docs/` 长文。
+5. 检查是否存在 `pending_human_confirmation`，并按“真实人工 Gate”重新核实；旧状态、内部 checkpoint 或已撤销 Gate 不得使流程停止。
+6. 判断当前环节和阻塞项。
+7. 先确定用户可见的唯一下一动作，再从路由表选择唯一下一步 skill。
+8. 输出输入包：读取文件、允许修改范围、禁止动作和期望状态回写。
+9. 工作 skill 完成后，只接收状态回写，不让工作 skill 自己决定下一步。
+10. 输出“完成”、进入提交或关闭 work item 前，必须重读当前 work item ledger 最新事件和 review ledger。若状态是 `ready_for_review`、`changes_requested`、`needs_independent_review` 或 `self_check_passed`，且仍属于既有授权范围，继续路由内部动作；只有真实 blocker 或有效 `pending_human_confirmation` 才停止并报告 Gate。
+
+## 项目位置快照
+
+仅 `project_workitem`、`tracked_task` 和真实 Gate 在任务开始、阶段切换、子流程返回、阻塞和最终收口时说明项目整体位置。`direct_answer` 与 `lightweight_analysis` 不输出项目位置快照。项目化回复不得只罗列 Task ID、hash、skill 名或文件路径。
+
+快照至少包含：
+
+```text
+项目整体进度：第 <N>/<TOTAL> 步；<阶段名>；<阶段状态>
+当前任务：<人类可读任务名>；<任务状态>
+已完成：<本轮已验证完成的结果>
+正在执行：<当前真实动作；没有则写“无”>
+停止原因：<无 | 精确 Gate / blocker 及 owner>
+唯一下一动作：<下一项项目动作；完成态写“本任务无待办”>
+```
+
+- 用户可见的下一动作必须描述项目动作，不得只写调用某个 skill。
+- “当前任务完成”“当前阶段完成”“项目整体完成”必须分开表达。
+- 没有真实停止条件时，`停止原因` 写“无”，并继续既有授权范围内的内部流程。
+- 长任务的 commentary 更新沿用同一快照语义，可以压缩为一到三句，但不能只报内部编号。
+
+## 真实人工 Gate 与连续执行
+
+### 内部动作不是人工 Gate
+
+在用户已经授权的任务或批次范围内，实现、验证、独立只读评审、同范围整改和 memory sync 都是内部动作。它们可以产生 checkpoint、evidence 和 ledger event，但不得逐项请求“是否继续”。
+
+- reviewer `approved` 不自动等于 `pending_human_confirmation`。
+- reviewer `changes_requested` 且 Finding 可在原目标、允许文件和风险边界内修复时，自动进入同范围整改和复审循环。
+- 计划评审、任务评审、定向测试、全量验证、报告和记忆同步本身不要求新增人工批准。
+- 内部连续执行不推导新权限，不得扩大用户已授权的目标、文件、系统或外部影响范围。
+
+### 真实人工 Gate
+
+只有下列情况才能写 `pending_human_confirmation` 并停止：
+
+- 需要产品或需求取舍、设计方向选择、验收口径选择或不可逆业务决定。
+- 需要风险接受、忽略 Critical/Important Finding 或接受不完整验证。
+- 需要扩大授权范围、修改新的受保护目标或改变用户明确排除项。
+- 将执行破坏性或外部动作，包括正式发布、远端写入、部署、凭证使用或用户未授权的 Git 动作。
+- 治理合同明确要求精确候选哈希批准或正式发布批准。
+- 缺少只有人类能提供的信息，合理假设会实质改变结果。
+
+每个 Gate 必须写明决策对象、为什么 AI 不能继续、负责确认的人、允许选项和确认后的唯一下一动作。没有这些字段的 `pending_human_confirmation` 视为无效内部 checkpoint，不得阻断流程。
+
+## 处理模式判定
+
+用户消息先归类，再路由。任务卡不是因为这也是任务才创建；任务卡只在项目系统需要记住、追踪和验收这件事时创建。
+
+| 模式 | 判断 | 处理 |
+|---|---|---|
+| `direct_answer` | 用户只要一个答案、解释、建议或临时分析 | 直接回答，不创建 work item、不创建任务卡、不写 ledger |
+| `lightweight_analysis` | 需要结构化分析，但没有项目化意图 | 只在当前会话输出；任何仓内持久化请求先升级为项目化流程 |
+| `project_workitem` | 会影响后续项目状态、需求、设计、开发或验收 | 创建或复用 WorkItem，并写 brief / ledger |
+| `tracked_task` | 是 WorkItem 下的可验收节点，需要跨会话继续、依赖、并行、评审或验收 | 创建 TaskCard / task brief |
+| `gate` | 需要人工确认、风险接受、方向选择或进入下一阶段批准 | 停止并请求确认；写确认事件，不创建任务卡 |
+| `event` | 背景恢复、读取文件、运行命令、提问、记录证据 | 写 event 或 evidence；不创建任务卡 |
+
+最小判断规则：
+
+- 只要一个答案：使用 `direct_answer` 或 `lightweight_analysis`。
+- 会影响后续项目状态：使用 `project_workitem`。
+- 需要依赖、并行、评审或验收：使用 `tracked_task`。
+- 需要跨会话继续、依赖、并行、评审或验收：使用 `tracked_task`。
+- 需要人工确认：使用 `gate`。
+- 只是工具动作或过程记录：使用 `event`。
+
+同类任务的轻量分析和任务卡执行共享专业内容契约，不共享项目治理信封；任务卡版本才增加 ID、父 WorkItem、状态、依赖、产物路径、ledger event 和后续任务。
+
+## 概念边界
+
+| 概念 | 含义 |
+|---|---|
+| Task | 一件需要完成的工作，可以是临时会话工作，也可以是项目交付工作 |
+| TaskCard | WorkItem 下可追踪、可验收、可评审的 Task，必须有 ID、状态、依赖、产物、evidence 和 ledger event |
+| Workflow | 某类 Task 的稳定执行顺序，例如 bug 调查、需求分析、UI 设计或代码评审 |
+| Method | Workflow 内部的做法、检查清单或分析技术；除非本身产出可验收交付物，否则不创建 TaskCard |
+| Tool | 执行动作的具体能力，例如命令、文件编辑、浏览器、imagegen、子 agent 或外部 API；工具调用只记录 event / evidence，不等于 TaskCard |
+| Gate | 需要人工确认、风险接受或进入下一阶段批准的停止点 |
+| Event | 读取文件、运行命令、提问、派发子任务、同步 memory 等过程记录 |
+| Evidence | 能证明执行结果的报告、命令输出、截图、测试结果或 reviewer 结论 |
 
 ## PM 状态页
 
@@ -88,7 +196,7 @@ PM 状态页是流程总控的按需输出，不改变工作 skill 的职责。
 | 新项目 | `new_project` | 用户提出新项目、产品或系统从零开始 | 先创建 Project baseline 输入包；缺 baseline work item 时不得进入普通实现任务 |
 | 增加需求 | `add_requirement` | 用户提出新增功能或能力 | 路由到 `requirements-engineering`，必须检查 baseline 影响 |
 | 变更需求 | `change_requirement` | 用户要求修改已有需求、验收标准或范围 | 必须定位原 Requirement，并要求版本历史 |
-| 修复 bug | `fix_bug` | 用户报告失败、异常、回归或测试失败 | 路由到复现和根因；缺复现、根因或回归测试时不得声明修复完成 |
+| 修复 bug | `fix_bug` | 用户报告失败、异常、回归或测试失败 | 先路由到 `systematic-debugging` 做根因调查；根因报告人工确认后，再输出修复方案 / 修复任务并等待人工确认；两个 Gate 都通过后才进入修复 |
 
 baseline work item 规则：
 
@@ -105,35 +213,53 @@ baseline work item 规则：
 | 需要 PRD、需求或验收标准 | `requirements-engineering` | brief 已清楚但需求未结构化 | `requirements_ready` |
 | 需要正式文档或技术方案 | `document-templates` / `doc-coauthoring` | 需要写设计、方案、说明文档 | `document_ready` |
 | 需要 UI / UX 方案 | `ui-ux-pro-max` | 任务涉及界面、交互、视觉资产 | `design_ready` |
+| 需要美术方向或开发资源包 | `art-asset-pipeline` | 任务涉及 UI 美术图、游戏素材、资源清单、确认图或资源包 | `ready_for_review` |
 | 已批准 brief / spec，但无 plan | `writing-plans` | 进入实现前缺 work item plan | `plan_ready_for_review` |
 | plan 已批准，任务独立 | `subagent-driven-development` | 可拆成隔离任务执行 | `ready_for_review`、`blocked` 或 `needs_user_input` |
 | plan 已批准，当前会话 inline 执行 | `executing-plans` | 不使用子 agent 或任务强耦合 | `ready_for_review`、`blocked` 或 `needs_user_input` |
-| 发现 Bug 或验证失败 | `tdd-workflow` / `ai-regression-testing` | 需要复现、根因、回归测试 | `fix_ready_for_review` 或 `blocked` |
+| 发现 Bug 或验证失败 | `systematic-debugging` | 需要复现和根因调查 | `root_cause_found`、`needs_user_input` 或 `blocked` |
+| Bug 根因已人工确认 | `requirements-engineering` / `writing-plans` | 需要把根因转成修复方案或一个 / 多个修复任务 | `requirements_ready`、`plan_ready_for_review` 或 `needs_user_input` |
+| Bug 根因和修复方案均已人工确认 | `tdd-workflow` / `ai-regression-testing` | 进入修复实现和回归验证 | `passed`、`partial`、`failed` 或 `blocked` |
 | 实现已 `ready_for_review` | `requesting-code-review` | 需要独立评审 | `approved` 或 `changes_requested` |
 | review 要求修改 | `receiving-code-review` | 存在明确 review feedback | `ready_for_review` 或 `blocked` |
 | 缺完成证据 | `verification-before-completion` | 需要新鲜验证证据 | `verification_passed` 或 `verification_failed` |
-| reviewer 已 approved | 无工作 skill | 必须进入人工确认 | `pending_human_confirmation` |
+| reviewer 已 approved，且既有授权批次仍有内部动作 | 按当前缺口选择验证、执行或收口 owner | 不存在真实人工 Gate；自动继续，不停在 review checkpoint | `in_progress` 或任务完成态 |
+| reviewer 已 approved，且下一步需要真实人工决策 | 无工作 skill | 必须给出完整决策包 | `pending_human_confirmation` |
 | 人工已确认且有可提交改动 | `gitcommitzh` | review / evidence / memory sync 已齐备，当前任务产生文件改动，且用户未明确要求暂不提交 | `commit_done` |
 
 若某个计划中的 skill 尚未安装或尚未本地化，输出 `blocked: missing_skill`，不得让工作 skill 临时代替它。
 
 ## 工作 skill 状态回写协议
 
-工作 skill 完成时只返回状态包，不写下一步 skill：
+工作 skill 完成时只返回状态包，不写下一步 skill。详细边界见 [工作 Skill 回写契约](references/work-skill-return-contract.md)。这里的状态包是工作 Skill 本职结果包；它不推断项目完成层级：
 
 ```text
-工作结果：
+工作 Skill 本职结果包：
 - work_item: <ID>
+- task_id: <TASK-ID or none>
+- task_type: <formal task type>
 - skill: <skill-name>
-- status: ready_for_review | blocked | needs_user_input | pending_human_confirmation
+- status: <该 Skill 的既有本地状态>
 - outputs:
   - <path>
 - evidence:
   - <path>
 - ledger_event: <path 或 event id>
-- needs:
-  - review | verification | human_confirmation | commit | plan_rewrite | none
+- needs: <该 Skill 的既有本地 needs>
 ```
+
+本 skill 再结合 work item ledger、review ledger、已授权范围和真实 Gate 生成项目状态信封：
+
+```text
+项目状态信封：
+- project_position: <step / total / stage / task>
+- completion_level: none | task | stage | project
+- stop_reason: none | blocker | human_gate
+- scope_remaining: <已授权范围内剩余工作；没有则写“无”>
+- next_required_action: <唯一下一动作；没有则写“无”>
+```
+
+工作 Skill 的本地 `blocked`、`needs_user_input` 或 human-confirmation need 是输入事实；是否形成项目 blocker 或 human Gate，由本 skill 结合 ledger 判断。`direct_answer` 与 `lightweight_analysis` 不使用这两类状态包。
 
 工作 skill 不写：
 
@@ -143,6 +269,43 @@ baseline work item 规则：
 - “完成声明交给某某 skill”。
 
 这些都由本 skill 统一判断。
+
+## 完成输出与持久化契约
+
+每次任务收口都必须先判断写入位置：
+
+| 场景 | 当前会话响应 | 持久化 |
+|---|---|---|
+| `direct_answer` / `lightweight_analysis` | 返回答案或分析结论 | 默认不落盘、不写 ledger、不写 memory |
+| `project_workitem` / `tracked_task` | 返回状态包、产物路径、验证结果、阻塞 gate 和 `next_required_action` | 写 work item ledger、必要 evidence/report；必要时同步 memory |
+| 正式需求、设计、API、UI、用户指南或开发者指南变化 | 返回改动摘要和文档路径 | 写 `docs/` 登记路径，并更新版本历史、导航或 `doc-map.md` |
+| 工具动作、命令执行、派发子 agent、自循环中间步骤 | 返回观察结果或状态 | 只写 event、evidence/report；不写正式文档 |
+| review、verification、人工确认、提交前检查 | 返回 gate、缺口和下一动作 | 写 ledger、review/evidence；必要时 memory sync |
+| PM 看板 | 返回生成路径和事实源说明 | 写 `.factory/pm/generated/`，但不作为事实源 |
+
+当前会话必须能看见收口状态；子 agent 或自循环完成后不得只静默写文件。子流程只返回状态包，是否写正式文档、ledger、evidence/report 或 memory 由本 skill 判断。
+
+memory 只写恢复所需摘要：ID、状态、gate、`next_required_action`、关键约束和路径索引；不得写正式文档正文、命令全文、临时推理或子 agent 完整输出。
+
+## 当前会话可见性协议
+
+当前会话必须让用户看见任务正在做什么，不只在最后报路径。
+
+| 时机 | 必须说明 |
+|---|---|
+| 任务开始 | work item / task、处理模式、选择理由、允许修改范围、预期产物 |
+| 阶段切换 | 已完成动作、下一阶段、gate 或阻塞 |
+| 文件编辑前 | 将修改哪些文件，以及为什么是最小范围 |
+| 关键命令前后 | 命令目的、结果、失败数或未运行原因 |
+| 派发子 agent / 自循环 | 子任务目标、写入边界、等待什么结果 |
+| 子流程返回 | 状态包、outputs、evidence、未完成项、下一动作 |
+| 长时间执行 | 当前阶段、已完成、仍在等待或验证什么 |
+| 阻塞 / 失败 | 阻塞 gate、缺少证据、已写路径、未写内容、可选下一动作 |
+| 最终收口 | 做了什么、写了哪里、验证结果、当前状态、`next_required_action` |
+
+可见性响应只写事实摘要。长命令输出、完整 diff、子 agent 全文和正式文档正文只给路径，不复制进当前会话。
+
+项目化任务最终收口必须明确写出项目位置快照。当前任务完成但项目未完成时，直接写“本任务完成，项目仍在第 N/TOTAL 步”，不得用模糊的“已完成”代替层级判断。快速通道只返回答案或分析结论，不附加项目快照。
 
 ## 提交门
 
@@ -158,7 +321,7 @@ baseline work item 规则：
 
 ## 人工确认门
 
-当 ledger 或 review 显示 `pending_human_confirmation` 时，必须停止，并输出：
+当 ledger 或 review 显示 `pending_human_confirmation` 时，先按“真实人工 Gate”核实。只有 Gate 有效时才停止，并输出：
 
 ```text
 本轮执行完成，等待人工确认。
@@ -182,6 +345,8 @@ baseline work item 规则：
 人工确认信息不能只输出评分；必须给出最终审计问题报告，列清 review 发现、修复状态、残留风险和验证证据。
 
 人工没有明确确认前，不得进入下一阶段，不得关闭 work item，不得提交“最终完成”结论。
+
+若核实后只是实现、验证、独立只读评审、同范围整改、memory sync 或普通任务 checkpoint，则不得套用本人工确认模板；应继续既有授权范围内的流程，并在项目位置快照中把 `停止原因` 写为“无”。
 
 ## 平台适配
 

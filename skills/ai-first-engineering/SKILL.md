@@ -86,18 +86,24 @@ AI 代理修 Bug 时容易用“兜底分支”快速压掉症状，但这会把
 
 ```text
 工作结果：
+- work_item: <WORKITEM-ID or none>
 - skill: ai-first-engineering
 - status: ready_for_review | blocked | needs_user_input
 - outputs:
   - <path 或 inline summary>
 - evidence:
   - <path 或依据>
+- ledger_event: <event id or none>
 - needs:
   - review | verification | user_input | none
 ```
 
-## blocked 语义
+## 失败语义
 
-只有当目标团队、仓库事实、现有流程或风险边界缺失，导致规则无法安全落地时，返回 `blocked` 或 `needs_user_input`。
+`blocked` 用于目标团队、仓库事实、现有流程或风险边界缺失，导致无法给出安全规则的情况。
+
+`needs_user_input` 用于必须由用户决定团队约束、质量门槛、风险接受、review owner 或上线策略的情况。
 
 不要因为缺少完整组织画像就停止；能给出局部规则时先交付局部规则，并明确适用边界。
+
+项目化执行时，沿用 [工作 Skill 回写契约](../using-shanforge/references/work-skill-return-contract.md)；本 skill 的现有专业输出和失败语义不变。

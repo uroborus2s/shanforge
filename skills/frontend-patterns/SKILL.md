@@ -56,7 +56,7 @@ description: 前端开发模式、组件边界、状态管理、性能和可访�
 工作结果：
 - work_item: <ID>
 - skill: frontend-patterns
-- status: passed | partial | failed | blocked
+- status: ready_for_review | blocked | needs_user_input
 - outputs:
   - <files or review notes>
 - evidence:
@@ -65,3 +65,7 @@ description: 前端开发模式、组件边界、状态管理、性能和可访�
 - needs:
   - none | tests | design_decision | human_confirmation
 ```
+
+`design_decision` 只是 `needs` 值，不是状态。必须由用户决定视觉、交互或产品取舍时，回写 `status: needs_user_input`。
+
+项目化执行时，沿用 [工作 Skill 回写契约](../using-shanforge/references/work-skill-return-contract.md)；本 skill 的现有专业输出和失败语义不变。

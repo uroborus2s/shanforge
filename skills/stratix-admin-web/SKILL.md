@@ -1,24 +1,25 @@
 ---
 name: stratix-admin-web
-description: Stratix 管理后台前端开发规范。用户提到 Stratix admin、web-admin、admin CRUD、admin-page、管理后台页面、运营后台页面、后台公共组件或后台 UI 复用时必须使用；普通非 Stratix 前端任务优先使用 frontend-patterns。
+description: Stratix 管理后台前端开发规范。仅在用户明确提到 Stratix admin、Stratix web-admin、Stratix admin CRUD、stratix generate admin-page/admin-crud，或当前仓库事实显示是 Stratix web-admin 项目时使用；普通 admin-web、管理后台、运营后台或非 Stratix 前端任务不触发，优先使用 frontend-patterns 或项目实际技术栈。
 ---
 
 # Stratix Admin Web
 
-用于 Stratix 管理后台前端开发。目标是先识别重复 UI，再沉淀公共组件，最后逐页实现页面和页面逻辑。少写代码，复用现有能力，禁止为了“以后可能用”堆抽象。
+用于 Stratix 管理后台前端开发。只有明确 Stratix 线索或仓库事实显示是 Stratix web-admin 时才使用。目标是先识别重复 UI，再沉淀公共组件，最后逐页实现页面和页面逻辑。少写代码，复用现有能力，禁止为了“以后可能用”堆抽象。
 
 ## 适用边界
 
 - Stratix `app web-admin` 项目。
 - `stratix generate admin-page` 或 `stratix generate admin-crud` 生成的页面。
-- 管理后台、运营后台、控制台、配置页、列表页、详情页、表单页和 CRUD 页面。
-- 后台 UI 组件复用、页面结构、页面状态、权限动作、表格筛选和表单交互。
+- Stratix 管理后台、运营后台、控制台、配置页、列表页、详情页、表单页和 CRUD 页面。
+- Stratix 后台 UI 组件复用、页面结构、页面状态、权限动作、表格筛选和表单交互。
 
 不适用于：
 
 - 非 Stratix 的普通前端页面。
+- 未说明 Stratix 的 admin-web、管理后台、运营后台或控制台项目。
 - 营销站、官网、内容页、游戏和纯视觉稿。
-- 后端 API、配置加密、release gate 或 Stratix 服务生产化验证；这些交给 `stratix-service`。
+- 后端 API、配置加密、release gate、`STRATIX_SENSITIVE_CONFIG` 或 Stratix 服务生产化验证；这些交给 `stratix-service`。
 - 只需要 UI/UX 评审且不涉及开发落地；优先交给 `ui-ux-pro-max`。
 
 ## 输入
@@ -126,6 +127,7 @@ description: Stratix 管理后台前端开发规范。用户提到 Stratix admin
   - <skill/page/component/test paths>
 - evidence:
   - <commands, screenshots, smoke checks, or self-check notes>
+- ledger_event: <event id or none>
 - needs:
   - review | verification | user_input | none
 ```
@@ -133,3 +135,5 @@ description: Stratix 管理后台前端开发规范。用户提到 Stratix admin
 `blocked` 用于缺页面清单、API 契约、权限模型、项目无法安装或 CLI 能力无法确认，导致无法安全实现。
 
 `needs_user_input` 用于必须由用户决定后台信息架构、角色权限、危险操作策略或设计系统取舍。
+
+项目化执行时，沿用 [工作 Skill 回写契约](../using-shanforge/references/work-skill-return-contract.md)；本 skill 的现有专业输出和失败语义不变。

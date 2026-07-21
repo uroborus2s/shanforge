@@ -82,3 +82,5 @@ Shanforge work item 状态包：
 `blocked` 用于阶段不清、Bug 根因不明、项目现有模式冲突、测试无法运行且风险不可判断，或用户要求与最小可维护实现冲突。
 
 `needs_user_input` 用于 Java / Spring Boot 版本、分层边界、设计模式取舍、公共工具 owner、安全策略、兼容策略或文档公开范围必须由用户决定的情况。
+
+项目化执行时，沿用 [工作 Skill 回写契约](../using-shanforge/references/work-skill-return-contract.md)；本 skill 的现有专业输出和失败语义不变。

@@ -17,6 +17,7 @@ description: 撰写文章、指南、博客文章、教程、时事通讯以及�
 ## 不适用场景
 
 - 正式项目文档、PRD、设计文档、运维手册或模板体系；这些交给文档类 skill。
+- 发布型公开长文归本 skill；工作文档、RFC、提案和项目说明的协作改写交给 `doc-coauthoring`。
 - 代码实现、测试修复或架构决策。
 - 用户只要一句短文案、标题或翻译时，不启用完整长文流程。
 - 需要事实核查但没有来源、且无法联网或回源验证的内容；此时先请求来源或标记 `blocked`。
@@ -106,14 +107,22 @@ description: 撰写文章、指南、博客文章、教程、时事通讯以及�
 
 ```text
 工作结果：
+- work_item: <WORKITEM-ID or none>
 - skill: article-writing
 - status: ready_for_review | blocked | needs_user_input
 - outputs:
   - <path 或 inline draft>
 - evidence:
   - <来源或核查说明>
+- verification:
+  - <事实核查、格式检查或未运行原因>
+- ledger_event: <event id or none>
 - needs:
   - review | user_input | none
 ```
 
 `blocked` 只用于缺少关键事实、授权来源、目标读者或法律/品牌边界，导致继续写会虚构内容或误导读者的情况。
+
+`needs_user_input` 用于缺少目标读者、发布平台、语气参考、事实来源、授权边界或品牌取舍，但可在用户补充后继续写作的情况。
+
+项目化执行时，沿用 [工作 Skill 回写契约](../using-shanforge/references/work-skill-return-contract.md)；本 skill 的现有专业输出和失败语义不变。

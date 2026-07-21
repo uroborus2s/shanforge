@@ -96,3 +96,5 @@ AI 常见失败不是语法错误，而是“修了一条路径，漏了另一�
 - needs:
   - none | root_cause | test_gap | verification | human_confirmation
 ```
+
+项目化执行时，沿用 [工作 Skill 回写契约](../using-shanforge/references/work-skill-return-contract.md)；本 skill 的现有专业输出和失败语义不变。

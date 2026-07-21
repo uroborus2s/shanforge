@@ -31,7 +31,7 @@ license: 完整条款请参阅 LICENSE.txt
 
 ## 输出契约
 
-完成时回写：
+非 Shanforge work item 的轻量交付至少回写：
 
 - `status`: `done` 或 `blocked`
 - `outputs`: 生成的 `.html`、`.js`、`.md` 文件路径和默认 seed
@@ -39,7 +39,21 @@ license: 完整条款请参阅 LICENSE.txt
 - `verification`: 浏览器 smoke check、控制台错误、seed 复现、导出功能或性能观察；未运行要说明原因
 - `needs`: 仍需用户选择的主题、尺寸、色彩方向、导出格式或交互范围
 
-本技能只回写作品实现状态，不替 `using-shanforge` 决定下一步 skill。
+若在 Shanforge work item 中使用，只回写状态包，不替 `using-shanforge` 决定 review、人工确认、提交或下一步 skill：
+
+```text
+工作结果：
+- work_item: <WORKITEM-ID or none>
+- skill: algorithmic-art
+- status: ready_for_review | blocked | needs_user_input
+- outputs:
+  - <html/js/md paths>
+- evidence:
+  - <template reads, screenshot/smoke check, seed reproduction notes, or evidence path>
+- ledger_event: <event id or none>
+- needs:
+  - review | user_input | none
+```
 
 ## 验证要求
 
@@ -51,3 +65,7 @@ license: 完整条款请参阅 LICENSE.txt
 ## Blocked 语义
 
 返回 `blocked` 的情况包括：模板文件不可读、用户要求侵权式风格复刻、运行环境无法验证、缺少必须的尺寸/输出格式且无法合理默认。`blocked` 必须说明已完成的创作决策、阻塞证据和继续所需的最小输入。
+
+`needs_user_input` 用于必须由用户选择主题、尺寸、色彩方向、交互范围或导出格式的情况；能用安全默认值继续实现时不要阻塞。
+
+项目化执行时，沿用 [工作 Skill 回写契约](../using-shanforge/references/work-skill-return-contract.md)；本 skill 的现有专业输出和失败语义不变。

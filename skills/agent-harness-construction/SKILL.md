@@ -16,6 +16,7 @@ description: 设计并优化 AI 代理的行动空间、工具定义和观察格
 - 普通业务功能实现。
 - 只需要使用现有工具完成任务的场景。
 - Shanforge 阶段路由、review gate、人工确认或提交流程；这些由流程总控处理。
+- Codex skill 文本、触发、评估或打包；这些交给 `skill-creator`。
 - 没有明确 agent、工具或观察面要改造的泛架构讨论。
 
 ## 核心模型
@@ -90,19 +91,23 @@ description: 设计并优化 AI 代理的行动空间、工具定义和观察格
 
 ```text
 工作结果：
+- work_item: <WORKITEM-ID or none>
 - skill: agent-harness-construction
 - status: ready_for_review | blocked | needs_user_input
 - outputs:
   - <path 或 inline summary>
 - evidence:
   - <path 或验证说明>
+- ledger_event: <event id or none>
 - needs:
   - review | verification | user_input | none
 ```
 
-## blocked 语义
+## 失败语义
 
-只有在缺少真实目标 agent、工具调用约束、失败样本、安全边界或可验证指标，导致无法判断 harness 是否正确时，才返回 `blocked`。
+`blocked` 用于缺少真实目标 agent、工具调用约束、失败样本、安全边界或可验证指标，导致无法判断 harness 是否正确的情况。
+
+`needs_user_input` 用于必须由用户决定目标 agent、工具权限、安全边界、成本上限或评估目标的情况。
 
 不要把“还可以继续优化”写成 `blocked`；保守给出当前最小可行设计，并把后续增强列为不做事项。
 
@@ -112,3 +117,5 @@ description: 设计并优化 AI 代理的行动空间、工具定义和观察格
 - 工具输出不透明，且没有恢复提示。
 - 仅输出错误，而没有后续步骤。
 - 上下文过载，包含无关的引用。
+
+项目化执行时，沿用 [工作 Skill 回写契约](../using-shanforge/references/work-skill-return-contract.md)；本 skill 的现有专业输出和失败语义不变。

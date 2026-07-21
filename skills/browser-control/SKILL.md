@@ -161,3 +161,5 @@ $browser-control 用本地 Chrome profile 打开 https://example.com，先只读
 ```text
 $browser-control 用 @Browser 打开 http://localhost:3000，检查移动端布局
 ```
+
+项目化执行时，沿用 [工作 Skill 回写契约](../using-shanforge/references/work-skill-return-contract.md)；本 skill 的现有专业输出和失败语义不变。

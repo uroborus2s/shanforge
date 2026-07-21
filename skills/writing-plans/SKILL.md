@@ -75,6 +75,9 @@ description: 有已批准的 spec、需求、设计或 work item brief，且多�
 
 ## 任务粒度
 
+- 任务卡粒度是一个可验收交付物。
+- 步骤粒度留在 task 内部 checklist。
+- 读文件、运行命令、写失败测试、记录 evidence 不是任务卡。
 - 一张任务卡只交付一个可验收交付物。
 - 任务卡必须能独立验证、独立评审，并有清晰完成证据。
 - 2-5 分钟动作只作为任务内部 checklist，不单独拆成任务卡。
@@ -142,3 +145,5 @@ review 输出写入 `.factory/workitems/<WORKITEM-ID>/reviews/plan-review.md`。
 ## 完成状态
 
 本 skill 只把计划推进到 `ready_for_review`。`approved` 必须来自 plan review。代码实现、任务评审、提交和 PR 闭环由流程总控另行判断。
+
+项目化执行时，沿用 [工作 Skill 回写契约](../using-shanforge/references/work-skill-return-contract.md)；本 skill 的现有专业输出和失败语义不变。

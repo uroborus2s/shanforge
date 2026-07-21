@@ -166,3 +166,5 @@ uv run pytest
 `blocked` 用于 `uv` 不可用、项目配置冲突、锁文件无法同步、质量命令失败且根因未解决，或允许文件范围不足以修复工具链事实的情况。
 
 `needs_user_input` 用于 Python 版本、依赖取舍、迁移范围、旧工具链是否保留或外部服务配置必须由用户决定的情况。
+
+项目化执行时，沿用 [工作 Skill 回写契约](../using-shanforge/references/work-skill-return-contract.md)；本 skill 的现有专业输出和失败语义不变。

@@ -105,3 +105,5 @@ description: 收到 review feedback、PR 评论、任务评审意见或外部 re
 `blocked` 用于 feedback 来源缺失、无法复现关键问题、允许文件范围不足、验证命令持续失败或 memory sync 无法完成的情况。
 
 `needs_user_input` 用于 feedback 不清楚、N/A 是否接受未定、用户必须选择架构取舍或 reviewer 意图无法从评论判断的情况。
+
+项目化执行时，沿用 [工作 Skill 回写契约](../using-shanforge/references/work-skill-return-contract.md)；本 skill 的现有专业输出和失败语义不变。

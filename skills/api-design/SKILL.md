@@ -79,3 +79,5 @@ description: REST/HTTP API 契约设计与评审。用于新增端点、变更�
 - needs:
   - none | product_decision | compatibility_review | tests | human_confirmation
 ```
+
+项目化执行时，沿用 [工作 Skill 回写契约](../using-shanforge/references/work-skill-return-contract.md)；本 skill 的现有专业输出和失败语义不变。

@@ -84,3 +84,5 @@ description: 去除或审查文本中的 AI 写作痕迹，使文本更自然、
 - needs:
   - review | verification | user_input | none
 ```
+
+项目化执行时，沿用 [工作 Skill 回写契约](../using-shanforge/references/work-skill-return-contract.md)；本 skill 的现有专业输出和失败语义不变。

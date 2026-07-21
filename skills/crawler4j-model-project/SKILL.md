@@ -166,3 +166,5 @@ description: 使用 crawler4j `0.4.0` 的 `core-native-v2` 模块协议创建、
 `blocked` 用于 CLI 不存在、当前版本与 `0.4.0` / `core-native-v2` 不匹配、结构校验失败、manifest lock 或 package verify 失败、仍存在禁止的旧运行时契约，且不能在允许范围内修复的情况。
 
 `needs_user_input` 用于模块名、GitHub repo、升级源、发布凭据、是否执行破坏性迁移或宿主安装目标不明确的情况。
+
+项目化执行时，沿用 [工作 Skill 回写契约](../using-shanforge/references/work-skill-return-contract.md)；本 skill 的现有专业输出和失败语义不变。

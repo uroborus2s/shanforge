@@ -38,7 +38,7 @@ description: shadcn/ui 项目与组件工作流技能。用于含 components.jso
 
 ## 输出契约
 
-完成时回写：
+非 Shanforge work item 的轻量交付至少回写：
 
 - `status`: `done` 或 `blocked`
 - `outputs`: 新增/修改组件、配置、样式文件或评审结论
@@ -46,7 +46,21 @@ description: shadcn/ui 项目与组件工作流技能。用于含 components.jso
 - `verification`: 已运行的 typecheck、lint、test、build、组件渲染检查；未运行要说明原因
 - `needs`: 仍需用户确认的 registry、preset、覆盖策略或视觉选择
 
-本技能只回写 shadcn 工作状态，不替 `using-shanforge` 选择下一步 skill。
+若在 Shanforge work item 中使用，只回写状态包，不替 `using-shanforge` 决定 review、人工确认、提交或下一步 skill：
+
+```text
+工作结果：
+- work_item: <WORKITEM-ID or none>
+- skill: shadcn
+- status: ready_for_review | blocked | needs_user_input
+- outputs:
+  - <component/config/style paths or review notes>
+- evidence:
+  - <components.json reads, rule/reference reads, CLI preview/diff, verification output, or evidence path>
+- ledger_event: <event id or none>
+- needs:
+  - review | user_input | none
+```
 
 ## 验证要求
 
@@ -57,3 +71,7 @@ description: shadcn/ui 项目与组件工作流技能。用于含 components.jso
 ## Blocked 语义
 
 返回 `blocked` 的情况包括：找不到项目配置、registry/preset 来源不明确、命令需要联网但失败、会覆盖本地改动且未获授权、所需组件 API 无法确认。`blocked` 必须写清已检查内容、风险和恢复所需的最小决定。
+
+`needs_user_input` 用于必须由用户决定 registry、preset、覆盖策略、视觉取舍或安装授权的情况；可用现有组件安全完成时不要阻塞。
+
+项目化执行时，沿用 [工作 Skill 回写契约](../using-shanforge/references/work-skill-return-contract.md)；本 skill 的现有专业输出和失败语义不变。

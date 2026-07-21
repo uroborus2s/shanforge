@@ -10,6 +10,7 @@ description: "创造性工作进入需求、设计、计划或实现前使用；
 ## 核心原则
 
 - 先看当前阶段和 work item，再决定是否需要头脑风暴。
+- 没有项目化意图时，只做会话澄清或轻量分析；不落盘、不创建 work item、不写 ledger。
 - 不把所有请求强行转换成从零开始的设计流程。
 - 不靠提示词硬门控项目流转；流转依据是 `.factory/memory/`、work item 状态、ledger 和用户批准。
 - 设计未获批准前，不得把同一个 work item 推进到计划或实现。
@@ -61,6 +62,7 @@ description: "创造性工作进入需求、设计、计划或实现前使用；
 
 | 当前状态 | 本 skill 动作 | 状态回写 |
 |---|---|---|
+| 无项目化意图的一次性分析 | 直接输出轻量澄清、方案比较或建议 | `status: done`；`needs: none`；不落盘 |
 | 无 work item 或仅有一句话想法 | 澄清目标、约束、成功标准；形成 work item brief 草稿 | `status: needs_user_input`；`needs: work_item_registration` |
 | `BRAINSTORM` 或 brief 不完整 | 一次一个问题补齐 brief；提出 2-3 个方案 | `status: needs_user_input \| ready_for_review`；`needs: approval \| review` |
 | 已有 brief，缺需求结构 | 不重启头脑风暴；记录需求结构缺口 | `status: ready_for_review`；`needs: requirements` |
@@ -98,7 +100,7 @@ description: "创造性工作进入需求、设计、计划或实现前使用；
 
 - 小改动和单个功能的头脑风暴结果写入 `.factory/workitems/<WORKITEM-ID>/brief.md`。
 - 过程事件、用户批准、视觉选择和状态回写事件写入 `.factory/workitems/<WORKITEM-ID>/ledger.jsonl`。
-- 项目级发现、产品定位或全局范围变化，才更新 `docs/04-project-development/02-discovery/brainstorm-record.md`。
+- 项目级发现、产品定位或全局范围变化，优先更新当前 work item brief；确需成为正式事实时，新增或更新对应 `docs/04-project-development/` 正式页面并同步根导航、文档索引和 doc-map。
 - 需要正式需求时，把 `needs` 标记为 `requirements`，由流程总控决定后续处理。
 - 需要正式设计时，把 `needs` 标记为 `design`，由流程总控决定后续处理。
 - 视觉探索中间文件放在 `.factory/workitems/<WORKITEM-ID>/design-assets/brainstorm/<SESSION-ID>/`。
@@ -187,3 +189,5 @@ description: "创造性工作进入需求、设计、计划或实现前使用；
 - 保留用户明确批准的决策，不在后续自行改写。
 - 发现当前阶段、work item 或 ledger 与对话记忆冲突时，以 `.factory/memory/`、ledger、git 事实和 evidence 为准。
 - `needs` 只是状态回写，不是 skill 路由决策；流程路由由 `using-shanforge` 判断。
+
+项目化执行时，沿用 [工作 Skill 回写契约](../using-shanforge/references/work-skill-return-contract.md)；本 skill 的现有专业输出和失败语义不变。

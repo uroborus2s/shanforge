@@ -32,7 +32,7 @@ description: UI/UX 设计智能与质量检查技能。用于界面结构、视�
 
 ## 输出契约
 
-完成时回写：
+非 Shanforge work item 的轻量交付至少回写：
 
 - `status`: `done` 或 `blocked`
 - `outputs`: 设计说明、修改文件、评审清单、截图或原型路径
@@ -40,7 +40,21 @@ description: UI/UX 设计智能与质量检查技能。用于界面结构、视�
 - `verification`: 已运行的构建、测试、截图检查、可访问性/响应式检查；未运行要说明原因
 - `needs`: 仍需用户确认的视觉方向、品牌素材、设备范围或业务取舍
 
-本技能只报告 UI/UX 工作状态，不替 `using-shanforge` 决定下一步 skill。
+若在 Shanforge work item 中使用，只回写状态包，不替 `using-shanforge` 决定 review、人工确认、提交或下一步 skill：
+
+```text
+工作结果：
+- work_item: <WORKITEM-ID or none>
+- skill: ui-ux-pro-max
+- status: ready_for_review | blocked | needs_user_input
+- outputs:
+  - <design notes, changed files, screenshots, prototype, or review checklist>
+- evidence:
+  - <query commands, reference data, screenshots, browser checks, tests, or evidence path>
+- ledger_event: <event id or none>
+- needs:
+  - review | user_input | none
+```
 
 ## 验证要求
 
@@ -50,4 +64,8 @@ description: UI/UX 设计智能与质量检查技能。用于界面结构、视�
 
 ## Blocked 语义
 
-只有在缺少关键输入且无法合理默认时才返回 `blocked`，例如没有目标用户/品牌约束、无法访问待评审页面、项目依赖无法安装或视觉资产缺失。`blocked` 必须列出缺口、已尝试的证据和恢复所需的最小用户输入。
+只有在缺少关键输入且无法合理默认时才返回 `blocked`，例如无法访问待评审页面、项目依赖无法安装或关键视觉资产缺失。`blocked` 必须列出缺口、已尝试的证据和恢复所需的最小用户输入。
+
+`needs_user_input` 用于必须由用户决定目标用户、品牌约束、设备范围、视觉方向或业务取舍的情况；能用项目现有设计系统合理默认时不要阻塞。
+
+项目化执行时，沿用 [工作 Skill 回写契约](../using-shanforge/references/work-skill-return-contract.md)；本 skill 的现有专业输出和失败语义不变。

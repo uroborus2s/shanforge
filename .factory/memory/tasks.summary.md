@@ -1,7 +1,178 @@
 # 任务摘要
 
-- 当前阶段：`IMPLEMENTATION`
-- 当前焦点：`FLOW-CONTRACT-001` 已按顺序实施队列完成 `FLOW-TASK-010` 首轮实现和独立 review，当前 gate 是 `pending_human_confirmation`；人工确认前不得进入 `FLOW-TASK-011`。另按用户要求完成 `SKILL-FLOW-AUDIT-001` iteration-4 三个评审 / 测试子任务，流程完整性结论仍是 `changes_requested`。
+- 当前阶段：`TASK-IMPLEMENT-002 DEVELOPMENT IMPLEMENTATION / T01 T02 T03 T04 COMPLETE 4 OF 8 / T05 UNDER REVIEW`
+- 当前焦点：T05 隔离项目进度投影 Worker 已完成实现验证，当前独立 Spec/Quality Review。无人工 Gate，正式产品事实仍为 15/123。
+
+> 历史读取规则：以下所有带日期条目都是记录发生时的历史快照。条目中的“当前”“下一步”只表示当时状态，不得覆盖本文件顶部的当前焦点和当前动作。
+
+- 2026-07-21：T05 完成 Red/Green 与作者验证：172/79/101/323 tests、Ruff/format/mypy 全绿，当前独立 Review。P001 完成仍为 4/8，无人工 Gate。
+- 2026-07-21：T04 最终 Spec/Quality `approved / 100 / C0-I0-M0`，五项 Finding 全闭；29/101/121/286 tests、事务/竞态探针与静态门全绿。P001 完成 4/8，进入 T05。
+- 2026-07-21：T04 完成 Red/Green：21/93/113/286 tests 与 Ruff/format/mypy 全绿，当前独立 Spec/Quality Review。P001 完成仍为 3/8，无人工 Gate。
+- 2026-07-21：T03 Spec `approved / 100`；Quality 两项 Important 已整改并由同一 reviewer 复验为 `approved / 100 / C0-I0-M0`。Finding 12、T03 20、联合 272、相邻 18 passed，静态门全绿。P001 完成 3/8，T04 实现中。
+- 2026-07-21：T03 提供一次 commit 的 application service、typed command/result 和薄 access API；T03 8、联合260、相邻18 passed，静态门全绿，当前独立 Review。
+- 2026-07-21：T02 经三轮 Spec Review/整改最终 Spec/Quality 均 `approved / 100 / C0-I0-M0`；72/252/105 tests 和静态门全绿。P001 完成 2/8 并进入 T03，无人工 Gate。
+- 2026-07-21：T02 initial Spec Review `changes_requested / 84 / C0-I2-M0`；same-version schema drift 与 qualification/receipt binding 两项已进入同范围 TDD 整改，Quality not_run，无人工 Gate。
+- 2026-07-21：T02 已实现 versioned SQLite、独立 staging qualification、单事务正式晋升、逐对象回读、不可变 event/receipt、幂等 replay 和并发序列；定向 59、联合 239、project-control 105 passed，静态门全绿。当前独立 Review，无人工 Gate。
+- 2026-07-21：T01 经 8 次 Spec Review/定向整改循环最终收口；replacement independent reviewer 最终 Spec/Quality 均 `approved / 100 / C0-I0-M0`，T01 focused `180 passed`，Ruff/format/mypy/diff check 全绿。P001 完成 `1/8` 并直接进入 T02，无人工 Gate。
+- 2026-07-20：用户授权连续完成 TASK-IMPLEMENT-002 P001 的 T01–T08 代码、测试、独立 Review、同范围整改和 R001 候选编制。执行从 T01 开始，内部 checkpoint 不停人工确认；正式发布、Git、远端和部署仍排除。
+- 2026-07-20：T01 合同内核已完成 Red/Green，主协调器新鲜复验 28 passed，Ruff/format/mypy/diff check 通过；当前独立 Spec/Quality Review 进行中，通过后直接进入 T02。
+- 2026-07-20：T01 独立 Spec Review `changes_requested / 41 / C3-I1-M0`，Quality not_run；四项真实缺口已进入同范围 TDD 整改，无人工 Gate，整改后回同一 reviewer 复审。
+- 2026-07-21：T01 C3-I1 已用三轮 Red/Green 关闭；focused suite 96 passed，Ruff/format/mypy/diff check 全绿。当前同一独立 reviewer Spec re-review + Quality Review，内部连续执行。
+- 2026-07-21：T01 re-review iteration 1 确认 C-001/C-002 关闭，剩余 split security C1 与 merge identity I1；当前第二轮 TDD 整改，无人工 Gate。
+- 2026-07-21：T01 剩余 C1/I1 已完成第二轮 Red/Green，focused suite 123 passed，Ruff/format/mypy/diff check 全绿；当前同一 reviewer 第二次 Spec 复验 + Quality Review。
+- 2026-07-21：T01 re-review iteration 2 关闭 merge identity，新增 path-aware security C1 与 aggregate false-positive I1；当前第三轮 TDD 整改，无人工 Gate。
+- 2026-07-21：T01 path-aware security 整改已完成，focused suite 137 passed，Ruff/format/mypy/diff check 全绿；当前同一 reviewer iteration 3 + Quality Review。
+- 2026-07-21：T01 re-review iteration 3 仅剩两个 nested sibling authorization bypass；当前最后一轮定向 TDD 整改，无人工 Gate。
+- 2026-07-21：T01 最后 finding 已完成定向 Red/Green，focused suite 147 passed；当前同一 reviewer iteration 4 + Quality Review。
+- 2026-07-21：T01 re-review iteration 4 仅剩两个 nested scope exact bypass；当前递归路径语义摘要整改，无人工 Gate。
+- 2026-07-20：`TASK-IMPLEMENT-002` 精确 11 项范围已转为 P001 和 8 个代码任务。Iteration 1 `76/C0-I6-M3`、Iteration 2 `88/C0-I1-M1` 均自动整改；Iteration 3 最终 `approved / 98 / C0-I0-M0`。计划采用非权威 staging qualification、只追加权威事件、单事务正式晋升、双状态、背压/lease 和精确候选 Review 路径。当前只等待代码实施授权，没有修改本增量产品代码。
+- 2026-07-20：R001 正式文档事务 `DELIVERY-DOCS-ACTIVATION-TX-R001-G001` 完成。6 个正式目标与冻结 after-image 字节相同，formal manifest `cad74cb3…dc27`、root `632e705a…869c`；发布后 validator、832 pytest、Ruff、format299、mypy236、Skill38、docs-stratego、lock/JSONL/diff 全绿。完成层级为第 8/8 步当前本地交付闭环；项目产品范围仍剩余 108 项。
+- 2026-07-20：`uroborus` 已批准 `TASK-DELIVERY-001-R001`，批准绑定当前唯一冻结 manifest `4dcd7ad0…3f0c`；交付内容验收完成。完成层级是 `delivery_content_accepted`，不是第 8/8 步或项目整体完成；正式 docs 尚未激活，正式需求实现仍为 15/123。
+- 2026-07-20：第 8/8 步已连续执行到最终内容验收 Gate。`TASK-DELIVERY-001-R001` artifact root `632e705a…869c`，独立复审 `approved / 100 / 0-0-0`；主线程复验 source 10/10、artifacts/docs 6/6、攻击 6/6、pytest 832/832、Ruff 0、format 299、mypy 0/236、Skill 38/38 和文档结构门全绿。完成层级仍是交付候选，不是项目整体完成；正式需求 123，产品代码实现 15，剩余 108。
+- 2026-07-20：R002 candidate `6f701da5…43fdc` 经独立复审 `approved / 100 / 0-0-0` 和人工批准后，由本地事务正式激活。Formal manifest `eae82c90…77c0a`，released event 唯一计数 1；发布后 832/832、Ruff 0、mypy 0/236、format 299、Skill 38/38、17+8 负向攻击全部通过。完成层级为第 7/8 步；正式需求 123，产品代码实现 15。
+- 2026-07-19：TASK-SKILL-002 为剩余 32 个工作 Skill 增加 `project_position`、`completion_level`、`stop_reason`、`scope_remaining` 四字段及路由边界；不改变专业触发语义、人工 Gate 或流程 owner。与 TASK-SKILL-001 合计覆盖顶层 Skill `38/38`。RED 2/2、GREEN 4、定向 11、相邻 136、全仓 828 passed；独立初审 1 Important / 1 Minor 全部关闭，最终 `approved / 100 / 0-0-0`。产品代码需求实现数仍为 15，本任务不增加该计数。
+
+- 2026-07-19：TASK-SKILL-001 修改 6 个顶层流程 Skill，使会话先报告项目整体位置，内部实现/验证/只读 review/同范围整改不再逐项确认，真实人工 Gate 继续硬停止。RED 6/1，GREEN 7；首轮两项 Important 和复审一个 Minor 全部关闭，最终 `approved / 100 / 0-0-0`；定向 12、相邻 40、全仓 824 passed。
+
+- 2026-07-19：用户撤销未发布的 R001 并授权删除未使用的 runtime Skill 管理链路。TASK-QUALITY-002 删除 6 个 Skill 源码文件、专属 ports、context/session 字段、settings/composition/catalog 和旧行为测试，增加防回退结构测试并同步设计事实；Ruff、format、mypy src、817 项 pytest 和 diff check 通过。同一独立 reviewer 最终 `approved / 100 / 0-0-0`，I-001/I-002 全部关闭。当前无活动候选或人工 Gate。
+
+- 2026-07-19：P001 T08 与整个开发实施批次完成。T08 Spec C-001（重复权限来源静默覆盖）和 Quality I-001（event-log 计数 oracle 恒真）均经 RED→GREEN 整改关闭，最终 Spec/Quality Re-review 均 `approved / 100 / 0-0-0`。主代理新鲜验证 target `22 passed`、项目控制 `519 passed`、全仓 `809 passed`，failed/skipped/not_run=`0/0/0`；T08 changed-file Ruff/format、隔离 mypy、diff check 通过。全仓既有 Ruff/mypy 债务仍为 `33/73`，精确登记为 concern。第 5/8 步“开发实现”完成，正式发布、Git、远端、部署均未执行。
+
+- 2026-07-19：P001 T06 快速验证与 durable transfer 完成。replay outcome 单调性、readback qualification receipt、orphan dispatcher/worker 拒绝及 POSIX 同线程 deadline 已完成 TDD 整改；Spec Recheck 5 与 Quality Re-review 均 `approved / 98 / 0-0-0`。主代理新鲜复验 target `89 passed`、T05+T06 `131 passed`、direct POSIX `1 passed`，Ruff/mypy/format 通过。T06 状态 `ready_for_next_task`，已按连续授权进入 T08。
+
+- 2026-07-19：P001 T04 权限安全十五行状态回复完成。Quality Review 发现 raw facts 可自授权的 Critical，TDD 整改为独立 exact-context permission grant/port；整改后 Spec/Quality Re-review 均 `approved / 100 / 0-0-0`。主代理新鲜复验 target `38 passed`、相邻 `303 passed`、contract/provenance `74 passed`，Ruff/mypy/format 通过。T04 状态 `ready_for_next_task`，无新增人工门。
+
+- 2026-07-19：P001 T07 provenance/hygiene 完成。独立 Spec Re-review 2 与 Quality Re-review 均 `approved / 100 / 0-0-0`；registry authority、final receipt qualification、跨 adapter JSONL once-only、深层不可变性均已关闭。最终 target `64 passed`、相邻 `404 passed`、定向攻击 `8 passed`，Ruff/mypy 通过。T07 状态 `ready_for_next_task`，无新增人工门。
+
+- 2026-07-19：P001 T02 fixed-H 位置查询完成。Spec Re-review 与 Quality Re-review 均 `approved / 100 / 0-0-0`；deep event immutability、stage-map canonical hash、显式 high-water port 与主动行为 spy 全部关闭。复审验证 contracts+position `73 passed`、adjacent disposition `197 passed`，Ruff/mypy 通过；并行切片联合 `388 passed`。T02 状态 `ready_for_next_task`，既有授权已直接启动 T04。
+
+- 2026-07-19：P001 T05 evidence/Gate CAS 完成。Quality 初审的 replay eligibility、SQLite lifecycle/concurrency 与 datetime coverage 经 TDD 整改，独立 Quality Re-review `approved / 100 / 0-0-0`；新鲜目标 `42 passed`、相邻 `249 passed`、定向攻击 `10 passed`，Ruff/mypy 通过。T05 状态 `ready_for_next_task`，既有批次授权已直接启动依赖任务 T06，无新增人工门。
+
+- 2026-07-19：P001 T03 disposition/Gate 完成。Spec 的 proof trim/whitespace Finding 经攻击测试整改，Spec Re-review `approved / 100 / 0-0-0`；Quality Review `approved / 97 / 0-0-1`，仅剩非阻塞 purity-test alias Minor，独立 `asdict()` 探针已证明运行时输入不变。共享 T02 契约变化后，主代理联合复验 contracts+position+disposition+evidence 为 `303 passed`，Ruff 通过，mypy 27 files 通过。既有批次授权满足内部转移，T03 状态 `ready_for_next_task`，没有新增人工门。
+
+- 2026-07-19：P001 T01 合同内核已完成。初始 Red 为模块缺失，Green 9/9；Spec Review `changes_requested / 56` 的 1 Critical+3 Important 经攻击测试整改后复审 `approved / 100`；Quality Review `changes_requested / 84` 的深层可变性问题经 JSON list/mutation/hash 攻击整改后复审 `approved / 100`。最终主代理验证 pytest `12 passed`、Ruff、mypy 通过。T01 状态仅为 `ready_for_next_task`，依据既有 T01–T08 连续授权进入 T02/T03/T05/T07 并行层，不新增人工确认。
+
+- 2026-07-19：`uroborus` 回复“授权进行开发实施”，一次授权覆盖 P001 T01–T08 本地产品代码、测试、独立代码评审和同范围整改循环；不包含正式发布、Git、远端或部署。项目进入第 5/8 步“开发实现”，当前 T01 合同内核进行中。
+
+- 2026-07-19：用户要求把正式设计转换为实施计划和代码任务。P001 生成主计划、主 TaskCard、8 个纵向代码任务、scope anchor、validator、自审和 Review 输入；作者最终 `194/194`。首轮独立 Review `changes_requested / 89 / 0-1-0` 发现 T06/T04 fixture owner 冲突；按技术核实将跨切片断言唯一移到 T08，复审 `approved / 96 / 0-0-0`。计划 SHA-256 `fd6c7600...2a9f`，Decision `20e2e2c...e839`。当前无开放 Finding；未修改 `src/`/`tests/`，下一步需一次代码实施授权。
+
+- 2026-07-19：`uroborus` 明确批准完整 R020 设计内容并授权正式发布与发布后验证。事务 `DESIGN-RELEASE-TX-R020-G001` 原子写入 49 个目标，将 docs 由 68/17 迁移为 37/7；formal after-image root `7bf3fcd9…ea8c`。事务内与独立新鲜复验均为 pytest 287/287，十个测试消费者 Ruff、CAS、syntax 和 diff check 通过。默认 UV 用户缓存的沙箱拒绝经事务缓存单变量复验确认为环境路径问题，无需改实现或回滚。R020 状态 `released`，本轮没有用户待办。
+
+- 2026-07-19：用户连续授权范围已执行到唯一停止点。R019 未激活树精确回滚；R020 纳入 10 个测试消费者、doc-map 和 49 项正式事务合同。R1 `R020-I-001` 经技术核实后最小修复，R2 独立复审 `APPROVED / 100 / 0-0-0`；真实离线 `uv run pytest` 287/287。候选 root `17ea01a3…6230`、manifest `91263f32…38b6`、Decision `f2d92420…e693`。当前等待人工精确哈希批准。
+
+- 2026-07-18：用户确认发布后验证器根因并授权最小修复。TDD 回归由 `37/68` RED 转 GREEN，正式复验 38/38。随后全仓 pytest 后像为 28 failed/259 passed，精确前像隔离对照为 2 failed/285 passed；差分确定 27 个新增失败来自 10 个测试文件仍绑定退役 `docs/04-project-development` 路径。根因是 R019 声明 tests 为 required consumer，却未把真实测试纳入 exact write set，也未在 release-ready 门运行仓库 pytest。Finding `R019-RELEASE-C-004` 已登记；未回滚、未激活、未改测试。
+
+- 2026-07-18：`uroborus` 授权基于已批准 R019 执行正式设计发布事务。事务完成 68 文件/17 目录到 37 文件/7 目录迁移，38 个目标 after-image root 为 `d887ca63...18002`，写入阶段校验 0 失败。发布后复验命令因验证器先执行发布前基线检查而误报 `37/68`；正式树仍处于 `formal_tree_committed_pending_activation`，回滚副本保留，未追加 `released`。根因报告已形成，按调试门等待人工确认后再做最小修复与最终复验。
+
+- 2026-07-18：`uroborus` 回复“批准 R019”，精确绑定 candidate root `768969d5...e00`、manifest `36bf78de...6fb`、独立 Decision `83a246a8...250` 和 final-hygiene receipt `930cdcd9...b46`。批准登记前只读 CAS 核验确认 24 present / 3 absent 均未漂移。R019 状态改为 `candidate_approved`；该批准不授权正式设计发布、Git、远端或部署，下一 Gate 为正式设计发布事务授权。
+
+- 2026-07-18：用户授权按 `R018-RELEASE-C-001..003` 编制 R019 并自动完成作者验证、独立只读复审及必要整改循环。R019 R1/R2 的 1 Critical、2 Important 均经技术核实和同范围整改关闭；R3 最终 `approved / 100`，0/0/0 Finding。required `63/63`、full `1321/1321`、review gate `84/84` 和唯一一次 final hygiene `24 present / 3 absent / 27 passed` 均通过。精确 candidate root `768969d5...e00`、manifest `36bf78de...6fb`、Decision `83a246a8...250`；当前只停在 R019 精确哈希人工批准门，未执行正式发布、Git、远端或部署。
+
+- 2026-07-18：`uroborus` 已授权基于批准 R018 执行正式设计发布事务。预检在正式树写入前发现 `R018-RELEASE-C-001..003`：正式 source 路径未登记，Builder basename 合同与正式路径不兼容，且 PRD/需求矩阵/文档索引 CAS 前像仍绑定 R003 发布前哈希。为保持精确候选哈希、CAS 和未登记写入阻断规则，事务未触碰 docs、未追加 released；下一 Gate 是授权修订候选的编制、作者验证和独立只读复审，停止于新候选精确 hash 人工批准。
+
+- 2026-07-18：`uroborus` 通过“批准 R018”与“R018 是什么？通过”批准此前精确确认包绑定的 candidate root `012d1d3f...6305`。批准登记前后 24 个在场文件 hash/bytes 与 final receipt 相符、3 个 no-transfer async 路径仍 absent。R018 候选现为 `candidate_approved`；正式设计发布、Git 和远端操作没有被该批准授权。
+
+- 2026-07-18：R018 R5 独立只读复审最终 `approved / 100`，0 Critical、0 Important、0 Minor；唯一格式兼容项由同一 Reviewer 最小修正并重新绑定，review gate `84/84`。唯一一次 final hygiene 证明 24 present / 3 no-transfer async absent、27/27，receipt `R018-G001-FINAL-HYGIENE-a380f7e1d0a20390` 已落 ledger。当前精确 candidate root `012d1d3f...6305` 等待人工批准；没有后台任务，未执行正式发布、Git 或远端操作。
+
+- 2026-07-18：R018 R4 独立复审为 `changes_requested / 94`，0 Critical、1 Important；预算项已关闭，只剩 registry/result 同步变更绕过权威 hash。R5 已从 source 54 seeds + 6 contracts 独立派生完整 registry，并跨 report identity/reuse/manifest 绑定 hash，五类组合 mutation 全部拒绝；作者 full `1293/1293`。新 root `012d1d3f...6305` 和 R5 input `23be854e...6410` 已派发，用户无需操作。
+
+- 2026-07-18：R018 R3 独立复审为 `changes_requested / 88`，0 Critical、2 Important。R4 已把 required result ID 与冻结 registry 精确绑定，并为 12 个预算 seed 建立独立期望表及逐项 8 类 drift mutation；作者 `60/60`、`86/86`、full `1283/1283`。新 root `4c3b146e...8961` 和 R4 review input `ed182fc5...6a14` 已派发同一 Reviewer，用户无需操作。
+
+- 2026-07-18：R018 R2 独立复审为 `changes_requested / 80`，0 Critical、2 Important。R3 已补齐完整 reuse eligibility、实际 package normalized command、36 组 state matrix、12 个预算边界和 10k/100k 全量性能投影；作者 `60/60`、`86/86`、full `1281/1281`。新 root `9b62e085...421b` 和 R3 review input `57473702...00665` 已派发同一 Reviewer，用户无需操作。
+
+- 2026-07-18：R018 首轮独立评审为 `changes_requested / 58`，Finding 1 Critical、4 Important，涉及未执行 test seeds、正式 15+5 identity、transfer CAS、writer provenance 和 final receipt。作者在 R018 授权写集内完成整改：60 项 exact required registry 全运行，full `1274/1274`；新 root `1e49b292...46b8d`，R2 review input `ccb233d0...2be45` 已派发同一 Reviewer，用户无需操作。
+
+- 2026-07-18：`uroborus` 批准 P022 精确 SHA-256 `c3d6a598...e2b1`，授权自动执行 R018 候选编制、作者验证、独立只读复审及必要整改循环，只在 R018 精确候选哈希人工批准门停止；正式发布、Git 和远端操作仍未授权。
+
+- 2026-07-18：P022 独立只读复审完成，Decision `approved / 97`，0 Critical、0 Important、0 Minor；`P021-I-001` 及 P020/P019/P018 继承项全部 closed。20/20 冻结 hash、Red、author 232/232、package 257/257 与 R018 0/27 均经主流程复核。当前进入精确 P022 计划 SHA-256 人工批准门，未生成 R018，未执行正式发布或 Git/远端动作。
+
+- 2026-07-18：用户授权按 `P021-I-001` 编制并复审 P022。P022 将 hygiene/final receipt 升级为 branch-aware v2，作者验证 `232/232 passed`，冻结 review input `c3415225...b3f1`；当前继续派发原 Reviewer，只允许其写一份 P022 Decision。未生成 R018，未执行正式发布或 Git/远端动作。
+
+- 2026-07-18：P021 独立复审完成，Decision `changes_requested / 88`，0 Critical、1 Important、0 Minor。`P021-I-001` 确认 no-transfer 与静态 24/3→27 hygiene/final manifest 冲突：合法 no-transfer 应为 pre-T06 21 present/6 absent、final 24 present/3 async absent；transfer 才是 24/3 和 27。P020-I-002 closed，P020-I-001/I-003 open；结果完整性核验通过，P021 不得进入人工计划批准。下一 Gate 是用户授权编制并复审 P022。
+
+- 2026-07-18：用户授权按 `P020-I-001..I-003` 编制并复审 P021。P021 已把 quick verification 改为 session-level absolute deadline + 5000ms reserve + remaining-budget admission，分离 no-transfer/transfer；把 15 字段 execution identity 与结果端 20 字段 reuse key 分离；以 control-plane ArtifactWriteAttestation 和 27 文件外 FinalHygieneReceipt 建立 provenance。作者验证 `226/226 passed`，当前进入独立只读复审派发 Gate；未生成 R018，未执行正式发布或 Git/远端动作。
+
+- 2026-07-18：P020 独立复审完成，Decision `changes_requested / 78`，0 Critical、3 Important、0 Minor。P019-M-001 已关闭，P019-I-001/I-002 仍开放；新增 `P020-I-001..I-003`，分别要求 session-level 60 秒预算与 dispatch reserve/双分支、执行前 `EvidenceExecutionIdentity` 与执行后 EvidenceReuseKey 分离、权威 writer attestation 和 27 文件外 final receipt。Decision 完整性与技术依据核验通过，P020 不得进入人工计划批准。下一 Gate 是用户授权编制并复审 P021。
+
+- 2026-07-18：用户授权按 `P019-I-001`、`P019-I-002`、`P019-M-001` 编制并复审 P020。P020 已补齐 versioned RegressionTask、`fork_context=false`、59s/60s/61s、L1-L4 预计/实际转移、正式五字段 CAS、完整状态与 parent Gate；把内容卫生改为 T05 的 24 present/3 absent 和 T06 的 final 27，并修正 anchor `27-path` 同源计数。作者验证 `228/228 passed`，当前进入独立只读复审 Gate；未生成 R018，未执行正式发布或 Git/远端动作。
+
+- 2026-07-18：P019 独立复审完成，Decision `changes_requested / 82`，0 Critical、2 Important、1 Minor。关闭 P018 七项中的 5 项，`P018-I-005` 与 `P018-M-001` 仍开放；新增/细化 `P019-I-001`、`P019-I-002`、`P019-M-001`。Decision 完整性和技术依据核验通过，P019 不得进入人工计划批准。下一 Gate 是用户授权编制并复审 P020。
+
+- 2026-07-18：用户授权“按7项Finding编制并复审P019”。P019 已统一 candidate root、progress conflict 失败码、L1-L4、EvidenceReuseKey、60 秒 durable async V4、27 路径 registry 和 content-hygiene；作者验证 `242/242 passed`，冻结 review input `b533a572...9fdb`。下一步真实派发原 Reviewer `/root/p018_plan_review`；P019 approved 前不提交人工计划批准，P019 人工批准前不生成 R018。
+
+- 2026-07-18：P018 独立只读计划复审完成，Decision 为 `changes_requested / 71`，Finding 为 0 Critical、6 Important、1 Minor；阻塞项分别涉及候选身份、progress conflict 失败码、验证层定义、EvidenceReuseKey、V4 异步路径和 exact write set，另有未跟踪新文件 `git diff --check` 空通过 Minor。六份 UI `N/A` 全部接受，限无产品 GUI。P018 不可提交人工计划批准；下一 Gate 是用户授权编制 P019 整改版。
+
+- 2026-07-18：用户明确“授权独立子代理只读复审 P018”。人工授权以后置 ledger 事件绑定冻结 review input SHA-256 `9189747a...e6716` 和计划 SHA-256 `79dfb17c...a9f9`；独立 Reviewer `/root/p018_plan_review` 以 `fork_context=false` 派发，只能读取冻结输入并写一份 Decision，禁止修改计划、Task Brief、正式文档、代码、Memory、ledger 或 Git 状态。
+
+- 2026-07-18：用户授权编制新的设计重基线计划 `TASK-DESIGN-001-P018`。AI 基于 PRD/需求矩阵 `v4.0.0` 和索引 `v2.0.0` 冻结 P018 主计划、T01..T06 六个 Task Brief、scope anchor、validator、作者验证、自评和独立复审输入。首轮作者验证真实失败 8 项，逐项补齐 `NFR-VIS-002/003/004` 与 `REQ-AI-WORKFLOW-042/045/046/047/054` 后 `255/255` 通过。当前停在独立只读计划复审授权门；未生成 R018，未修改正式设计/产品代码/测试，未执行 Git 或远端动作。
+
+- 2026-07-18：`uroborus` 批准 R003 精确 SHA-256 `4515c91e...34665b`、确认 `MAJOR` 并授权正式需求发布。AI 将 `REQ-CHANGE-AI-EXEC-VISIBILITY-001` 融入 PRD `v4.0.0`，同步需求矩阵 `v4.0.0` 和文档索引 `v2.0.0`；正式发布不恢复 P017/R017，不包含新设计、实现或 Git/远端动作。
+
+- 2026-07-18：R002 同一 Reviewer 复审为 `changes_requested / 78`，原 8 项关闭 6、开放 2，新增 2 个 Important。R003 改用唯一 snapshot reducer + 纯 position adapter，evidence 重算 hash 并绑定当前 Gate，权限侧信道和十类旧资格进入真实 evaluator，scope 前像由编制前 ledger 事件/独立 anchor 锚定，回复变更明确为 `MAJOR`。首轮 exact write set 验证真实失败 6 项，修正完整路径后 `124/124` 通过。
+
+- 2026-07-18：用户授权独立子代理只读评审 `TASK-REQ-005-R001`。Reviewer `/root/req005_review` 在隔离上下文核对 9 个冻结 hash 后给出 `changes_requested / 50`，发现 1 Critical、7 Important。R002 将状态改为不具 Gate 权限的派生处置维度，绑定唯一正式 lifecycle artifact/stage-map/H，闭合 Review 派发、证据恢复 CAS、权限过滤和 P017/R017 十类旧资格失效，并用 104 条语义/攻击断言验证通过。下一步为同一 Reviewer R002 复审。
+
+- 2026-07-15：Reviewer Arendt 对 R009 的同一 Reviewer 只读复审为 `changes_requested / 66`，5 项关闭，`I-003` 和 `I-006` 因验证假通过保持开放。R010 已精确闭合 13 条 canonical edge、9 个 ActionSpec 上游引用和 11 个接口；56 个 fixture 由 56 个逐编号 evaluator 执行 183 条语义断言，69 个 mutation 各有唯一 operator、目标和已发布语义探针绑定。56/56、69/69、9 个定向攻击、全部旧 profile、需求影响、158 项暂存发布和三处失败恢复通过；下一步交同一 Reviewer Arendt 复审，通过后停在人类四哈希确认门。
+
+- 2026-07-15：Reviewer Arendt 对 R008 的独立只读评审为 `changes_requested / 52`，0 Critical、6 Important、1 Minor。七项均已由主流程复现，并在同一 `TASK-DESIGN-001` 内形成 R009：修正 P006 绑定和 9 个需求指针，补齐九步 typed dataflow、工具回执、SQLite 复合外键与完整校验快照，把 56 条夹具和 69 条变异改为逐条实际执行，并清理过期描述。56/56、69/69、SQLite 探针、全部 profile 和 7 个定向篡改探针通过；下一步由同一 Reviewer Arendt 复审，复审通过后停在人类四哈希确认门。
+
+- 2026-07-15：用户批准 `TASK-DESIGN-001-P006` 精确哈希并激活条件化写集。R008 已在同一 TaskCard 内完成：`WF-CTL-010` 九步链、4006 条 Catalog、77 条需求覆盖、9 张 SQLite 表、216 状态组合、9 工具、137 字段、56 fixture 和 69 类风险绑定；IA 保持 36 文件/7 目录/68 处置。`bootstrap、cp01、cp02、cp03、cp04、requirement-impact、final` 全部退出 0，source-red 按预期退出 2，158 项暂存发布和三处失败恢复通过。四哈希为设计 `637c52e4...47e2`、Catalog `fba1bf31...dc92`、validator `6db443ff...a69`、发布清单 `5936fbdf...590e`。当前等待独立只读评审授权，尚未派发 Reviewer。
+
+- 2026-07-15：用户授权在原 `TASK-DESIGN-001` 内修复 P005 的 5 个 Important 和 1 个 Minor，生成 P006，并由同一 Reviewer Popper 只读复审。P006 补齐九步会话链、R008 IA 候选/生成器、条件化写集和状态事件、真实 validator、R008 四哈希停止点及 Excel 绝对路径；作者验证 `66/66 passed`。Popper 复审 `approved / 96`，原六项全部关闭，新增 1 个任务卡状态投影 Minor 已随结果登记关闭。当前等待用户批准计划 SHA-256 `bdeff4bb...3c5e`。
+
+- 2026-07-15：用户授权独立 AI 子代理只读评审 `TASK-DESIGN-001-P005`。Reviewer Popper 写集为空，结论 `changes_requested / 64`：0 Critical、5 Important、1 Minor。问题涉及九步工作流遗漏会话适配器、R008 docs 信息架构产物缺失、TaskCard/ledger/memory 状态转换写集缺失、校验命令不可执行、依赖已禁止的 P004 发布事务，以及 Excel 正式输入路径未冻结。P005 计划本体未修改，当前停在整改授权门。
+
+- 2026-07-15：用户指令“进行下一步”已路由到原 `TASK-DESIGN-001` 的 PRD `v3.1.0` 影响重基线，不新建任务。当前计划重写为 `TASK-DESIGN-001-P005`，计划 SHA-256 `fdc06418...7c58`，作者验证 `22/22 passed`，评审输入已冻结。P005 将增量设计拆为输入覆盖、事实与 SQLite、快照与准确性、意图与工具、HTML/Excel/权限、验收与 R008 冻结六包；当前停在独立计划评审授权门，未修改 R007 设计候选或正式文档。
+
+- 2026-07-15：用户明确批准将 `TASK-REQ-002-R014` 正式写入 PRD。已在原任务登记人工批准，将 `REQ-CHANGE-WF-CTL-010-001` 完整融入 `WF-CTL-010`，同步需求矩阵、文档索引和最小记忆；批准候选归档，冻结机器合同由发布清单绑定为受控设计输入。正式化校验 `35/35`、文档树 56 页、相关测试 `33 passed`，任务状态 `formalized`。本轮未修改设计或实现，未提交、未 Push、未创建 PR。
+
+- 2026-07-13：`GO-BACKEND-SKILL-001 / TASK-SKILL-001` 已按人工变更请求升级 Gin + GORM + Logrus + Consul 开发 skill：补充 GitHub 候选取舍、Ponytail/YAGNI、单次调用 helper 禁令、嵌套硬上限、Go 式对象设计、模式采用门槛和 fallback/兼容扩张禁令；模板从 9 文件减到 6 文件。revision 4 独立 review 经 `88 -> 92 -> approved / 98` 收敛，3 个 finding 全部关闭，无新增或回归。当前 `pending_human_confirmation`，人工确认后才使用 `gitcommitzh` 提交本任务范围。
+
+## 文档与工厂结构治理
+
+- 2026-07-08：`DOC-FACTORY-RESTRUCTURE-001` 已改为破坏性重做型全量文档结构迁移。正式保留 `task-execution-contract.md`、实施计划、当前设计白名单、测试/发布/运维/追踪矩阵和必要 draw.io 资产；删除旧 discovery / requirements / design / development-process / evolution 页面、旧静态原型、`.factory/process/`、`.factory/memory/history/`、`.factory/pm/generated/`、空资产索引和临时备份资产。当前状态：`ready_for_review`；下一动作：`independent_review`。
+- 2026-07-09：用户反馈上述迁移仍未讲清 `docs` 目录、记忆目录、设计目录、领域/模块和任务拆分逻辑。已新增 `TASK-002-docs-memory-structure-redesign` 任务简报和报告，建议采用“目录是树，关系是矩阵”。该版本后续已被最小结构草案取代。
+- 2026-07-09：按用户 `ponytail` 反馈重写 TASK-002 草案，删除上一版多层设计目录和 memory 分组建议。新目标是最小 docs 白名单、最小 memory 白名单、统一 `document-change-log.md`，并明确讨论方案不得直接新增正式 `docs` 文档。当前状态：`needs_user_input`；下一动作：`user_confirm_minimal_structure_then_rewrite_plan`。
+- 2026-07-09：用户再次澄清 TASK-002 重点是会话行为必须全部进入固定工作流，不允许随性改代码、写文档或改任务。已重写报告为三层事实结构、会话入口总规则、路由包模板、会话行为与工作流表、写入位置规则和 docs 写入锁；方案讨论只能进入 work item 草案或报告，正式 docs 只有 document merge gate 后才能写。当前状态：`needs_user_input`；下一动作：`user_confirm_workflow_structure_then_rewrite_plan`。
+- 2026-07-09：按用户要求执行下一步写需求任务。复用 `FLOW-CONTRACT-001`，新增 `TASK-REQ-001-ai-collaboration-workflow-requirements`，输出 `REQ-AI-WORKFLOW-001` 需求草案、任务简报和需求报告；该需求作为 `DOC-FACTORY-RESTRUCTURE-001 / TASK-002` 的上游需求。当前状态：`requirements_ready`；下一动作：`user_confirm_requirements_or_request_changes`。
+- 2026-07-09：按用户反馈补充需求草案，新增 `REQ-AI-WORKFLOW-006`，要求项目化会话最终回复必须解释本轮做了什么、写到了哪里、当前状态、需要用户确认什么、下一步、未做事项和验证结果；后续设计必须定义不同会话类型的回复模板。
+- 2026-07-10：按用户要求解释 `WorkItem` 并执行下一步。已复用 `FLOW-CONTRACT-001`，新增 `TASK-WF-PRD-001-requirement-clarification-to-prd-workflow`，输出 `WF-REQ-TO-PRD-001` 工作流草案和任务报告，定义“需求澄清到完整 PRD”的节点、用户动作、AI 动作、输入依据、输出产物、写入位置、停止点和回复模板。当前状态：`requirements_ready`；下一动作：`user_confirm_requirement_to_prd_workflow_or_request_changes`。
+- 2026-07-10：按用户反馈补充中间草案处置规则。正式方案形成后，草案应删除或归档；归档文件默认禁止 AI 读取，只有当前 TaskCard、ledger、review 或用户明确指向时才能读取。
+- 2026-07-10：用户确认中间草案处置策略后，已执行 PRD 编写任务 `TASK-PRD-001-ai-collaboration-workflow-prd`，输出 `PRD-AI-WORKFLOW-001` 草案、任务卡、PRD 报告和 `prd.summary`。当前状态：`requirements_ready`；下一动作：`user_review_prd_or_request_changes`。
+- 2026-07-10：用户确认 `PRD-AI-WORKFLOW-001` 草案并要求进入设计阶段。已将 PRD 标记为 `human_approved_for_design`，创建并执行 `TASK-DESIGN-001-ai-collaboration-workflow-design`，输出 `DESIGN-AI-WORKFLOW-001` 设计草案和设计报告。当前状态：`design_ready`；下一动作：`user_review_design_or_request_changes`。
+- 2026-07-10：用户纠正任务边界并要求回到原 `TASK-PRD-001`。已把正式落档、版本更新、验证、评审和草案处置归入同一任务，新增 `drafts/document-change.md`，暂停 `TASK-DESIGN-001`。当前缺少真实变更人、审核人、批准人及独立子代理评审授权；状态 `needs_project_information`。
+- 2026-07-10：用户补齐人员信息并授权独立只读评审。已生成正式 PRD、需求矩阵和文档索引候选稿及验证证据；临时文档树 `docs-stratego` 通过 `pages=56`，需求和追踪计数、JSON 与格式检查通过。当前 `ready_for_review`，正式版本未生效。
+- 2026-07-10：独立评审 Iteration 1 为 `changes_requested / 74`。4 个 Important 和 2 个 Minor 已修复并验证：旧需求语义 diff 无差异，5 条旧 NFR 完整，TaskCard 口径和状态一致，候选哈希绑定临时树，修复后 `docs-stratego pages=56`。当前 `ready_for_re_review`。
+- 2026-07-10：Iteration 2 有效独立复审为 `changes_requested / 86`。I-05 和 M-03 已修复：条件式 TaskCard 规则在 REQ、AC、NFR、矩阵四方一致；会话卡已精简，历史摘要已有读取规则。记录当时进入 `ready_for_re_review`，等待 Iteration 3。
+- 2026-07-10：Iteration 3 首次执行超时且无结论；Retry 为 `changes_requested / 88`，确认前 7 项无回退，仅 I-05 完整句精确一致性未闭环。现已统一四处完整句，精确检查为 `PRD 3 / 矩阵 1`，重新验证临时文档树通过，等待 Iteration 4。
+- 2026-07-10：Iteration 4 独立复审为 `approved / 100`，无 Critical、Important、Minor，8 个历史问题全部关闭。当前 `pending_human_confirmation`；用户明确批准前不得覆盖正式源、激活版本、处置草案或恢复设计任务。
+- 2026-07-10：用户在人工确认门退回旧范围候选。反馈指出需求必须覆盖完整软件开发生命周期 Agent，定义所有阶段、工作流和原子动作的规则、依据、产物、工具、Gate 和回复，禁止大模型自由发挥。旧 Iteration 4 结论只对旧范围有效，任务恢复为 `changes_requested`。
+- 2026-07-10：已在原 `TASK-PRD-001` 重写 `v3.0` 候选：新增 28 条治理需求，总计 40 条；第 10 章登记 123 条核心 Workflow；第 11 章定义 ActionSpec、ActionRun、RouteRule、ToolPolicy 和继续/停止状态机；矩阵、索引和旧草案状态已同步。旧需求语义、ID/Workflow 结构、候选绑定和 `docs-stratego pages=56` 验证通过，当前 `ready_for_review`。
+- 2026-07-10：在派发新独立评审前，用户进一步明确第一层必须是四套规范体系。原 v3 验证证据和评审输入已标记 superseded/not dispatched；当前继续在同一 TaskCard 修订，不新建任务。
+- 2026-07-10：已新增 REQ 041 至 048 和 PRD 第 10 章四套规范：14 阶段流程表、角色/决策矩阵、人和 AI 工作规范、Session 状态机、回答/落盘/停止/交接规则、Artifact 分层和阶段输入输出基线。48 条治理需求、矩阵、123 条 Workflow、旧需求保留和 `docs-stratego pages=56` 通过，当前等待用户确认第一层结构。
+- 2026-07-10：用户在确认门指出未批准候选被错误标记为正式版本。已在同一 `TASK-PRD-001` 修正 `REQ-AI-WORKFLOW-009`、`048`、文档规范和 `WF-CTL-009`：候选使用 `TASK-PRD-001-R001` 及 hash，审核/批准绑定该修订；正式版本只在发布事务成功时分配；退回、未批准和发布失败记录不进入正式版本历史。当前等待用户确认四套规范和版本规则。
+- 2026-07-10：用户要求“用户与角色”明确标注人类和 AI。已按刚建立的修订规则使 `R001` 失效并生成 `TASK-PRD-001-R002`；角色目录新增`主体类型`，拆分人类 Reviewer 和独立 AI Reviewer，新增人工批准人、Role Assignment、Node/ActionRun `actor_type`、权限阻断 AC 和 `GAP-AI-011`。当前等待用户确认四套规范、角色分类和版本规则。
+- 2026-07-11：用户要求补齐 Artifact 分层、事实资格、生命周期和验收要求。已在同一 `TASK-PRD-001` 生成 R003：53 条治理 REQ、11 条治理 NFR、17 类 Artifact、14 个事实域、14 项 Artifact 量化验收；R002 已失效。候选与矩阵/索引、隔离文档树和 `docs-stratego pages=56` 验证通过，当前等待需求层确认，不是最终发布批准。
+- 2026-07-11：用户确认 R003 顶层基线并授权展开 123 条 Workflow。R004 首次映射因 9 条高风险流程缺固定 human 授权节点失效；R005 补齐 15 / 15 高风险授权后，独立评审 `changes_requested / 83` 发现两项真实 review 节点由作者 AI 执行。R006 已修正 Reviewer selector、独立评审 Gate 和验证器语义规则，独立复审 `approved / 100`，无 Critical/Important/Minor；当前等待用户最终确认，正式落档尚未执行。
+- 2026-07-11：用户明确批准 R006 四个冻结 hash 正式落档。已在原 `TASK-PRD-001` 内发布 PRD `v3.0.0`、需求矩阵 `v3.0.0` 和文档索引 `v1.0.0`，同步追踪图、任务报告和 memory，删除被正式事实取代的旧草案，并把 R006 审核候选与失效设计归档。正式文档树、发布语义、123 条 Workflow 映射和 JSON 结构验证均通过；状态 `formalized`，下一动作 `start_TASK-DESIGN-001_rewrite_from_prd_v3.0.0`。
+- 2026-07-11：用户要求进行下一项“基于 PRD v3.0.0 重写完整设计”，并询问是否先理解、建任务和计划再执行。已确认设计任务卡早已存在，不新建重复任务；重写 WorkItem 唯一 `plan.md` 为 `TASK-DESIGN-001-P001`，并修正任务边界，使设计草案、review、人工批准、正式落档、版本更新和草案处置都留在同一 TaskCard。计划结构自检通过：10 个工作包、123 条 Workflow、597 动作槽、369 场景；当前等待独立计划评审授权或人类计划评审，设计未执行。
+- 2026-07-11：用户授权独立 AI 子代理只读评审 P001。Reviewer 返回 `changes_requested / 68`；已在同一 TaskCard 处理 7 个 Important 和 2 个 Minor，生成 P002。P002 补齐 76/76 逐 ID 覆盖、1089 个身份源指针、1359 个待设计槽、2448 条总迁移、17 方法域、对象/字段 owner、持久 validator、补偿发布事务、CP-01 至 CP-04 和 UI N/A Reviewer 裁决字段。机器校验通过，当前等待 P002 新授权或人类 Reviewer；P001 授权不得沿用，设计未执行。
+- 2026-07-11：用户授权独立 AI 子代理只读复审 P002。Reviewer 独立复算 hash 和核心计数后返回 `changes_requested / 74`，0 Critical、5 Important、0 Minor；8 个 UI N/A 全部接受。已在同一 TaskCard 生成 P003：新增 `prompt_template`，把 validator bootstrap 提前到 WP-01 并定义 7 个 profile，增加 checkpoint scope/影响重审，批准前冻结 22 个物理路径和四 hash，并把发布改为独占写入、逐目标条件写入/恢复、最后 `released` 生效。当前等待 P003 新授权或人类 Reviewer；设计未执行。
+- 2026-07-11：用户授权独立 AI 子代理只读复审 P003。Reviewer 返回 `changes_requested / 86`，0 Critical、2 Important、0 Minor；P002 的 4 项已关闭，正确生效顺序仍有状态循环，8 个 UI N/A 继续 accepted。已在同一 TaskCard 生成 P004：人工批准和 `released` 均定义固定 schema、稳定幂等键、冻结 payload、append/fsync/readback、重复冲突与不确定恢复；TaskCard 加入第 23 个发布目标；六个 Memory 文件与 TaskCard 先写待生效投影，由同一 `released` 同时激活正式事实、TaskCard `completed` 和 WorkItem `design_formalized`。当前等待 P004 新授权或人类 Reviewer；设计未执行。
+- 2026-07-12：用户回复“现在我批准一次性授权”。按紧邻会话约定，用户以 `HUMAN_REVIEWER` 和人工批准人身份批准 P004、授权开始设计，并持续授权 CP-01 至 CP-04及最终设计候选的独立 AI 只读评审；中间执行、最多两轮反馈修正和复验自动继续。授权不含最终正式落档、提交、push、PR、merge 或部署。当前进入 WP-01。
+- 2026-07-12：WP-01、WP-02 完成后，CP-01 R001 独立评审为 `changes_requested / 52`，指出 8 个 Important 和 1 个 Minor。第 1 轮自动整改已建立全局冲突优先级、确定性授权求值、唯一 Artifact 定位/处置、双向事实绑定、逐类别闭合状态图、真实 evaluator fixture、WP-02 coverage 结算和可独立重算共享 hash；R002 已追加冻结，等待同一 Reviewer 只读复审，尚未进入 WP-03。
+- 2026-07-12：CP-01 R002 复审为 `changes_requested / 64` 后完成第 2 轮整改并冻结 R003；R003 复审提升到 `82 / 100`，但仍有 2 个既有 Important，触发“两轮上限/重复 finding”停止条件。当前人工决策包提供 A 例外整改、B 风险接受、C 需求变更三种选择；未明确决定前不生成 R004、不进入 WP-03。
+- 2026-07-12：CP-01、CP-02 已分别在 R005 由独立 Reviewer 评审为 `approved / 100` 并关闭；WP-05 至 WP-07 已完成。CP-03 R001 冻结设计 `16015a3a...24af`、Catalog `1e00ef4d...d2e`、validator `99faf909...3fd1`，完整 `cp03` 对 3943 条记录退出 0；Reviewer `Russell` 只读评审中，写集为空，下一动作 `await_CP03_R001_independent_readonly_review`。
+- 2026-07-12：CP-03 R001 独立评审为 `changes_requested / 30`，3 Critical、6 Important、1 Minor；10 项均经独立复现后完成第 1 轮整改。当前 `cp03@0.3.0`、WP-05、WP-06、CP-02、WP-03、CP-01 和 bootstrap 回归通过，原攻击探针全部拒绝。因高风险 ActionSpec 绑定变化，当前候选须同时形成 CP-02 R006 影响快照；下一动作 `freeze_CP03_R002_and_CP02_R006_then_same_reviewer_readonly_rereview`。
+- 2026-07-12：CP-03 经两轮自动整改后仍有 3 项开放问题，用户批准 R004 定向例外整改。R004 完成红绿验证并由同一独立 AI Reviewer Russell 复审为 `approved / 100`；CP-02 R008 当前候选影响也为 `approved`，10 项问题全部关闭。当前停在人工转段门，等待决定关闭 CP-03 并进入 WP-08 或暂停；未正式落档、提交或创建 PR。
+- 2026-07-12：用户确认关闭 CP-03 并继续到下一人工确认门。WP-08 已消除旧 `cp04` 对 369 个延期测试的假通过，形成 369 个可执行场景、1 个 Catalog 完整性测试、12 个真实内存变异和 4 个正式输入兼容检查；完整 `cp04@0.2.0` 对 3944 条记录错误 0。CP-04 R001 已冻结并交独立 AI Reviewer Socrates 只读评审；WP-09 尚未开始。
+- 2026-07-12：CP-04 R001 独立评审为 `changes_requested / 42`，2 Critical、2 Important。final 状态互斥、场景语义交换、兼容路径伪造和负例登记脱节均已复现并在第 1 轮整改中融入原候选。R002 完整 `cp04@0.3.0` 错误 0，369/369、16/16、4/4、2524/2524 和 final 正例 1/1 通过；R002 已冻结并交同一 Reviewer Socrates 只读复审，WP-09 尚未开始。
+- 2026-07-12：同一 Reviewer Socrates 对 CP-04 R002 复审 `approved / 100`，4 个原 Finding 全部关闭，开放、新增和回退 Finding 为 0，UI N/A 接受，写集为空。当前停在人工转段门；人类确认前不关闭 CP-04、不开始 WP-09。
+- 2026-07-13：用户明确确认关闭 CP-04 并开始 WP-09。当前在原 TaskCard 内生成 `TASK-DESIGN-001-R001` 最终候选、待批准发布清单和最终评审包；授权不包含正式落档、正式版本生效、提交、Push 或 PR。
+
+## 企业 AI 交付闭环评估
+
+- 2026-07-07：`ENTERPRISE-AI-DELIVERY-001 / EAD-TASK-001` 已由执行任务卡 `EAD-TASK-001-COMPLETE` 推进到 `ready_for_review`，并按用户反馈补充正式评估报告 `reports/EAD-TASK-001-capability-assessment-report.md`。配套产物为 `reports/EAD-TASK-001-implementer-report.md`、`evidence/EAD-TASK-001-verification.md`、`reviews/EAD-TASK-001-review-input.md`；ledger 最新要求为 `independent_review`，未进入 `approved` 或 `complete`。
 
 ## 流程集成计划
 
@@ -9,7 +180,7 @@
 - 2026-07-06：`FLOW-CONTRACT-001` 已补充整体黑盒测试、UI 测试、接口测试、测试环境启动、端口管理、启动记忆读取和非活跃任务降级规则。新增任务卡 `FLOW-TASK-013` 项目级测试治理和 `FLOW-TASK-014` 启动记忆 / 非活跃任务降级；当前仍是设计与计划阶段，未改 skill。
 - 2026-07-06：`FLOW-CONTRACT-001` 按用户反馈修正启动记忆设计：不固定读取 `agent-session.md`、`runtime-brief.md`、`current-state.md` 三件套，而是条件读取链，够用即停；目标是生成小型会话卡，避免把压缩记忆重新扩张进上下文。
 - 2026-07-06：`FLOW-CONTRACT-001` 实施前独立评审已通过。reviewer `codex-flow-contract-001-pre-reviewer-20260706` / subagent `019f3582-d446-7a22-b00a-1bf276a20770` 给出 `approved / 94`；review 文件为 `.factory/workitems/FLOW-CONTRACT-001/reviews/implementation-pre-review.md`。当前 gate 是 `pending_human_confirmation`，等待用户人工确认后才能进入实施。
-- 2026-07-06：用户已确认 `FLOW-CONTRACT-001` 实施前评审通过，ledger 已写入 `human_approved`。下一阶段是按 `FLOW-TASK-001` 至 `FLOW-TASK-014` 逐项改造 workflow skill；每个任务必须产出 evidence、implementer report 和 review checkpoint，不能自批完成。
+- 2026-07-06：用户已确认 `FLOW-CONTRACT-001` 实施前评审通过，ledger 已写入 `human_approved`。下一阶段是按 `FLOW-TASK-001` 至 `FLOW-TASK-015` 逐项改造 workflow skill；每个任务必须产出 evidence、implementer report 和 review checkpoint，不能自批完成。
 - 2026-07-06：按用户要求新增 `.factory/workitems/FLOW-CONTRACT-001/implementation-queue.md`，只登记顺序实施队列，不在本会话实施任务。`FLOW-TASK-001` 和 `FLOW-TASK-002` 作为设计交付已由实施前评审覆盖；下一新任务是 `FLOW-TASK-003`，之后严格按任务号顺序逐项实施。
 - 2026-07-06：`FLOW-TASK-003` 已完成首轮实现并进入 `ready_for_review`，尚未独立 review、人工确认或关闭。小任务自循环下一步应停留在 `FLOW-TASK-003` 的独立 review；如 review 返回 `changes_requested`，继续在 `FLOW-TASK-003` 内修复和复审，不进入 `FLOW-TASK-004`。本轮只升级 `document-templates` 文档治理规则：正式文档登记、临时文档边界、中文版本信息、版本历史和导航 / doc-map 同步；新增 evidence、implementer report、review checkpoint 和结构测试。验证：`uv run pytest tests/test_sf_sp_010_documentation_navigation.py` 通过 `8 passed`。
 - 2026-07-06：`FLOW-TASK-003` 独立 review 已通过，reviewer `codex-flow-task-003-reviewer-20260706` / subagent `019f35ba-c241-7432-ab2b-c063716ef7cf` 给出 `approved / 94`；无 Critical / Important，1 个 Minor 审计精度备注非阻塞。当前 gate 是 `pending_human_confirmation`，人工确认前不得进入 `FLOW-TASK-004`。
@@ -28,10 +199,24 @@
 - 2026-07-06：`FLOW-TASK-009` 独立 review 已通过，reviewer `codex-flow-task-009-reviewer-20260706` / subagent `019f37c4-51d7-7a81-b964-be4811b5c2ab` 给出 `approved / 95`；无 Critical / Important / Minor。最终审计问题报告为 `.factory/workitems/FLOW-CONTRACT-001/reports/FLOW-TASK-009-final-audit-issue-report.md`，阻塞问题 none，残留风险为当前工作树有大量跨任务未提交改动且测试主要是结构断言；这些风险在任务范围内可接受。当前 gate 是 `pending_human_confirmation`，人工确认前不得进入 `FLOW-TASK-010`。
 - 2026-07-06：用户已确认 `FLOW-TASK-009` 通过并允许进入 `FLOW-TASK-010`。`FLOW-TASK-010` 已完成首轮实现，新增 `document-templates` 的 project baseline、backend module、database、API 和 frontend UI 设计模板；模板均包含中文版本信息和版本历史，数据库模板包含 ERD，API 模板引用 `openapi.yaml`。验证：`uv run pytest tests/test_sf_sp_010_documentation_navigation.py` 通过 `9 passed`，ruff 通过。当前 gate 是 `ready_for_review`，不能进入 `FLOW-TASK-011`。
 - 2026-07-06：`FLOW-TASK-010` 独立 review 已通过，reviewer `codex-flow-task-010-reviewer-20260706` / subagent `019f37df-9844-7860-98a8-3da39a7a5035` 给出 `approved / 95`；无 Critical / Important / Minor。最终审计问题报告为 `.factory/workitems/FLOW-CONTRACT-001/reports/FLOW-TASK-010-final-audit-issue-report.md`，阻塞问题 none，残留风险为当前工作树有大量跨任务未提交改动，后续提交必须只纳入 010 范围。当前 gate 是 `pending_human_confirmation`，人工确认前不得进入 `FLOW-TASK-011`。
+- 2026-07-07：用户已确认 `FLOW-TASK-010` 通过并允许进入 `FLOW-TASK-011`。`FLOW-TASK-011` 尚未实施；下一步必须先读取该任务卡并在任务内完成 evidence、implementer report、review checkpoint 和独立 review，不能跳到 `FLOW-TASK-012`。
+- 2026-07-07：按用户反馈补充 `FLOW-REQ-018` 输出持久化契约，明确任务完成后哪些内容返回当前会话、哪些写正式文档、ledger、evidence/report 或 memory summary。已更新正式需求、正式实施方案、`using-shanforge`、`project-memory` 和结构测试；验证 `uv run pytest tests/test_project_memory_skill.py` 通过 `6 passed`，ruff 通过。当前状态 `ready_for_review`，下一动作 `independent_review`；未执行 `FLOW-TASK-011`。
+- 2026-07-07：继续按用户反馈补充当前会话可见性协议，要求任务开始、阶段切换、文件编辑前、关键命令前后、子 agent / 自循环返回、长时间执行、阻塞和最终收口都在当前会话返回事实摘要。已更新正式需求、正式实施方案、`using-shanforge` 和结构测试；验证 `uv run pytest tests/test_project_memory_skill.py` 通过 `6 passed`，ruff 通过，`using-shanforge` quick_validate 通过。当前仍为 `ready_for_review`，下一动作 `independent_review`；未执行 `FLOW-TASK-011`。
+- 2026-07-09：按用户明确指令创建并执行 `FLOW-TASK-015` 的正式方案切片，用于重塑完整软件项目会话行为与工作流归因契约。正式方案已写入 `docs/04-project-development/05-development-process/task-execution-contract.md`，新增 `tests/test_full_project_session_workflow_routing.py`；验证 `45 passed`，ruff 和 `using-shanforge` quick_validate 通过。当前状态 `ready_for_review`，下一动作 `independent_review`；本轮未把新方案同步到各 workflow skill 运行规则，`FLOW-TASK-011` 至 `FLOW-TASK-014` 仍未执行。
 - 2026-07-06：`SKILL-FLOW-AUDIT-001` 已按 `language-prompt-review-iteration-2.md` 修复 21 个低分 skill 入口，范围包括 P0 入口、教程型开发 skill、文件/文本工具和流程契约小问题。验证：相关结构测试 `45 passed`，ruff 通过，21 个编辑过的 skill 均通过 `quick_validate`，旧口径扫描无命中。当前状态是 `ready_for_review`，下一步按用户要求重新创建中文语言 / prompt 评审子任务和 skill flow 完整性测试子任务；`skill-flow-completeness-test-iteration-2.md` 的 Critical / Important 尚未处理，不能声明整体完成。
 - 2026-07-06：`SKILL-FLOW-AUDIT-001` iteration-3 复评完成。语言/prompt 复评分数从 iteration-2 平均 `85.2` 提升到 `92.3`，低于 90 分 skill 从 `21` 降到 `5`。流程完整性复测从 `82 / 100` 提升到 `86 / 100`，但仍有 `1` 个 Critical 和 `3` 个 Important；相关 pytest `74 passed / 1 failed`，失败仍是黑盒 eval 文档状态旧断言，且缺 S1-S6 真实行为回放 evidence。当前 gate 是 `changes_requested`，下一步先修 flow completeness Critical / Important，不能进入完成、人工确认或提交。
 - 2026-07-06：`SKILL-FLOW-AUDIT-001` iteration-4 按用户要求拆成三个独立子任务：中文语言专家评审、prompt 专家评审、skill 流程完整性测试。中文语言评审扫描 34 个 skill，平均 `92.1`，8 个低于 90；prompt 评审扫描 34 个 skill，平均 `91.6`，10 个低于 90；流程完整性测试评分 `89 / 100`，`84 passed`、ruff 通过，但仍有 `1` 个 Critical、`3` 个 Important、`3` 个 Minor。当前 gate 仍是 `changes_requested`：缺 S1-S6 真实行为回放 transcript，远端 PR / push / merge 缺 Shanforge owner / evidence / gate，部分状态包未统一。
 - 2026-07-06：`SKILL-FLOW-AUDIT-001` iteration-4 feedback 已按用户要求拆两项修复子任务并完成到 `ready_for_review`。语言 / prompt 合同修复补齐 6 个 skill 的状态包和失败语义；流程完整性修复新增 S1-S6 dry-run transcript、远端 PR / push / merge handoff 契约和结构测试。主线程联合验证 `uv run pytest ...` 通过 `45 passed`，ruff 通过。下一步是真实独立 review；本轮未提交、未 push、未创建 PR、未 merge。
+- 2026-07-06：`SKILL-FLOW-AUDIT-001` iteration-4 修复独立评审已通过，reviewer `codex-skill-flow-audit-001-iteration-4-reviewer-20260706` / subagent `019f37f7-c9ec-7763-8100-bc3f7361a5ed` 给出 `approved / 92`；无 Critical / Important，2 个 Minor 残留风险。按用户要求重新创建并完成 iteration-5 三个子任务：中文语言评审扫描 35 个 skill，平均 `92.1`，5 个低于 90；Prompt 工程评审扫描 35 个 skill，平均 `92.2`，5 个低于 90；Skill 流程完整性测试 `passed / 96`，0 Critical / 0 Important / 2 Minor，workflow pytest `84 passed`，ruff 通过。当前下一步是 triage iteration-5 findings；本轮未提交、未 push、未创建 PR、未 merge。
+- 2026-07-06：`SKILL-FLOW-AUDIT-001` iteration-5 反馈已拆成三个顺序实现子任务并修复到 `ready_for_review`。中文语言 95+ 修复压缩 `skill-creator`、`gitcommitzh`、`stratix-service`、`document-templates`、`requirements-engineering` 等长入口并下沉 reference；Prompt 工程 95+ 修复补齐 `doc-coauthoring`、`algorithmic-art`、`shadcn`、`ui-ux-pro-max` 等 work item 状态包；流程完整性 Minor 修复补齐 S4/S5 transcript 的 ledger / review-ledger 证据并锁结构测试。合并验证：`54 passed`，ruff 通过，10 个 touched skill quick_validate 通过，JSONL 解析通过，旧中心 / 未验证脚本扫描无命中，`git diff --check` 通过。下一步是真实独立 review；本轮未提交、未 push、未创建 PR、未 merge。
+- 2026-07-07：`SKILL-FLOW-AUDIT-001` iteration-5 fixes 独立 review 已通过，reviewer subagent `019f3828-c993-7850-9a84-c1465c740540` 给出 `approved / 96`；中文语言评分 `96`，Prompt 工程评分 `96`，流程完整性 `passed`；无 Critical / Important / Minor 返工项。最终审计问题报告为 `.factory/workitems/SKILL-FLOW-AUDIT-001/reports/iteration-5-final-audit-issue-report.md`。当前 gate 是 `pending_human_confirmation`；确认前不得关闭、提交或进入下一阶段。
+- 2026-07-07：用户已确认 `SKILL-FLOW-AUDIT-001` iteration-5 fixes 通过；iteration-5 gate 解除。iteration-6 三个评审 / 测试子任务已在进行中，下一步等待子任务报告。
+- 2026-07-07：`TASK-WORKFLOW-SEMANTICS-001` 独立 review iteration-1 返回 `changes_requested / 76`，指出 bug 两段式 gate 未落到流程总控路由、direct analysis 与 tracked task 输出契约不一致、`Method` / `Tool` 概念缺失，以及 `tdd-workflow` 有重复句。已按反馈修复到 `ready_for_review`：补概念边界、改 bug 路由为根因确认 Gate + 修复方案确认 Gate、统一需求核心输出契约、删除重复句并补测试。验证：`43 passed`，ruff 通过，JSONL 解析通过，`git diff --check` 无输出。下一步是真实独立复审；复审通过前不得进入人工确认。
+- 2026-07-07：`TASK-WORKFLOW-SEMANTICS-001` 独立复审 iteration-2 已通过：`approved / 94`。无 Critical / Important / Minor；最终审计问题报告为 `.factory/workitems/TASK-WORKFLOW-SEMANTICS-001/reports/final-audit-issue-report.md`。当前 gate 是 `pending_human_confirmation`；人工确认前不得关闭、提交或宣称完成。
+- 2026-07-07：按用户要求完成 `SKILL-FLOW-AUDIT-001` iteration-6 三个子任务报告。中文语言评审：36 个 skill，平均 `93.4`，最低 `91`，0 个低于 90，无 Critical / Important。Prompt 工程评审：36 个 skill，平均 `93.5`，最低 `89`，3 个低于 90，无 Critical，3 个 Important，集中在 `agent-harness-construction`、`ai-first-engineering`、`article-writing` 缺 `work_item` / `ledger_event` 等状态包字段。流程完整性测试：`97 / 100`，0 Critical / 0 Important / 2 Minor，workflow pytest `121 passed`，ruff 通过。下一步是 triage 并修复 Prompt Important，按需处理 Minor。
+- 2026-07-07：按用户要求创建并派发 `SKILL-FLOW-AUDIT-001` iteration-6 合并修复子任务 `iteration-6-fix-language-prompt-97`。worker `Helmholtz / 019f3ac4-80f0-7b43-8015-b1ee125ef067`，任务目标是后续独立复评中文语言平均分和 Prompt 平均分都 `>=97`，Critical / Important 均为 0；当前状态 `in_progress`，下一步等待子任务报告。
+- 2026-07-07：`SKILL-FLOW-AUDIT-001` iteration-6 合并修复子任务 `iteration-6-fix-language-prompt-97` 已完成到 `ready_for_review`。修改 8 个 skill 和 3 个测试文件；worker 自评中文语言平均 `97.1`、Prompt 平均 `97.2`，Critical / Important 为 0，Minor 为 2。验证：8 个受影响 skill quick_validate 通过，主线程复跑相关 pytest `30 passed`，ruff 通过，`git diff --check` 无输出。独立复评已派发给 `Hume / 019f3b96-12e1-74e3-b311-ca0c47c6978e`，当前等待报告。
+- 2026-07-07：`SKILL-FLOW-AUDIT-001` iteration-6 97 分修复独立复评返回 `changes_requested`。中文语言评分 `93.8`，Prompt 评分 `94.2`，Critical / Important / Minor 为 `0 / 2 / 2`。阻塞项：全量 36 skill 平均分仍低于 97；完整 workflow pytest `122 passed / 1 failed`，失败点为 `tests/test_independent_review_gate.py::test_requesting_code_review_forbids_same_thread_approved`。下一步是 `fix_review_feedback`。
 - 2026-07-05：Superpowers 流程集成计划已按本地口径闭环。`SF-SP-001/002/003/004/005/006/007` 已人工确认并提交为 `efac627`，`SF-SP-008` 已提交为 `e048784`，`SF-SP-009` 已提交为 `9296f58`，`SF-SP-010` 已提交为 `3b0e9a5`；10 项均已有开发、独立 review、人工确认和本地提交证据。当前没有 push / PR / merge 证据，不能声明远端闭环完成。
 - 2026-07-05：完成旧全局流程脚本物理清理。`superpowers-workflow-integration-plan.md` 和 closeout report 已从 `3 / 10` 本地闭环更新为 `10 / 10`；活跃入口 `AGENTS.md`、`GEMINI.md`、`runtime-brief.md`、`agent-session.md`、用户指南、配置和测试不再推荐中心脚本主控。旧脚本调用方、旧用户文档和旧功能测试已清理。
 - 2026-07-05：PM 控制面新增需求生命周期快速查看页，并把需求实时跟踪表直接并入 `.factory/pm/generated/status-dashboard.html` 首页。首页按“需求、分析、任务、设计、开发、测试、review、人工确认、提交 / PR、关闭”展示正式 REQ 和当前 Superpowers 流程集成需求；`SF-SP-001` 到 `SF-SP-010` 每个关联任务都有页内锚点、当前状态、关闭判断和下一动作。`.factory/pm/generated/requirements-lifecycle.html` 保留为详情页；页面仍只是展示层，事实源仍是需求矩阵、Superpowers 方案、PM 台账和 work item ledger。
@@ -95,7 +280,7 @@
   - 当前缺口：后续主要剩更完整的人工审核流与跨 provider 的更细粒度回放断言
 
 - `TASK-017`：基础能力层具体函数实现阶段
-  - 当前已完成：`file_access`、`skills`、`session_search` 的本地最小可用行为，`web_access`、`terminal`、`browser` 的首轮 local bridge 与治理接线，以及 `profile_source`、`rule_source`、`clock_identity` 的正式实现和 runtime-to-domain 适配
+  - 当前已完成：`file_access`、`session_search` 的本地最小可用行为，`web_access`、`terminal`、`browser` 的首轮 local bridge 与治理接线，以及 `profile_source`、`rule_source`、`clock_identity` 的正式实现和 runtime-to-domain 适配；原 runtime `skills` 能力已按 TASK-QUALITY-002 删除
   - 当前缺口：补强 `web / terminal / browser` 的治理细节、provider profile 化与更真实 backend
 - `TASK-016`：Session Search 与装配解释查询框架
   - 当前已完成：`SessionArchiveHit` / `SessionTranscriptSlice` / `SessionAssemblyManifest` / `SubAgentDigest` 已形成正式读模型；`SessionArchiveQueryPort`、`SessionTranscriptSlicePort`、`SessionAssemblyQueryPort`、`MemoryAssemblyQueryPort`、`SessionAssemblyStorePort`、`DelegationDigestStorePort`、`SessionInspectionService`、`MemoryAPI` 与 `SessionSearchQueryAdapter` 已接线；`prepare_session` 现在会把 assembly snapshot 同时写入 session context 与专门 `SessionAssemblyStorePort`；`SessionAssemblyManifest` 现已暴露 `selected_model / model_bindings / backend_bindings`，并能区分默认装配选择与 step 级实际模型调用历史；`RecallPlannerPort / RecallRankerPort` 已落地，recall 主链现已改为 `RecallGovernancePolicy -> plan -> scan -> rank`；`preview_recall` 现已通过独立 `MemoryInspectionService` 落地，并由 `MemoryAPI` 聚合暴露；`RecallPreview` 现已显式给出 `scope_breakdowns / record_rankings / augmentation_preview`
@@ -107,7 +292,7 @@
 
 ## 已完成里程碑
 
-- `M2`：平台主闭环、基础能力骨架和 `file / skills / session_search` 首轮可用实现已稳定
+- `M2`：平台主闭环、基础能力骨架和 `file / session_search` 首轮可用实现已稳定；Skill 仅保留为顶层宿主资产
 - `M3`：行动平面首轮实现已可运行，`web / terminal / browser / session_search` 均已接上最小可用 bridge，并通过回归测试
 
 ## 下一顺位
@@ -116,3 +301,6 @@
 - 优先补 `TASK-020` 后续治理项：在现有 `profiles.json + backend-bindings.json + provider-bindings.json + memory_provider:jsonl / jsonl_vector / remote_http + preview_recall` 基础上，继续把 normalize/backfill 阶段仍保留的 legacy 顶层键压缩到最小集合
 - 紧接补 `TASK-016` 后续项：在现有 `scope_breakdowns / record_rankings / augmentation_preview` 之上，继续减少仍散落在 top-level 或 report-only 的 provider-specific explainability
 - 完成后再进入 promotion policy、dataset 筛选和真实 summarizer/provider 的进一步治理
+- 2026-07-20：`TASK-SKILL-003-simple-task-fast-path` 第一批实现已完成，独立 reviewer iteration 3 为 `approved / 96 / C0 I0 M0`，最终新鲜验证已收口：入口先做当前消息初判；direct/lightweight 直接返回且零仓内写入，项目化请求恢复事实后再完成路由。范围不含 32 个工作 skill 的状态字段收敛。
+- 2026-07-21：`TASK-SKILL-004-work-skill-status-envelope-owner` 第二批实现已独立复审通过：精确 32 个工作 Skill 去除四个重复项目状态字段并保留专业正文哈希；总控生成项目状态信封，本地 `status/needs` 原样透传。首次 `gitcommitzh` 因必要文件混有上游内容而 blocked；用户随后明确授权纳入形成完整提交所必需的同文件范围外改动，当前进入受限候选文件集本地提交。
+- 2026-07-19 历史事件：`TASK-QUALITY-001-P001` 完成全仓静态债务清理并曾生成 `TASK-IMPLEMENT-001-R001`。该候选随后已被用户明确撤销，从未正式发布；原精确哈希 Gate 已关闭且不得恢复。当前状态只以本文件顶部 TASK-QUALITY-002 焦点为准。

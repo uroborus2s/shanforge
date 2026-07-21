@@ -1,5 +1,11 @@
 # Skill Updates Summary
 
+- 当前（2026-07-19）：`TASK-SKILL-002-P001` 已完成剩余 32 个工作 Skill，为每个 Skill 增加项目位置、完成层级、停止原因和授权范围余量四字段，以及“只返回事实、不决定下一 Skill/Gate/发布”的边界；未改专业触发语义或人工 Gate。连同 TASK-SKILL-001 的 6 个流程 owner，顶层 Skill 覆盖为 `38/38`。全仓 `828 passed`，最终独立复验 `approved / 100 / 0-0-0`；任务完成，没有人工 Gate。
+
+> 以下带日期条目均为历史快照；其中“当前”“下一阶段”“pending_human_confirmation”只表示当时状态，不得覆盖本文件顶部当前事实。
+
+- 2026-07-13：新增并升级 `skills/go-backend-developer/`，固定 Gin + GORM + Logrus + Consul 组合栈的精确触发、工程边界和 6 文件最小模板。规则现包含 GitHub 来源取舍、Ponytail 决策顺序、禁止排版式单次调用 helper、嵌套目标 2 层/硬上限 3 层、Go 式对象设计、真实问题驱动的模式门槛，以及禁止推测性 fallback、alias、dual-read/dual-write、多驱动包装和宽松解析。非法显式 request ID 失败并留下单条脱敏结构化日志。revision 4 独立 review 最终 `approved / 98`；当前 `pending_human_confirmation`，人工确认后才进入本地提交。
+
 ## 2026-07-04
 
 - 2026-07-06 补充：新增 `skills/stratix-admin-web/`，作为 Stratix 管理后台前端开发规范 skill。触发范围覆盖 `web-admin`、`admin-page`、`admin-crud`、管理后台页面和后台公共组件；核心流程固定为先总结页面清单和相似组件，再开发已确认复用的公共 UI 组件，最后逐页实现页面逻辑。组件提升规则按 ponytail 口径收紧：两个不同页面出现相同 UI 和交互契约才提取公共组件，不写万能表格、万能表单或为未来预留的框架化抽象。
@@ -19,6 +25,8 @@
 - 2026-07-06 补充：`FLOW-TASK-010` 独立 review 已通过并进入 `pending_human_confirmation`。Reviewer `codex-flow-task-010-reviewer-20260706` 给出 `approved / 95`；无 Critical / Important / Minor；最终审计问题报告为 `.factory/workitems/FLOW-CONTRACT-001/reports/FLOW-TASK-010-final-audit-issue-report.md`。人工确认前不得进入 `FLOW-TASK-011`。
 - 2026-07-06 补充：`FLOW-CONTRACT-001` 已把项目级测试治理和记忆生命周期补入后续 skill 改造范围。测试治理覆盖 `TEST-ENV-* / TEST-API-* / TEST-UI-* / TEST-BB-* / TEST-REL-*`、测试环境启动责任和实际端口记录；记忆治理明确启动不能只读 `current-state.md`，已关闭任务下一次 memory sync 后从 current-state 降级到 summary/history，ledger/evidence/review/report 不删除。
 - 2026-07-06 补充：`FLOW-CONTRACT-001` 的 `project-memory` 后续改造口径已从“启动读取顺序”修正为“条件读取链”。已有新鲜会话卡时不得继续读取 memory 文件；只有会话卡缺失、过期或不匹配时才读 `agent-session.md`；仍缺关键事实才读 `runtime-brief.md` / `current-state.md` 的最小片段。
+- 2026-07-07 补充：`FLOW-CONTRACT-001` 已补任务完成后的输出持久化契约。`using-shanforge` 现在按 `direct_answer`、`lightweight_analysis`、`project_workitem`、`tracked_task`、gate、PM 看板等场景决定当前会话响应、正式文档、work item ledger、evidence/report 和 memory 的写入位置；子 agent 或自循环完成后必须回传状态包，不能只静默写文件。`project-memory` 只写恢复所需摘要和路径索引，不写正式文档正文、命令全文、临时推理或子 agent 完整输出。
+- 2026-07-07 补充：`using-shanforge` 已补当前会话可见性协议。项目化任务不能只在最后返回路径；任务开始、阶段切换、文件编辑前、关键命令前后、派发或回收子 agent、自循环返回、长时间执行、阻塞 / 失败和最终收口时，都必须在当前会话给出事实摘要、当前 gate、已完成动作、等待内容和下一步。
 - 2026-07-06 补充：`stratix-service` 已按最新制品库复测结果收紧。当前 latest 为 `@stratix/create@1.1.1`、`@stratix/core@1.1.1`、`@stratix/forge@1.1.3`、`@stratix/database@1.1.0`。主 skill、CLI workflow、OpenAI metadata 和测试已更新：旧 2026-07-05 失败只保留为历史兼容注记，不再作为永久 blocked 结论；默认 API 示例改为最小 `--preset testing`；上线门禁提升为 doctor、测试、build、manifest、release gate、openapi、start、decrypt、runtime injection 全部新鲜通过。新增 `production-readiness-report-2026-07-06.md` 记录 latest 结果：build/test/manifest/release/openapi 和 sensitive config 加解密已通过，模板不再读取 `PORT/HOST`，但 doctor 仍有 `.stratix/project.json` 版本期望问题，start/discovery 仍因 `stratix.generated.js` 源码路径失败，结论继续 blocked。
 - 2026-07-05 补充：根据用户“bug 已解决”复测要求，`stratix-service` 已完成新一轮测试子任务和 code review 子任务。Code review 发现 `runtime-realities.md` 仍暗示普通 `.env` 可承载应用配置，`ecosystem-map.md` 仍列普通 env key；已统一改为应用配置只从 `sensitiveConfig` 读取，插件/基础设施配置以 `sensitiveConfig.database|redis|ossp|wasV7|gateway` 路径描述，并新增测试扫描全部 `references/*.md` 的旧 env 口径。测试子任务确认公开 npm latest 未变，官方对照项目仍不能完整跑通：pnpm 11 初装被 ignored-builds 阻断，官方 build 因 `operationId` 类型失败，`stratix start --help` 无法 resolve `@stratix/core`，运行时 `STRATIX_SENSITIVE_CONFIG` 注入未验证；skill 修正项目可通过 config validate/encrypt/decrypt 和最小 build 修正，但上线结论仍为 `blocked`。
 - 2026-07-05 补充：完成旧全局流程脚本与废弃 CLI skill 清理。已删除 `software-factory-cli`、旧流程脚本、旧动作注册表和旧 CLI 功能测试；新 workflow 默认走 `using-shanforge`、`project-memory` 和具体工作 skill。`document-templates` 不再推荐旧项目纳管脚本，改为先交给 `using-shanforge` 判断是否需要项目纳管。新增 `tests/test_deprecated_skill_cleanup.py` 固定这些边界。
@@ -127,3 +135,10 @@
   - `crawler4j add-workflow`
   - `crawler4j add-ui`
 - 新版 skill 也补上了宿主边界：目录源码只能走 `host devlink`，正式安装只走 ZIP 或 GitHub `owner/repo`，不把 `.whl` 当模块安装格式。
+
+## 2026-07-20
+
+- `using-shanforge` 新增简单任务快速通道并改为先分类、后恢复；`project-memory` 仅在项目状态、任务延续、项目事实修改和显式追踪请求中进入。
+- `AGENTS.md` 同步稳定入口；黑盒 eval 新增 FLOW-S6、FLOW-S7 与恢复场景的 fast-path smoke，要求简单分析不读 memory/ledger、项目化与恢复请求必须读取。
+- 首轮独立评审后进一步统一：任何仓内持久化都会升级；PRD 与 workflow/API/system architecture 的 Session 主链均为先分类、项目化后按需恢复；fast-path smoke 使用 11 条封闭专用断言和固定 22 分分母。
+- `TASK-SKILL-004` 已收敛第二批 32 个工作 Skill：消费者只保留共享合同链接，工作 Skill 透传本地 `status/needs`，`using-shanforge` 独占 `project_position/completion_level/stop_reason/scope_remaining/next_required_action` 项目状态信封；独立复审 `approved / 100 / C0 I0 M0`。

@@ -158,10 +158,11 @@ description: 项目状态查询、任务延续、项目事实修改、阶段切�
 当用户要求查看项目状态、PM 看板、项目管理页面或当前进度时：
 
 1. 读取 `references/pm-dashboard-rendering.md`。
-2. 只读取 `.factory/pm/` 里的相关事实文件。
-3. 使用 `references/status-dashboard-template.html`。
-4. 生成 `.factory/pm/generated/status-dashboard.html`。
-5. 明确说明 HTML 是展示结果，不是事实源。
+2. AI 只从用户消息形成 `IntentCandidate`；不得由 AI 临时遍历 `.factory/pm/`、work item ledger、正式文档或 memory 后计算“实时状态”。
+3. 由确定性策略生成唯一调用计划，标准总览执行一次已注册项目状态查询；只有合同登记的异常诊断才允许一次补充调用。
+4. 已注册查询必须捕获同一不可变高水位 `H`，返回获授权且已核对的代码事实看板；未就绪、冲突、过期或失败时按合同失败关闭。
+5. 会话先原样展示代码事实看板，再展示独立的 AI 专业检查；AI 不计算完成率、状态、风险或权限，不拼装或改写 HTML。
+6. HTML renderer 使用 `references/status-dashboard-template.html`；Excel 样例只在模板设计时读取一次，运行时不得再次读取 `.xls` / `.xlsx`。用户明确要求独立 HTML 时可写 `.factory/pm/generated/status-dashboard.html`，但生成页不是事实源，也不作为 AI 后续读取入口。
 
 不新增单独的 `project-management` skill。
 PM 状态页是流程总控的按需输出，不改变工作 skill 的职责。

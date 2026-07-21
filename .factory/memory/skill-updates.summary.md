@@ -4,6 +4,7 @@
 
 > 以下带日期条目均为历史快照；其中“当前”“下一阶段”“pending_human_confirmation”只表示当时状态，不得覆盖本文件顶部当前事实。
 
+- 2026-07-21：`PM-DASHBOARD-002-T01` 校准 `using-shanforge` 的 PM 状态入口：Excel 样例只在设计期读取一次并固化进 HTML/slot，运行时不得回读；AI 只形成意图候选，确定性策略选择工具，固定代码消费同一 H 快照并渲染。独立复审 `approved / 99 / C0-I0-M0`；定向 23、相邻 11+42、Ruff 与五视口截图门通过。
 - 2026-07-13：新增并升级 `skills/go-backend-developer/`，固定 Gin + GORM + Logrus + Consul 组合栈的精确触发、工程边界和 6 文件最小模板。规则现包含 GitHub 来源取舍、Ponytail 决策顺序、禁止排版式单次调用 helper、嵌套目标 2 层/硬上限 3 层、Go 式对象设计、真实问题驱动的模式门槛，以及禁止推测性 fallback、alias、dual-read/dual-write、多驱动包装和宽松解析。非法显式 request ID 失败并留下单条脱敏结构化日志。revision 4 独立 review 最终 `approved / 98`；当前 `pending_human_confirmation`，人工确认后才进入本地提交。
 
 ## 2026-07-04

@@ -1,5 +1,7 @@
 # Skill Updates Summary
 
+- 当前（2026-07-22）：`UI-DESIGN-SKILL-001 / TASK-SKILL-001` 已完成 `ui-ux-pro-max` 原位升级，覆盖 Web、小程序、Apple、Android、Windows/Linux、跨平台 UI 与动效；同步上游稳定版 v2.11.0 数据和桌面栈，新增平台、动效、交付与开源来源 references、Codex metadata、9 个专项测试和三组隔离 forward-test。`art-asset-pipeline` 保留资产生产职责；系统 `skill-creator` 作为后续默认创作入口，仓内副本等待依赖迁移后再单独退役。独立 review `approved / 98 / C0-I0-M1`，完成验证全部通过，无新增人工 Gate。
+
 - 当前（2026-07-19）：`TASK-SKILL-002-P001` 已完成剩余 32 个工作 Skill，为每个 Skill 增加项目位置、完成层级、停止原因和授权范围余量四字段，以及“只返回事实、不决定下一 Skill/Gate/发布”的边界；未改专业触发语义或人工 Gate。连同 TASK-SKILL-001 的 6 个流程 owner，顶层 Skill 覆盖为 `38/38`。全仓 `828 passed`，最终独立复验 `approved / 100 / 0-0-0`；任务完成，没有人工 Gate。
 
 > 以下带日期条目均为历史快照；其中“当前”“下一阶段”“pending_human_confirmation”只表示当时状态，不得覆盖本文件顶部当前事实。

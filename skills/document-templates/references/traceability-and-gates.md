@@ -91,9 +91,8 @@
 
 至少准备：
 
-- `04-project-development/02-discovery/input.md`
-- `04-project-development/02-discovery/brainstorm-record.md`
-- 历史项目时补 `current-state-analysis.md`
+- `04-project-development/02-discovery/index.md`
+- 当前正式调研报告或 work item brief
 
 通过标准：
 

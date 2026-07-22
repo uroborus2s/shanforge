@@ -1,0 +1,26 @@
+{
+  "schema_id": "ProjectKnowledgeRelationDeclarations/v1",
+  "version": "2",
+  "relations": [
+    {"from_entity_id":"doc:DESIGN-ARCH-001","to_entity_id":"REQ-PKI-001","relation_type":"SATISFIES","strength":"strong","confidence":1.0},
+    {"from_entity_id":"doc:DOC-NAV-DESIGN-001","to_entity_id":"REQ-PKI-002","relation_type":"SATISFIES","strength":"strong","confidence":1.0},
+    {"from_entity_id":"doc:DESIGN-MEMORY-001","to_entity_id":"REQ-PKI-003","relation_type":"SATISFIES","strength":"strong","confidence":1.0},
+    {"from_entity_id":"doc:DESIGN-DATA-001","to_entity_id":"REQ-PKI-004","relation_type":"SATISFIES","strength":"strong","confidence":1.0},
+    {"from_entity_id":"doc:DESIGN-MODULE-001","to_entity_id":"REQ-PKI-005","relation_type":"SATISFIES","strength":"strong","confidence":1.0},
+    {"from_entity_id":"doc:TRACE-API-001","to_entity_id":"REQ-PKI-006","relation_type":"SATISFIES","strength":"strong","confidence":1.0},
+    {"from_entity_id":"doc:DESIGN-MODULE-001","to_entity_id":"REQ-PKI-007","relation_type":"SATISFIES","strength":"strong","confidence":1.0},
+    {"from_entity_id":"doc:DESIGN-FRONTEND-001","to_entity_id":"REQ-PKI-008","relation_type":"SATISFIES","strength":"strong","confidence":1.0},
+    {"from_entity_id":"doc:DESIGN-UX-UI-001","to_entity_id":"REQ-PKI-009","relation_type":"SATISFIES","strength":"strong","confidence":1.0},
+    {"from_entity_id":"doc:DESIGN-DATA-001","to_entity_id":"REQ-PKI-010","relation_type":"SATISFIES","strength":"strong","confidence":1.0},
+    {"from_entity_id":"doc:PROC-TASK-EXECUTION-001","to_entity_id":"REQ-PKI-011","relation_type":"SATISFIES","strength":"strong","confidence":1.0},
+    {"from_entity_id":"doc:DESIGN-TECH-001","to_entity_id":"REQ-PKI-012","relation_type":"SATISFIES","strength":"strong","confidence":1.0},
+    {"from_entity_id":"doc:DESIGN-MEMORY-001","to_entity_id":"REQ-PKI-013","relation_type":"SATISFIES","strength":"strong","confidence":1.0},
+    {"from_entity_id":"doc:DESIGN-API-001","to_entity_id":"REQ-PKI-014","relation_type":"SATISFIES","strength":"strong","confidence":1.0},
+    {"from_entity_id":"doc:DOC-NAV-DESIGN-001","to_entity_id":"REQ-PKI-015","relation_type":"SATISFIES","strength":"strong","confidence":1.0},
+    {"from_entity_id":"doc:DESIGN-API-001","to_entity_id":"REQ-PKI-016","relation_type":"SATISFIES","strength":"strong","confidence":1.0},
+    {"from_entity_id":"py:src.settings.project_knowledge.sqlite_index:SQLiteProjectKnowledgeIndex:class","to_entity_id":"doc:DESIGN-DATA-001","relation_type":"IMPLEMENTS","strength":"strong","confidence":1.0},
+    {"from_entity_id":"py:src.runtime.project_knowledge.site_renderer:ProjectSiteRenderer:class","to_entity_id":"doc:DESIGN-FRONTEND-001","relation_type":"IMPLEMENTS","strength":"strong","confidence":1.0},
+    {"from_entity_id":"py:src.settings.project_knowledge.sync_worker:ProjectStateSyncWorker:class","to_entity_id":"doc:PROC-TASK-EXECUTION-001","relation_type":"IMPLEMENTS","strength":"strong","confidence":1.0},
+    {"from_entity_id":"py:tests.test_project_knowledge_integration:test_rebuild_removes_registered_stale_sidecars_and_first_read_succeeds:function","to_entity_id":"REQ-PKI-004","relation_type":"VERIFIES","strength":"strong","confidence":1.0}
+  ]
+}

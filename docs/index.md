@@ -1,274 +1,45 @@
 ---
 title: shanforge
-mkdocs:
-  home_access: public
-  nav:
-    - title: 入门说明
-      children:
-        - title: 概览
-          path: 01-getting-started/index.md
-          access: public
-        - title: 项目概览
-          path: 01-getting-started/project-overview.md
-          access: public
-        - title: 快速开始
-          path: 01-getting-started/quick-start.md
-          access: public
-        - title: 文档地图
-          path: 01-getting-started/document-map.md
-          access: public
-    - title: 用户指南
-      children:
-        - title: 概览
-          path: 02-user-guide/index.md
-          access: public
-        - title: 使用指南
-          path: 02-user-guide/user-guide.md
-          access: public
-        - title: 提示词速查
-          path: 02-user-guide/prompt-templates.md
-          access: public
-    - title: 开发者指南
-      children:
-        - title: 概览
-          path: 03-developer-guide/index.md
-          access: public
-        - title: 应用开发
-          path: 03-developer-guide/application-development.md
-          access: public
-        - title: 开发环境
-          path: 03-developer-guide/development-setup.md
-          access: public
-        - title: 函数说明
-          path: 03-developer-guide/function-reference.md
-          access: public
-        - title: 接口说明
-          path: 03-developer-guide/interface-reference.md
-          access: public
-        - title: 插件开发
-          path: 03-developer-guide/plugin-development.md
-          access: public
-    - title: 项目开发文档（内）
-      children:
-        - title: 概览
-          path: 04-project-development/index.md
-          access: private
-        - title: 项目治理
-          children:
-            - title: 概览
-              path: 04-project-development/01-governance/index.md
-              access: private
-            - title: 项目章程
-              path: 04-project-development/01-governance/project-charter.md
-              access: private
-        - title: 调研与决策
-          children:
-            - title: 概览
-              path: 04-project-development/02-discovery/index.md
-              access: private
-            - title: 项目输入
-              path: 04-project-development/02-discovery/input.md
-              access: private
-            - title: 头脑风暴记录
-              path: 04-project-development/02-discovery/brainstorm-record.md
-              access: private
-            - title: Hermes Agent 源码调研报告
-              path: 04-project-development/02-discovery/hermes-agent-source-analysis-report.md
-              access: private
-        - title: 需求
-          children:
-            - title: 概览
-              path: 04-project-development/03-requirements/index.md
-              access: private
-            - title: 产品需求文档（PRD）
-              path: 04-project-development/03-requirements/prd.md
-              access: private
-            - title: 流程契约需求文档
-              path: 04-project-development/03-requirements/process-workflow-contract-requirements.md
-              access: private
-        - title: 需求分析文档
-          path: 04-project-development/03-requirements/requirements-analysis.md
-          access: private
-        - title: 记忆系统业务需求文档
-          path: 04-project-development/03-requirements/memory-system-business-requirements.md
-          access: private
-        - title: 需求一致性校验报告
-          path: 04-project-development/03-requirements/requirements-verification.md
-          access: private
-        - title: 设计文档
-          children:
-            - title: 概览
-              path: 04-project-development/04-design/index.md
-              access: private
-            - title: 总体方案与协作总览
-              path: 04-project-development/04-design/solution-overview.md
-              access: private
-            - title: 技术选型与工程规则
-              path: 04-project-development/04-design/technical-selection.md
-              access: private
-            - title: 系统架构设计
-              path: 04-project-development/04-design/system-architecture.md
-              access: private
-            - title: 抽象 Agent 平台架构
-              path: 04-project-development/04-design/agent-platform-architecture.md
-              access: private
-            - title: 分层领域与接口总表
-              path: 04-project-development/04-design/layered-domain-interface-catalog.md
-              access: private
-            - title: 模块边界文档
-              path: 04-project-development/04-design/module-boundaries.md
-              access: private
-            - title: 架构分层与代码映射说明
-              path: 04-project-development/04-design/architecture-layer-code-mapping.md
-              access: private
-            - title: 基础能力层详细设计
-              path: 04-project-development/04-design/basic-capability-layer-design.md
-              access: private
-            - title: 基础设置层与外部资源设计
-              path: 04-project-development/04-design/infrastructure-layer-design.md
-              access: private
-            - title: 核心领域与能力清单
-              path: 04-project-development/04-design/core-subsystems.md
-              access: private
-            - title: 记忆运行时设计
-              path: 04-project-development/04-design/memory-runtime-design.md
-              access: private
-            - title: 记忆系统详细设计方案
-              path: 04-project-development/04-design/memory-system-detailed-design.md
-              access: private
-            - title: 记忆系统对外界面
-              path: 04-project-development/04-design/memory-runtime-interfaces.md
-              access: private
-            - title: 子设计一：Session Ledger
-              path: 04-project-development/04-design/memory-session-ledger-design.md
-              access: private
-            - title: 子设计二：Candidate 与 Promotion
-              path: 04-project-development/04-design/memory-promotion-design.md
-              access: private
-            - title: 子设计三：Recall 与 Context Consumption
-              path: 04-project-development/04-design/memory-recall-design.md
-              access: private
-            - title: 子设计四：Distillation 与 Learning Dataset
-              path: 04-project-development/04-design/memory-distillation-learning-design.md
-              access: private
-            - title: API 设计文档
-              path: 04-project-development/04-design/api-design.md
-              access: private
-            - title: 后端分层与运行链设计
-              path: 04-project-development/04-design/backend-design.md
-              access: private
-            - title: 数据与持久化设计
-              path: 04-project-development/04-design/database-design.md
-              access: private
-            - title: 多前台宿主与多代理协作设计
-              path: 04-project-development/04-design/frontend-adapters-and-multi-agent-coordination.md
-              access: private
-            - title: 编剧室模拟器设计方案
-              path: 04-project-development/04-design/writer-room-simulator-design.md
-              access: private
-            - title: 能力注册与分级自治治理设计
-              path: 04-project-development/04-design/action-registry-and-autonomy-policy.md
-              access: private
-            - title: 部署与运行模式设计
-              path: 04-project-development/04-design/deployment-architecture.md
-              access: private
-        - title: 开发过程文档
-          children:
-            - title: 概览
-              path: 04-project-development/05-development-process/index.md
-              access: private
-            - title: 软件开发流程
-              path: 04-project-development/05-development-process/software-development-process.md
-              access: private
-            - title: 实施计划
-              path: 04-project-development/05-development-process/implementation-plan.md
-              access: private
-            - title: Superpowers 流程集成实施方案
-              path: 04-project-development/05-development-process/superpowers-workflow-integration-plan.md
-              access: private
-            - title: 流程契约实施方案
-              path: 04-project-development/05-development-process/process-workflow-contract-implementation-plan.md
-              access: private
-            - title: 项目管理控制面集成方案
-              path: 04-project-development/05-development-process/project-management-control-plane.md
-              access: private
-            - title: 记忆治理专项实施计划
-              path: 04-project-development/05-development-process/memory-governance-implementation-plan.md
-              access: private
-        - title: 测试与验证
-          children:
-            - title: 概览
-              path: 04-project-development/06-testing-verification/index.md
-              access: private
-            - title: 测试计划
-              path: 04-project-development/06-testing-verification/test-plan.md
-              access: private
-            - title: 测试报告
-              path: 04-project-development/06-testing-verification/test-report.md
-              access: private
-        - title: 发布与交付
-          children:
-            - title: 概览
-              path: 04-project-development/07-release-delivery/index.md
-              access: private
-            - title: 发布说明
-              path: 04-project-development/07-release-delivery/release-notes.md
-              access: private
-        - title: 运维与维护
-          children:
-            - title: 概览
-              path: 04-project-development/08-operations-maintenance/index.md
-              access: private
-            - title: 部署手册
-              path: 04-project-development/08-operations-maintenance/deployment-guide.md
-              access: private
-            - title: 运维手册
-              path: 04-project-development/08-operations-maintenance/operations-runbook.md
-              access: private
-        - title: 演进复盘
-          children:
-            - title: 概览
-              path: 04-project-development/09-evolution/index.md
-              access: private
-            - title: Skill 进化方案
-              path: 04-project-development/09-evolution/skill-evolution-plan.md
-              access: private
-            - title: Agent 高主动性与自进化集成方案
-              path: 04-project-development/09-evolution/agent-motivation-autonomy-integration.md
-              access: private
-            - title: 纳管复盘与后续演进
-              path: 04-project-development/09-evolution/retrospective.md
-              access: private
-        - title: 追踪矩阵
-          children:
-            - title: 概览
-              path: 04-project-development/10-traceability/index.md
-              access: private
-            - title: 需求追踪矩阵
-              path: 04-project-development/10-traceability/requirements-matrix.md
-              access: private
-            - title: 接口追踪矩阵
-              path: 04-project-development/10-traceability/interface-matrix.md
-              access: private
-            - title: 文档索引
-              path: 04-project-development/10-traceability/document-index.md
-              access: private
 ---
+# 文档总入口
 
-# 山海工枢（shanforge）
+## 文档控制
 
-这是 `山海工枢（shanforge）` 的正式项目文档源。当前仓库已经按 4 大模块完成单轴重构，其中 `项目开发文档（内）` 承载治理、需求、设计、测试、发布、运维和追踪矩阵等过程性文档；对外阅读入口和开发者稳定说明不再与内部过程文档混写。
+| 项目 | 内容 |
+|---|---|
+| 文档 ID | `DOC-NAV-ROOT-001` |
+| 正式版本 | `v1.1.0` |
+| 来源候选 | `TASK-IMPLEMENT-003-P001` |
+| 发布事务 | `DESIGN-RELEASE-TX-R019-G001` |
+| 负责人 | `HUMAN_PROJECT_OWNER` |
+| 修改 / 审核 / 批准 | `uroborus` / `uroborus` / `uroborus` |
+| 状态 | 已批准并生效 |
+| 上游 | `DOCS-IA-SHANFORGE-001`、`.factory/catalog/document-publication-policy.json` |
+| 下游 | `六个模块入口`、`document-index` |
 
-## 适用范围
+## 按目的进入
 
-- 根 `docs/index.md` 的 front matter 是目录树、页面路径和访问级别的唯一事实源。
-- Markdown 页面、OpenAPI 契约和 MCP tools 快照统一作为正式页面资产维护。
-- 契约文件必须放在真实文档目录下，并与所在目录的 `index.md` 配套。
+1. [项目概览](./01-getting-started/index.md)。
+2. [用户指南](./02-user-guide/index.md)。
+3. [开发者指南](./03-developer-guide/index.md)。
+4. [产品与需求](./04-product/index.md)。
+5. [软件技术设计](./05-design/index.md)。
+6. [质量与交付](./06-delivery/index.md)。
+7. [文档索引](./document-index.md)。
 
-## 维护规则
+## 项目跟踪边界
 
-- 只有根 `docs/index.md` 声明全站 `mkdocs.nav`、页面路径和页面权限。
-- 子目录 `index.md` 只作为正文首页和资源权限锚点，不再承担导航声明职责。
-- 页面、图片和附件跟随所属目录维护；资源文件放在当前目录或当前目录的 `assets/` 下，`assets/` 不承载 Markdown 页面或契约文件。
-- 仓内链接统一使用相对路径，不写机器绝对路径。
-- 新增、删除或移动 Markdown 页面或契约文件后，同步刷新根 `docs/index.md` 的目录树；子目录 `index.md` 只保留正文概览。
+正式且面向人类的稳定事实进入本目录；TaskCard、计划、状态、评审、验证证据、机器 Catalog、索引和会话恢复摘要进入 `.factory/`。本目录只包含 Markdown 人类文档。
+
+## 快速查看当前项目
+
+在仓库根目录运行 `PYTHONPATH=src uv run python -m settings.composition.project_knowledge project snapshot --html --json`。命令会检查来源与页面指纹；没有变化时直接返回最后有效的 `.factory/cache/site/current/index.html`，有变化时才增量刷新。需求、设计、任务、代码和证据详情都是独立页面，并提供返回按钮。
+
+查询单个内容使用 `project find <关键词>`、`project show <稳定 ID>`、`project trace <稳定 ID>` 和 `project context <稳定 ID>`；AI 先取 locator 读取计划，再按需读取原文，不散读整个 `docs`。
+
+## 正式版本历史（仅已发布）
+
+| 版本 | 日期 | 变更内容 | 修改人 | 审核 | 批准 |
+|---|---|---|---|---|---|
+| `v1.0.0` | 2026-07-18 | 建立六类人类文档总入口 | `uroborus` | `uroborus` | `uroborus` |
+| `v1.1.0` | 2026-07-22 | 明确 docs 仅含人类文档，并增加固定 CLI 的项目 HTML 与定向查询入口 | `uroborus` | `uroborus` | `uroborus` |

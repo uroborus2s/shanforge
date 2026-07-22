@@ -305,3 +305,4 @@
 - 2026-07-20：`TASK-SKILL-003-simple-task-fast-path` 第一批实现已完成，独立 reviewer iteration 3 为 `approved / 96 / C0 I0 M0`，最终新鲜验证已收口：入口先做当前消息初判；direct/lightweight 直接返回且零仓内写入，项目化请求恢复事实后再完成路由。范围不含 32 个工作 skill 的状态字段收敛。
 - 2026-07-21：`TASK-SKILL-004-work-skill-status-envelope-owner` 第二批实现已独立复审通过：精确 32 个工作 Skill 去除四个重复项目状态字段并保留专业正文哈希；总控生成项目状态信封，本地 `status/needs` 原样透传。首次 `gitcommitzh` 因必要文件混有上游内容而 blocked；用户随后明确授权纳入形成完整提交所必需的同文件范围外改动，当前进入受限候选文件集本地提交。
 - 2026-07-19 历史事件：`TASK-QUALITY-001-P001` 完成全仓静态债务清理并曾生成 `TASK-IMPLEMENT-001-R001`。该候选随后已被用户明确撤销，从未正式发布；原精确哈希 Gate 已关闭且不得恢复。当前状态只以本文件顶部 TASK-QUALITY-002 焦点为准。
+- 2026-07-23：`TASK-IMPLEMENT-003-P001` 已完成 39 表知识索引、137 字段 PM 投影、稳定 locator/query CLI、异步项目状态同步、缓存维护与只读多页面站点；第四轮独立终审 `approved / 98 / C0-I0-M0`，精确范围本地提交已创建。

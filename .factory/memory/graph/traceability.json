@@ -1,43 +1,442 @@
 {
-  "updated_at": "2026-04-14 00:10:00",
+  "updated_at": "2026-07-15 01:45:15",
   "nodes": [
-    { "id": "REQ-001", "type": "REQ" },
-    { "id": "REQ-002", "type": "REQ" },
-    { "id": "REQ-003", "type": "REQ" },
-    { "id": "REQ-004", "type": "REQ" },
-    { "id": "REQ-005", "type": "REQ" },
-    { "id": "REQ-006", "type": "REQ" },
-    { "id": "REQ-007", "type": "REQ" },
-    { "id": "REQ-008", "type": "REQ" },
-    { "id": "REQ-009", "type": "REQ" },
-    { "id": "REQ-010", "type": "REQ" },
-    { "id": "NFR-001", "type": "NFR" },
-    { "id": "NFR-002", "type": "NFR" },
-    { "id": "NFR-003", "type": "NFR" },
-    { "id": "NFR-004", "type": "NFR" },
-    { "id": "NFR-005", "type": "NFR" },
-    { "id": "TASK-001", "type": "TASK" },
-    { "id": "TASK-002", "type": "TASK" },
-    { "id": "TASK-003", "type": "TASK" },
-    { "id": "TASK-004", "type": "TASK" },
-    { "id": "TASK-005", "type": "TASK" },
-    { "id": "TASK-006", "type": "TASK" },
-    { "id": "TASK-007", "type": "TASK" },
-    { "id": "TASK-008", "type": "TASK" },
-    { "id": "TASK-009", "type": "TASK" },
-    { "id": "TASK-010", "type": "TASK" },
-    { "id": "TASK-011", "type": "TASK" },
-    { "id": "TASK-012", "type": "TASK" },
-    { "id": "docs/04-project-development/03-requirements/prd.md", "type": "ARTIFACT" },
-    { "id": "docs/04-project-development/03-requirements/requirements-analysis.md", "type": "ARTIFACT" },
-    { "id": "docs/04-project-development/04-design/system-architecture.md", "type": "ARTIFACT" },
-    { "id": "docs/04-project-development/04-design/agent-platform-architecture.md", "type": "ARTIFACT" },
-    { "id": "docs/04-project-development/04-design/module-boundaries.md", "type": "ARTIFACT" },
-    { "id": "docs/04-project-development/04-design/memory-runtime-design.md", "type": "ARTIFACT" },
-    { "id": "docs/04-project-development/04-design/api-design.md", "type": "ARTIFACT" },
-    { "id": "docs/04-project-development/05-development-process/implementation-plan.md", "type": "ARTIFACT" },
-    { "id": "docs/04-project-development/06-testing-verification/test-plan.md", "type": "ARTIFACT" },
-    { "id": ".factory/memory/runtime-brief.md", "type": "MEMORY" }
+    {
+      "id": "REQ-001",
+      "type": "REQ"
+    },
+    {
+      "id": "REQ-002",
+      "type": "REQ"
+    },
+    {
+      "id": "REQ-003",
+      "type": "REQ"
+    },
+    {
+      "id": "REQ-004",
+      "type": "REQ"
+    },
+    {
+      "id": "REQ-005",
+      "type": "REQ"
+    },
+    {
+      "id": "REQ-006",
+      "type": "REQ"
+    },
+    {
+      "id": "REQ-007",
+      "type": "REQ"
+    },
+    {
+      "id": "REQ-008",
+      "type": "REQ"
+    },
+    {
+      "id": "REQ-009",
+      "type": "REQ"
+    },
+    {
+      "id": "REQ-010",
+      "type": "REQ"
+    },
+    {
+      "id": "NFR-001",
+      "type": "NFR"
+    },
+    {
+      "id": "NFR-002",
+      "type": "NFR"
+    },
+    {
+      "id": "NFR-003",
+      "type": "NFR"
+    },
+    {
+      "id": "NFR-004",
+      "type": "NFR"
+    },
+    {
+      "id": "NFR-005",
+      "type": "NFR"
+    },
+    {
+      "id": "TASK-001",
+      "type": "TASK"
+    },
+    {
+      "id": "TASK-002",
+      "type": "TASK"
+    },
+    {
+      "id": "TASK-003",
+      "type": "TASK"
+    },
+    {
+      "id": "TASK-004",
+      "type": "TASK"
+    },
+    {
+      "id": "TASK-005",
+      "type": "TASK"
+    },
+    {
+      "id": "TASK-006",
+      "type": "TASK"
+    },
+    {
+      "id": "TASK-007",
+      "type": "TASK"
+    },
+    {
+      "id": "TASK-008",
+      "type": "TASK"
+    },
+    {
+      "id": "TASK-009",
+      "type": "TASK"
+    },
+    {
+      "id": "TASK-010",
+      "type": "TASK"
+    },
+    {
+      "id": "TASK-011",
+      "type": "TASK"
+    },
+    {
+      "id": "TASK-012",
+      "type": "TASK"
+    },
+    {
+      "id": "docs/04-project-development/03-requirements/prd.md",
+      "type": "ARTIFACT"
+    },
+    {
+      "id": "docs/04-project-development/03-requirements/requirements-analysis.md",
+      "type": "ARTIFACT"
+    },
+    {
+      "id": "docs/04-project-development/04-design/system-architecture.md",
+      "type": "ARTIFACT"
+    },
+    {
+      "id": "docs/04-project-development/04-design/agent-platform-architecture.md",
+      "type": "ARTIFACT"
+    },
+    {
+      "id": "docs/04-project-development/04-design/module-boundaries.md",
+      "type": "ARTIFACT"
+    },
+    {
+      "id": "docs/04-project-development/04-design/memory-runtime-design.md",
+      "type": "ARTIFACT"
+    },
+    {
+      "id": "docs/04-project-development/04-design/api-design.md",
+      "type": "ARTIFACT"
+    },
+    {
+      "id": "docs/04-project-development/05-development-process/implementation-plan.md",
+      "type": "ARTIFACT"
+    },
+    {
+      "id": "docs/04-project-development/06-testing-verification/test-plan.md",
+      "type": "ARTIFACT"
+    },
+    {
+      "id": ".factory/memory/runtime-brief.md",
+      "type": "MEMORY"
+    },
+    {
+      "id": "REQ-AI-WORKFLOW-001",
+      "type": "REQ"
+    },
+    {
+      "id": "REQ-AI-WORKFLOW-002",
+      "type": "REQ"
+    },
+    {
+      "id": "REQ-AI-WORKFLOW-003",
+      "type": "REQ"
+    },
+    {
+      "id": "REQ-AI-WORKFLOW-004",
+      "type": "REQ"
+    },
+    {
+      "id": "REQ-AI-WORKFLOW-005",
+      "type": "REQ"
+    },
+    {
+      "id": "REQ-AI-WORKFLOW-006",
+      "type": "REQ"
+    },
+    {
+      "id": "REQ-AI-WORKFLOW-007",
+      "type": "REQ"
+    },
+    {
+      "id": "REQ-AI-WORKFLOW-008",
+      "type": "REQ"
+    },
+    {
+      "id": "REQ-AI-WORKFLOW-009",
+      "type": "REQ"
+    },
+    {
+      "id": "REQ-AI-WORKFLOW-010",
+      "type": "REQ"
+    },
+    {
+      "id": "REQ-AI-WORKFLOW-011",
+      "type": "REQ"
+    },
+    {
+      "id": "REQ-AI-WORKFLOW-012",
+      "type": "REQ"
+    },
+    {
+      "id": "REQ-AI-WORKFLOW-013",
+      "type": "REQ"
+    },
+    {
+      "id": "REQ-AI-WORKFLOW-014",
+      "type": "REQ"
+    },
+    {
+      "id": "REQ-AI-WORKFLOW-015",
+      "type": "REQ"
+    },
+    {
+      "id": "REQ-AI-WORKFLOW-016",
+      "type": "REQ"
+    },
+    {
+      "id": "REQ-AI-WORKFLOW-017",
+      "type": "REQ"
+    },
+    {
+      "id": "REQ-AI-WORKFLOW-018",
+      "type": "REQ"
+    },
+    {
+      "id": "REQ-AI-WORKFLOW-019",
+      "type": "REQ"
+    },
+    {
+      "id": "REQ-AI-WORKFLOW-020",
+      "type": "REQ"
+    },
+    {
+      "id": "REQ-AI-WORKFLOW-021",
+      "type": "REQ"
+    },
+    {
+      "id": "REQ-AI-WORKFLOW-022",
+      "type": "REQ"
+    },
+    {
+      "id": "REQ-AI-WORKFLOW-023",
+      "type": "REQ"
+    },
+    {
+      "id": "REQ-AI-WORKFLOW-024",
+      "type": "REQ"
+    },
+    {
+      "id": "REQ-AI-WORKFLOW-025",
+      "type": "REQ"
+    },
+    {
+      "id": "REQ-AI-WORKFLOW-026",
+      "type": "REQ"
+    },
+    {
+      "id": "REQ-AI-WORKFLOW-027",
+      "type": "REQ"
+    },
+    {
+      "id": "REQ-AI-WORKFLOW-028",
+      "type": "REQ"
+    },
+    {
+      "id": "REQ-AI-WORKFLOW-029",
+      "type": "REQ"
+    },
+    {
+      "id": "REQ-AI-WORKFLOW-030",
+      "type": "REQ"
+    },
+    {
+      "id": "REQ-AI-WORKFLOW-031",
+      "type": "REQ"
+    },
+    {
+      "id": "REQ-AI-WORKFLOW-032",
+      "type": "REQ"
+    },
+    {
+      "id": "REQ-AI-WORKFLOW-033",
+      "type": "REQ"
+    },
+    {
+      "id": "REQ-AI-WORKFLOW-034",
+      "type": "REQ"
+    },
+    {
+      "id": "REQ-AI-WORKFLOW-035",
+      "type": "REQ"
+    },
+    {
+      "id": "REQ-AI-WORKFLOW-036",
+      "type": "REQ"
+    },
+    {
+      "id": "REQ-AI-WORKFLOW-037",
+      "type": "REQ"
+    },
+    {
+      "id": "REQ-AI-WORKFLOW-038",
+      "type": "REQ"
+    },
+    {
+      "id": "REQ-AI-WORKFLOW-039",
+      "type": "REQ"
+    },
+    {
+      "id": "REQ-AI-WORKFLOW-040",
+      "type": "REQ"
+    },
+    {
+      "id": "REQ-AI-WORKFLOW-041",
+      "type": "REQ"
+    },
+    {
+      "id": "REQ-AI-WORKFLOW-042",
+      "type": "REQ"
+    },
+    {
+      "id": "REQ-AI-WORKFLOW-043",
+      "type": "REQ"
+    },
+    {
+      "id": "REQ-AI-WORKFLOW-044",
+      "type": "REQ"
+    },
+    {
+      "id": "REQ-AI-WORKFLOW-045",
+      "type": "REQ"
+    },
+    {
+      "id": "REQ-AI-WORKFLOW-046",
+      "type": "REQ"
+    },
+    {
+      "id": "REQ-AI-WORKFLOW-047",
+      "type": "REQ"
+    },
+    {
+      "id": "REQ-AI-WORKFLOW-048",
+      "type": "REQ"
+    },
+    {
+      "id": "REQ-AI-WORKFLOW-049",
+      "type": "REQ"
+    },
+    {
+      "id": "REQ-AI-WORKFLOW-050",
+      "type": "REQ"
+    },
+    {
+      "id": "REQ-AI-WORKFLOW-051",
+      "type": "REQ"
+    },
+    {
+      "id": "REQ-AI-WORKFLOW-052",
+      "type": "REQ"
+    },
+    {
+      "id": "REQ-AI-WORKFLOW-053",
+      "type": "REQ"
+    },
+    {
+      "id": "NFR-AI-WORKFLOW-001",
+      "type": "NFR"
+    },
+    {
+      "id": "NFR-AI-WORKFLOW-002",
+      "type": "NFR"
+    },
+    {
+      "id": "NFR-AI-WORKFLOW-003",
+      "type": "NFR"
+    },
+    {
+      "id": "NFR-AI-WORKFLOW-004",
+      "type": "NFR"
+    },
+    {
+      "id": "NFR-AI-WORKFLOW-005",
+      "type": "NFR"
+    },
+    {
+      "id": "NFR-AI-WORKFLOW-006",
+      "type": "NFR"
+    },
+    {
+      "id": "NFR-AI-WORKFLOW-007",
+      "type": "NFR"
+    },
+    {
+      "id": "NFR-AI-WORKFLOW-008",
+      "type": "NFR"
+    },
+    {
+      "id": "NFR-AI-WORKFLOW-009",
+      "type": "NFR"
+    },
+    {
+      "id": "NFR-AI-WORKFLOW-010",
+      "type": "NFR"
+    },
+    {
+      "id": "NFR-AI-WORKFLOW-011",
+      "type": "NFR"
+    },
+    {
+      "id": "REQ-CHANGE-WF-CTL-010-001",
+      "type": "REQ"
+    },
+    {
+      "id": "TASK-REQ-002",
+      "type": "TASK"
+    },
+    {
+      "id": "TASK-DESIGN-001",
+      "type": "TASK"
+    },
+    {
+      "id": "docs/04-project-development/10-traceability/requirements-matrix.md",
+      "type": "ARTIFACT"
+    },
+    {
+      "id": "docs/04-project-development/10-traceability/document-index.md",
+      "type": "ARTIFACT"
+    },
+    {
+      "id": ".factory/workitems/FLOW-CONTRACT-001/drafts/workflow-norm-mapping.candidate.jsonl",
+      "type": "ARTIFACT"
+    },
+    {
+      "id": ".factory/workitems/FLOW-CONTRACT-001/drafts/project-progress-requirement-contract.R014.json",
+      "type": "ARTIFACT"
+    },
+    {
+      "id": ".factory/workitems/FLOW-CONTRACT-001/evidence/TASK-REQ-002-R014-release-manifest.json",
+      "type": "ARTIFACT"
+    }
   ],
   "edges": [
     {
@@ -45,7 +444,7 @@
       "relation": "落点",
       "target": "docs/04-project-development/04-design/system-architecture.md",
       "status": "有效",
-      "owner": "Codex",
+      "owner": "项目负责人",
       "note": "统一 Agent Platform Kernel",
       "updated_at": "2026-04-13 16:10:00"
     },
@@ -54,7 +453,7 @@
       "relation": "任务",
       "target": "TASK-001",
       "status": "待开始",
-      "owner": "Codex",
+      "owner": "项目负责人",
       "note": "领域模型与核心 ID 体系",
       "updated_at": "2026-04-13 16:10:00"
     },
@@ -63,7 +462,7 @@
       "relation": "落点",
       "target": "docs/04-project-development/04-design/agent-platform-architecture.md",
       "status": "有效",
-      "owner": "Codex",
+      "owner": "项目负责人",
       "note": "业务 App 与平台内核隔离",
       "updated_at": "2026-04-13 16:10:00"
     },
@@ -72,7 +471,7 @@
       "relation": "任务",
       "target": "TASK-002",
       "status": "待开始",
-      "owner": "Codex",
+      "owner": "项目负责人",
       "note": "Agent App Manifest schema 与 loader",
       "updated_at": "2026-04-13 16:10:00"
     },
@@ -81,7 +480,7 @@
       "relation": "落点",
       "target": "docs/04-project-development/04-design/api-design.md",
       "status": "有效",
-      "owner": "Codex",
+      "owner": "项目负责人",
       "note": "Workflow DSL 契约",
       "updated_at": "2026-04-13 16:10:00"
     },
@@ -90,7 +489,7 @@
       "relation": "任务",
       "target": "TASK-003",
       "status": "待开始",
-      "owner": "Codex",
+      "owner": "项目负责人",
       "note": "Workflow DSL schema 与 runtime skeleton",
       "updated_at": "2026-04-13 16:10:00"
     },
@@ -99,7 +498,7 @@
       "relation": "落点",
       "target": "docs/04-project-development/04-design/api-design.md",
       "status": "有效",
-      "owner": "Codex",
+      "owner": "项目负责人",
       "note": "ModelPolicy 与 LLMProviderPort",
       "updated_at": "2026-04-13 16:10:00"
     },
@@ -108,7 +507,7 @@
       "relation": "任务",
       "target": "TASK-004",
       "status": "待开始",
-      "owner": "Codex",
+      "owner": "项目负责人",
       "note": "ModelPolicyResolver 与 MockModelProvider",
       "updated_at": "2026-04-13 16:10:00"
     },
@@ -117,7 +516,7 @@
       "relation": "落点",
       "target": "docs/04-project-development/04-design/module-boundaries.md",
       "status": "有效",
-      "owner": "Codex",
+      "owner": "项目负责人",
       "note": "Capability Registry 与 ExecutionPort",
       "updated_at": "2026-04-13 16:10:00"
     },
@@ -126,7 +525,7 @@
       "relation": "任务",
       "target": "TASK-006",
       "status": "待开始",
-      "owner": "Codex",
+      "owner": "项目负责人",
       "note": "Capability Registry 与 tool runtime",
       "updated_at": "2026-04-13 16:10:00"
     },
@@ -135,7 +534,7 @@
       "relation": "落点",
       "target": ".factory/memory/runtime-brief.md",
       "status": "有效",
-      "owner": "Codex",
+      "owner": "项目负责人",
       "note": "Session、Memory 与 Context Engine",
       "updated_at": "2026-04-13 16:10:00"
     },
@@ -144,7 +543,7 @@
       "relation": "落点",
       "target": "docs/04-project-development/04-design/memory-runtime-design.md",
       "status": "有效",
-      "owner": "Codex",
+      "owner": "项目负责人",
       "note": "Memory Runtime 专项设计",
       "updated_at": "2026-04-14 00:10:00"
     },
@@ -153,7 +552,7 @@
       "relation": "任务",
       "target": "TASK-007",
       "status": "待开始",
-      "owner": "Codex",
+      "owner": "项目负责人",
       "note": "Session Ledger、Memory Runtime、Recall / Context Engine",
       "updated_at": "2026-04-14 00:10:00"
     },
@@ -162,7 +561,7 @@
       "relation": "落点",
       "target": "docs/04-project-development/04-design/system-architecture.md",
       "status": "有效",
-      "owner": "Codex",
+      "owner": "项目负责人",
       "note": "Policy、Approval 与 Sandbox",
       "updated_at": "2026-04-13 16:10:00"
     },
@@ -171,7 +570,7 @@
       "relation": "任务",
       "target": "TASK-008",
       "status": "待开始",
-      "owner": "Codex",
+      "owner": "项目负责人",
       "note": "Policy / Approval / Execution Sandbox",
       "updated_at": "2026-04-13 16:10:00"
     },
@@ -180,7 +579,7 @@
       "relation": "落点",
       "target": "docs/04-project-development/04-design/system-architecture.md",
       "status": "有效",
-      "owner": "Codex",
+      "owner": "项目负责人",
       "note": "Delegation、Gateway 与多入口适配",
       "updated_at": "2026-04-13 16:10:00"
     },
@@ -189,7 +588,7 @@
       "relation": "任务",
       "target": "TASK-010",
       "status": "待开始",
-      "owner": "Codex",
+      "owner": "项目负责人",
       "note": "Delegation Runtime 与 Gateway 边界",
       "updated_at": "2026-04-13 16:10:00"
     },
@@ -198,7 +597,7 @@
       "relation": "落点",
       "target": "docs/04-project-development/04-design/agent-platform-architecture.md",
       "status": "有效",
-      "owner": "Codex",
+      "owner": "项目负责人",
       "note": "AgentResponse 与 Evidence",
       "updated_at": "2026-04-13 16:10:00"
     },
@@ -207,7 +606,7 @@
       "relation": "任务",
       "target": "TASK-009",
       "status": "待开始",
-      "owner": "Codex",
+      "owner": "项目负责人",
       "note": "Response Normalizer、Parser、Schema Validator",
       "updated_at": "2026-04-13 16:10:00"
     },
@@ -216,7 +615,7 @@
       "relation": "落点",
       "target": "docs/04-project-development/05-development-process/implementation-plan.md",
       "status": "有效",
-      "owner": "Codex",
+      "owner": "项目负责人",
       "note": "快速构建业务工作流",
       "updated_at": "2026-04-13 16:10:00"
     },
@@ -225,9 +624,1218 @@
       "relation": "任务",
       "target": "TASK-011",
       "status": "待开始",
-      "owner": "Codex",
+      "owner": "项目负责人",
       "note": "Demo Agent Apps：编码流、写作流",
       "updated_at": "2026-04-13 16:10:00"
+    },
+    {
+      "source": "REQ-AI-WORKFLOW-001",
+      "relation": "正式定义",
+      "target": "docs/04-project-development/03-requirements/prd.md",
+      "status": "有效",
+      "owner": "uroborus",
+      "note": "PRD v3.0.0 正式需求基线",
+      "updated_at": "2026-07-11 15:04:10"
+    },
+    {
+      "source": "REQ-AI-WORKFLOW-001",
+      "relation": "下游设计",
+      "target": "TASK-DESIGN-001",
+      "status": "待开始",
+      "owner": "uroborus",
+      "note": "按正式需求基线重写设计，不复用失效旧范围",
+      "updated_at": "2026-07-11 15:04:10"
+    },
+    {
+      "source": "REQ-AI-WORKFLOW-002",
+      "relation": "正式定义",
+      "target": "docs/04-project-development/03-requirements/prd.md",
+      "status": "有效",
+      "owner": "uroborus",
+      "note": "PRD v3.0.0 正式需求基线",
+      "updated_at": "2026-07-11 15:04:10"
+    },
+    {
+      "source": "REQ-AI-WORKFLOW-002",
+      "relation": "下游设计",
+      "target": "TASK-DESIGN-001",
+      "status": "待开始",
+      "owner": "uroborus",
+      "note": "按正式需求基线重写设计，不复用失效旧范围",
+      "updated_at": "2026-07-11 15:04:10"
+    },
+    {
+      "source": "REQ-AI-WORKFLOW-003",
+      "relation": "正式定义",
+      "target": "docs/04-project-development/03-requirements/prd.md",
+      "status": "有效",
+      "owner": "uroborus",
+      "note": "PRD v3.0.0 正式需求基线",
+      "updated_at": "2026-07-11 15:04:10"
+    },
+    {
+      "source": "REQ-AI-WORKFLOW-003",
+      "relation": "下游设计",
+      "target": "TASK-DESIGN-001",
+      "status": "待开始",
+      "owner": "uroborus",
+      "note": "按正式需求基线重写设计，不复用失效旧范围",
+      "updated_at": "2026-07-11 15:04:10"
+    },
+    {
+      "source": "REQ-AI-WORKFLOW-004",
+      "relation": "正式定义",
+      "target": "docs/04-project-development/03-requirements/prd.md",
+      "status": "有效",
+      "owner": "uroborus",
+      "note": "PRD v3.0.0 正式需求基线",
+      "updated_at": "2026-07-11 15:04:10"
+    },
+    {
+      "source": "REQ-AI-WORKFLOW-004",
+      "relation": "下游设计",
+      "target": "TASK-DESIGN-001",
+      "status": "待开始",
+      "owner": "uroborus",
+      "note": "按正式需求基线重写设计，不复用失效旧范围",
+      "updated_at": "2026-07-11 15:04:10"
+    },
+    {
+      "source": "REQ-AI-WORKFLOW-005",
+      "relation": "正式定义",
+      "target": "docs/04-project-development/03-requirements/prd.md",
+      "status": "有效",
+      "owner": "uroborus",
+      "note": "PRD v3.0.0 正式需求基线",
+      "updated_at": "2026-07-11 15:04:10"
+    },
+    {
+      "source": "REQ-AI-WORKFLOW-005",
+      "relation": "下游设计",
+      "target": "TASK-DESIGN-001",
+      "status": "待开始",
+      "owner": "uroborus",
+      "note": "按正式需求基线重写设计，不复用失效旧范围",
+      "updated_at": "2026-07-11 15:04:10"
+    },
+    {
+      "source": "REQ-AI-WORKFLOW-006",
+      "relation": "正式定义",
+      "target": "docs/04-project-development/03-requirements/prd.md",
+      "status": "有效",
+      "owner": "uroborus",
+      "note": "PRD v3.0.0 正式需求基线",
+      "updated_at": "2026-07-11 15:04:10"
+    },
+    {
+      "source": "REQ-AI-WORKFLOW-006",
+      "relation": "下游设计",
+      "target": "TASK-DESIGN-001",
+      "status": "待开始",
+      "owner": "uroborus",
+      "note": "按正式需求基线重写设计，不复用失效旧范围",
+      "updated_at": "2026-07-11 15:04:10"
+    },
+    {
+      "source": "REQ-AI-WORKFLOW-007",
+      "relation": "正式定义",
+      "target": "docs/04-project-development/03-requirements/prd.md",
+      "status": "有效",
+      "owner": "uroborus",
+      "note": "PRD v3.0.0 正式需求基线",
+      "updated_at": "2026-07-11 15:04:10"
+    },
+    {
+      "source": "REQ-AI-WORKFLOW-007",
+      "relation": "下游设计",
+      "target": "TASK-DESIGN-001",
+      "status": "待开始",
+      "owner": "uroborus",
+      "note": "按正式需求基线重写设计，不复用失效旧范围",
+      "updated_at": "2026-07-11 15:04:10"
+    },
+    {
+      "source": "REQ-AI-WORKFLOW-008",
+      "relation": "正式定义",
+      "target": "docs/04-project-development/03-requirements/prd.md",
+      "status": "有效",
+      "owner": "uroborus",
+      "note": "PRD v3.0.0 正式需求基线",
+      "updated_at": "2026-07-11 15:04:10"
+    },
+    {
+      "source": "REQ-AI-WORKFLOW-008",
+      "relation": "下游设计",
+      "target": "TASK-DESIGN-001",
+      "status": "待开始",
+      "owner": "uroborus",
+      "note": "按正式需求基线重写设计，不复用失效旧范围",
+      "updated_at": "2026-07-11 15:04:10"
+    },
+    {
+      "source": "REQ-AI-WORKFLOW-009",
+      "relation": "正式定义",
+      "target": "docs/04-project-development/03-requirements/prd.md",
+      "status": "有效",
+      "owner": "uroborus",
+      "note": "PRD v3.0.0 正式需求基线",
+      "updated_at": "2026-07-11 15:04:10"
+    },
+    {
+      "source": "REQ-AI-WORKFLOW-009",
+      "relation": "下游设计",
+      "target": "TASK-DESIGN-001",
+      "status": "待开始",
+      "owner": "uroborus",
+      "note": "按正式需求基线重写设计，不复用失效旧范围",
+      "updated_at": "2026-07-11 15:04:10"
+    },
+    {
+      "source": "REQ-AI-WORKFLOW-010",
+      "relation": "正式定义",
+      "target": "docs/04-project-development/03-requirements/prd.md",
+      "status": "有效",
+      "owner": "uroborus",
+      "note": "PRD v3.0.0 正式需求基线",
+      "updated_at": "2026-07-11 15:04:10"
+    },
+    {
+      "source": "REQ-AI-WORKFLOW-010",
+      "relation": "下游设计",
+      "target": "TASK-DESIGN-001",
+      "status": "待开始",
+      "owner": "uroborus",
+      "note": "按正式需求基线重写设计，不复用失效旧范围",
+      "updated_at": "2026-07-11 15:04:10"
+    },
+    {
+      "source": "REQ-AI-WORKFLOW-011",
+      "relation": "正式定义",
+      "target": "docs/04-project-development/03-requirements/prd.md",
+      "status": "有效",
+      "owner": "uroborus",
+      "note": "PRD v3.0.0 正式需求基线",
+      "updated_at": "2026-07-11 15:04:10"
+    },
+    {
+      "source": "REQ-AI-WORKFLOW-011",
+      "relation": "下游设计",
+      "target": "TASK-DESIGN-001",
+      "status": "待开始",
+      "owner": "uroborus",
+      "note": "按正式需求基线重写设计，不复用失效旧范围",
+      "updated_at": "2026-07-11 15:04:10"
+    },
+    {
+      "source": "REQ-AI-WORKFLOW-012",
+      "relation": "正式定义",
+      "target": "docs/04-project-development/03-requirements/prd.md",
+      "status": "有效",
+      "owner": "uroborus",
+      "note": "PRD v3.0.0 正式需求基线",
+      "updated_at": "2026-07-11 15:04:10"
+    },
+    {
+      "source": "REQ-AI-WORKFLOW-012",
+      "relation": "下游设计",
+      "target": "TASK-DESIGN-001",
+      "status": "待开始",
+      "owner": "uroborus",
+      "note": "按正式需求基线重写设计，不复用失效旧范围",
+      "updated_at": "2026-07-11 15:04:10"
+    },
+    {
+      "source": "REQ-AI-WORKFLOW-013",
+      "relation": "正式定义",
+      "target": "docs/04-project-development/03-requirements/prd.md",
+      "status": "有效",
+      "owner": "uroborus",
+      "note": "PRD v3.0.0 正式需求基线",
+      "updated_at": "2026-07-11 15:04:10"
+    },
+    {
+      "source": "REQ-AI-WORKFLOW-013",
+      "relation": "下游设计",
+      "target": "TASK-DESIGN-001",
+      "status": "待开始",
+      "owner": "uroborus",
+      "note": "按正式需求基线重写设计，不复用失效旧范围",
+      "updated_at": "2026-07-11 15:04:10"
+    },
+    {
+      "source": "REQ-AI-WORKFLOW-014",
+      "relation": "正式定义",
+      "target": "docs/04-project-development/03-requirements/prd.md",
+      "status": "有效",
+      "owner": "uroborus",
+      "note": "PRD v3.0.0 正式需求基线",
+      "updated_at": "2026-07-11 15:04:10"
+    },
+    {
+      "source": "REQ-AI-WORKFLOW-014",
+      "relation": "下游设计",
+      "target": "TASK-DESIGN-001",
+      "status": "待开始",
+      "owner": "uroborus",
+      "note": "按正式需求基线重写设计，不复用失效旧范围",
+      "updated_at": "2026-07-11 15:04:10"
+    },
+    {
+      "source": "REQ-AI-WORKFLOW-015",
+      "relation": "正式定义",
+      "target": "docs/04-project-development/03-requirements/prd.md",
+      "status": "有效",
+      "owner": "uroborus",
+      "note": "PRD v3.0.0 正式需求基线",
+      "updated_at": "2026-07-11 15:04:10"
+    },
+    {
+      "source": "REQ-AI-WORKFLOW-015",
+      "relation": "下游设计",
+      "target": "TASK-DESIGN-001",
+      "status": "待开始",
+      "owner": "uroborus",
+      "note": "按正式需求基线重写设计，不复用失效旧范围",
+      "updated_at": "2026-07-11 15:04:10"
+    },
+    {
+      "source": "REQ-AI-WORKFLOW-016",
+      "relation": "正式定义",
+      "target": "docs/04-project-development/03-requirements/prd.md",
+      "status": "有效",
+      "owner": "uroborus",
+      "note": "PRD v3.0.0 正式需求基线",
+      "updated_at": "2026-07-11 15:04:10"
+    },
+    {
+      "source": "REQ-AI-WORKFLOW-016",
+      "relation": "下游设计",
+      "target": "TASK-DESIGN-001",
+      "status": "待开始",
+      "owner": "uroborus",
+      "note": "按正式需求基线重写设计，不复用失效旧范围",
+      "updated_at": "2026-07-11 15:04:10"
+    },
+    {
+      "source": "REQ-AI-WORKFLOW-017",
+      "relation": "正式定义",
+      "target": "docs/04-project-development/03-requirements/prd.md",
+      "status": "有效",
+      "owner": "uroborus",
+      "note": "PRD v3.0.0 正式需求基线",
+      "updated_at": "2026-07-11 15:04:10"
+    },
+    {
+      "source": "REQ-AI-WORKFLOW-017",
+      "relation": "下游设计",
+      "target": "TASK-DESIGN-001",
+      "status": "待开始",
+      "owner": "uroborus",
+      "note": "按正式需求基线重写设计，不复用失效旧范围",
+      "updated_at": "2026-07-11 15:04:10"
+    },
+    {
+      "source": "REQ-AI-WORKFLOW-018",
+      "relation": "正式定义",
+      "target": "docs/04-project-development/03-requirements/prd.md",
+      "status": "有效",
+      "owner": "uroborus",
+      "note": "PRD v3.0.0 正式需求基线",
+      "updated_at": "2026-07-11 15:04:10"
+    },
+    {
+      "source": "REQ-AI-WORKFLOW-018",
+      "relation": "下游设计",
+      "target": "TASK-DESIGN-001",
+      "status": "待开始",
+      "owner": "uroborus",
+      "note": "按正式需求基线重写设计，不复用失效旧范围",
+      "updated_at": "2026-07-11 15:04:10"
+    },
+    {
+      "source": "REQ-AI-WORKFLOW-019",
+      "relation": "正式定义",
+      "target": "docs/04-project-development/03-requirements/prd.md",
+      "status": "有效",
+      "owner": "uroborus",
+      "note": "PRD v3.0.0 正式需求基线",
+      "updated_at": "2026-07-11 15:04:10"
+    },
+    {
+      "source": "REQ-AI-WORKFLOW-019",
+      "relation": "下游设计",
+      "target": "TASK-DESIGN-001",
+      "status": "待开始",
+      "owner": "uroborus",
+      "note": "按正式需求基线重写设计，不复用失效旧范围",
+      "updated_at": "2026-07-11 15:04:10"
+    },
+    {
+      "source": "REQ-AI-WORKFLOW-020",
+      "relation": "正式定义",
+      "target": "docs/04-project-development/03-requirements/prd.md",
+      "status": "有效",
+      "owner": "uroborus",
+      "note": "PRD v3.0.0 正式需求基线",
+      "updated_at": "2026-07-11 15:04:10"
+    },
+    {
+      "source": "REQ-AI-WORKFLOW-020",
+      "relation": "下游设计",
+      "target": "TASK-DESIGN-001",
+      "status": "待开始",
+      "owner": "uroborus",
+      "note": "按正式需求基线重写设计，不复用失效旧范围",
+      "updated_at": "2026-07-11 15:04:10"
+    },
+    {
+      "source": "REQ-AI-WORKFLOW-021",
+      "relation": "正式定义",
+      "target": "docs/04-project-development/03-requirements/prd.md",
+      "status": "有效",
+      "owner": "uroborus",
+      "note": "PRD v3.0.0 正式需求基线",
+      "updated_at": "2026-07-11 15:04:10"
+    },
+    {
+      "source": "REQ-AI-WORKFLOW-021",
+      "relation": "下游设计",
+      "target": "TASK-DESIGN-001",
+      "status": "待开始",
+      "owner": "uroborus",
+      "note": "按正式需求基线重写设计，不复用失效旧范围",
+      "updated_at": "2026-07-11 15:04:10"
+    },
+    {
+      "source": "REQ-AI-WORKFLOW-022",
+      "relation": "正式定义",
+      "target": "docs/04-project-development/03-requirements/prd.md",
+      "status": "有效",
+      "owner": "uroborus",
+      "note": "PRD v3.0.0 正式需求基线",
+      "updated_at": "2026-07-11 15:04:10"
+    },
+    {
+      "source": "REQ-AI-WORKFLOW-022",
+      "relation": "下游设计",
+      "target": "TASK-DESIGN-001",
+      "status": "待开始",
+      "owner": "uroborus",
+      "note": "按正式需求基线重写设计，不复用失效旧范围",
+      "updated_at": "2026-07-11 15:04:10"
+    },
+    {
+      "source": "REQ-AI-WORKFLOW-023",
+      "relation": "正式定义",
+      "target": "docs/04-project-development/03-requirements/prd.md",
+      "status": "有效",
+      "owner": "uroborus",
+      "note": "PRD v3.0.0 正式需求基线",
+      "updated_at": "2026-07-11 15:04:10"
+    },
+    {
+      "source": "REQ-AI-WORKFLOW-023",
+      "relation": "下游设计",
+      "target": "TASK-DESIGN-001",
+      "status": "待开始",
+      "owner": "uroborus",
+      "note": "按正式需求基线重写设计，不复用失效旧范围",
+      "updated_at": "2026-07-11 15:04:10"
+    },
+    {
+      "source": "REQ-AI-WORKFLOW-024",
+      "relation": "正式定义",
+      "target": "docs/04-project-development/03-requirements/prd.md",
+      "status": "有效",
+      "owner": "uroborus",
+      "note": "PRD v3.0.0 正式需求基线",
+      "updated_at": "2026-07-11 15:04:10"
+    },
+    {
+      "source": "REQ-AI-WORKFLOW-024",
+      "relation": "下游设计",
+      "target": "TASK-DESIGN-001",
+      "status": "待开始",
+      "owner": "uroborus",
+      "note": "按正式需求基线重写设计，不复用失效旧范围",
+      "updated_at": "2026-07-11 15:04:10"
+    },
+    {
+      "source": "REQ-AI-WORKFLOW-025",
+      "relation": "正式定义",
+      "target": "docs/04-project-development/03-requirements/prd.md",
+      "status": "有效",
+      "owner": "uroborus",
+      "note": "PRD v3.0.0 正式需求基线",
+      "updated_at": "2026-07-11 15:04:10"
+    },
+    {
+      "source": "REQ-AI-WORKFLOW-025",
+      "relation": "下游设计",
+      "target": "TASK-DESIGN-001",
+      "status": "待开始",
+      "owner": "uroborus",
+      "note": "按正式需求基线重写设计，不复用失效旧范围",
+      "updated_at": "2026-07-11 15:04:10"
+    },
+    {
+      "source": "REQ-AI-WORKFLOW-026",
+      "relation": "正式定义",
+      "target": "docs/04-project-development/03-requirements/prd.md",
+      "status": "有效",
+      "owner": "uroborus",
+      "note": "PRD v3.0.0 正式需求基线",
+      "updated_at": "2026-07-11 15:04:10"
+    },
+    {
+      "source": "REQ-AI-WORKFLOW-026",
+      "relation": "下游设计",
+      "target": "TASK-DESIGN-001",
+      "status": "待开始",
+      "owner": "uroborus",
+      "note": "按正式需求基线重写设计，不复用失效旧范围",
+      "updated_at": "2026-07-11 15:04:10"
+    },
+    {
+      "source": "REQ-AI-WORKFLOW-027",
+      "relation": "正式定义",
+      "target": "docs/04-project-development/03-requirements/prd.md",
+      "status": "有效",
+      "owner": "uroborus",
+      "note": "PRD v3.0.0 正式需求基线",
+      "updated_at": "2026-07-11 15:04:10"
+    },
+    {
+      "source": "REQ-AI-WORKFLOW-027",
+      "relation": "下游设计",
+      "target": "TASK-DESIGN-001",
+      "status": "待开始",
+      "owner": "uroborus",
+      "note": "按正式需求基线重写设计，不复用失效旧范围",
+      "updated_at": "2026-07-11 15:04:10"
+    },
+    {
+      "source": "REQ-AI-WORKFLOW-028",
+      "relation": "正式定义",
+      "target": "docs/04-project-development/03-requirements/prd.md",
+      "status": "有效",
+      "owner": "uroborus",
+      "note": "PRD v3.0.0 正式需求基线",
+      "updated_at": "2026-07-11 15:04:10"
+    },
+    {
+      "source": "REQ-AI-WORKFLOW-028",
+      "relation": "下游设计",
+      "target": "TASK-DESIGN-001",
+      "status": "待开始",
+      "owner": "uroborus",
+      "note": "按正式需求基线重写设计，不复用失效旧范围",
+      "updated_at": "2026-07-11 15:04:10"
+    },
+    {
+      "source": "REQ-AI-WORKFLOW-029",
+      "relation": "正式定义",
+      "target": "docs/04-project-development/03-requirements/prd.md",
+      "status": "有效",
+      "owner": "uroborus",
+      "note": "PRD v3.0.0 正式需求基线",
+      "updated_at": "2026-07-11 15:04:10"
+    },
+    {
+      "source": "REQ-AI-WORKFLOW-029",
+      "relation": "下游设计",
+      "target": "TASK-DESIGN-001",
+      "status": "待开始",
+      "owner": "uroborus",
+      "note": "按正式需求基线重写设计，不复用失效旧范围",
+      "updated_at": "2026-07-11 15:04:10"
+    },
+    {
+      "source": "REQ-AI-WORKFLOW-030",
+      "relation": "正式定义",
+      "target": "docs/04-project-development/03-requirements/prd.md",
+      "status": "有效",
+      "owner": "uroborus",
+      "note": "PRD v3.0.0 正式需求基线",
+      "updated_at": "2026-07-11 15:04:10"
+    },
+    {
+      "source": "REQ-AI-WORKFLOW-030",
+      "relation": "下游设计",
+      "target": "TASK-DESIGN-001",
+      "status": "待开始",
+      "owner": "uroborus",
+      "note": "按正式需求基线重写设计，不复用失效旧范围",
+      "updated_at": "2026-07-11 15:04:10"
+    },
+    {
+      "source": "REQ-AI-WORKFLOW-031",
+      "relation": "正式定义",
+      "target": "docs/04-project-development/03-requirements/prd.md",
+      "status": "有效",
+      "owner": "uroborus",
+      "note": "PRD v3.0.0 正式需求基线",
+      "updated_at": "2026-07-11 15:04:10"
+    },
+    {
+      "source": "REQ-AI-WORKFLOW-031",
+      "relation": "下游设计",
+      "target": "TASK-DESIGN-001",
+      "status": "待开始",
+      "owner": "uroborus",
+      "note": "按正式需求基线重写设计，不复用失效旧范围",
+      "updated_at": "2026-07-11 15:04:10"
+    },
+    {
+      "source": "REQ-AI-WORKFLOW-032",
+      "relation": "正式定义",
+      "target": "docs/04-project-development/03-requirements/prd.md",
+      "status": "有效",
+      "owner": "uroborus",
+      "note": "PRD v3.0.0 正式需求基线",
+      "updated_at": "2026-07-11 15:04:10"
+    },
+    {
+      "source": "REQ-AI-WORKFLOW-032",
+      "relation": "下游设计",
+      "target": "TASK-DESIGN-001",
+      "status": "待开始",
+      "owner": "uroborus",
+      "note": "按正式需求基线重写设计，不复用失效旧范围",
+      "updated_at": "2026-07-11 15:04:10"
+    },
+    {
+      "source": "REQ-AI-WORKFLOW-033",
+      "relation": "正式定义",
+      "target": "docs/04-project-development/03-requirements/prd.md",
+      "status": "有效",
+      "owner": "uroborus",
+      "note": "PRD v3.0.0 正式需求基线",
+      "updated_at": "2026-07-11 15:04:10"
+    },
+    {
+      "source": "REQ-AI-WORKFLOW-033",
+      "relation": "下游设计",
+      "target": "TASK-DESIGN-001",
+      "status": "待开始",
+      "owner": "uroborus",
+      "note": "按正式需求基线重写设计，不复用失效旧范围",
+      "updated_at": "2026-07-11 15:04:10"
+    },
+    {
+      "source": "REQ-AI-WORKFLOW-034",
+      "relation": "正式定义",
+      "target": "docs/04-project-development/03-requirements/prd.md",
+      "status": "有效",
+      "owner": "uroborus",
+      "note": "PRD v3.0.0 正式需求基线",
+      "updated_at": "2026-07-11 15:04:10"
+    },
+    {
+      "source": "REQ-AI-WORKFLOW-034",
+      "relation": "下游设计",
+      "target": "TASK-DESIGN-001",
+      "status": "待开始",
+      "owner": "uroborus",
+      "note": "按正式需求基线重写设计，不复用失效旧范围",
+      "updated_at": "2026-07-11 15:04:10"
+    },
+    {
+      "source": "REQ-AI-WORKFLOW-035",
+      "relation": "正式定义",
+      "target": "docs/04-project-development/03-requirements/prd.md",
+      "status": "有效",
+      "owner": "uroborus",
+      "note": "PRD v3.0.0 正式需求基线",
+      "updated_at": "2026-07-11 15:04:10"
+    },
+    {
+      "source": "REQ-AI-WORKFLOW-035",
+      "relation": "下游设计",
+      "target": "TASK-DESIGN-001",
+      "status": "待开始",
+      "owner": "uroborus",
+      "note": "按正式需求基线重写设计，不复用失效旧范围",
+      "updated_at": "2026-07-11 15:04:10"
+    },
+    {
+      "source": "REQ-AI-WORKFLOW-036",
+      "relation": "正式定义",
+      "target": "docs/04-project-development/03-requirements/prd.md",
+      "status": "有效",
+      "owner": "uroborus",
+      "note": "PRD v3.0.0 正式需求基线",
+      "updated_at": "2026-07-11 15:04:10"
+    },
+    {
+      "source": "REQ-AI-WORKFLOW-036",
+      "relation": "下游设计",
+      "target": "TASK-DESIGN-001",
+      "status": "待开始",
+      "owner": "uroborus",
+      "note": "按正式需求基线重写设计，不复用失效旧范围",
+      "updated_at": "2026-07-11 15:04:10"
+    },
+    {
+      "source": "REQ-AI-WORKFLOW-037",
+      "relation": "正式定义",
+      "target": "docs/04-project-development/03-requirements/prd.md",
+      "status": "有效",
+      "owner": "uroborus",
+      "note": "PRD v3.0.0 正式需求基线",
+      "updated_at": "2026-07-11 15:04:10"
+    },
+    {
+      "source": "REQ-AI-WORKFLOW-037",
+      "relation": "下游设计",
+      "target": "TASK-DESIGN-001",
+      "status": "待开始",
+      "owner": "uroborus",
+      "note": "按正式需求基线重写设计，不复用失效旧范围",
+      "updated_at": "2026-07-11 15:04:10"
+    },
+    {
+      "source": "REQ-AI-WORKFLOW-038",
+      "relation": "正式定义",
+      "target": "docs/04-project-development/03-requirements/prd.md",
+      "status": "有效",
+      "owner": "uroborus",
+      "note": "PRD v3.0.0 正式需求基线",
+      "updated_at": "2026-07-11 15:04:10"
+    },
+    {
+      "source": "REQ-AI-WORKFLOW-038",
+      "relation": "下游设计",
+      "target": "TASK-DESIGN-001",
+      "status": "待开始",
+      "owner": "uroborus",
+      "note": "按正式需求基线重写设计，不复用失效旧范围",
+      "updated_at": "2026-07-11 15:04:10"
+    },
+    {
+      "source": "REQ-AI-WORKFLOW-039",
+      "relation": "正式定义",
+      "target": "docs/04-project-development/03-requirements/prd.md",
+      "status": "有效",
+      "owner": "uroborus",
+      "note": "PRD v3.0.0 正式需求基线",
+      "updated_at": "2026-07-11 15:04:10"
+    },
+    {
+      "source": "REQ-AI-WORKFLOW-039",
+      "relation": "下游设计",
+      "target": "TASK-DESIGN-001",
+      "status": "待开始",
+      "owner": "uroborus",
+      "note": "按正式需求基线重写设计，不复用失效旧范围",
+      "updated_at": "2026-07-11 15:04:10"
+    },
+    {
+      "source": "REQ-AI-WORKFLOW-040",
+      "relation": "正式定义",
+      "target": "docs/04-project-development/03-requirements/prd.md",
+      "status": "有效",
+      "owner": "uroborus",
+      "note": "PRD v3.0.0 正式需求基线",
+      "updated_at": "2026-07-11 15:04:10"
+    },
+    {
+      "source": "REQ-AI-WORKFLOW-040",
+      "relation": "下游设计",
+      "target": "TASK-DESIGN-001",
+      "status": "待开始",
+      "owner": "uroborus",
+      "note": "按正式需求基线重写设计，不复用失效旧范围",
+      "updated_at": "2026-07-11 15:04:10"
+    },
+    {
+      "source": "REQ-AI-WORKFLOW-041",
+      "relation": "正式定义",
+      "target": "docs/04-project-development/03-requirements/prd.md",
+      "status": "有效",
+      "owner": "uroborus",
+      "note": "PRD v3.0.0 正式需求基线",
+      "updated_at": "2026-07-11 15:04:10"
+    },
+    {
+      "source": "REQ-AI-WORKFLOW-041",
+      "relation": "下游设计",
+      "target": "TASK-DESIGN-001",
+      "status": "待开始",
+      "owner": "uroborus",
+      "note": "按正式需求基线重写设计，不复用失效旧范围",
+      "updated_at": "2026-07-11 15:04:10"
+    },
+    {
+      "source": "REQ-AI-WORKFLOW-042",
+      "relation": "正式定义",
+      "target": "docs/04-project-development/03-requirements/prd.md",
+      "status": "有效",
+      "owner": "uroborus",
+      "note": "PRD v3.0.0 正式需求基线",
+      "updated_at": "2026-07-11 15:04:10"
+    },
+    {
+      "source": "REQ-AI-WORKFLOW-042",
+      "relation": "下游设计",
+      "target": "TASK-DESIGN-001",
+      "status": "待开始",
+      "owner": "uroborus",
+      "note": "按正式需求基线重写设计，不复用失效旧范围",
+      "updated_at": "2026-07-11 15:04:10"
+    },
+    {
+      "source": "REQ-AI-WORKFLOW-043",
+      "relation": "正式定义",
+      "target": "docs/04-project-development/03-requirements/prd.md",
+      "status": "有效",
+      "owner": "uroborus",
+      "note": "PRD v3.0.0 正式需求基线",
+      "updated_at": "2026-07-11 15:04:10"
+    },
+    {
+      "source": "REQ-AI-WORKFLOW-043",
+      "relation": "下游设计",
+      "target": "TASK-DESIGN-001",
+      "status": "待开始",
+      "owner": "uroborus",
+      "note": "按正式需求基线重写设计，不复用失效旧范围",
+      "updated_at": "2026-07-11 15:04:10"
+    },
+    {
+      "source": "REQ-AI-WORKFLOW-044",
+      "relation": "正式定义",
+      "target": "docs/04-project-development/03-requirements/prd.md",
+      "status": "有效",
+      "owner": "uroborus",
+      "note": "PRD v3.0.0 正式需求基线",
+      "updated_at": "2026-07-11 15:04:10"
+    },
+    {
+      "source": "REQ-AI-WORKFLOW-044",
+      "relation": "下游设计",
+      "target": "TASK-DESIGN-001",
+      "status": "待开始",
+      "owner": "uroborus",
+      "note": "按正式需求基线重写设计，不复用失效旧范围",
+      "updated_at": "2026-07-11 15:04:10"
+    },
+    {
+      "source": "REQ-AI-WORKFLOW-045",
+      "relation": "正式定义",
+      "target": "docs/04-project-development/03-requirements/prd.md",
+      "status": "有效",
+      "owner": "uroborus",
+      "note": "PRD v3.0.0 正式需求基线",
+      "updated_at": "2026-07-11 15:04:10"
+    },
+    {
+      "source": "REQ-AI-WORKFLOW-045",
+      "relation": "下游设计",
+      "target": "TASK-DESIGN-001",
+      "status": "待开始",
+      "owner": "uroborus",
+      "note": "按正式需求基线重写设计，不复用失效旧范围",
+      "updated_at": "2026-07-11 15:04:10"
+    },
+    {
+      "source": "REQ-AI-WORKFLOW-046",
+      "relation": "正式定义",
+      "target": "docs/04-project-development/03-requirements/prd.md",
+      "status": "有效",
+      "owner": "uroborus",
+      "note": "PRD v3.0.0 正式需求基线",
+      "updated_at": "2026-07-11 15:04:10"
+    },
+    {
+      "source": "REQ-AI-WORKFLOW-046",
+      "relation": "下游设计",
+      "target": "TASK-DESIGN-001",
+      "status": "待开始",
+      "owner": "uroborus",
+      "note": "按正式需求基线重写设计，不复用失效旧范围",
+      "updated_at": "2026-07-11 15:04:10"
+    },
+    {
+      "source": "REQ-AI-WORKFLOW-047",
+      "relation": "正式定义",
+      "target": "docs/04-project-development/03-requirements/prd.md",
+      "status": "有效",
+      "owner": "uroborus",
+      "note": "PRD v3.0.0 正式需求基线",
+      "updated_at": "2026-07-11 15:04:10"
+    },
+    {
+      "source": "REQ-AI-WORKFLOW-047",
+      "relation": "下游设计",
+      "target": "TASK-DESIGN-001",
+      "status": "待开始",
+      "owner": "uroborus",
+      "note": "按正式需求基线重写设计，不复用失效旧范围",
+      "updated_at": "2026-07-11 15:04:10"
+    },
+    {
+      "source": "REQ-AI-WORKFLOW-048",
+      "relation": "正式定义",
+      "target": "docs/04-project-development/03-requirements/prd.md",
+      "status": "有效",
+      "owner": "uroborus",
+      "note": "PRD v3.0.0 正式需求基线",
+      "updated_at": "2026-07-11 15:04:10"
+    },
+    {
+      "source": "REQ-AI-WORKFLOW-048",
+      "relation": "下游设计",
+      "target": "TASK-DESIGN-001",
+      "status": "待开始",
+      "owner": "uroborus",
+      "note": "按正式需求基线重写设计，不复用失效旧范围",
+      "updated_at": "2026-07-11 15:04:10"
+    },
+    {
+      "source": "REQ-AI-WORKFLOW-049",
+      "relation": "正式定义",
+      "target": "docs/04-project-development/03-requirements/prd.md",
+      "status": "有效",
+      "owner": "uroborus",
+      "note": "PRD v3.0.0 正式需求基线",
+      "updated_at": "2026-07-11 15:04:10"
+    },
+    {
+      "source": "REQ-AI-WORKFLOW-049",
+      "relation": "下游设计",
+      "target": "TASK-DESIGN-001",
+      "status": "待开始",
+      "owner": "uroborus",
+      "note": "按正式需求基线重写设计，不复用失效旧范围",
+      "updated_at": "2026-07-11 15:04:10"
+    },
+    {
+      "source": "REQ-AI-WORKFLOW-050",
+      "relation": "正式定义",
+      "target": "docs/04-project-development/03-requirements/prd.md",
+      "status": "有效",
+      "owner": "uroborus",
+      "note": "PRD v3.0.0 正式需求基线",
+      "updated_at": "2026-07-11 15:04:10"
+    },
+    {
+      "source": "REQ-AI-WORKFLOW-050",
+      "relation": "下游设计",
+      "target": "TASK-DESIGN-001",
+      "status": "待开始",
+      "owner": "uroborus",
+      "note": "按正式需求基线重写设计，不复用失效旧范围",
+      "updated_at": "2026-07-11 15:04:10"
+    },
+    {
+      "source": "REQ-AI-WORKFLOW-051",
+      "relation": "正式定义",
+      "target": "docs/04-project-development/03-requirements/prd.md",
+      "status": "有效",
+      "owner": "uroborus",
+      "note": "PRD v3.0.0 正式需求基线",
+      "updated_at": "2026-07-11 15:04:10"
+    },
+    {
+      "source": "REQ-AI-WORKFLOW-051",
+      "relation": "下游设计",
+      "target": "TASK-DESIGN-001",
+      "status": "待开始",
+      "owner": "uroborus",
+      "note": "按正式需求基线重写设计，不复用失效旧范围",
+      "updated_at": "2026-07-11 15:04:10"
+    },
+    {
+      "source": "REQ-AI-WORKFLOW-052",
+      "relation": "正式定义",
+      "target": "docs/04-project-development/03-requirements/prd.md",
+      "status": "有效",
+      "owner": "uroborus",
+      "note": "PRD v3.0.0 正式需求基线",
+      "updated_at": "2026-07-11 15:04:10"
+    },
+    {
+      "source": "REQ-AI-WORKFLOW-052",
+      "relation": "下游设计",
+      "target": "TASK-DESIGN-001",
+      "status": "待开始",
+      "owner": "uroborus",
+      "note": "按正式需求基线重写设计，不复用失效旧范围",
+      "updated_at": "2026-07-11 15:04:10"
+    },
+    {
+      "source": "REQ-AI-WORKFLOW-053",
+      "relation": "正式定义",
+      "target": "docs/04-project-development/03-requirements/prd.md",
+      "status": "有效",
+      "owner": "uroborus",
+      "note": "PRD v3.0.0 正式需求基线",
+      "updated_at": "2026-07-11 15:04:10"
+    },
+    {
+      "source": "REQ-AI-WORKFLOW-053",
+      "relation": "下游设计",
+      "target": "TASK-DESIGN-001",
+      "status": "待开始",
+      "owner": "uroborus",
+      "note": "按正式需求基线重写设计，不复用失效旧范围",
+      "updated_at": "2026-07-11 15:04:10"
+    },
+    {
+      "source": "NFR-AI-WORKFLOW-001",
+      "relation": "正式定义",
+      "target": "docs/04-project-development/03-requirements/prd.md",
+      "status": "有效",
+      "owner": "uroborus",
+      "note": "PRD v3.0.0 正式需求基线",
+      "updated_at": "2026-07-11 15:04:10"
+    },
+    {
+      "source": "NFR-AI-WORKFLOW-001",
+      "relation": "下游设计",
+      "target": "TASK-DESIGN-001",
+      "status": "待开始",
+      "owner": "uroborus",
+      "note": "按正式需求基线重写设计，不复用失效旧范围",
+      "updated_at": "2026-07-11 15:04:10"
+    },
+    {
+      "source": "NFR-AI-WORKFLOW-002",
+      "relation": "正式定义",
+      "target": "docs/04-project-development/03-requirements/prd.md",
+      "status": "有效",
+      "owner": "uroborus",
+      "note": "PRD v3.0.0 正式需求基线",
+      "updated_at": "2026-07-11 15:04:10"
+    },
+    {
+      "source": "NFR-AI-WORKFLOW-002",
+      "relation": "下游设计",
+      "target": "TASK-DESIGN-001",
+      "status": "待开始",
+      "owner": "uroborus",
+      "note": "按正式需求基线重写设计，不复用失效旧范围",
+      "updated_at": "2026-07-11 15:04:10"
+    },
+    {
+      "source": "NFR-AI-WORKFLOW-003",
+      "relation": "正式定义",
+      "target": "docs/04-project-development/03-requirements/prd.md",
+      "status": "有效",
+      "owner": "uroborus",
+      "note": "PRD v3.0.0 正式需求基线",
+      "updated_at": "2026-07-11 15:04:10"
+    },
+    {
+      "source": "NFR-AI-WORKFLOW-003",
+      "relation": "下游设计",
+      "target": "TASK-DESIGN-001",
+      "status": "待开始",
+      "owner": "uroborus",
+      "note": "按正式需求基线重写设计，不复用失效旧范围",
+      "updated_at": "2026-07-11 15:04:10"
+    },
+    {
+      "source": "NFR-AI-WORKFLOW-004",
+      "relation": "正式定义",
+      "target": "docs/04-project-development/03-requirements/prd.md",
+      "status": "有效",
+      "owner": "uroborus",
+      "note": "PRD v3.0.0 正式需求基线",
+      "updated_at": "2026-07-11 15:04:10"
+    },
+    {
+      "source": "NFR-AI-WORKFLOW-004",
+      "relation": "下游设计",
+      "target": "TASK-DESIGN-001",
+      "status": "待开始",
+      "owner": "uroborus",
+      "note": "按正式需求基线重写设计，不复用失效旧范围",
+      "updated_at": "2026-07-11 15:04:10"
+    },
+    {
+      "source": "NFR-AI-WORKFLOW-005",
+      "relation": "正式定义",
+      "target": "docs/04-project-development/03-requirements/prd.md",
+      "status": "有效",
+      "owner": "uroborus",
+      "note": "PRD v3.0.0 正式需求基线",
+      "updated_at": "2026-07-11 15:04:10"
+    },
+    {
+      "source": "NFR-AI-WORKFLOW-005",
+      "relation": "下游设计",
+      "target": "TASK-DESIGN-001",
+      "status": "待开始",
+      "owner": "uroborus",
+      "note": "按正式需求基线重写设计，不复用失效旧范围",
+      "updated_at": "2026-07-11 15:04:10"
+    },
+    {
+      "source": "NFR-AI-WORKFLOW-006",
+      "relation": "正式定义",
+      "target": "docs/04-project-development/03-requirements/prd.md",
+      "status": "有效",
+      "owner": "uroborus",
+      "note": "PRD v3.0.0 正式需求基线",
+      "updated_at": "2026-07-11 15:04:10"
+    },
+    {
+      "source": "NFR-AI-WORKFLOW-006",
+      "relation": "下游设计",
+      "target": "TASK-DESIGN-001",
+      "status": "待开始",
+      "owner": "uroborus",
+      "note": "按正式需求基线重写设计，不复用失效旧范围",
+      "updated_at": "2026-07-11 15:04:10"
+    },
+    {
+      "source": "NFR-AI-WORKFLOW-007",
+      "relation": "正式定义",
+      "target": "docs/04-project-development/03-requirements/prd.md",
+      "status": "有效",
+      "owner": "uroborus",
+      "note": "PRD v3.0.0 正式需求基线",
+      "updated_at": "2026-07-11 15:04:10"
+    },
+    {
+      "source": "NFR-AI-WORKFLOW-007",
+      "relation": "下游设计",
+      "target": "TASK-DESIGN-001",
+      "status": "待开始",
+      "owner": "uroborus",
+      "note": "按正式需求基线重写设计，不复用失效旧范围",
+      "updated_at": "2026-07-11 15:04:10"
+    },
+    {
+      "source": "NFR-AI-WORKFLOW-008",
+      "relation": "正式定义",
+      "target": "docs/04-project-development/03-requirements/prd.md",
+      "status": "有效",
+      "owner": "uroborus",
+      "note": "PRD v3.0.0 正式需求基线",
+      "updated_at": "2026-07-11 15:04:10"
+    },
+    {
+      "source": "NFR-AI-WORKFLOW-008",
+      "relation": "下游设计",
+      "target": "TASK-DESIGN-001",
+      "status": "待开始",
+      "owner": "uroborus",
+      "note": "按正式需求基线重写设计，不复用失效旧范围",
+      "updated_at": "2026-07-11 15:04:10"
+    },
+    {
+      "source": "NFR-AI-WORKFLOW-009",
+      "relation": "正式定义",
+      "target": "docs/04-project-development/03-requirements/prd.md",
+      "status": "有效",
+      "owner": "uroborus",
+      "note": "PRD v3.0.0 正式需求基线",
+      "updated_at": "2026-07-11 15:04:10"
+    },
+    {
+      "source": "NFR-AI-WORKFLOW-009",
+      "relation": "下游设计",
+      "target": "TASK-DESIGN-001",
+      "status": "待开始",
+      "owner": "uroborus",
+      "note": "按正式需求基线重写设计，不复用失效旧范围",
+      "updated_at": "2026-07-11 15:04:10"
+    },
+    {
+      "source": "NFR-AI-WORKFLOW-010",
+      "relation": "正式定义",
+      "target": "docs/04-project-development/03-requirements/prd.md",
+      "status": "有效",
+      "owner": "uroborus",
+      "note": "PRD v3.0.0 正式需求基线",
+      "updated_at": "2026-07-11 15:04:10"
+    },
+    {
+      "source": "NFR-AI-WORKFLOW-010",
+      "relation": "下游设计",
+      "target": "TASK-DESIGN-001",
+      "status": "待开始",
+      "owner": "uroborus",
+      "note": "按正式需求基线重写设计，不复用失效旧范围",
+      "updated_at": "2026-07-11 15:04:10"
+    },
+    {
+      "source": "NFR-AI-WORKFLOW-011",
+      "relation": "正式定义",
+      "target": "docs/04-project-development/03-requirements/prd.md",
+      "status": "有效",
+      "owner": "uroborus",
+      "note": "PRD v3.0.0 正式需求基线",
+      "updated_at": "2026-07-11 15:04:10"
+    },
+    {
+      "source": "NFR-AI-WORKFLOW-011",
+      "relation": "下游设计",
+      "target": "TASK-DESIGN-001",
+      "status": "待开始",
+      "owner": "uroborus",
+      "note": "按正式需求基线重写设计，不复用失效旧范围",
+      "updated_at": "2026-07-11 15:04:10"
+    },
+    {
+      "source": "docs/04-project-development/03-requirements/prd.md",
+      "relation": "受控设计输入",
+      "target": ".factory/workitems/FLOW-CONTRACT-001/drafts/workflow-norm-mapping.candidate.jsonl",
+      "status": "有效至正式 Workflow Catalog 接管",
+      "owner": "uroborus",
+      "note": "TASK-PRD-001-R006 发布绑定的 123 条需求级 Workflow 映射",
+      "updated_at": "2026-07-11 15:04:10"
+    },
+    {
+      "source": "REQ-CHANGE-WF-CTL-010-001",
+      "relation": "正式定义",
+      "target": "docs/04-project-development/03-requirements/prd.md",
+      "status": "有效",
+      "owner": "uroborus",
+      "note": "PRD v3.1.0 的 WF-CTL-010 详细需求",
+      "updated_at": "2026-07-15 01:45:15"
+    },
+    {
+      "source": "REQ-CHANGE-WF-CTL-010-001",
+      "relation": "需求任务",
+      "target": "TASK-REQ-002",
+      "status": "formalized",
+      "owner": "uroborus",
+      "note": "TASK-REQ-002-R014 已通过独立复审和人工批准",
+      "updated_at": "2026-07-15 01:45:15"
+    },
+    {
+      "source": "REQ-CHANGE-WF-CTL-010-001",
+      "relation": "下游设计",
+      "target": "TASK-DESIGN-001",
+      "status": "需求变更影响待更新",
+      "owner": "uroborus",
+      "note": "必须以 PRD v3.1.0 更新设计输入和影响分析后才能正式落档",
+      "updated_at": "2026-07-15 01:45:15"
+    },
+    {
+      "source": "REQ-CHANGE-WF-CTL-010-001",
+      "relation": "发布清单",
+      "target": ".factory/workitems/FLOW-CONTRACT-001/evidence/TASK-REQ-002-R014-release-manifest.json",
+      "status": "受控设计输入",
+      "owner": "uroborus",
+      "note": "绑定人工批准、正式版本、归档候选和冻结机器合同",
+      "updated_at": "2026-07-15 01:45:15"
+    },
+    {
+      "source": ".factory/workitems/FLOW-CONTRACT-001/evidence/TASK-REQ-002-R014-release-manifest.json",
+      "relation": "绑定机器合同",
+      "target": ".factory/workitems/FLOW-CONTRACT-001/drafts/project-progress-requirement-contract.R014.json",
+      "status": "有效",
+      "owner": "uroborus",
+      "note": "冻结合同 SHA-256 836fadc2c214ef2f56b2a21ef2fb705445a58ca7ddb0047f3b638292ba578d33；合同内 candidate_unapproved 为评审时历史状态",
+      "updated_at": "2026-07-15 01:45:15"
     }
-  ]
+  ],
+  "requirements_baseline_version": "v3.1.0",
+  "requirements_matrix_version": "v3.1.0",
+  "document_index_version": "v1.1.0"
 }

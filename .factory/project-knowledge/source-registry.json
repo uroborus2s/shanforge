@@ -1,0 +1,84 @@
+{
+  "schema_id": "ProjectKnowledgeSourceRegistry/v1",
+  "registry_version": "1",
+  "sources": [
+    {
+      "registry_source_id": "SRC-DOCS",
+      "kind": "markdown",
+      "roots": ["docs"],
+      "include": ["**/*.md"],
+      "exclude": [],
+      "extractor_id": "markdown-v1",
+      "access_class": "public",
+      "authority_rank": 100,
+      "stable_id_policy": "explicit_document_and_section_id_or_path",
+      "max_file_bytes": 2097152
+    },
+    {
+      "registry_source_id": "SRC-PYTHON",
+      "kind": "python",
+      "roots": ["src", "tests"],
+      "include": ["**/*.py"],
+      "exclude": ["**/__pycache__/**"],
+      "extractor_id": "python-ast-v2",
+      "access_class": "project",
+      "authority_rank": 80,
+      "stable_id_policy": "explicit_symbol_id_or_ast_qualified_name",
+      "max_file_bytes": 1048576
+    },
+    {
+      "registry_source_id": "SRC-WORKITEM-JSON",
+      "kind": "json",
+      "roots": [".factory/workitems"],
+      "include": [
+        "FLOW-CONTRACT-001/drafts/REQ-CHANGE-PROJECT-KNOWLEDGE-001.contract.R009.json",
+        "FLOW-CONTRACT-001/drafts/REQ-CHANGE-PROJECT-KNOWLEDGE-001.pm-field-map.R009.json",
+        "FLOW-CONTRACT-001/drafts/project-progress-requirement-contract.R014.json",
+        "FLOW-CONTRACT-001/evidence/TASK-REQ-002-R014-release-manifest.json",
+        "FLOW-CONTRACT-001/evidence/TASK-REQ-006-R009-final-candidate-manifest.json"
+      ],
+      "exclude": [],
+      "extractor_id": "json-pointer-v5",
+      "access_class": "project",
+      "authority_rank": 90,
+      "stable_id_policy": "json_pointer",
+      "max_file_bytes": 4194304
+    },
+    {
+      "registry_source_id": "SRC-PROJECT-CONFIG",
+      "kind": "json",
+      "roots": [".factory"],
+      "include": ["project.json", "project-knowledge/*.json", "catalog/*.json"],
+      "exclude": [],
+      "extractor_id": "json-pointer-v5",
+      "access_class": "project",
+      "authority_rank": 100,
+      "stable_id_policy": "json_pointer",
+      "max_file_bytes": 4194304
+    },
+    {
+      "registry_source_id": "SRC-WORKITEM-LEDGER",
+      "kind": "jsonl",
+      "roots": [".factory/workitems"],
+      "include": ["**/*.jsonl"],
+      "exclude": ["**/drafts/*.candidate.jsonl", "**/design-assets/**"],
+      "extractor_id": "jsonl-event-v3",
+      "access_class": "project",
+      "authority_rank": 100,
+      "stable_id_policy": "event_uid_or_idempotency_key",
+      "max_file_bytes": 8388608
+    },
+    {
+      "registry_source_id": "SRC-MEMORY",
+      "kind": "markdown",
+      "roots": [".factory/memory"],
+      "include": ["*.md"],
+      "exclude": ["history/**"],
+      "extractor_id": "markdown-v1",
+      "access_class": "restricted",
+      "authority_rank": 70,
+      "stable_id_policy": "checkpoint_and_section_id_or_path",
+      "max_file_bytes": 262144
+    }
+  ]
+}

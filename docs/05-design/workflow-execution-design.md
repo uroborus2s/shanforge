@@ -5,7 +5,7 @@
 | 项目 | 内容 |
 |---|---|
 | 文档 ID | `PROC-TASK-EXECUTION-001` |
-| 正式版本 | `v1.0.0` |
+| 正式版本 | `v1.1.0` |
 | 来源候选 | `TASK-DESIGN-001-R019` |
 | 发布事务 | `DESIGN-RELEASE-TX-R019-G001` |
 | 负责人 | `HUMAN_PROJECT_OWNER` |
@@ -318,7 +318,7 @@ UI 设计或实现必须覆盖：
   ledger.jsonl
 ```
 
-`.factory/memory/` 只写恢复所需摘要、索引和路径，不复制正式文档正文。`.factory/pm/generated/` 只是展示层，不作为事实源。
+`.factory/memory/` 只写恢复所需摘要、索引和路径，不复制正式文档正文。旧 `.factory/pm/generated/` 已退役；当前展示层统一为 `.factory/cache/site/current/`，不作为事实源。
 
 ## 评审和人工确认
 
@@ -861,7 +861,7 @@ R006 至 R016 中关于 68→43、107/158 个发布目标、仓外对象存储�
 
 ### 23.6 当前 final 验证边界
 
-当前 final 只接受 68/17 基线、37/7 正式后像、38 个发布内容目标、三层存储、外部持久存储受控 N/A、55 项 SourcePreimageDisposition/v2、ReleaseTransaction/v1、完整 Catalog 临时重建和五字段 Gate CAS。37 个 docs 目标中包含正式紧凑源 `docs/05-design/ai-sdlc-catalog.source.json`；第 38 个目标是稳定 Builder。旧合同可在 Git 历史中审计，但不进入当前设计正文、IA machine_assertions、Catalog 或发布清单。
+R019 的 68/17 前像、37/7 后像和 38 个发布目标作为历史发布合同保留在 Git 与 evidence；T06 当前基线把 docs 收敛为 34 份人类 Markdown，Catalog 源迁至 `.factory/catalog/ai-sdlc-catalog.source.json`，稳定 Builder 继续保留。
 
 ## 26. R010 项目进度快查完整设计
 
@@ -1408,14 +1408,22 @@ R019 作者只能把 T01–T06 产物标记为 `ready_for_review`。完整 profi
 
 ### 34.14 R018 正式发布预检三项 Critical 的 R019 闭包
 
-`R018-RELEASE-C-001` 由唯一登记写集闭合：IA 的 `target.documents` 必须包含 `docs/05-design/ai-sdlc-catalog.source.json`，`migration_contract.release_content_target_paths` 必须严格等于 37 个 docs 路径再加 `tools/ai-sdlc-catalog/build.mjs`，总数 38；缺失、重复或额外路径均按 `unregistered_write_result=blocked` 失败关闭。
+`R018-RELEASE-C-001` 的 37 docs + Builder 写集是历史发布合同；T06 激活后当前 docs 只登记 34 份人类 Markdown，机器源登记为 `.factory/catalog/ai-sdlc-catalog.source.json`。
 
-`R018-RELEASE-C-002` 由 Builder 输入合同闭合：稳定 Builder 默认读取正式路径 `docs/05-design/ai-sdlc-catalog.source.json`，同时只为隔离候选重建接受 basename `ai-sdlc-catalog.R019.source.json`；其他 basename 一律返回 `R019_SOURCE_CONTRACT_INVALID`。正式路径和候选路径必须产生同一确定性 Catalog hash、bytes 和 123 个 Workflow。
+`R018-RELEASE-C-002` 的确定性验证保留；稳定 Builder 当前默认读取 `.factory/catalog/ai-sdlc-catalog.source.json`，隔离候选仍只接受登记 basename，非法输入继续失败关闭。
 
 `R018-RELEASE-C-003` 由当前正式前像闭合：IA baseline、三项 disposition、55 项 `source_preimage_disposition_refs` 中对应的活动记录和 target source-preimage binding 必须分别绑定 PRD `v4.0.0 / 648db794…`、需求矩阵 `v4.0.0 / 375ed02f…`、文档索引 `v2.0.0 / 2bc0cb84…` 的真实 hash/bytes。55 项 disposition ref 必须通过 disposition ID、source path 与 source hash 一一绑定，不允许活动表保留另一组前像。三份 target 的 current/candidate version 保持相等且 `change_level=NONE`；任何旧 `v3.1.0/v1.1.0` 或旧 hash 进入任一 CAS / disposition ref 都必须阻断，并由 required seed 的旧 hash mutation 明确证明拒绝。
+
+<!-- sf:section-id=PROJECT-STATE-ASYNC-SYNC -->
+## 项目状态异步同步增补
+
+业务任务在同一事务提交状态事实和 outbox；主会话随后只调用 `project sync enqueue --head H --scope SCOPE`。独立 worker 更新 memory、SQLite index、PM projection 和 HTML，并以 request key 合并重复请求、以 fencing token 防止过期 worker 发布、最多重试五次。维护投影失败不会回滚已经提交的业务状态。
+
+后台任务不默认拥有 Git commit 权限。只有正式文档、代码或稳定配置真实变化且当前任务明确授权时，才通过正常 Git workflow 单独提交；只有 SQLite、HTML、cache 或 memory 投影更新时，以无需维护提交收口。
 
 ## 正式版本历史（仅已发布）
 
 | 版本 | 日期 | 变更 | 修改人 | 审核 | 批准 |
 |---|---|---|---|---|---|
 | `v1.0.0` | 2026-07-18 | 基于 `TASK-DESIGN-001-R019` 正式落档 | `uroborus` | `uroborus` | `uroborus` |
+| `v1.1.0` | 2026-07-22 | 增补非阻塞状态同步、durable queue、fencing、重试与 Git 权限边界 | `uroborus` | `uroborus` | `uroborus` |

@@ -56,8 +56,8 @@ description: "创建、审查、整理和升级软件项目正式文档体系。
 - 新增正式文档必须在同一改动中同步 `docs/index.md` 或 `.factory/memory/doc-map.md`。
 - 修改正式文档必须追加 `版本历史`。
 - 每份正式文档必须包含中文 `版本信息` 和 `版本历史`。
-- 临时文档只能放在 `.factory/workitems/<WORKITEM-ID>/evidence/`、`reports/`、`reviews/` 或 `.factory/pm/generated/`。
-- `.factory/pm/generated/` 只是展示层，不作为事实源。
+- 临时文档只能放在 `.factory/workitems/<WORKITEM-ID>/drafts/`、`evidence/`、`reports/` 或 `reviews/`。
+- 只读 HTML 由项目快照 CLI 写入 `.factory/cache/site/current/`；它是可重建展示层，不是文档保存位置，也不作为事实源。
 - 临时推理、草稿、review 输入包和验证输出不要写进 `docs/`。
 
 ## 按需读取

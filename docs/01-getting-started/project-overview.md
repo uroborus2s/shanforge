@@ -1,5 +1,27 @@
 # 项目概览
 
+## 文档控制
+
+| 项目 | 内容 |
+|---|---|
+| 文档 ID | `DOC-PROJECT-OVERVIEW-001` |
+| 正式版本 | `v1.0.0` |
+| 来源候选 | `TASK-DESIGN-001-R019` |
+| 发布事务 | `DESIGN-RELEASE-TX-R019-G001` |
+| 负责人 | `HUMAN_PROJECT_OWNER` |
+| 修改 / 审核 / 批准 | `uroborus` / `uroborus` / `uroborus` |
+| 状态 | 已批准并生效 |
+| 上游 | `.factory/project.json`、`project-charter` |
+| 下游 | `quick-start`、`用户指南`、`开发者指南`、`产品需求`、`技术设计` |
+
+## 文档职责
+
+- 允许保存：项目定位；范围；角色；六类阅读入口。
+- 禁止保存：需求明细；架构实现细节；执行状态。
+- 主要读者：新维护者、管理者、协作者。
+
+## 正式内容
+
 **项目名称：** 山海工枢 / shanforge
 **文档状态：** `v2` 产品概览
 **主要读者：** 项目维护者 | 协作者 | 业务 Agent 开发者 | 平台开发者
@@ -23,10 +45,10 @@
 ## 3. 推荐阅读顺序
 
 1. [快速开始](./quick-start.md)
-2. [文档地图](./document-map.md)
-3. [总体方案与协作总览](../04-project-development/04-design/solution-overview.md)
-4. [系统架构设计](../04-project-development/04-design/system-architecture.md)
-5. [抽象 Agent 平台架构](../04-project-development/04-design/agent-platform-architecture.md)
+2. [文档地图](../index.md)
+3. [总体方案与协作总览](../05-design/solution-overview.md)
+4. [系统架构设计](../05-design/system-architecture.md)
+5. [抽象 Agent 平台架构](../05-design/system-architecture.md)
 
 ## 4. 与其他资产的边界
 
@@ -39,4 +61,10 @@
 
 | 日期 | 变更内容 | 变更人 |
 |---|---|---|
-| 2026-04-13 | 按 `v2` 抽象 Agent 平台方向重写项目概览 | Codex |
+| 2026-04-13 | 按 `v2` 抽象 Agent 平台方向重写项目概览 | 项目负责人 |
+
+## 正式版本历史（仅已发布）
+
+| 版本 | 日期 | 变更 | 修改人 | 审核 | 批准 |
+|---|---|---|---|---|---|
+| `v1.0.0` | 2026-07-18 | 基于 `TASK-DESIGN-001-R019` 正式落档 | `uroborus` | `uroborus` | `uroborus` |

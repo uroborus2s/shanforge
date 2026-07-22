@@ -1,0 +1,59 @@
+{
+  "schema_id": "ProjectKnowledgeRequirementChange/R004/v1",
+  "requirement_change_id": "REQ-CHANGE-PROJECT-KNOWLEDGE-001",
+  "candidate_revision": "R004",
+  "status": "ready_for_rereview",
+  "base_candidate_set": [
+    {
+      "revision": "R001",
+      "sha256": "f432822ac5dc53f8062347d1716984c737142057d56f631660e6bb9ef95f6832",
+      "contract_sha256": "a063f1064da516c83b6aac198b6957d523abe9a35fa7c6c4292f37e32e7aea9c"
+    },
+    {
+      "revision": "R002",
+      "sha256": "71f46c0f830f0da61f24500de6fb7eb785c6e895828866fa24cd255bb086c3fe",
+      "contract_sha256": "d5f6804756b56fd58bfc6ef279ff4c35dc58da405b47aabc69e30e752d22a448"
+    },
+    {
+      "revision": "R003",
+      "sha256": "c8daddc5cb0d1067d214cb7aa69632c8edc05dcdbf7a7ab859d18dc8f141d748",
+      "contract_sha256": "7d5c60aaacbc75bb3fc60625eb309650c6a73b79ccb9a43698c62cb0792956f4"
+    }
+  ],
+  "review_finding_fixed": "R003-I-001",
+  "serve_authorization": {
+    "source": "current_authoritative_authorization_source",
+    "required_before": [
+      "cache_hit",
+      "file_read",
+      "file_path_return",
+      "html_body_return"
+    ],
+    "required_status": "active",
+    "required_scope_match": [
+      "authorization_digest",
+      "view_type",
+      "normalized_query_sha256"
+    ],
+    "unknown_inactive_or_revoked_reason": "VIEW_AUTHORIZATION_INACTIVE",
+    "check_unavailable_or_unproven_reason": "VIEW_AUTHORIZATION_CHECK_FAILED",
+    "failure_mode": "fail_closed",
+    "html_or_path_returned_on_failure": false,
+    "filesystem_path_exposed_before_check": false
+  },
+  "revocation": {
+    "serve_denial_effective_after_authoritative_fact_commit": true,
+    "serve_denial_waits_for_sqlite_projection": false,
+    "serve_denial_waits_for_maintenance": false,
+    "serve_denial_waits_for_physical_delete": false,
+    "sqlite_state_after_observation": "revoked_pending_cleanup",
+    "physical_delete_may_be_async": true
+  },
+  "reactivation": {
+    "recompute_input_fingerprint_required": true,
+    "reuse_requires_current_fingerprint_and_file_sha256_match": true
+  },
+  "applies_to_all_existing_html_fast_paths": true,
+  "human_confirmation_required_before_formal_release": true,
+  "design_or_implementation_authorized": false
+}

@@ -1,1 +1,0 @@
-{"change_id":"PM-CR-001","time":"2026-07-05T00:00:00+08:00","title":"引入项目管理控制面","status":"draft","reason":"用户要求充分吸收项目管理 Excel 模板理念，将目标、WBS、风险、变更、状态报告和人类状态页融入 shanforge。","impact":["新增 .factory/pm/","新增项目管理控制面方案文档","新增 dashboard.md 与 Excel 十表对应事实文件","新增 .factory/pm/generated/status-dashboard.html 展示结果","由 using-shanforge 按需渲染 PM 状态页"],"approver":"pending"}

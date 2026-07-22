@@ -7,7 +7,7 @@
 - 正式文档和 work item ledger 高于 memory summary。
 - summary 不复制完整正文；只写 ID、状态、当前 gate、关键约束和索引。
 - summary 与正式文档冲突时，以正式文档和 ledger 为准。
-- PM generated 非事实源；不得从 `.factory/pm/generated/status-dashboard.html` 反推唯一事实。
+- SQLite、HTML 和 cache 都是非事实投影；不得从 `.factory/index/project-knowledge.sqlite3` 或 `.factory/cache/site/current/index.html` 反推正式事实。
 
 ## 必查
 

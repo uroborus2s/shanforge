@@ -25,7 +25,7 @@ description: 项目状态查询、任务延续、项目事实修改、阶段切�
 - 先确定唯一下一动作，再选择唯一下一步 skill，并说明内部路由理由。
 - 给工作 skill 提供输入文件、允许范围、禁止动作和期望状态回写。
 - 接收工作 skill 的状态回写，再决定下一步。
-- 当人类要求查看项目状态时，按需渲染 PM 状态页。
+- 当人类要求查看项目状态时，调用固定项目快照命令，返回最后有效的只读站点。
 - 只有确认属于真实人工 Gate 时，才在 `pending_human_confirmation` 停止并请求人工确认。
 
 你不负责：
@@ -59,6 +59,22 @@ description: 项目状态查询、任务延续、项目事实修改、阶段切�
 
 阶段二只处理升级后的请求：再使用 `project-memory` 恢复项目上下文、当前 work item 和最新 ledger，然后按完整流程继续。
 
+## 简单代码变更直接实施
+
+简单代码变更仍属于项目影响，但不等于必须写正式计划。同时满足以下条件时走直接实施：
+
+- 用户未明确要求正式计划。
+- 需求和验收结果明确，无产品、设计或架构取舍。
+- 一次局部代码修改加对应单测即可完成。
+- 不改变公共接口、跨层边界、数据 schema、迁移、依赖、安全权限、外部系统或发布方式。
+- 不需要多个可独立验收交付物、跨会话追踪、并行或多人协调。
+
+命中后不得路由到 `writing-plans`，也不得创建 plan、task brief 或计划评审。直接进入 `tdd-workflow`，在当前任务内完成测试、最小实现和定向验证。默认只运行受影响测试和必要静态检查；全量测试不是简单任务的默认步骤，只在影响扩大、高风险变更或最终发布门明确要求时运行。
+
+用户明确要求正式计划时，覆盖简单代码变更判定，按正式计划流程执行。
+
+若实现中发现跨模块影响、公共契约变化、迁移需求、多个独立交付物或无法用定向测试收口，再升级到正式计划流程；不得仅因文件数量超过一个就升级。
+
 ## 默认流程
 
 1. 按“简单任务快速通道”先根据当前消息判定处理模式。
@@ -66,8 +82,8 @@ description: 项目状态查询、任务延续、项目事实修改、阶段切�
 3. 其余请求再使用 `project-memory` 恢复项目上下文、当前 work item 和 ledger。
 4. 判断当前状态，不默认读取 `docs/` 长文。
 5. 检查是否存在 `pending_human_confirmation`，并按“真实人工 Gate”重新核实；旧状态、内部 checkpoint 或已撤销 Gate 不得使流程停止。
-6. 判断当前环节和阻塞项。
-7. 先确定用户可见的唯一下一动作，再从路由表选择唯一下一步 skill。
+6. 判断当前环节和阻塞项；代码请求先检查是否命中“简单代码变更直接实施”。
+7. 先确定用户可见的唯一下一动作，再从路由表选择唯一下一步 skill；简单代码变更不得因为没有 plan 而路由到 `writing-plans`。
 8. 输出输入包：读取文件、允许修改范围、禁止动作和期望状态回写。
 9. 工作 skill 完成后，只接收状态回写，不让工作 skill 自己决定下一步。
 10. 输出“完成”、进入提交或关闭 work item 前，必须重读当前 work item ledger 最新事件和 review ledger。若状态是 `ready_for_review`、`changes_requested`、`needs_independent_review` 或 `self_check_passed`，且仍属于既有授权范围，继续路由内部动作；只有真实 blocker 或有效 `pending_human_confirmation` 才停止并报告 Gate。
@@ -158,11 +174,13 @@ description: 项目状态查询、任务延续、项目事实修改、阶段切�
 当用户要求查看项目状态、PM 看板、项目管理页面或当前进度时：
 
 1. 读取 `references/pm-dashboard-rendering.md`。
-2. AI 只从用户消息形成 `IntentCandidate`；不得由 AI 临时遍历 `.factory/pm/`、work item ledger、正式文档或 memory 后计算“实时状态”。
-3. 由确定性策略生成唯一调用计划，标准总览执行一次已注册项目状态查询；只有合同登记的异常诊断才允许一次补充调用。
-4. 已注册查询必须捕获同一不可变高水位 `H`，返回获授权且已核对的代码事实看板；未就绪、冲突、过期或失败时按合同失败关闭。
-5. 会话先原样展示代码事实看板，再展示独立的 AI 专业检查；AI 不计算完成率、状态、风险或权限，不拼装或改写 HTML。
-6. HTML renderer 使用 `references/status-dashboard-template.html`；Excel 样例只在模板设计时读取一次，运行时不得再次读取 `.xls` / `.xlsx`。用户明确要求独立 HTML 时可写 `.factory/pm/generated/status-dashboard.html`，但生成页不是事实源，也不作为 AI 后续读取入口。
+2. AI 只识别用户要看的项目、范围和授权画像；不得临时遍历 `docs/`、work item ledger、代码或 memory 后自行计算“实时状态”。
+3. 在仓库根目录执行一次固定命令：`PYTHONPATH=src uv run python -m settings.composition.project_knowledge project snapshot --html --json`。需要脱敏视图时增加 `--profile shared-restricted`；只有用户明确要求冷重建或索引诊断时才使用 `--rebuild` 或 `--check`。
+4. 命令负责检查当前索引和页面输入指纹。输入未变化时直接返回最后有效入口；发生变化时才刷新 SQLite 投影并原子发布新的静态站点。
+5. 入口固定为 `.factory/cache/site/current/index.html`。站点只读；列表和详情都是独立页面，详情必须有返回按钮，不使用 drawer、modal 或侧边详情栏。
+6. 需要定向解释单个需求、设计、任务、代码或证据时，按需调用 `project find/show/trace/context`；不得回退到整库散读。
+7. 会话返回 HTML 路径、`cache_hit`、代次和诊断。AI 可以基于 receipt 做独立解释，但不计算或覆盖固定代码给出的完成率、状态、风险、权限和上线事实，也不拼装或改写 HTML。
+8. SQLite、HTML 和 cache 都是可删除重建的本地投影，不提交 Git，不作为后续事实写入入口。索引损坏、定位不唯一、权限不明或来源失败时按合同失败关闭。
 
 不新增单独的 `project-management` skill。
 PM 状态页是流程总控的按需输出，不改变工作 skill 的职责。
@@ -215,7 +233,8 @@ baseline work item 规则：
 | 需要正式文档或技术方案 | `document-templates` / `doc-coauthoring` | 需要写设计、方案、说明文档 | `document_ready` |
 | 需要 UI / UX 方案 | `ui-ux-pro-max` | 任务涉及界面、交互、视觉资产 | `design_ready` |
 | 需要美术方向或开发资源包 | `art-asset-pipeline` | 任务涉及 UI 美术图、游戏素材、资源清单、确认图或资源包 | `ready_for_review` |
-| 已批准 brief / spec，但无 plan | `writing-plans` | 进入实现前缺 work item plan | `plan_ready_for_review` |
+| 需求明确的简单代码变更 | `tdd-workflow` | 局部代码修改加对应单测即可完成，不含契约、架构、迁移、安全或外部风险，且用户未明确要求正式计划 | `passed`、`partial`、`failed` 或 `blocked` |
+| 已批准 brief / spec，但无 plan | `writing-plans` | 存在多个可验收交付物、跨模块协调、跨会话追踪，或用户明确要求正式计划 | `plan_ready_for_review` 或 `not_applicable` |
 | plan 已批准，任务独立 | `subagent-driven-development` | 可拆成隔离任务执行 | `ready_for_review`、`blocked` 或 `needs_user_input` |
 | plan 已批准，当前会话 inline 执行 | `executing-plans` | 不使用子 agent 或任务强耦合 | `ready_for_review`、`blocked` 或 `needs_user_input` |
 | 发现 Bug 或验证失败 | `systematic-debugging` | 需要复现和根因调查 | `root_cause_found`、`needs_user_input` 或 `blocked` |
@@ -282,7 +301,7 @@ baseline work item 规则：
 | 正式需求、设计、API、UI、用户指南或开发者指南变化 | 返回改动摘要和文档路径 | 写 `docs/` 登记路径，并更新版本历史、导航或 `doc-map.md` |
 | 工具动作、命令执行、派发子 agent、自循环中间步骤 | 返回观察结果或状态 | 只写 event、evidence/report；不写正式文档 |
 | review、verification、人工确认、提交前检查 | 返回 gate、缺口和下一动作 | 写 ledger、review/evidence；必要时 memory sync |
-| PM 看板 | 返回生成路径和事实源说明 | 写 `.factory/pm/generated/`，但不作为事实源 |
+| PM 看板 | 返回固定 CLI receipt、最后有效 HTML 入口和事实源说明 | 写 `.factory/index/` 与 `.factory/cache/site/current/` 可重建投影；不写项目事实、不提交 Git |
 
 当前会话必须能看见收口状态；子 agent 或自循环完成后不得只静默写文件。子流程只返回状态包，是否写正式文档、ledger、evidence/report 或 memory 由本 skill 判断。
 

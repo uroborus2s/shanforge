@@ -1,0 +1,97 @@
+{
+  "schema_id": "ProjectKnowledgeFinalCandidateManifest/v1",
+  "work_item": "FLOW-CONTRACT-001",
+  "task": "TASK-REQ-006-project-knowledge-index-and-deterministic-docs",
+  "requirement_change_id": "REQ-CHANGE-PROJECT-KNOWLEDGE-001",
+  "candidate_set": [
+    "R001",
+    "R002",
+    "R003",
+    "R004"
+  ],
+  "merge_rule": "apply_in_revision_order_and_only_override_explicitly_named_prior_clauses",
+  "candidate_root_algorithm": "sha256(utf8('ProjectKnowledgeCandidateRoot/v1\\n') + for each artifact sorted by path: utf8(path) + NUL + utf8(sha256) + LF)",
+  "candidate_root_sha256": "5ab03160ca91851b82ef92cb3fbc37e7f63c0d9d7b66ab99879900ef59ff94c5",
+  "artifacts": [
+    {
+      "path": ".factory/workitems/FLOW-CONTRACT-001/drafts/REQ-CHANGE-PROJECT-KNOWLEDGE-001-R001.md",
+      "sha256": "f432822ac5dc53f8062347d1716984c737142057d56f631660e6bb9ef95f6832"
+    },
+    {
+      "path": ".factory/workitems/FLOW-CONTRACT-001/drafts/REQ-CHANGE-PROJECT-KNOWLEDGE-001-R002.md",
+      "sha256": "71f46c0f830f0da61f24500de6fb7eb785c6e895828866fa24cd255bb086c3fe"
+    },
+    {
+      "path": ".factory/workitems/FLOW-CONTRACT-001/drafts/REQ-CHANGE-PROJECT-KNOWLEDGE-001-R003.md",
+      "sha256": "c8daddc5cb0d1067d214cb7aa69632c8edc05dcdbf7a7ab859d18dc8f141d748"
+    },
+    {
+      "path": ".factory/workitems/FLOW-CONTRACT-001/drafts/REQ-CHANGE-PROJECT-KNOWLEDGE-001-R004.md",
+      "sha256": "e3626b8881d3c932bddd5232d61df3808c722545a28443f666fc31b7d0749e74"
+    },
+    {
+      "path": ".factory/workitems/FLOW-CONTRACT-001/drafts/REQ-CHANGE-PROJECT-KNOWLEDGE-001.contract.R001.json",
+      "sha256": "a063f1064da516c83b6aac198b6957d523abe9a35fa7c6c4292f37e32e7aea9c"
+    },
+    {
+      "path": ".factory/workitems/FLOW-CONTRACT-001/drafts/REQ-CHANGE-PROJECT-KNOWLEDGE-001.contract.R002.json",
+      "sha256": "d5f6804756b56fd58bfc6ef279ff4c35dc58da405b47aabc69e30e752d22a448"
+    },
+    {
+      "path": ".factory/workitems/FLOW-CONTRACT-001/drafts/REQ-CHANGE-PROJECT-KNOWLEDGE-001.contract.R003.json",
+      "sha256": "7d5c60aaacbc75bb3fc60625eb309650c6a73b79ccb9a43698c62cb0792956f4"
+    },
+    {
+      "path": ".factory/workitems/FLOW-CONTRACT-001/drafts/REQ-CHANGE-PROJECT-KNOWLEDGE-001.contract.R004.json",
+      "sha256": "0a8bdd04f95f539e81861c4c5c9ce4cc170b78d0fee88326b669baf1924536b0"
+    }
+  ],
+  "independent_review": {
+    "path": ".factory/workitems/FLOW-CONTRACT-001/reviews/TASK-REQ-006-R004-independent-rereview.md",
+    "sha256": "4fc6157a8d14737b472deabff91a33d6c7f01c3157db11df263ac838d44f2497",
+    "decision": "approved",
+    "score": 96,
+    "critical": 0,
+    "important": 0,
+    "minor": 0
+  },
+  "approved_semantics_if_human_confirms": {
+    "docs": "human_readable_current_documents_only_selected_by_project_profile_no_empty_documents",
+    "requirements_traceability": "live_fact_relationships_indexed_in_rebuildable_sqlite_and_rendered_on_demand_not_manually_duplicated",
+    "memory": "one_current_checkpoint_max_8_KiB_then_ticketed_index_directed_reads",
+    "sqlite": "rebuildable_non_authoritative_projection_for_documents_memory_code_tasks_tests_and_relationships",
+    "cache": "default_256_MiB_and_24h_TTL_with_registered_deterministic_cleanup",
+    "memory_compaction": "event_or_threshold_triggered_isolated_projection_not_periodic_heavy_work_in_active_session",
+    "html": "one_current_html_per_stable_view_authorization_query_scope_with_code_decided_cache_hit_or_atomic_refresh",
+    "pm": "no_independent_fact_store_migrate_generated_views_to_factory_cache_views",
+    "authorization": "current_authoritative_active_grant_required_before_every_cache_hit_read_path_return_or_body_return",
+    "ai_boundary": "AI_selects_registered_skill_command_and_parameters_code_computes_freshness_status_rendering_and_cleanup"
+  },
+  "default_thresholds": {
+    "memory_checkpoint_max_bytes": 8192,
+    "memory_projection_event_lag": 50,
+    "memory_uncompressed_trigger_bytes": 262144,
+    "cache_max_bytes": 268435456,
+    "cache_default_ttl": "PT24H",
+    "generated_view_files_per_scope": 1,
+    "generated_view_max_age": "P7D"
+  },
+  "formal_change_impact_after_human_approval": [
+    "increment_existing_formal_requirements_in_place",
+    "rebaseline_only_applicable_existing_design_owner_documents",
+    "move_machine_only_catalog_manifest_and_source_out_of_docs",
+    "migrate_factory_pm_generated_views_to_factory_cache_views",
+    "implement_index_status_docs_and_maintenance_deterministic_commands",
+    "add_migration_security_performance_rebuild_and_retention_tests"
+  ],
+  "excluded_from_this_candidate": [
+    "TASK-IMPLEMENT-002-R001",
+    "formal_PRD_or_design_edits",
+    "product_code_or_test_edits",
+    "Git_commit_push_PR_merge",
+    "release_or_deployment"
+  ],
+  "status": "pending_human_confirmation",
+  "human_confirmation_required": true,
+  "design_or_implementation_authorized": false
+}

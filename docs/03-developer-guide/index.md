@@ -1,21 +1,30 @@
-# 开发者指南
+# 开发者指南入口
 
-本目录面向需要扩展、修改或集成 `shanforge` 的开发者，聚焦稳定开发入口而不是内部过程。
+## 文档控制
 
-## 1. 阅读原则
+| 项目 | 内容 |
+|---|---|
+| 文档 ID | `DOC-NAV-DEVELOPER-001` |
+| 正式版本 | `v1.0.0` |
+| 来源候选 | `TASK-DESIGN-001-R019` |
+| 发布事务 | `DESIGN-RELEASE-TX-R019-G001` |
+| 负责人 | `HUMAN_ARCHITECTURE_DOMAIN_LEAD` |
+| 修改 / 审核 / 批准 | `uroborus` / `uroborus` / `uroborus` |
+| 状态 | 已批准并生效 |
+| 上游 | `docs/index.md` |
+| 下游 | `development-setup`、`application-development`、`interface-reference`、`plugin-development` |
 
-- 先看应用开发，理解当前仓库的代码与文档边界
-- 再看插件、函数和接口，判断应该扩展哪里
-- 需要更细设计时，再跳转到内部设计文档
+## 本目录职责
 
-## 2. 推荐阅读顺序
+稳定开发、集成和扩展入口。
 
-1. [应用开发](./application-development.md)
-2. [插件开发](./plugin-development.md)
-3. [函数说明](./function-reference.md)
-4. [接口说明](./interface-reference.md)
-5. [开发环境](./development-setup.md)
+## 正式文档
 
-## 3. 与内部文档的边界
+1. [开发环境](./development-setup.md)：`DOC-DEVELOPMENT-SETUP-001`。
+2. [应用开发](./application-development.md)：`DOC-APPLICATION-DEVELOPMENT-001`。
+3. [接口与函数参考](./interface-reference.md)：`DOC-INTERFACE-REFERENCE-001`。
+4. [插件开发](./plugin-development.md)：`DOC-PLUGIN-DEVELOPMENT-001`。
 
-本目录只保留稳定可调用、可协作、可集成的信息；需求、设计、测试、发布和运维细节统一落在 [项目开发文档（内）](../04-project-development/index.md)。
+## 维护规则
+
+[返回文档总入口](../index.md)。TaskCard、计划、状态、评审和证据只进入 `.factory/workitems/`。

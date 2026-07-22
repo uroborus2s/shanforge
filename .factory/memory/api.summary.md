@@ -1,5 +1,7 @@
 # API 摘要
 
+- 2026-07-19 纠偏：未发布的 `TASK-IMPLEMENT-001-R001` 已撤销。`SkillCatalogService`、`SkillManagementProviderPort`、Skill source/management package、session `active_skills` 和相关 settings/composition 已删除；顶层 `skills/*/SKILL.md` 是代理宿主资产，不属于 Shanforge API/runtime surface。下方 2026-04 的 Skill runtime 条目只保留为历史，不得作为当前实现事实。
+
 - 更新时间：2026-04-21 00:00:00
 - 当前版本线：`v2` / `0.2.0.dev0`
 - 摘要焦点：记忆系统独立化后的上下文与状态契约

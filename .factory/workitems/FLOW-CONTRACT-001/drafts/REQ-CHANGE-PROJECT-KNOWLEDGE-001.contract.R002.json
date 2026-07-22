@@ -1,0 +1,59 @@
+{
+  "schema_id": "ProjectKnowledgeRequirementChange/R002/v1",
+  "requirement_change_id": "REQ-CHANGE-PROJECT-KNOWLEDGE-001",
+  "candidate_revision": "R002",
+  "status": "ready_for_review",
+  "base_candidate": {
+    "revision": "R001",
+    "sha256": "f432822ac5dc53f8062347d1716984c737142057d56f631660e6bb9ef95f6832",
+    "contract_sha256": "a063f1064da516c83b6aac198b6957d523abe9a35fa7c6c4292f37e32e7aea9c"
+  },
+  "supersedes_review_target": "R001",
+  "added_requirement": "REQ-PKI-009",
+  "overrides": [
+    "REQ-PKI-005.generated_view_retention",
+    "REQ-PKI-007.default_output_path",
+    "REQ-PKI-008.ai_command_responsibility"
+  ],
+  "pm_boundary": {
+    "independent_fact_store": false,
+    "target_root": ".factory/cache/views",
+    "facts_allowed": false,
+    "historical_html_versions_allowed": false
+  },
+  "render_cache": {
+    "latest_files_per_cache_key": 1,
+    "cache_key_fields": [
+      "view_type",
+      "snapshot_id",
+      "snapshot_sha256",
+      "as_of_H",
+      "source_manifest_sha256",
+      "renderer_sha256",
+      "template_sha256",
+      "schema_version",
+      "authorization_digest",
+      "normalized_query_sha256"
+    ],
+    "cache_hit_requires": [
+      "registered_cache_key_match",
+      "registered_output_sha256_match",
+      "filesystem_output_sha256_match"
+    ],
+    "refresh_strategy": "render_validate_then_atomic_replace",
+    "refresh_failure_preserves_last_verified_file": true,
+    "cross_authorization_reuse_allowed": false
+  },
+  "command_receipt_fields": [
+    "cache_hit",
+    "refreshed",
+    "output_path",
+    "input_fingerprint",
+    "output_sha256",
+    "snapshot_id",
+    "reason_code"
+  ],
+  "r001_review_valid": false,
+  "human_confirmation_required_before_formal_release": true,
+  "design_or_implementation_authorized": false
+}

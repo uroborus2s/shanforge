@@ -11,71 +11,61 @@ def read(path: str) -> str:
 
 def test_development_navigation_exposes_process_docs_and_test_report() -> None:
     docs_index = read("docs/index.md")
-    process_index = read("docs/04-project-development/05-development-process/index.md")
+    design_index = read("docs/05-design/index.md")
+    delivery_index = read("docs/06-delivery/index.md")
 
     nav_paths = (
-        "04-project-development/05-development-process/superpowers-workflow-integration-plan.md",
-        "04-project-development/05-development-process/project-management-control-plane.md",
-        "04-project-development/05-development-process/memory-governance-implementation-plan.md",
-        "04-project-development/06-testing-verification/test-report.md",
+        "05-design/workflow-execution-design.md",
+        "06-delivery/test-plan.md",
     )
 
     for path in nav_paths:
-        assert path in docs_index
         assert (REPO_ROOT / "docs" / path).is_file()
 
-    process_links = (
+    assert "05-design/index.md" in docs_index
+    assert "06-delivery/index.md" in docs_index
+
+    navigation_links = (
         (
-            "[Superpowers 流程集成实施方案](./superpowers-workflow-integration-plan.md)",
-            "superpowers-workflow-integration-plan.md",
+            design_index,
+            "[workflow-execution-design.md](./workflow-execution-design.md)",
+            REPO_ROOT / "docs/05-design/workflow-execution-design.md",
         ),
         (
-            "[项目管理控制面集成方案](./project-management-control-plane.md)",
-            "project-management-control-plane.md",
-        ),
-        (
-            "[记忆治理专项实施计划](./memory-governance-implementation-plan.md)",
-            "memory-governance-implementation-plan.md",
-        ),
-        (
-            "[测试报告](../06-testing-verification/test-report.md)",
-            "../06-testing-verification/test-report.md",
+            delivery_index,
+            "[测试策略与质量门](./test-plan.md)",
+            REPO_ROOT / "docs/06-delivery/test-plan.md",
         ),
     )
 
-    process_dir = REPO_ROOT / "docs/04-project-development/05-development-process"
-    for link, target in process_links:
-        assert link in process_index
-        assert (process_dir / target).resolve().is_file()
+    for index, link, target in navigation_links:
+        assert link in index
+        assert target.is_file()
 
 
-def test_superpowers_plan_next_steps_are_current() -> None:
-    plan = read(
-        "docs/04-project-development/05-development-process/superpowers-workflow-integration-plan.md"
+def test_old_process_docs_are_removed_from_current_baseline() -> None:
+    removed = (
+        "superpowers-workflow-integration-plan.md",
+        "project-management-control-plane.md",
+        "memory-governance-implementation-plan.md",
+        "software-development-process.md",
+        "process-workflow-contract-implementation-plan.md",
     )
+    docs_index = read("docs/index.md")
+    design_index = read("docs/05-design/index.md")
+    contract = read("docs/05-design/workflow-execution-design.md")
 
-    for stale in (
-        "review、完成验证、独立调试等后续 workflow skill 的 references 仍未完成",
-        "推荐先执行：",
-        "这三项完成后，再拷贝改造 Superpowers 的计划、执行、评审和验证类 skill",
-        "当前只剩 `SF-SP-010` 文档、导航、memory 同步收口",
-        "目标文档必须一并纳入同一可审阅提交范围",
-    ):
-        assert stale not in plan
+    for filename in removed:
+        assert filename not in docs_index
+        assert filename not in design_index
+        assert not (
+            REPO_ROOT / "docs/04-project-development/05-development-process" / filename
+        ).exists()
 
-    for stale in (
-        "本地闭环完成 `3 / 10`",
-        "已人工确认但提交未闭环 `7 / 10`",
-        "不能声明整个 Superpowers 流程集成计划已完成",
-        "对 `SF-SP-001` 到 `SF-SP-007` 已通过的产物做范围隔离提交",
-    ):
-        assert stale not in plan
+    assert not (REPO_ROOT / "docs/04-project-development").exists()
 
-    assert "当前不新增 `SF-SP-011`" in plan
-    assert "本地闭环完成 `10 / 10`" in plan
-    assert "`SF-SP-001` | 本地闭环完成" in plan
-    assert "`SF-SP-010` | 本地闭环完成" in plan
-    assert "`efac627`" in plan
+    for phrase in ("任务分解", "系统总设计", "模块设计", "UI 设计", "开发", "测试"):
+        assert phrase in contract
 
 
 def test_doc_map_tracks_navigation_plan_and_test_report_sources() -> None:
@@ -87,60 +77,39 @@ def test_doc_map_tracks_navigation_plan_and_test_report_sources() -> None:
             ".factory/memory/runtime-brief.md",
         ),
         (
-            "docs/04-project-development/05-development-process/index.md",
+            "docs/05-design/index.md",
             ".factory/memory/runtime-brief.md",
         ),
         (
-            "docs/04-project-development/05-development-process/superpowers-workflow-integration-plan.md",
-            ".factory/memory/tasks.summary.md",
-            ".factory/memory/skill-updates.summary.md",
-            ".factory/memory/runtime-brief.md",
-        ),
-        (
-            "docs/04-project-development/05-development-process/project-management-control-plane.md",
-            ".factory/memory/tasks.summary.md",
-            ".factory/memory/current-state.md",
-        ),
-        (
-            "docs/04-project-development/05-development-process/memory-governance-implementation-plan.md",
+            "docs/05-design/workflow-execution-design.md",
             ".factory/memory/tasks.summary.md",
             ".factory/memory/runtime-brief.md",
         ),
         (
-            "docs/04-project-development/06-testing-verification/test-report.md",
+            "docs/06-delivery/test-plan.md",
             ".factory/memory/tests.summary.md",
         ),
     )
 
     for source, *targets in mappings:
-        mapping = f"`{source}` -> {', '.join(f'`{target}`' for target in targets)}"
-        assert mapping in doc_map
+        matching_lines = [line for line in doc_map.splitlines() if source in line]
+        assert matching_lines, source
+        assert any(all(target in line for target in targets) for line in matching_lines)
 
 
-def test_sf_sp_010_closeout_replaces_stale_progress_language() -> None:
-    plan = read(
-        "docs/04-project-development/05-development-process/superpowers-workflow-integration-plan.md"
-    )
+def test_doc_factory_restructure_summary_tracks_destructive_migration() -> None:
     tasks = read(".factory/memory/tasks.summary.md")
     current_state = read(".factory/memory/current-state.md")
 
     for content in (tasks, current_state):
-        assert "`SF-SP-009` 已提交为 `9296f58`" in content
-        assert "`SF-SP-010`" in content
-        assert "3b0e9a5" in content
-
-    assert "本地提交 `9296f58`" in plan
-    assert "本地提交 `3b0e9a5`" in plan
-
-    assert "整体流程集成仍需 `SF-SP-009` 和 `SF-SP-010` 收口" not in tasks
-    assert "`SF-SP-009`：当前已进入黑盒流程 eval 开发" not in plan
-    assert "`SF-SP-010` 已进入文档、导航、memory 同步开发" not in plan
+        assert "DOC-FACTORY-RESTRUCTURE-001" in content
+        assert "破坏性" in content
+        assert "task-execution-contract.md" in content
 
 
 def test_superpowers_closeout_report_tracks_completed_and_open_items() -> None:
     report = read(
-        ".factory/workitems/SF-SP-010/reports/"
-        "superpowers-workflow-integration-closeout-report.md"
+        ".factory/workitems/SF-SP-010/reports/superpowers-workflow-integration-closeout-report.md"
     )
 
     for phrase in (
@@ -174,9 +143,11 @@ def test_active_runtime_entries_do_not_recommend_center_scripts() -> None:
 def test_document_templates_register_formal_docs_and_keep_temporary_docs_out() -> None:
     skill = read("skills/document-templates/SKILL.md")
     structure = read("skills/document-templates/references/repository-structure.md")
+    catalog = read("skills/document-templates/references/document-catalog.md")
+    gates = read("skills/document-templates/references/traceability-and-gates.md")
 
     frontmatter = skill.split("---", 2)[1]
-    assert "description: \"创建、审查、整理和升级软件项目正式文档体系。" in frontmatter
+    assert 'description: "创建、审查、整理和升级软件项目正式文档体系。' in frontmatter
     assert "docs-stratego 的 4 大模块" in frontmatter
     assert "D3" not in frontmatter
 
@@ -184,9 +155,10 @@ def test_document_templates_register_formal_docs_and_keep_temporary_docs_out() -
         "新增正式文档必须在同一改动中同步 `docs/index.md` 或 `.factory/memory/doc-map.md`",
         "修改正式文档必须追加 `版本历史`",
         (
-            "临时文档只能放在 `.factory/workitems/<WORKITEM-ID>/evidence/`、"
-            "`reports/`、`reviews/` 或 `.factory/pm/generated/`"
+            "临时文档只能放在 `.factory/workitems/<WORKITEM-ID>/drafts/`、"
+            "`evidence/`、`reports/` 或 `reviews/`"
         ),
+        "只读 HTML 由项目快照 CLI 写入 `.factory/cache/site/current/`",
         "工作结果：",
         "- work_item: <WORKITEM-ID>",
         "- skill: document-templates",
@@ -199,8 +171,15 @@ def test_document_templates_register_formal_docs_and_keep_temporary_docs_out() -
     for phrase in (
         "新增正式页面后，同步根 `docs/index.md`；需要 AI 恢复时同步 `.factory/memory/doc-map.md`",
         "临时过程材料不得放入 `docs/`",
+        "模板资产与输出路径",
     ):
         assert phrase in structure
+
+    assert "默认最小文档包" not in skill
+    assert "模板资产与输出路径" not in skill
+    assert "文档重构 / 升级流程" not in skill
+    assert "最小文档包建议" in catalog
+    assert "文档重构 / 升级流程" in gates
 
 
 def test_formal_document_template_has_chinese_version_metadata() -> None:

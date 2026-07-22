@@ -1,0 +1,76 @@
+{
+  "schema_id": "ProjectKnowledgeRequirementChange/R001/v1",
+  "requirement_change_id": "REQ-CHANGE-PROJECT-KNOWLEDGE-001",
+  "candidate_revision": "R001",
+  "status": "ready_for_review",
+  "work_item": "FLOW-CONTRACT-001",
+  "task_id": "TASK-REQ-006-project-knowledge-index-and-deterministic-docs",
+  "source_actor": "uroborus",
+  "source_date": "2026-07-21",
+  "requirements": [
+    "REQ-PKI-001",
+    "REQ-PKI-002",
+    "REQ-PKI-003",
+    "REQ-PKI-004",
+    "REQ-PKI-005",
+    "REQ-PKI-006",
+    "REQ-PKI-007",
+    "REQ-PKI-008"
+  ],
+  "nfrs": [
+    "NFR-PKI-001",
+    "NFR-PKI-002",
+    "NFR-PKI-003",
+    "NFR-PKI-004",
+    "NFR-PKI-005",
+    "NFR-PKI-006",
+    "NFR-PKI-007"
+  ],
+  "existing_workflow_owners": [
+    "WF-CTL-001",
+    "WF-CTL-009",
+    "WF-CTL-010",
+    "WF-BASE-008"
+  ],
+  "storage_boundaries": {
+    "docs": "human_readable_formal_documents_only",
+    "factory": "execution_memory_progress_generated_and_cache_artifacts",
+    "sqlite": "rebuildable_index_projection_without_fact_authority",
+    "generated_html": "rebuildable_human_view_without_fact_authority"
+  },
+  "memory_policy": {
+    "session_default_checkpoint_count": 1,
+    "checkpoint_max_bytes": 8192,
+    "primary_compaction": "event_driven_isolated_projection_task",
+    "in_session_periodic_compaction": false,
+    "scheduled_maintenance_role": "fallback_only",
+    "default_event_lag_trigger": 50,
+    "default_uncompacted_bytes_trigger": 262144,
+    "retained_checkpoints": 2
+  },
+  "cache_policy": {
+    "default_cache_ttl_seconds": 86400,
+    "default_cache_max_bytes": 268435456,
+    "generated_view_ttl_seconds": 604800,
+    "generated_view_versions_per_kind": 3,
+    "unbounded_configuration_allowed": false
+  },
+  "commands": [
+    "index refresh|check|rebuild",
+    "project status --format text|html",
+    "docs build|check",
+    "factory maintain --dry-run|apply"
+  ],
+  "forbidden": [
+    "sqlite_as_sole_fact_source",
+    "machine_only_artifacts_under_docs",
+    "empty_documents_for_not_applicable_surfaces",
+    "unbounded_session_reads",
+    "in_session_periodic_heavy_compaction",
+    "unregistered_cache_without_ttl_or_size_limit",
+    "partial_html_from_uncommitted_projection",
+    "mutation_of_TASK_IMPLEMENT_002_R001_candidate"
+  ],
+  "human_confirmation_required_before_formal_release": true,
+  "design_or_implementation_authorized": false
+}

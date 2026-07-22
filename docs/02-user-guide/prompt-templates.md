@@ -1,5 +1,27 @@
 # 提示词速查
 
+## 文档控制
+
+| 项目 | 内容 |
+|---|---|
+| 文档 ID | `DOC-PROMPT-GUIDE-001` |
+| 正式版本 | `v1.0.0` |
+| 来源候选 | `TASK-DESIGN-001-R019` |
+| 发布事务 | `DESIGN-RELEASE-TX-R019-G001` |
+| 负责人 | `HUMAN_PRODUCT_ANALYST` |
+| 修改 / 审核 / 批准 | `uroborus` / `uroborus` / `uroborus` |
+| 状态 | 已批准并生效 |
+| 上游 | `user-guide`、`workflow-execution-design` |
+| 下游 | `会话输入` |
+
+## 文档职责
+
+- 允许保存：按场景使用的中文请求模板；使用时机；必要输入。
+- 禁止保存：内部系统提示词；密钥；未批准流程。
+- 主要读者：人类项目协作者。
+
+## 正式内容
+
 这些模板用于让 AI 走当前 skill-first 流程。
 
 ## 1. 通用模板
@@ -89,3 +111,9 @@
 提交前先核对 work item、review、verification、memory sync 和暂存范围。
 不要提交无关脏改动。
 ```
+
+## 正式版本历史（仅已发布）
+
+| 版本 | 日期 | 变更 | 修改人 | 审核 | 批准 |
+|---|---|---|---|---|---|
+| `v1.0.0` | 2026-07-18 | 基于 `TASK-DESIGN-001-R019` 正式落档 | `uroborus` | `uroborus` | `uroborus` |

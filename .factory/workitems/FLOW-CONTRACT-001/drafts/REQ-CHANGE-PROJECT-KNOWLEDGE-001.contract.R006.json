@@ -1,0 +1,871 @@
+{
+  "schema_id": "ProjectKnowledgeRequirementChange/R006/v1",
+  "requirement_change_id": "REQ-CHANGE-PROJECT-KNOWLEDGE-001",
+  "candidate_revision": "R006",
+  "supersedes": [
+    "R001",
+    "R002",
+    "R003",
+    "R004",
+    "R005"
+  ],
+  "status": "ready_for_same_reviewer_rereview",
+  "work_item": "FLOW-CONTRACT-001",
+  "task_id": "TASK-REQ-006-project-knowledge-index-and-deterministic-docs",
+  "semantic_source": ".factory/workitems/FLOW-CONTRACT-001/drafts/REQ-CHANGE-PROJECT-KNOWLEDGE-001-R006.md",
+  "requirements": [
+    {
+      "id": "REQ-PKI-001",
+      "title": "会话内确定性项目快照命令",
+      "priority": "P0",
+      "status": "ready_for_same_reviewer_rereview",
+      "markdown_section_id": "REQ-PKI-001",
+      "acceptance_criteria": [
+        {
+          "id": "REQ-PKI-001-AC-1",
+          "statement": "输入及授权未变化时复用最后有效站点，不写 HTML，并返回 cache_hit、入口、代次和指纹。"
+        },
+        {
+          "id": "REQ-PKI-001-AC-2",
+          "statement": "仅解析 Hash 变化的登记来源并仅渲染输入指纹变化的页面，校验后原子替换。"
+        },
+        {
+          "id": "REQ-PKI-001-AC-3",
+          "statement": "索引或页面构建失败时保留上一有效站点并返回 stale、失败阶段和诊断。"
+        },
+        {
+          "id": "REQ-PKI-001-AC-4",
+          "statement": "固定命令不向 AI 追问补值、不要求 AI 计算状态且查询不创建产品任务。"
+        }
+      ]
+    },
+    {
+      "id": "REQ-PKI-002",
+      "title": "自适应且原位维护的人类文档体系",
+      "priority": "P0",
+      "status": "ready_for_same_reviewer_rereview",
+      "markdown_section_id": "REQ-PKI-002",
+      "acceptance_criteria": [
+        {
+          "id": "REQ-PKI-002-AC-1",
+          "statement": "项目没有某交付表面时对应正式文档数量为零。"
+        },
+        {
+          "id": "REQ-PKI-002-AC-2",
+          "statement": "新增正式文档必须登记中文名、读者、Owner、适用条件和上下游并证明现有 Owner 不能承载。"
+        },
+        {
+          "id": "REQ-PKI-002-AC-3",
+          "statement": "requirements matrix 默认从关系图生成；需要正式 Markdown 时只更新同一文件。"
+        },
+        {
+          "id": "REQ-PKI-002-AC-4",
+          "statement": "AI SDLC catalog 机器文件不得作为 docs/05-design 人类正文并按配置、投影、cache 分类迁移。"
+        }
+      ]
+    },
+    {
+      "id": "REQ-PKI-003",
+      "title": "单一记忆点与有界定向读取",
+      "priority": "P0",
+      "status": "ready_for_same_reviewer_rereview",
+      "markdown_section_id": "REQ-PKI-003",
+      "acceptance_criteria": [
+        {
+          "id": "REQ-PKI-003-AC-1",
+          "statement": "兼容记忆点存在时恢复只读一个 Memory Artifact，默认不读历史 Ledger 和 docs。"
+        },
+        {
+          "id": "REQ-PKI-003-AC-2",
+          "statement": "记忆点不超过 8 KiB且不复制正文、聊天、评审全文或长输出。"
+        },
+        {
+          "id": "REQ-PKI-003-AC-3",
+          "statement": "记忆点过期或损坏时返回 memory_recovery_not_ready 并入队修复，不无界散读。"
+        },
+        {
+          "id": "REQ-PKI-003-AC-4",
+          "statement": "扩展读取由稳定实体/章节 ID 定位且默认不超过 4 文件和 32 KiB，标题不作身份。"
+        }
+      ]
+    },
+    {
+      "id": "REQ-PKI-004",
+      "title": "可重建 SQLite 知识核心",
+      "priority": "P0",
+      "status": "ready_for_same_reviewer_rereview",
+      "markdown_section_id": "REQ-PKI-004",
+      "acceptance_criteria": [
+        {
+          "id": "REQ-PKI-004-AC-1",
+          "statement": "未变来源不重新解析；变更来源按稳定 ID/block Hash 更新并删除消失贡献。"
+        },
+        {
+          "id": "REQ-PKI-004-AC-2",
+          "statement": "刷新在单一写事务发布 IndexGeneration，读者只见完整旧或新代次。"
+        },
+        {
+          "id": "REQ-PKI-004-AC-3",
+          "statement": "空数据库可从登记事实源、版本化 schema/reducer 和 Git 高水位重建相同语义 Hash。"
+        },
+        {
+          "id": "REQ-PKI-004-AC-4",
+          "statement": "永久知识核心固定 29 表；新增表需 schema 评审且不得恢复可推导冗余表。"
+        }
+      ]
+    },
+    {
+      "id": "REQ-PKI-005",
+      "title": "稳定身份、语义定位和别名迁移",
+      "priority": "P0",
+      "status": "ready_for_same_reviewer_rereview",
+      "markdown_section_id": "REQ-PKI-005",
+      "acceptance_criteria": [
+        {
+          "id": "REQ-PKI-005-AC-1",
+          "statement": "标题、章节位置、代码行/文件/模块移动、重命名或兼容签名调整后稳定 ID 可解析当前实体。"
+        },
+        {
+          "id": "REQ-PKI-005-AC-2",
+          "statement": "ID 变化登记 alias/原因/来源并防环；拆分、合并或歧义只产生待确认诊断。"
+        },
+        {
+          "id": "REQ-PKI-005-AC-3",
+          "statement": "一个实体可绑定多个带 definition/declaration/implementation/test/evidence 角色的 locator。"
+        },
+        {
+          "id": "REQ-PKI-005-AC-4",
+          "statement": "locator 不能唯一命中时返回诊断，不扩大读取范围猜测。"
+        }
+      ]
+    },
+    {
+      "id": "REQ-PKI-006",
+      "title": "文档需求任务测试代码关系图",
+      "priority": "P0",
+      "status": "ready_for_same_reviewer_rereview",
+      "markdown_section_id": "REQ-PKI-006",
+      "acceptance_criteria": [
+        {
+          "id": "REQ-PKI-006-AC-1",
+          "statement": "Requirement、Design、WorkItem、CodeSymbol、Test、Evidence、Release 可沿类型化边查看上下游。"
+        },
+        {
+          "id": "REQ-PKI-006-AC-2",
+          "statement": "来源删除或修改不遗留幽灵边，也不误删其他来源声明的同关系。"
+        },
+        {
+          "id": "REQ-PKI-006-AC-3",
+          "statement": "追踪检查报告缺 AC/设计/实现/测试/证据的断链并给精确 locator。"
+        },
+        {
+          "id": "REQ-PKI-006-AC-4",
+          "statement": "矩阵、目录和代码地图从同一实体关系核心生成，不维护第二套强关系。"
+        }
+      ]
+    },
+    {
+      "id": "REQ-PKI-007",
+      "title": "代码地图提取与快速查看",
+      "priority": "P0",
+      "status": "ready_for_same_reviewer_rereview",
+      "markdown_section_id": "REQ-PKI-007",
+      "acceptance_criteria": [
+        {
+          "id": "REQ-PKI-007-AC-1",
+          "statement": "find/show/trace/context 返回稳定 ID、摘要、有界关系与预算读取计划。"
+        },
+        {
+          "id": "REQ-PKI-007-AC-2",
+          "statement": "代码查询返回定义 locator、模块、调用候选、需求/任务/测试和 Git 状态而不读整文件。"
+        },
+        {
+          "id": "REQ-PKI-007-AC-3",
+          "statement": "解析失败、动态调用或重复符号写入诊断并降低置信度。"
+        },
+        {
+          "id": "REQ-PKI-007-AC-4",
+          "statement": "源码不复制为长期正文，检索只含允许摘要且 FTS 可重建。"
+        }
+      ]
+    },
+    {
+      "id": "REQ-PKI-008",
+      "title": "可商用的只读多页面项目站点",
+      "priority": "P0",
+      "status": "ready_for_same_reviewer_rereview",
+      "markdown_section_id": "REQ-PKI-008",
+      "acceptance_criteria": [
+        {
+          "id": "REQ-PKI-008-AC-1",
+          "statement": "需求详情用自然语言展示背景、场景、结果、非目标、AC及设计到发布追踪。"
+        },
+        {
+          "id": "REQ-PKI-008-AC-2",
+          "statement": "开发任务和缺陷详情完整展示目标/范围/完成条件/进度/代码测试或复现/根因/回归。"
+        },
+        {
+          "id": "REQ-PKI-008-AC-3",
+          "statement": "站点覆盖需求、设计、任务、缺陷、版本、文档、代码、质量、PM并用全页面详情和返回导航。"
+        },
+        {
+          "id": "REQ-PKI-008-AC-4",
+          "statement": "未知、未登记、不适用明确区分且可回到来源，禁止伪造字段和写操作。"
+        }
+      ]
+    },
+    {
+      "id": "REQ-PKI-009",
+      "title": "页面级 freshness 权限和原子发布",
+      "priority": "P0",
+      "status": "ready_for_same_reviewer_rereview",
+      "markdown_section_id": "REQ-PKI-009",
+      "acceptance_criteria": [
+        {
+          "id": "REQ-PKI-009-AC-1",
+          "statement": "shared-restricted 每次服务/cache 读取重新鉴权且撤权后清除托管 cache；local-owner 校验 Owner/ACL并披露复制件残留。"
+        },
+        {
+          "id": "REQ-PKI-009-AC-2",
+          "statement": "无关来源变化不重建页面；输入改变只重建受影响页面及聚合页。"
+        },
+        {
+          "id": "REQ-PKI-009-AC-3",
+          "statement": "每个 view scope 只公开最后成功版本，staging/失败版本不可见并可清理。"
+        },
+        {
+          "id": "REQ-PKI-009-AC-4",
+          "statement": "页面显示固定 as_of，不显示影响内容 Hash 的墙钟 built_at；built_at 只在 receipt/Manifest 非内容区。"
+        }
+      ]
+    },
+    {
+      "id": "REQ-PKI-010",
+      "title": "项目管理十要素完整投影",
+      "priority": "P0",
+      "status": "ready_for_same_reviewer_rereview",
+      "markdown_section_id": "REQ-PKI-010",
+      "acceptance_criteria": [
+        {
+          "id": "REQ-PKI-010-AC-1",
+          "statement": "R014 的 137 个唯一 field ID 经 R006 field map 恰好映射一次且可追溯来源或 reducer。"
+        },
+        {
+          "id": "REQ-PKI-010-AC-2",
+          "statement": "状态、完成率、风险和偏差由版本化 reducer 计算，AI和模板不填数。"
+        },
+        {
+          "id": "REQ-PKI-010-AC-3",
+          "statement": "现有原型只复用经审查 token/图标，不继承侧边抽屉和残缺字段结构。"
+        },
+        {
+          "id": "REQ-PKI-010-AC-4",
+          "statement": ".factory/pm 不作事实仓，旧文件核对后转可重建 cache 或删除。"
+        }
+      ]
+    },
+    {
+      "id": "REQ-PKI-011",
+      "title": "不阻塞主会话的异步状态同步",
+      "priority": "P0",
+      "status": "ready_for_same_reviewer_rereview",
+      "markdown_section_id": "REQ-PKI-011",
+      "acceptance_criteria": [
+        {
+          "id": "REQ-PKI-011-AC-1",
+          "statement": "主会话 durable enqueue 后继续工作；相同高水位/scope 请求幂等合并且旧请求可 supersede。"
+        },
+        {
+          "id": "REQ-PKI-011-AC-2",
+          "statement": "执行器只使用固定输入包且不扩大写集。"
+        },
+        {
+          "id": "REQ-PKI-011-AC-3",
+          "statement": "失败最多重试 5 次、退避上限 300 秒，保留旧输出且超限 needs_attention。"
+        },
+        {
+          "id": "REQ-PKI-011-AC-4",
+          "statement": "隔离 worktree 使用 fencing token；失租或祖先关系变化不得发布/提交并确定转移。"
+        }
+      ]
+    },
+    {
+      "id": "REQ-PKI-012",
+      "title": "生成物与维护提交的 Git 边界",
+      "priority": "P0",
+      "status": "ready_for_same_reviewer_rereview",
+      "markdown_section_id": "REQ-PKI-012",
+      "acceptance_criteria": [
+        {
+          "id": "REQ-PKI-012-AC-1",
+          "statement": "提交前校验 allowlist、祖先关系和 write lease；dirty overlap 不抢写。"
+        },
+        {
+          "id": "REQ-PKI-012-AC-2",
+          "statement": "维护提交绑定 job、高水位和生成器版本，过期执行器不能覆盖。"
+        },
+        {
+          "id": "REQ-PKI-012-AC-3",
+          "statement": "稳定 ID/schema/extractor/renderer/人工关系属于主任务事实提交。"
+        },
+        {
+          "id": "REQ-PKI-012-AC-4",
+          "statement": "后台无远程权限；无维护提交授权时仍经 commit_not_authorized 到 integrated/done。"
+        }
+      ]
+    },
+    {
+      "id": "REQ-PKI-013",
+      "title": "有界 cache 代次和自动压缩",
+      "priority": "P0",
+      "status": "ready_for_same_reviewer_rereview",
+      "markdown_section_id": "REQ-PKI-013",
+      "acceptance_criteria": [
+        {
+          "id": "REQ-PKI-013-AC-1",
+          "statement": "维护器只删除登记 cache/generated 且校验 realpath、Owner、legal hold和当前引用。"
+        },
+        {
+          "id": "REQ-PKI-013-AC-2",
+          "statement": "重复清理幂等并报告数量、字节、跳过原因和 SQLite 指标。"
+        },
+        {
+          "id": "REQ-PKI-013-AC-3",
+          "statement": "计划任务只是漏触发/清理兜底，正确性不依赖定时器。"
+        },
+        {
+          "id": "REQ-PKI-013-AC-4",
+          "statement": "维护失败不撤销业务事实或删除当前/前一有效恢复元数据。"
+        }
+      ]
+    },
+    {
+      "id": "REQ-PKI-014",
+      "title": "安全权限与来源最小化",
+      "priority": "P0",
+      "status": "ready_for_same_reviewer_rereview",
+      "markdown_section_id": "REQ-PKI-014",
+      "acceptance_criteria": [
+        {
+          "id": "REQ-PKI-014-AC-1",
+          "statement": "路径穿越、符号链接越界和未登记来源被拒绝并记录诊断。"
+        },
+        {
+          "id": "REQ-PKI-014-AC-2",
+          "statement": "秘密和未授权实体不进入索引、Memory或HTML；shared-restricted 离线页无受限字段。"
+        },
+        {
+          "id": "REQ-PKI-014-AC-3",
+          "statement": "shared-restricted 返回 cache 前重新鉴权，撤权清理失败 fail-closed并 needs_attention。"
+        },
+        {
+          "id": "REQ-PKI-014-AC-4",
+          "statement": "诊断和 receipt 不回显敏感内容。"
+        }
+      ]
+    },
+    {
+      "id": "REQ-PKI-015",
+      "title": "现有资料与生成物迁移",
+      "priority": "P1",
+      "status": "ready_for_same_reviewer_rereview",
+      "markdown_section_id": "REQ-PKI-015",
+      "acceptance_criteria": [
+        {
+          "id": "REQ-PKI-015-AC-1",
+          "statement": "正式设计原位合并到唯一 Owner 文档并保留 Git 历史。"
+        },
+        {
+          "id": "REQ-PKI-015-AC-2",
+          "statement": "稳定配置/schema 迁入版本化配置/源码，生成物迁入 cache/ignore。"
+        },
+        {
+          "id": "REQ-PKI-015-AC-3",
+          "statement": "迁移前后强关系逐项对账且丢失为零。"
+        },
+        {
+          "id": "REQ-PKI-015-AC-4",
+          "statement": "迁移提供 dry-run、回滚点和 receipt且不混入 TASK-IMPLEMENT-002-R001。"
+        }
+      ]
+    },
+    {
+      "id": "REQ-PKI-016",
+      "title": "固定查询命令面",
+      "priority": "P1",
+      "status": "ready_for_same_reviewer_rereview",
+      "markdown_section_id": "REQ-PKI-016",
+      "acceptance_criteria": [
+        {
+          "id": "REQ-PKI-016-AC-1",
+          "statement": "所有命令有固定参数、稳定退出码、JSON receipt和人类摘要且输入不足 fail-closed。"
+        },
+        {
+          "id": "REQ-PKI-016-AC-2",
+          "statement": "查询默认只读，只有登记的刷新/重建/维护/执行器可写投影路径。"
+        },
+        {
+          "id": "REQ-PKI-016-AC-3",
+          "statement": "契约测试覆盖空项目、无变化、单来源变化、损坏库、撤权、部分失败和并发。"
+        },
+        {
+          "id": "REQ-PKI-016-AC-4",
+          "statement": "CLI 只调用 application port，不在 access 层放基础设施逻辑。"
+        }
+      ]
+    }
+  ],
+  "nfrs": [
+    {
+      "id": "NFR-PKI-001",
+      "title": "会话恢复",
+      "status": "ready_for_same_reviewer_rereview",
+      "markdown_section_id": "NFR-PKI-001",
+      "metric": "memory_checkpoint_bytes<=8192 and compatible_restore_p95_ms<=1000",
+      "verification": "0_1_50_200_event_fixtures"
+    },
+    {
+      "id": "NFR-PKI-002",
+      "title": "快速查看",
+      "status": "ready_for_same_reviewer_rereview",
+      "markdown_section_id": "NFR-PKI-002",
+      "metric": "unchanged_snapshot_p95_ms<=100; one_source_p95_ms<=800; current_repo_cold_target_ms<=3000",
+      "verification": "frozen_repository_benchmark"
+    },
+    {
+      "id": "NFR-PKI-003",
+      "title": "增量索引",
+      "status": "ready_for_same_reviewer_rereview",
+      "markdown_section_id": "NFR-PKI-003",
+      "metric": "unchanged_source_parse_count=0; ten_thousand_artifact_one_source_p95_ms<=500",
+      "verification": "profiler_and_source_hash_assertions"
+    },
+    {
+      "id": "NFR-PKI-004",
+      "title": "异步不阻塞",
+      "status": "ready_for_same_reviewer_rereview",
+      "markdown_section_id": "NFR-PKI-004",
+      "metric": "durable_enqueue_p95_ms<=100; normal_background_sync_target_ms<=3000",
+      "verification": "durable_task_integration_test"
+    },
+    {
+      "id": "NFR-PKI-005",
+      "title": "可重建性",
+      "status": "ready_for_same_reviewer_rereview",
+      "markdown_section_id": "NFR-PKI-005",
+      "metric": "cold_rebuild_semantic_entities_strong_edges_and_source_hashes_equal_baseline",
+      "verification": "cold_rebuild_diff_report"
+    },
+    {
+      "id": "NFR-PKI-006",
+      "title": "一致性",
+      "status": "ready_for_same_reviewer_rereview",
+      "markdown_section_id": "NFR-PKI-006",
+      "metric": "readers_observe_only_complete_old_or_new_generation; cross_source_watermark_drift=0",
+      "verification": "crash_concurrency_atomic_publish_tests"
+    },
+    {
+      "id": "NFR-PKI-007",
+      "title": "有界存储",
+      "status": "ready_for_same_reviewer_rereview",
+      "markdown_section_id": "NFR-PKI-007",
+      "metric": "cache_and_generated_within_ttl_and_capacity; unregistered_unbounded_directories=0",
+      "verification": "long_run_maintenance_audit"
+    },
+    {
+      "id": "NFR-PKI-008",
+      "title": "安全",
+      "status": "ready_for_same_reviewer_rereview",
+      "markdown_section_id": "NFR-PKI-008",
+      "metric": "boundary_or_secret_leak=0; shared_restricted_revoked_read=0; local_owner_acl=0700_0600",
+      "verification": "attack_secret_acl_and_revocation_tests"
+    },
+    {
+      "id": "NFR-PKI-009",
+      "title": "可访问与响应式",
+      "status": "ready_for_same_reviewer_rereview",
+      "markdown_section_id": "NFR-PKI-009",
+      "metric": "WCAG_2_2_AA and widths=375_768_1024_1440 and keyboard_deeplink_print",
+      "verification": "axe_playwright_visual_review"
+    },
+    {
+      "id": "NFR-PKI-010",
+      "title": "离线确定性",
+      "status": "ready_for_same_reviewer_rereview",
+      "markdown_section_id": "NFR-PKI-010",
+      "metric": "same_canonical_inputs_and_versions_produce_same_page_set_and_page_hash; built_at_excluded",
+      "verification": "fixed_clock_two_isolated_builds"
+    },
+    {
+      "id": "NFR-PKI-011",
+      "title": "架构合规",
+      "status": "ready_for_same_reviewer_rereview",
+      "markdown_section_id": "NFR-PKI-011",
+      "metric": "dependency=access_application_domain_runtime_settings; composition_only=settings/composition",
+      "verification": "import_boundary_architecture_tests"
+    }
+  ],
+  "source_pins": {
+    "project_progress_contract": {
+      "path": ".factory/workitems/FLOW-CONTRACT-001/drafts/project-progress-requirement-contract.R014.json",
+      "contract_id": "REQ-CONTRACT-WF-CTL-010-001",
+      "revision": "R014",
+      "approval_status": "candidate_unapproved",
+      "whole_file_sha256": "836fadc2c214ef2f56b2a21ef2fb705445a58ca7ddb0047f3b638292ba578d33",
+      "field_catalog_sha256": "658f8d805ce423e46b686e7e6da2de22d0d7e874817a153bffefdf8c0d604313",
+      "policy": "pinned_input_only_R006_does_not_approve_R014"
+    },
+    "pm_field_map": {
+      "path": ".factory/workitems/FLOW-CONTRACT-001/drafts/REQ-CHANGE-PROJECT-KNOWLEDGE-001.pm-field-map.R006.json",
+      "sha256": "7169c619fa75e13e4fbeb06a8e803dd9555c8f377bade641cb05e123a0895c8c",
+      "expected_unique_fields": 137
+    }
+  },
+  "storage_boundaries": {
+    "git_tracks": [
+      "formal_facts",
+      "schema_and_migrations",
+      "extractors_and_renderers",
+      "source_registry",
+      "stable_ids",
+      "manual_relation_declarations",
+      "workitem_ledgers",
+      "controlled_memory",
+      "release_manifests",
+      "verification_evidence"
+    ],
+    "git_excludes": [
+      "sqlite",
+      "fts",
+      "generated_document_or_code_maps",
+      "generated_edges",
+      "html_site",
+      "build_intermediates",
+      "cache"
+    ],
+    "sqlite_authoritative": false
+  },
+  "projection_model": {
+    "index_generation": {
+      "persistence": "current_plus_building_plus_previous_valid_metadata",
+      "project_history_snapshot": false
+    },
+    "project_progress_snapshot": {
+      "schema_id": "ProjectProgressSnapshot/v1",
+      "persistence": "non_persistent_DTO",
+      "reducer_id": "project-progress-v1",
+      "input": "current_index_generation_plus_pm_reducers",
+      "manifest_owner": "pk_render_view",
+      "history_owner": "git_and_authoritative_ledger"
+    },
+    "render_fingerprint": {
+      "scope": "page_plus_authorization_profile",
+      "wall_clock_built_at_included": false,
+      "as_of_source": "authoritative_fact_high_watermark"
+    },
+    "full_snapshot_on_every_change": false,
+    "update_algorithm": "parse_changed_sources_upsert_changed_blocks_delete_removed_source_contributions"
+  },
+  "semantic_locator_policy": {
+    "line_or_byte_offset_primary": false,
+    "title_identity": false,
+    "markdown": "doc_id_plus_section_id",
+    "requirement": "stable_requirement_or_acceptance_id",
+    "code_identity": "stable_symbol_id",
+    "code_current_locator": "module_plus_qualified_symbol_plus_signature_discriminator",
+    "code_refactor_policy": "explicit_alias_or_migration_declaration; ambiguous_split_or_merge_is_diagnostic",
+    "json": "json_pointer",
+    "jsonl": "stable_event_uid",
+    "work_item": "work_item_or_task_id",
+    "memory": "checkpoint_id_plus_section_id",
+    "git": "commit_or_blob_plus_path"
+  },
+  "sqlite_schema": {
+    "total_tables": 39,
+    "fts_virtual_tables": [
+      "pk_search_fts",
+      "pk_search_tri"
+    ],
+    "knowledge_core_tables": [
+      "pk_meta",
+      "pk_source",
+      "pk_source_state",
+      "pk_generation",
+      "pk_generation_source",
+      "pk_artifact",
+      "pk_entity",
+      "pk_entity_alias",
+      "pk_locator",
+      "pk_entity_locator",
+      "pk_relation_type",
+      "pk_edge",
+      "pk_document",
+      "pk_document_section",
+      "pk_document_revision",
+      "pk_module",
+      "pk_code_file",
+      "pk_code_symbol",
+      "pk_requirement",
+      "pk_acceptance_criterion",
+      "pk_work_item",
+      "pk_test",
+      "pk_memory_checkpoint",
+      "pk_search_entry",
+      "pk_search_fts",
+      "pk_search_tri",
+      "pk_diagnostic",
+      "pk_cache_entry",
+      "pk_render_view"
+    ],
+    "pm_projection_tables": [
+      "pm_project_profile",
+      "pm_party",
+      "pm_work_plan",
+      "pm_risk",
+      "pm_communication",
+      "pm_meeting",
+      "pm_action_item",
+      "pm_status_report",
+      "pm_change_request",
+      "pm_project_summary"
+    ],
+    "forbidden_permanent_tables": [
+      "doc_link",
+      "code_occurrence",
+      "context_read_ticket"
+    ]
+  },
+  "relation_policy": {
+    "strong_relations_require_source": true,
+    "heuristic_max_relation": "MENTIONS",
+    "source_scoped_contribution_delete": true
+  },
+  "memory_policy": {
+    "checkpoint_count": 1,
+    "checkpoint_max_bytes": 8192,
+    "context_max_files": 4,
+    "context_max_bytes": 32768,
+    "persistent_context_ticket": false,
+    "compaction": "event_driven_isolated",
+    "in_session_periodic": false,
+    "event_lag_trigger": 50,
+    "uncompacted_bytes_trigger": 262144
+  },
+  "site_contract": {
+    "read_only": true,
+    "detail_pattern": "full_page_with_back_navigation",
+    "side_drawer_details": false,
+    "profiles": {
+      "local_owner": {
+        "format": "offline_static_multi_page",
+        "entry": ".factory/cache/site/current/index.html",
+        "directory_mode": "0700",
+        "file_mode": "0600",
+        "authorization": "current_os_owner_before_generation_and_path_return",
+        "revocation_limit": "opened_or_copied_files_outside_managed_directory_cannot_be_recalled_and_must_be_disclosed"
+      },
+      "shared_restricted": {
+        "offline_format": "public_or_redacted_static_only",
+        "restricted_detail": "authenticated_local_serve_each_request",
+        "revoked_read_successes": 0,
+        "managed_cache_clear_on_revocation": true
+      }
+    },
+    "page_content_time": "authoritative_as_of",
+    "receipt_only_time": "built_at",
+    "built_at_in_page_hash": false,
+    "forbidden_interactions": [
+      "create",
+      "edit",
+      "drag",
+      "approve",
+      "mutate_status"
+    ]
+  },
+  "cache_policy": {
+    "ttl_seconds": 86400,
+    "max_bytes": 268435456,
+    "published_versions_per_scope": 1,
+    "previous_valid_survives_failed_build": true
+  },
+  "system_task": {
+    "kind": "PROJECT_STATE_SYNC",
+    "queue_is_owner": true,
+    "main_session_waits": false,
+    "idempotency_key_scope": [
+      "fact_high_watermark",
+      "source_scope",
+      "authorization_profile",
+      "generator_version"
+    ],
+    "retry": {
+      "max_attempts": 5,
+      "backoff": "exponential",
+      "max_backoff_seconds": 300
+    },
+    "lease": {
+      "fencing_token": "monotonic",
+      "main_task_priority": true,
+      "lost_lease_action": "no_publish_no_commit"
+    },
+    "states": [
+      "queued",
+      "running",
+      "projection_ready",
+      "memory_ready",
+      "html_published",
+      "maintenance_committed",
+      "commit_not_authorized",
+      "ready_to_integrate",
+      "retryable_failed",
+      "integrated",
+      "done",
+      "superseded",
+      "needs_attention"
+    ],
+    "terminal_states": [
+      "done",
+      "superseded",
+      "needs_attention"
+    ],
+    "transitions": [
+      {
+        "from": "queued",
+        "to": "running",
+        "guard": "lease_acquired_and_input_current"
+      },
+      {
+        "from": "queued",
+        "to": "superseded",
+        "guard": "newer_equivalent_job_exists"
+      },
+      {
+        "from": "running",
+        "to": "projection_ready",
+        "guard": "generation_published_with_matching_fencing_token"
+      },
+      {
+        "from": "running",
+        "to": "retryable_failed",
+        "guard": "transient_projection_failure"
+      },
+      {
+        "from": "running",
+        "to": "ready_to_integrate",
+        "guard": "repository_overlap_or_ancestry_changed"
+      },
+      {
+        "from": "running",
+        "to": "superseded",
+        "guard": "input_no_longer_current"
+      },
+      {
+        "from": "running",
+        "to": "needs_attention",
+        "guard": "permanent_failure"
+      },
+      {
+        "from": "projection_ready",
+        "to": "memory_ready",
+        "guard": "memory_projection_published_or_no_change"
+      },
+      {
+        "from": "projection_ready",
+        "to": "retryable_failed",
+        "guard": "transient_memory_failure"
+      },
+      {
+        "from": "memory_ready",
+        "to": "html_published",
+        "guard": "site_published_or_page_cache_hit"
+      },
+      {
+        "from": "memory_ready",
+        "to": "retryable_failed",
+        "guard": "transient_render_failure"
+      },
+      {
+        "from": "html_published",
+        "to": "maintenance_committed",
+        "guard": "maintenance_diff_present_and_commit_authorized_and_lease_valid"
+      },
+      {
+        "from": "html_published",
+        "to": "commit_not_authorized",
+        "guard": "maintenance_diff_present_and_commit_not_authorized"
+      },
+      {
+        "from": "html_published",
+        "to": "integrated",
+        "guard": "no_maintenance_diff_and_outputs_current"
+      },
+      {
+        "from": "maintenance_committed",
+        "to": "integrated",
+        "guard": "commit_descends_from_primary_commit_and_allowlist_verified"
+      },
+      {
+        "from": "commit_not_authorized",
+        "to": "integrated",
+        "guard": "generated_outputs_valid_and_maintenance_commit_optional"
+      },
+      {
+        "from": "ready_to_integrate",
+        "to": "integrated",
+        "guard": "lease_reacquired_and_parent_and_allowlist_reverified"
+      },
+      {
+        "from": "ready_to_integrate",
+        "to": "superseded",
+        "guard": "newer_job_integrated"
+      },
+      {
+        "from": "ready_to_integrate",
+        "to": "needs_attention",
+        "guard": "manual_integration_required"
+      },
+      {
+        "from": "retryable_failed",
+        "to": "queued",
+        "guard": "attempt_count_less_than_5_after_exponential_backoff"
+      },
+      {
+        "from": "retryable_failed",
+        "to": "needs_attention",
+        "guard": "attempt_count_greater_than_or_equal_to_5"
+      },
+      {
+        "from": "integrated",
+        "to": "done",
+        "guard": "head_receipt_and_current_generation_match"
+      }
+    ],
+    "remote_actions_authorized": false
+  },
+  "commands": [
+    "project index refresh|check|rebuild",
+    "project snapshot --html [--check|--rebuild|--open|--serve] [--profile]",
+    "project find",
+    "project show",
+    "project trace",
+    "project context",
+    "project sync head",
+    "project maintain --dry-run|--apply"
+  ],
+  "architecture": {
+    "dependency_chain": "access -> application -> domain -> runtime -> settings",
+    "composition_root": "src/settings/composition",
+    "cli_infrastructure_logic": false,
+    "extractor_extensions_behind_ports": true
+  },
+  "machine_consistency": {
+    "requirement_objects": 16,
+    "acceptance_criteria_objects": 64,
+    "nfr_objects": 11,
+    "markdown_section_ids_required": true,
+    "final_manifest_binds_all_candidate_files": true
+  },
+  "excluded_candidate": "TASK-IMPLEMENT-002-R001",
+  "human_confirmation_required_before_formal_design_or_implementation": true,
+  "design_or_implementation_authorized": false
+}

@@ -1,0 +1,1318 @@
+{
+  "schema_id": "ProjectKnowledgeRequirementChange/R008/v1",
+  "requirement_change_id": "REQ-CHANGE-PROJECT-KNOWLEDGE-001",
+  "candidate_revision": "R008",
+  "supersedes": [
+    "R001",
+    "R002",
+    "R003",
+    "R004",
+    "R005",
+    "R006",
+    "R007"
+  ],
+  "status": "ready_for_same_reviewer_rereview",
+  "work_item": "FLOW-CONTRACT-001",
+  "task_id": "TASK-REQ-006-project-knowledge-index-and-deterministic-docs",
+  "semantic_source": ".factory/workitems/FLOW-CONTRACT-001/drafts/REQ-CHANGE-PROJECT-KNOWLEDGE-001-R008.md",
+  "requirements": [
+    {
+      "id": "REQ-PKI-001",
+      "title": "会话内确定性项目快照命令",
+      "priority": "P0",
+      "normative_statements": [
+        "系统必须提供 `shanforge project snapshot --html`。命令检查 freshness，按需增量刷新索引，计算项目快照和页面级指纹，只重建受影响页面，并返回结构化 receipt 与当前站点入口。",
+        "支持 `--open`、`--check`、`--rebuild`、`--serve` 和 `--profile local-owner|shared-restricted`；默认 `local-owner` 只生成当前 OS Owner 可读的静态文件，不启动常驻服务或 watcher。"
+      ],
+      "acceptance_criteria": [
+        {
+          "id": "REQ-PKI-001-AC-1",
+          "statement": "输入及授权未变化时，命令复用最后有效站点，不写 HTML，返回 `cache_hit=true`、入口路径、代次和指纹。"
+        },
+        {
+          "id": "REQ-PKI-001-AC-2",
+          "statement": "来源变化时，仅解析登记且 Hash 变化的来源，仅渲染输入指纹变化的页面；站点经临时目录校验后原子替换。"
+        },
+        {
+          "id": "REQ-PKI-001-AC-3",
+          "statement": "索引或页面构建失败时保留上一有效站点并返回 `stale=true`、失败阶段和诊断；不得把失败产物冒充最新。"
+        },
+        {
+          "id": "REQ-PKI-001-AC-4",
+          "statement": "固定命令全程不向 AI 追问补值，不要求 AI 计算状态，不因查询创建产品任务。"
+        }
+      ],
+      "projection_sha256": "03225cc6d29d0f90183035bae9ecd0394d6ef242722a1fb1942cef3f419eab22",
+      "status": "ready_for_same_reviewer_rereview",
+      "markdown_section_id": "REQ-PKI-001"
+    },
+    {
+      "id": "REQ-PKI-002",
+      "title": "自适应且原位维护的人类文档体系",
+      "priority": "P0",
+      "normative_statements": [
+        "`docs/` 只保存面向人的当前有效文档、图片和必要静态阅读资源。模板必须根据项目类型、受众、交付表面、部署方式和风险选择最小集合；不适用的文档不得创建。",
+        "需求、设计和方案变化默认修改原 Owner 文档中的稳定章节，通过 Git 历史管理版本；候选、评审、证据、缓存和机器合同留在 `.factory/`。"
+      ],
+      "acceptance_criteria": [
+        {
+          "id": "REQ-PKI-002-AC-1",
+          "statement": "没有 UI、数据库、公共 API、部署或插件暴露面时，对应正式文档数量为 0。"
+        },
+        {
+          "id": "REQ-PKI-002-AC-2",
+          "statement": "新增正式文档必须登记中文名称、读者、Owner、适用条件、上游、下游，并证明现有文档不能承载。"
+        },
+        {
+          "id": "REQ-PKI-002-AC-3",
+          "statement": "`requirements-matrix.md` 默认是由关系图生成的阅读视图；若项目要求正式 Markdown，则只维护同一文件并标记生成来源，禁止按变更不断新建矩阵文档。"
+        },
+        {
+          "id": "REQ-PKI-002-AC-4",
+          "statement": "`ai-sdlc-catalog.manifest.json`、`ai-sdlc-catalog.source.json` 等机器文件不得继续作为 `docs/05-design` 人类设计正文；可推导内容迁入索引，稳定配置迁入 `.factory` 配置，生成回执迁入 cache。"
+        }
+      ],
+      "projection_sha256": "c277b5984a60234bae91d409bd0cfc91f5fffec36848a04fa2f559edf2f28fe5",
+      "status": "ready_for_same_reviewer_rereview",
+      "markdown_section_id": "REQ-PKI-002"
+    },
+    {
+      "id": "REQ-PKI-003",
+      "title": "单一记忆点与有界定向读取",
+      "priority": "P0",
+      "normative_statements": [
+        "会话默认只读取一个与项目、Task、Gate、事实高水位和 schema 绑定的 `MemoryCheckpoint/v1`，编码后不超过 8 KiB。",
+        "需要更多事实时，索引必须返回最小文件集合和语义定位器；一次扩展读取默认最多 4 个文件、合计 32 KiB。读取理由进入会话 receipt 或系统任务事件，不建立永久 `context_ticket` 表。"
+      ],
+      "acceptance_criteria": [
+        {
+          "id": "REQ-PKI-003-AC-1",
+          "statement": "兼容记忆点存在时，恢复阶段读取 Memory Artifact 数量为 1，默认历史 Ledger 和 `docs/` 读取数量为 0。"
+        },
+        {
+          "id": "REQ-PKI-003-AC-2",
+          "statement": "记忆点只保存恢复摘要、约束、当前 Gate、唯一下一动作和路径/ID，不复制正文、聊天、评审全文或长命令输出。"
+        },
+        {
+          "id": "REQ-PKI-003-AC-3",
+          "statement": "记忆点过期或损坏时返回结构化 `memory_recovery_not_ready` 并入队修复；不得以无界散读兜底。"
+        },
+        {
+          "id": "REQ-PKI-003-AC-4",
+          "statement": "读取片段必须由代码验证实际命中的实体或章节 ID；标题只用于搜索提示，不作为身份或唯一定位依据。"
+        }
+      ],
+      "projection_sha256": "e3eb52e36e9e4c7c7cf5382b24c08f497e95dd9693ae28ed603155348e270fcb",
+      "status": "ready_for_same_reviewer_rereview",
+      "markdown_section_id": "REQ-PKI-003"
+    },
+    {
+      "id": "REQ-PKI-004",
+      "title": "可重建 SQLite 知识核心",
+      "priority": "P0",
+      "normative_statements": [
+        "SQLite 默认位于 `.factory/index/project-knowledge.sqlite3`，是可重建投影，不具有独立事实资格。",
+        "知识核心固定为 29 张表（含 2 张 FTS 虚拟表）：`pk_meta`、`pk_source`、`pk_source_state`、`pk_generation`、`pk_generation_source`、`pk_artifact`、`pk_entity`、`pk_entity_alias`、`pk_locator`、`pk_entity_locator`、`pk_relation_type`、`pk_edge`、`pk_document`、`pk_document_section`、`pk_document_revision`、`pk_module`、`pk_code_file`、`pk_code_symbol`、`pk_requirement`、`pk_acceptance_criterion`、`pk_work_item`、`pk_test`、`pk_memory_checkpoint`、`pk_search_entry`、`pk_search_fts`、`pk_search_tri`、`pk_diagnostic`、`pk_cache_entry`、`pk_render_view`。"
+      ],
+      "acceptance_criteria": [
+        {
+          "id": "REQ-PKI-004-AC-1",
+          "statement": "来源 Hash 未变化时不得重新解析；来源变化时可完整解析该来源，但只按稳定 ID 和 block Hash upsert 变化块，并删除该来源已消失的贡献。"
+        },
+        {
+          "id": "REQ-PKI-004-AC-2",
+          "statement": "刷新在单一写事务中发布新 `IndexGeneration`；读者只能观察完整旧代次或完整新代次。"
+        },
+        {
+          "id": "REQ-PKI-004-AC-3",
+          "statement": "删除数据库后，可仅从 source registry、正式事实、版本化 schema/reducer 和 Git 高水位重建相同语义内容 Hash。"
+        },
+        {
+          "id": "REQ-PKI-004-AC-4",
+          "statement": "29 表以外的永久索引表必须通过 schema 变更评审；不得重新引入可推导的 `doc_link`、`code_occurrence` 或永久上下文票据表。"
+        }
+      ],
+      "projection_sha256": "d7ddffb44a0f9cc6638e5a3bed7487b85f8c2ee919a5a69c198ac84b71dbdb1d",
+      "status": "ready_for_same_reviewer_rereview",
+      "markdown_section_id": "REQ-PKI-004"
+    },
+    {
+      "id": "REQ-PKI-005",
+      "title": "稳定身份、语义定位和别名迁移",
+      "priority": "P0",
+      "normative_statements": [
+        "索引不得持久化 Markdown 行号、字节范围或“第 N 个标题”作为主定位。不同来源使用可验证的稳定选择器：Markdown 使用 `doc_id + section_id`；需求与验收标准使用稳定 ID；代码实体使用独立 `symbol_id`，当前 `module + qualified_symbol + signature discriminator` 只是可变 locator；JSON 使用 JSON Pointer；JSONL 使用稳定 event UID；WorkItem 使用 task/work-item ID；Memory 使用 checkpoint ID + section ID；Git 使用 commit/blob/path。",
+        "重要 Markdown 章节必须具有不影响阅读的稳定标记，例如 `<!-- sf:section-id=SEC-AUTH -->`；显示标题允许修改。"
+      ],
+      "acceptance_criteria": [
+        {
+          "id": "REQ-PKI-005-AC-1",
+          "statement": "标题改名、章节前插、代码行/文件/模块移动、符号重命名或兼容签名调整后，经显式稳定 ID/迁移声明，原 ID 仍解析到当前实体。"
+        },
+        {
+          "id": "REQ-PKI-005-AC-2",
+          "statement": "ID 真正变更时必须登记 alias、迁移原因和来源；读取旧 ID 可解析到唯一当前 ID并防止 alias 环。一拆多、多并一或自动匹配不唯一时只能产生待确认诊断，不得静默迁移。"
+        },
+        {
+          "id": "REQ-PKI-005-AC-3",
+          "statement": "一个实体可绑定多个 locator，并标明 `definition`、`declaration`、`implementation`、`test` 或 `evidence` 角色。"
+        },
+        {
+          "id": "REQ-PKI-005-AC-4",
+          "statement": "若 locator 无法唯一命中，命令返回诊断而不是扩大读取范围猜测。"
+        }
+      ],
+      "projection_sha256": "7ce58364f021b0fc867952f736fc307c2dc138d01853721e995124d6585cf131",
+      "status": "ready_for_same_reviewer_rereview",
+      "markdown_section_id": "REQ-PKI-005"
+    },
+    {
+      "id": "REQ-PKI-006",
+      "title": "文档、需求、任务、测试和代码关系图",
+      "priority": "P0",
+      "normative_statements": [
+        "关系图必须区分人工/正式声明的强关系与提取器推断的弱关系。`SATISFIES`、`IMPLEMENTS`、`VERIFIES`、`BLOCKS`、`SUPERSEDES` 等强关系必须有来源；全文或启发式命中只能产生 `MENTIONS` 候选，不得自动升级为追踪事实。"
+      ],
+      "acceptance_criteria": [
+        {
+          "id": "REQ-PKI-006-AC-1",
+          "statement": "可从任一 Requirement、Design、WorkItem、CodeSymbol、Test、Evidence 或 Release 沿类型化边查看上下游。"
+        },
+        {
+          "id": "REQ-PKI-006-AC-2",
+          "statement": "删除或修改一个来源后，不得遗留该来源的幽灵边；其他来源声明的同一关系不被误删。"
+        },
+        {
+          "id": "REQ-PKI-006-AC-3",
+          "statement": "追踪检查能报告缺少验收标准、设计、实现、测试或证据的断链，并给出精确来源 locator。"
+        },
+        {
+          "id": "REQ-PKI-006-AC-4",
+          "statement": "`requirements-matrix`、文档目录和代码地图均从同一实体/关系核心生成，不各自维护第二套关系事实。"
+        }
+      ],
+      "projection_sha256": "1284250e8edfb25c7b281c98227436387da5e1b8ee8a32fedb434ecd44dc1fb0",
+      "status": "ready_for_same_reviewer_rereview",
+      "markdown_section_id": "REQ-PKI-006"
+    },
+    {
+      "id": "REQ-PKI-007",
+      "title": "代码地图提取与快速查看",
+      "priority": "P0",
+      "normative_statements": [
+        "第一版代码地图针对本仓 Python 代码使用 AST 提取模块、文件、类、函数、方法、签名、导入、调用候选、接口实现和测试关联；后续语言可通过 extractor port 接入 tree-sitter 或 SCIP，不改变核心实体合同。"
+      ],
+      "acceptance_criteria": [
+        {
+          "id": "REQ-PKI-007-AC-1",
+          "statement": "`shanforge project find <query>` 返回排序后的实体摘要和稳定 ID；`show <id>` 返回人类摘要、locator 和直接关系；`trace <id>` 返回有界上下游；`context <id>` 返回受预算约束的读取计划。"
+        },
+        {
+          "id": "REQ-PKI-007-AC-2",
+          "statement": "查代码实体时默认返回定义 locator、所属模块、调用/被调用候选、关联需求/任务/测试和 Git 状态，不读取整个文件。"
+        },
+        {
+          "id": "REQ-PKI-007-AC-3",
+          "statement": "解析失败、动态调用不确定或重复符号必须写入 `pk_diagnostic` 并显式降低置信度。"
+        },
+        {
+          "id": "REQ-PKI-007-AC-4",
+          "statement": "源码内容不复制为长期正文；检索摘要只保留允许字段，FTS 可随时删除重建。"
+        }
+      ],
+      "projection_sha256": "6d9d066668d14ebd93ad8baa6ab9a2213f4e26a31dd7131cc620293049acb4ed",
+      "status": "ready_for_same_reviewer_rereview",
+      "markdown_section_id": "REQ-PKI-007"
+    },
+    {
+      "id": "REQ-PKI-008",
+      "title": "可商用的只读多页面项目站点",
+      "priority": "P0",
+      "normative_statements": [
+        "站点必须由固定 CLI 生成只读展示，不提供新增、编辑、拖拽、审批或状态修改；事实变更通过 AI 会话落入正式来源后再刷新。`local-owner` 生成完整静态文件集到 `.factory/cache/site/current/index.html`，目录权限 `0700`、文件 `0600`；`shared-restricted` 的离线文件只允许公开/脱敏字段，受限详情只能经每次请求重新鉴权的 `--serve` 返回。",
+        "一级导航至少包括：总览、需求、设计、计划、执行、质量、文档、项目管理、报告；详情使用独立 URL 和明确返回按钮，不使用侧边抽屉承载详情。"
+      ],
+      "acceptance_criteria": [
+        {
+          "id": "REQ-PKI-008-AC-1",
+          "statement": "需求详情用自然语言展示背景、用户场景、期望结果、非目标、验收标准、关联设计、开发任务、代码、测试、发布和活动记录，ID 为辅助信息。"
+        },
+        {
+          "id": "REQ-PKI-008-AC-2",
+          "statement": "开发任务详情展示人类可读目标、业务原因、范围/非范围、完成条件、当前进度、阻塞、代码变更和测试证据；缺陷详情展示实际/预期、复现、影响、根因、修复和回归。"
+        },
+        {
+          "id": "REQ-PKI-008-AC-3",
+          "statement": "站点包含需求、设计、任务、缺陷、版本、文档、代码、质量和项目管理的列表与全页面详情，并支持深链、浏览器前进后退和打印。"
+        },
+        {
+          "id": "REQ-PKI-008-AC-4",
+          "statement": "页面不得伪造缺失字段；未知、未登记和不适用必须区分显示，并可回到来源。"
+        }
+      ],
+      "projection_sha256": "4a129271e2b9ef01b0ccb11038b887731bb0d50c9ad8b1b6b2a1f09efafb38c3",
+      "status": "ready_for_same_reviewer_rereview",
+      "markdown_section_id": "REQ-PKI-008"
+    },
+    {
+      "id": "REQ-PKI-009",
+      "title": "页面级 freshness、权限和原子发布",
+      "priority": "P0",
+      "normative_statements": [
+        "每个 view scope 必须由稳定 `view_kind + entity/scope ID + renderer version + locale + authorization scope digest` 定义；输入指纹另由当前代次中实际消费的实体/关系/模板 Hash 构成。"
+      ],
+      "acceptance_criteria": [
+        {
+          "id": "REQ-PKI-009-AC-1",
+          "statement": "`shared-restricted` 的 cache hit、`--open` 和每次 `--serve` 请求必须重新校验当前授权，撤权后服务读取成功数为 0并清除托管 cache；`local-owner` 在生成/返回路径前校验 Owner 与 ACL，但明确不能撤回已经打开、复制或移出托管目录的离线文件，receipt 必须披露该残留边界。"
+        },
+        {
+          "id": "REQ-PKI-009-AC-2",
+          "statement": "某页输入未变时不得因无关来源变化重建；输入改变时只重建该页及确定受影响的索引/聚合页。"
+        },
+        {
+          "id": "REQ-PKI-009-AC-3",
+          "statement": "同一 view scope 对外只保留最后成功刷新版本；构建中目录和失败版本不对外可见并按维护策略清理。"
+        },
+        {
+          "id": "REQ-PKI-009-AC-4",
+          "statement": "所有页面显示 Git Commit、事实高水位、索引代次、固定 `as_of` 事实截止时间、renderer 版本和来源 Manifest Hash；墙钟 `built_at` 只写 receipt/Manifest 的非内容摘要区，不进入页面内容 Hash 或 `RenderFingerprint`。"
+        }
+      ],
+      "projection_sha256": "aa625f4721c8044994ef9ed81c70fd71d6447d1965641d9edf602c6ec811d15a",
+      "status": "ready_for_same_reviewer_rereview",
+      "markdown_section_id": "REQ-PKI-009"
+    },
+    {
+      "id": "REQ-PKI-010",
+      "title": "项目管理十要素完整投影",
+      "priority": "P0",
+      "normative_statements": [
+        "项目管理页面必须覆盖上述精确绑定但尚未批准的 R014 输入中的 10 个业务模块和 137 个唯一字段：成员与干系人、工作计划、WBS/任务分解、进度计划、风险、沟通、会议与行动项、状态报告、变更、收尾；字段来源为正式事实或确定性推导。",
+        "SQLite 增加 10 张 PM 投影表：`pm_project_profile`、`pm_party`、`pm_work_plan`、`pm_risk`、`pm_communication`、`pm_meeting`、`pm_action_item`、`pm_status_report`、`pm_change_request`、`pm_project_summary`。总 schema 为 39 张表，其中 2 张是 FTS 虚拟表。",
+        "137 字段逐项 Owner、目标表/DTO、行模型、源 record ID path、命名空间化目标键、父键来源、缺失/碰撞规则、基数、reducer 和历史策略由 `REQ-CHANGE-PROJECT-KNOWLEDGE-001.pm-field-map.R007.json` 约束，SHA-256 为 `1b9f283483d03b63fea749c4cdda1fa918b20ed70e33f1f3ff114eb4765293f0`。所有值均为 `ProjectProgressSnapshot/v2` 精确 `snapshot_path` 的直接读取，上游派生只归 R014 reducer/rule registry，PM 投影不得重新推导。"
+      ],
+      "acceptance_criteria": [
+        {
+          "id": "REQ-PKI-010-AC-1",
+          "statement": "十要素总览、列表和详情均可查看并追溯来源或推导规则；校验器证明 137 个源 field ID 唯一且恰好映射一次，未映射/重复映射均失败。"
+        },
+        {
+          "id": "REQ-PKI-010-AC-2",
+          "statement": "当前状态、完成率、风险等级和计划偏差必须由版本化 reducer 计算；禁止 AI 填数或 HTML 模板自行计算。"
+        },
+        {
+          "id": "REQ-PKI-010-AC-3",
+          "statement": "现有 PM 原型仅可复用经审查的视觉 token/图标，不继承侧边抽屉和不完整字段结构。"
+        },
+        {
+          "id": "REQ-PKI-010-AC-4",
+          "statement": "`.factory/pm` 不成为事实仓；旧 PM 文件在迁移核对后转为可重建 cache 或删除。"
+        }
+      ],
+      "projection_sha256": "2243f4818fa0906803b8f336718ba3a4a6c249514749daed127f6b0905fe8fb1",
+      "status": "ready_for_same_reviewer_rereview",
+      "markdown_section_id": "REQ-PKI-010"
+    },
+    {
+      "id": "REQ-PKI-011",
+      "title": "不阻塞主会话的异步状态同步",
+      "priority": "P0",
+      "normative_statements": [
+        "主任务成功写入事实后，只同步登记幂等 `PROJECT_STATE_SYNC` durable system task；Memory、索引、项目状态和 HTML 更新由隔离执行器异步完成。子 Agent 可作为执行器，但持久队列和状态机才是事实 Owner。",
+        "主链为 `queued -> running -> projection_ready -> memory_ready -> html_published -> integrated -> done`；若允许维护提交，则从 `html_published -> maintenance_committed -> integrated`。旁路状态包括 `superseded`、`retryable_failed`、`ready_to_integrate`、`needs_attention`、`commit_not_authorized`。R008 机器合同为每个非终态定义互斥且穷尽的事件集合；发布/集成成功事件必须同时满足输入仍当前、lease 有效和 fencing token 匹配，否则分类为 `INPUT_SUPERSEDED`、`LEASE_LOST`、`TRANSIENT_FAILURE` 或 `PERMANENT_FAILURE` 并走唯一后继。"
+      ],
+      "acceptance_criteria": [
+        {
+          "id": "REQ-PKI-011-AC-1",
+          "statement": "主会话登记任务后即可继续，不等待解析、渲染或维护提交；相同事实高水位和 scope 的请求幂等合并，较旧请求可被 supersede。"
+        },
+        {
+          "id": "REQ-PKI-011-AC-2",
+          "statement": "执行器使用固定输入包：主提交/事实高水位、来源根、变更 scope、允许 Git 路径、授权摘要和幂等键；不得动态扩大写集。"
+        },
+        {
+          "id": "REQ-PKI-011-AC-3",
+          "statement": "可重试失败最多 5 次、指数退避上限 300 秒；超限进入 `needs_attention`。失败保留上一有效索引/站点；新会话通过 `shanforge project sync head` 判断 Memory 是否落后。"
+        },
+        {
+          "id": "REQ-PKI-011-AC-4",
+          "statement": "不得在主任务活跃工作树中并发修改或提交；隔离 worktree 使用单调 fencing token。模型测试必须枚举每个非终态的全部声明事件并证明恰有一条转移、所有路径在有限重试或人工介入后到达 `done|superseded|needs_attention`。"
+        }
+      ],
+      "projection_sha256": "128a2e55c2e415bea8b9a87e4b25c639f9296a5248fdfadf7d40c075be79eaeb",
+      "status": "ready_for_same_reviewer_rereview",
+      "markdown_section_id": "REQ-PKI-011"
+    },
+    {
+      "id": "REQ-PKI-012",
+      "title": "生成物与维护提交的 Git 边界",
+      "priority": "P0",
+      "normative_statements": [
+        "异步任务只允许对受控 `.factory/memory/*.md` 或明确登记的维护事实形成独立本地维护提交，必须使用 `gitcommitzh`，不得 push。SQLite、HTML、FTS、自动地图和 cache 不得 stage。"
+      ],
+      "acceptance_criteria": [
+        {
+          "id": "REQ-PKI-012-AC-1",
+          "statement": "提交前校验 allowlist、主提交祖先关系和 write lease；有未知 dirty overlap 时进入 `ready_to_integrate` 或 `needs_attention`，不得抢写。"
+        },
+        {
+          "id": "REQ-PKI-012-AC-2",
+          "statement": "维护提交必须绑定 job ID、输入高水位和生成器版本；过期执行器不得覆盖更新结果。"
+        },
+        {
+          "id": "REQ-PKI-012-AC-3",
+          "statement": "人工关系声明、稳定 ID、schema、提取器和 renderer 的修改属于主任务事实提交，不由后台生成物提交替代。"
+        },
+        {
+          "id": "REQ-PKI-012-AC-4",
+          "statement": "任何异步任务都无远程 push、PR、发布或部署权限；未授权维护提交时走 `html_published -> commit_not_authorized -> integrated -> done`，不把“未提交生成物”当作失败。"
+        }
+      ],
+      "projection_sha256": "e248f65ce5a5c29f3779ace4b7f0df8be81911bc843acbab178bcd1d0988c4ed",
+      "status": "ready_for_same_reviewer_rereview",
+      "markdown_section_id": "REQ-PKI-012"
+    },
+    {
+      "id": "REQ-PKI-013",
+      "title": "有界 cache、代次和自动压缩",
+      "priority": "P0",
+      "normative_statements": [
+        "`.factory/cache/` 默认最大 256 MiB、TTL 24 小时；当前站点每个授权 scope 只保留最后成功版本。临时构建、失败构建和过时代次在任务/Gate/阶段关闭或阈值触发时进入维护队列。",
+        "Memory 压缩由隔离 `MemoryProjectionTask` 在 Task/Gate/阶段关闭、会话交接、落后 50 个事件或未压缩 256 KiB 时触发；活动会话不按分钟定时重压缩。"
+      ],
+      "acceptance_criteria": [
+        {
+          "id": "REQ-PKI-013-AC-1",
+          "statement": "维护器只删除登记的 cache/generated 路径，经 realpath、owner、legal hold 和当前引用校验。"
+        },
+        {
+          "id": "REQ-PKI-013-AC-2",
+          "statement": "重复清理结果一致并报告删除数、释放字节、跳过原因、SQLite page/freelist 指标和下次到期时间。"
+        },
+        {
+          "id": "REQ-PKI-013-AC-3",
+          "statement": "计划任务只作为漏触发修复和清理兜底；没有定时器时正确性不受影响。"
+        },
+        {
+          "id": "REQ-PKI-013-AC-4",
+          "statement": "维护失败不得撤销已成立的业务事实或删除当前/前一有效恢复元数据。"
+        }
+      ],
+      "projection_sha256": "61cb353aedff04ef04c52162e0ee645390df85a46d81ea76b66a13c3f91c4fbf",
+      "status": "ready_for_same_reviewer_rereview",
+      "markdown_section_id": "REQ-PKI-013"
+    },
+    {
+      "id": "REQ-PKI-014",
+      "title": "安全、权限与来源最小化",
+      "priority": "P0",
+      "normative_statements": [
+        "所有扫描、读取、渲染、cache 命中和文件返回都必须校验项目根边界、realpath、source allowlist、当前授权、发布 profile 和敏感字段策略。"
+      ],
+      "acceptance_criteria": [
+        {
+          "id": "REQ-PKI-014-AC-1",
+          "statement": "路径穿越、符号链接越界和不在 registry 中的来源必须被拒绝并记录诊断。"
+        },
+        {
+          "id": "REQ-PKI-014-AC-2",
+          "statement": "密钥、Token、凭据和未授权实体进入 SQLite 检索字段、Memory 或任何 HTML 的次数为 0；`shared-restricted` 离线页面出现受限字段的次数为 0。"
+        },
+        {
+          "id": "REQ-PKI-014-AC-3",
+          "statement": "授权摘要是 view scope 的组成部分；`shared-restricted` 返回 cache 前还必须检查当前授权。撤权清除失败必须 fail-closed 并进入 `needs_attention`，测试覆盖生成/读取并发撤权。"
+        },
+        {
+          "id": "REQ-PKI-014-AC-4",
+          "statement": "诊断和 receipt 不回显敏感内容，只返回稳定 ID、允许路径和安全摘要。"
+        }
+      ],
+      "projection_sha256": "0ae3113145d701b67de4d3d200e8f89298fcf82ee7c76aff55f7f85cbb81787d",
+      "status": "ready_for_same_reviewer_rereview",
+      "markdown_section_id": "REQ-PKI-014"
+    },
+    {
+      "id": "REQ-PKI-015",
+      "title": "现有资料与生成物迁移",
+      "priority": "P1",
+      "normative_statements": [
+        "迁移必须先盘点 `docs/05-design`、`.factory/pm`、requirements matrix、AI SDLC catalog 和现有 PM 原型，再按“正式人类事实、稳定机器配置、可重建投影、临时 cache”分类；未经核对不得直接删除。"
+      ],
+      "acceptance_criteria": [
+        {
+          "id": "REQ-PKI-015-AC-1",
+          "statement": "正式设计内容原位合并到唯一 Owner 文档，并保留 Git 历史；不按每次方案新建平行正式文档。"
+        },
+        {
+          "id": "REQ-PKI-015-AC-2",
+          "statement": "稳定配置和 schema 移至版本化 `.factory` 配置/源码目录；生成 Manifest 和 HTML 移至 cache 且进入 ignore。"
+        },
+        {
+          "id": "REQ-PKI-015-AC-3",
+          "statement": "迁移前后需求、设计、任务、测试和代码的强关系数量逐项对账，丢失为 0。"
+        },
+        {
+          "id": "REQ-PKI-015-AC-4",
+          "statement": "迁移提供 dry-run 清单、回滚点和验证 receipt，不混入 `TASK-IMPLEMENT-002-R001` 冻结候选。"
+        }
+      ],
+      "projection_sha256": "77ee1d5ea25c6aadb75e00138665af3d90febc9dcc52e04cf2afa28425ff0db2",
+      "status": "ready_for_same_reviewer_rereview",
+      "markdown_section_id": "REQ-PKI-015"
+    },
+    {
+      "id": "REQ-PKI-016",
+      "title": "固定查询命令面",
+      "priority": "P1",
+      "normative_statements": [
+        "第一版至少提供：`project index refresh|check|rebuild`、`project snapshot --html [--check|--rebuild|--open|--serve]`、`project find`、`project show`、`project trace`、`project context`、`project sync head`、`project maintain --dry-run|--apply`。"
+      ],
+      "acceptance_criteria": [
+        {
+          "id": "REQ-PKI-016-AC-1",
+          "statement": "每个命令具有固定参数、稳定退出码、JSON receipt 和简短人类摘要；输入不足时失败关闭。"
+        },
+        {
+          "id": "REQ-PKI-016-AC-2",
+          "statement": "查询命令默认只读；只有 refresh/rebuild/maintain 和任务执行器可写各自登记的投影路径。"
+        },
+        {
+          "id": "REQ-PKI-016-AC-3",
+          "statement": "命令的契约测试必须覆盖空项目、无变化、单来源变化、损坏数据库、撤销授权、部分失败和并发执行。"
+        },
+        {
+          "id": "REQ-PKI-016-AC-4",
+          "statement": "CLI 调用 application port，不把 SQLite、文件系统或 Git 逻辑放入 access 层。"
+        }
+      ],
+      "projection_sha256": "c467b64917ac845090c9e5dbcfd50bc215ab70a73352aca551f525e53ae5c675",
+      "status": "ready_for_same_reviewer_rereview",
+      "markdown_section_id": "REQ-PKI-016"
+    }
+  ],
+  "nfrs": [
+    {
+      "id": "NFR-PKI-001",
+      "title": "会话恢复",
+      "metric": "单记忆点 ≤ 8 KiB，兼容恢复 P95 ≤ 1 s",
+      "verification": "0/1/50/200 事件夹具",
+      "projection_sha256": "2ae061551f8e36184828360a2e5428b4018e1b152af48f43ae3d93c6ffeecc08",
+      "status": "ready_for_same_reviewer_rereview",
+      "markdown_section_id": "NFR-PKI-001"
+    },
+    {
+      "id": "NFR-PKI-002",
+      "title": "快速查看",
+      "metric": "无变化 snapshot P95 ≤ 100 ms；单文档/任务变化 P95 ≤ 800 ms；当前仓冷构建目标 ≤ 3 s",
+      "verification": "冻结仓库性能测试",
+      "projection_sha256": "a4ffafc525338256d5a4faf78ddb5a72ffe301763bffd56ae3e4b0d17460f6be",
+      "status": "ready_for_same_reviewer_rereview",
+      "markdown_section_id": "NFR-PKI-002"
+    },
+    {
+      "id": "NFR-PKI-003",
+      "title": "增量索引",
+      "metric": "未变来源解析次数为 0；10,000 Artifact 单来源变化 P95 ≤ 500 ms",
+      "verification": "profiler 与 source Hash 断言",
+      "projection_sha256": "059db6f8581d8b17c1ec167f54a6a8589cd090c7de0253bff78eb763b5ce7ed0",
+      "status": "ready_for_same_reviewer_rereview",
+      "markdown_section_id": "NFR-PKI-003"
+    },
+    {
+      "id": "NFR-PKI-004",
+      "title": "异步不阻塞",
+      "metric": "主会话 durable enqueue P95 ≤ 100 ms；普通后台同步目标 ≤ 3 s",
+      "verification": "durable task 集成测试",
+      "projection_sha256": "95feed012b53955310ec22ef636c3b80f03bba59f2fbebc8432b4f1316b8dc5d",
+      "status": "ready_for_same_reviewer_rereview",
+      "markdown_section_id": "NFR-PKI-004"
+    },
+    {
+      "id": "NFR-PKI-005",
+      "title": "可重建性",
+      "metric": "空 SQLite 重建后语义实体、强关系和来源 Hash 与基线一致",
+      "verification": "cold rebuild 与差异报告",
+      "projection_sha256": "88157d6f836e97ec39e8f46e0792af3d968cd8574e2230125e99e0d8a5f1e7e9",
+      "status": "ready_for_same_reviewer_rereview",
+      "markdown_section_id": "NFR-PKI-005"
+    },
+    {
+      "id": "NFR-PKI-006",
+      "title": "一致性",
+      "metric": "读者只能看到完整旧/新代次；页面跨来源高水位漂移为 0",
+      "verification": "crash、并发、原子替换测试",
+      "projection_sha256": "d45b690cad4208992785ebe6733f25a0d3602fc6bffff6cad583e4f148453cdb",
+      "status": "ready_for_same_reviewer_rereview",
+      "markdown_section_id": "NFR-PKI-006"
+    },
+    {
+      "id": "NFR-PKI-007",
+      "title": "有界存储",
+      "metric": "cache/generated 不超过配置 TTL/容量；无未登记无限增长目录",
+      "verification": "长周期模拟与维护审计",
+      "projection_sha256": "a83759612f8d78165f5716a000a54bfb11dd618c4a519f293f40a82dc7efaae7",
+      "status": "ready_for_same_reviewer_rereview",
+      "markdown_section_id": "NFR-PKI-007"
+    },
+    {
+      "id": "NFR-PKI-008",
+      "title": "安全",
+      "metric": "越界读取和秘密泄漏为 0；`shared-restricted` 撤权后服务/cache 读取成功数为 0；`local-owner` 托管目录权限为 0700/0600",
+      "verification": "攻击测试、secret scan、ACL 与授权并发测试",
+      "projection_sha256": "fd135e5e87dfdc2868cccc936e194b4d5fa233f78f002c3dc092ffe723268fde",
+      "status": "ready_for_same_reviewer_rereview",
+      "markdown_section_id": "NFR-PKI-008"
+    },
+    {
+      "id": "NFR-PKI-009",
+      "title": "可访问与响应式",
+      "metric": "WCAG 2.2 AA；支持 375/768/1024/1440 px；键盘、深链、打印可用",
+      "verification": "axe、Playwright、人工视觉检查",
+      "projection_sha256": "b09324181ade643783761e2461c5a603d9d3207f505af52c5c639a5732de5722",
+      "status": "ready_for_same_reviewer_rereview",
+      "markdown_section_id": "NFR-PKI-009"
+    },
+    {
+      "id": "NFR-PKI-010",
+      "title": "离线确定性",
+      "metric": "无 CDN；相同规范化输入与版本生成相同页面集合和页面内容 Hash；`as_of` 来自输入高水位，墙钟 `built_at` 不进入页面或 fingerprint",
+      "verification": "固定时钟与两次隔离构建对账",
+      "projection_sha256": "974a344dd6647554ab5877bb2aa87807f4a6c9b260019e26425565a522d9cd01",
+      "status": "ready_for_same_reviewer_rereview",
+      "markdown_section_id": "NFR-PKI-010"
+    },
+    {
+      "id": "NFR-PKI-011",
+      "title": "架构合规",
+      "metric": "依赖保持 `access -> application -> domain -> runtime -> settings`；装配只在 composition",
+      "verification": "import 边界与架构测试",
+      "projection_sha256": "9ade48c2ad51f9895b1d6c1147952469b4be92481995d445e2bdf155eb98ef42",
+      "status": "ready_for_same_reviewer_rereview",
+      "markdown_section_id": "NFR-PKI-011"
+    }
+  ],
+  "source_pins": {
+    "project_progress_contract": {
+      "path": ".factory/workitems/FLOW-CONTRACT-001/drafts/project-progress-requirement-contract.R014.json",
+      "contract_id": "REQ-CONTRACT-WF-CTL-010-001",
+      "revision": "R014",
+      "approval_status": "candidate_unapproved",
+      "whole_file_sha256": "836fadc2c214ef2f56b2a21ef2fb705445a58ca7ddb0047f3b638292ba578d33",
+      "field_catalog_sha256": "658f8d805ce423e46b686e7e6da2de22d0d7e874817a153bffefdf8c0d604313",
+      "policy": "pinned_input_only_R006_does_not_approve_R014"
+    },
+    "pm_field_map": {
+      "path": ".factory/workitems/FLOW-CONTRACT-001/drafts/REQ-CHANGE-PROJECT-KNOWLEDGE-001.pm-field-map.R007.json",
+      "sha256": "1b9f283483d03b63fea749c4cdda1fa918b20ed70e33f1f3ff114eb4765293f0",
+      "expected_unique_fields": 137
+    }
+  },
+  "storage_boundaries": {
+    "git_tracks": [
+      "formal_facts",
+      "schema_and_migrations",
+      "extractors_and_renderers",
+      "source_registry",
+      "stable_ids",
+      "manual_relation_declarations",
+      "workitem_ledgers",
+      "controlled_memory",
+      "release_manifests",
+      "verification_evidence"
+    ],
+    "git_excludes": [
+      "sqlite",
+      "fts",
+      "generated_document_or_code_maps",
+      "generated_edges",
+      "html_site",
+      "build_intermediates",
+      "cache"
+    ],
+    "sqlite_authoritative": false
+  },
+  "projection_model": {
+    "index_generation": {
+      "persistence": "current_plus_building_plus_previous_valid_metadata",
+      "project_history_snapshot": false
+    },
+    "project_progress_snapshot": {
+      "schema_id": "ProjectProgressSnapshot/v2",
+      "persistence": "canonical_snapshot_DTO_not_sqlite_history",
+      "reducer_id": "R014_canonical_snapshot_reducer",
+      "input": "R014_authorized_sources_and_derived_rule_registry",
+      "manifest_owner": "pk_render_view",
+      "history_owner": "git_and_authoritative_ledger",
+      "pm_mapping_policy": "direct_snapshot_path_read_no_rederivation"
+    },
+    "render_fingerprint": {
+      "scope": "page_plus_authorization_profile",
+      "wall_clock_built_at_included": false,
+      "as_of_source": "authoritative_fact_high_watermark"
+    },
+    "full_snapshot_on_every_change": false,
+    "update_algorithm": "parse_changed_sources_upsert_changed_blocks_delete_removed_source_contributions"
+  },
+  "semantic_locator_policy": {
+    "line_or_byte_offset_primary": false,
+    "title_identity": false,
+    "markdown": "doc_id_plus_section_id",
+    "requirement": "stable_requirement_or_acceptance_id",
+    "code_identity": "stable_symbol_id",
+    "code_current_locator": "module_plus_qualified_symbol_plus_signature_discriminator",
+    "code_refactor_policy": "explicit_alias_or_migration_declaration; ambiguous_split_or_merge_is_diagnostic",
+    "json": "json_pointer",
+    "jsonl": "stable_event_uid",
+    "work_item": "work_item_or_task_id",
+    "memory": "checkpoint_id_plus_section_id",
+    "git": "commit_or_blob_plus_path"
+  },
+  "sqlite_schema": {
+    "total_tables": 39,
+    "fts_virtual_tables": [
+      "pk_search_fts",
+      "pk_search_tri"
+    ],
+    "knowledge_core_tables": [
+      "pk_meta",
+      "pk_source",
+      "pk_source_state",
+      "pk_generation",
+      "pk_generation_source",
+      "pk_artifact",
+      "pk_entity",
+      "pk_entity_alias",
+      "pk_locator",
+      "pk_entity_locator",
+      "pk_relation_type",
+      "pk_edge",
+      "pk_document",
+      "pk_document_section",
+      "pk_document_revision",
+      "pk_module",
+      "pk_code_file",
+      "pk_code_symbol",
+      "pk_requirement",
+      "pk_acceptance_criterion",
+      "pk_work_item",
+      "pk_test",
+      "pk_memory_checkpoint",
+      "pk_search_entry",
+      "pk_search_fts",
+      "pk_search_tri",
+      "pk_diagnostic",
+      "pk_cache_entry",
+      "pk_render_view"
+    ],
+    "pm_projection_tables": [
+      "pm_project_profile",
+      "pm_party",
+      "pm_work_plan",
+      "pm_risk",
+      "pm_communication",
+      "pm_meeting",
+      "pm_action_item",
+      "pm_status_report",
+      "pm_change_request",
+      "pm_project_summary"
+    ],
+    "forbidden_permanent_tables": [
+      "doc_link",
+      "code_occurrence",
+      "context_read_ticket"
+    ]
+  },
+  "relation_policy": {
+    "strong_relations_require_source": true,
+    "heuristic_max_relation": "MENTIONS",
+    "source_scoped_contribution_delete": true
+  },
+  "memory_policy": {
+    "checkpoint_count": 1,
+    "checkpoint_max_bytes": 8192,
+    "context_max_files": 4,
+    "context_max_bytes": 32768,
+    "persistent_context_ticket": false,
+    "compaction": "event_driven_isolated",
+    "in_session_periodic": false,
+    "event_lag_trigger": 50,
+    "uncompacted_bytes_trigger": 262144
+  },
+  "site_contract": {
+    "read_only": true,
+    "detail_pattern": "full_page_with_back_navigation",
+    "side_drawer_details": false,
+    "profiles": {
+      "local_owner": {
+        "format": "offline_static_multi_page",
+        "entry": ".factory/cache/site/current/index.html",
+        "directory_mode": "0700",
+        "file_mode": "0600",
+        "authorization": "current_os_owner_before_generation_and_path_return",
+        "revocation_limit": "opened_or_copied_files_outside_managed_directory_cannot_be_recalled_and_must_be_disclosed"
+      },
+      "shared_restricted": {
+        "offline_format": "public_or_redacted_static_only",
+        "restricted_detail": "authenticated_local_serve_each_request",
+        "revoked_read_successes": 0,
+        "managed_cache_clear_on_revocation": true
+      }
+    },
+    "page_content_time": "authoritative_as_of",
+    "receipt_only_time": "built_at",
+    "built_at_in_page_hash": false,
+    "forbidden_interactions": [
+      "create",
+      "edit",
+      "drag",
+      "approve",
+      "mutate_status"
+    ]
+  },
+  "cache_policy": {
+    "ttl_seconds": 86400,
+    "max_bytes": 268435456,
+    "published_versions_per_scope": 1,
+    "previous_valid_survives_failed_build": true
+  },
+  "system_task": {
+    "kind": "PROJECT_STATE_SYNC",
+    "queue_is_owner": true,
+    "main_session_waits": false,
+    "idempotency_key_scope": [
+      "fact_high_watermark",
+      "source_scope",
+      "authorization_profile",
+      "generator_version"
+    ],
+    "retry": {
+      "max_attempts": 5,
+      "backoff": "exponential",
+      "max_backoff_seconds": 300
+    },
+    "lease": {
+      "fencing_token": "monotonic",
+      "main_task_priority": true,
+      "lost_lease_action": "no_publish_no_commit"
+    },
+    "states": [
+      "queued",
+      "running",
+      "projection_ready",
+      "memory_ready",
+      "html_published",
+      "maintenance_committed",
+      "commit_not_authorized",
+      "ready_to_integrate",
+      "retryable_failed",
+      "integrated",
+      "done",
+      "superseded",
+      "needs_attention"
+    ],
+    "terminal_states": [
+      "done",
+      "superseded",
+      "needs_attention"
+    ],
+    "transitions": [
+      {
+        "from": "queued",
+        "event": "DISPATCHED",
+        "to": "running",
+        "precondition": "event_classifier_proved"
+      },
+      {
+        "from": "queued",
+        "event": "INPUT_SUPERSEDED",
+        "to": "superseded",
+        "precondition": "event_classifier_proved"
+      },
+      {
+        "from": "queued",
+        "event": "PERMANENT_FAILURE",
+        "to": "needs_attention",
+        "precondition": "event_classifier_proved"
+      },
+      {
+        "from": "running",
+        "event": "STAGE_SUCCEEDED",
+        "to": "projection_ready",
+        "precondition": "input_current_and_lease_valid_and_fencing_token_matches"
+      },
+      {
+        "from": "running",
+        "event": "TRANSIENT_FAILURE",
+        "to": "retryable_failed",
+        "precondition": "event_classifier_proved"
+      },
+      {
+        "from": "running",
+        "event": "PERMANENT_FAILURE",
+        "to": "needs_attention",
+        "precondition": "event_classifier_proved"
+      },
+      {
+        "from": "running",
+        "event": "LEASE_LOST",
+        "to": "retryable_failed",
+        "precondition": "event_classifier_proved"
+      },
+      {
+        "from": "running",
+        "event": "INPUT_SUPERSEDED",
+        "to": "superseded",
+        "precondition": "event_classifier_proved"
+      },
+      {
+        "from": "projection_ready",
+        "event": "STAGE_SUCCEEDED",
+        "to": "memory_ready",
+        "precondition": "input_current_and_lease_valid_and_fencing_token_matches"
+      },
+      {
+        "from": "projection_ready",
+        "event": "TRANSIENT_FAILURE",
+        "to": "retryable_failed",
+        "precondition": "event_classifier_proved"
+      },
+      {
+        "from": "projection_ready",
+        "event": "PERMANENT_FAILURE",
+        "to": "needs_attention",
+        "precondition": "event_classifier_proved"
+      },
+      {
+        "from": "projection_ready",
+        "event": "LEASE_LOST",
+        "to": "retryable_failed",
+        "precondition": "event_classifier_proved"
+      },
+      {
+        "from": "projection_ready",
+        "event": "INPUT_SUPERSEDED",
+        "to": "superseded",
+        "precondition": "event_classifier_proved"
+      },
+      {
+        "from": "memory_ready",
+        "event": "STAGE_SUCCEEDED",
+        "to": "html_published",
+        "precondition": "input_current_and_lease_valid_and_fencing_token_matches"
+      },
+      {
+        "from": "memory_ready",
+        "event": "TRANSIENT_FAILURE",
+        "to": "retryable_failed",
+        "precondition": "event_classifier_proved"
+      },
+      {
+        "from": "memory_ready",
+        "event": "PERMANENT_FAILURE",
+        "to": "needs_attention",
+        "precondition": "event_classifier_proved"
+      },
+      {
+        "from": "memory_ready",
+        "event": "LEASE_LOST",
+        "to": "retryable_failed",
+        "precondition": "event_classifier_proved"
+      },
+      {
+        "from": "memory_ready",
+        "event": "INPUT_SUPERSEDED",
+        "to": "superseded",
+        "precondition": "event_classifier_proved"
+      },
+      {
+        "from": "html_published",
+        "event": "COMMIT_AUTHORIZED_WITH_DIFF",
+        "to": "maintenance_committed",
+        "precondition": "input_current_and_lease_valid_and_fencing_token_matches"
+      },
+      {
+        "from": "html_published",
+        "event": "COMMIT_NOT_AUTHORIZED_WITH_DIFF",
+        "to": "commit_not_authorized",
+        "precondition": "input_current_and_lease_valid_and_fencing_token_matches"
+      },
+      {
+        "from": "html_published",
+        "event": "NO_MAINTENANCE_DIFF",
+        "to": "integrated",
+        "precondition": "input_current_and_lease_valid_and_fencing_token_matches"
+      },
+      {
+        "from": "html_published",
+        "event": "TRANSIENT_FAILURE",
+        "to": "retryable_failed",
+        "precondition": "event_classifier_proved"
+      },
+      {
+        "from": "html_published",
+        "event": "PERMANENT_FAILURE",
+        "to": "needs_attention",
+        "precondition": "event_classifier_proved"
+      },
+      {
+        "from": "html_published",
+        "event": "LEASE_LOST",
+        "to": "retryable_failed",
+        "precondition": "event_classifier_proved"
+      },
+      {
+        "from": "html_published",
+        "event": "INPUT_SUPERSEDED",
+        "to": "superseded",
+        "precondition": "event_classifier_proved"
+      },
+      {
+        "from": "maintenance_committed",
+        "event": "INTEGRATION_SUCCEEDED",
+        "to": "integrated",
+        "precondition": "input_current_and_lease_valid_and_fencing_token_matches"
+      },
+      {
+        "from": "maintenance_committed",
+        "event": "INTEGRATION_REQUIRES_MANUAL",
+        "to": "ready_to_integrate",
+        "precondition": "event_classifier_proved"
+      },
+      {
+        "from": "maintenance_committed",
+        "event": "TRANSIENT_FAILURE",
+        "to": "retryable_failed",
+        "precondition": "event_classifier_proved"
+      },
+      {
+        "from": "maintenance_committed",
+        "event": "PERMANENT_FAILURE",
+        "to": "needs_attention",
+        "precondition": "event_classifier_proved"
+      },
+      {
+        "from": "maintenance_committed",
+        "event": "LEASE_LOST",
+        "to": "retryable_failed",
+        "precondition": "event_classifier_proved"
+      },
+      {
+        "from": "maintenance_committed",
+        "event": "INPUT_SUPERSEDED",
+        "to": "superseded",
+        "precondition": "event_classifier_proved"
+      },
+      {
+        "from": "commit_not_authorized",
+        "event": "INTEGRATION_SUCCEEDED",
+        "to": "integrated",
+        "precondition": "input_current_and_lease_valid_and_fencing_token_matches"
+      },
+      {
+        "from": "commit_not_authorized",
+        "event": "INTEGRATION_REQUIRES_MANUAL",
+        "to": "ready_to_integrate",
+        "precondition": "event_classifier_proved"
+      },
+      {
+        "from": "commit_not_authorized",
+        "event": "TRANSIENT_FAILURE",
+        "to": "retryable_failed",
+        "precondition": "event_classifier_proved"
+      },
+      {
+        "from": "commit_not_authorized",
+        "event": "PERMANENT_FAILURE",
+        "to": "needs_attention",
+        "precondition": "event_classifier_proved"
+      },
+      {
+        "from": "commit_not_authorized",
+        "event": "LEASE_LOST",
+        "to": "retryable_failed",
+        "precondition": "event_classifier_proved"
+      },
+      {
+        "from": "commit_not_authorized",
+        "event": "INPUT_SUPERSEDED",
+        "to": "superseded",
+        "precondition": "event_classifier_proved"
+      },
+      {
+        "from": "ready_to_integrate",
+        "event": "INTEGRATION_SUCCEEDED",
+        "to": "integrated",
+        "precondition": "input_current_and_lease_valid_and_fencing_token_matches"
+      },
+      {
+        "from": "ready_to_integrate",
+        "event": "NEWER_JOB_INTEGRATED",
+        "to": "superseded",
+        "precondition": "event_classifier_proved"
+      },
+      {
+        "from": "ready_to_integrate",
+        "event": "TRANSIENT_FAILURE",
+        "to": "retryable_failed",
+        "precondition": "event_classifier_proved"
+      },
+      {
+        "from": "ready_to_integrate",
+        "event": "PERMANENT_FAILURE",
+        "to": "needs_attention",
+        "precondition": "event_classifier_proved"
+      },
+      {
+        "from": "ready_to_integrate",
+        "event": "LEASE_LOST",
+        "to": "retryable_failed",
+        "precondition": "event_classifier_proved"
+      },
+      {
+        "from": "ready_to_integrate",
+        "event": "INPUT_SUPERSEDED",
+        "to": "superseded",
+        "precondition": "event_classifier_proved"
+      },
+      {
+        "from": "retryable_failed",
+        "event": "RETRY_BUDGET_AVAILABLE",
+        "to": "queued",
+        "precondition": "event_classifier_proved"
+      },
+      {
+        "from": "retryable_failed",
+        "event": "RETRY_BUDGET_EXHAUSTED",
+        "to": "needs_attention",
+        "precondition": "event_classifier_proved"
+      },
+      {
+        "from": "retryable_failed",
+        "event": "INPUT_SUPERSEDED",
+        "to": "superseded",
+        "precondition": "event_classifier_proved"
+      },
+      {
+        "from": "integrated",
+        "event": "RECEIPT_MATCH",
+        "to": "done",
+        "precondition": "event_classifier_proved"
+      },
+      {
+        "from": "integrated",
+        "event": "RECEIPT_TRANSIENT_MISMATCH",
+        "to": "retryable_failed",
+        "precondition": "event_classifier_proved"
+      },
+      {
+        "from": "integrated",
+        "event": "RECEIPT_PERMANENT_MISMATCH",
+        "to": "needs_attention",
+        "precondition": "event_classifier_proved"
+      },
+      {
+        "from": "integrated",
+        "event": "INPUT_SUPERSEDED",
+        "to": "superseded",
+        "precondition": "event_classifier_proved"
+      }
+    ],
+    "remote_actions_authorized": false,
+    "event_classifier": {
+      "priority": [
+        "INPUT_SUPERSEDED",
+        "LEASE_LOST",
+        "PERMANENT_FAILURE",
+        "TRANSIENT_FAILURE",
+        "STATE_SPECIFIC_OUTCOME"
+      ],
+      "mutual_exclusion": "first_matching_priority_class_only",
+      "completeness": "every_observed_outcome_must_classify_to_exactly_one_declared_event_or_PERMANENT_FAILURE",
+      "publication_success_precondition": "input_current_and_lease_valid_and_fencing_token_matches",
+      "unclassified_outcome": "PERMANENT_FAILURE"
+    },
+    "state_event_contract": {
+      "queued": {
+        "events": {
+          "DISPATCHED": "running",
+          "INPUT_SUPERSEDED": "superseded",
+          "PERMANENT_FAILURE": "needs_attention"
+        },
+        "requires_lease": false
+      },
+      "running": {
+        "events": {
+          "STAGE_SUCCEEDED": "projection_ready",
+          "TRANSIENT_FAILURE": "retryable_failed",
+          "PERMANENT_FAILURE": "needs_attention",
+          "LEASE_LOST": "retryable_failed",
+          "INPUT_SUPERSEDED": "superseded"
+        },
+        "requires_lease": true
+      },
+      "projection_ready": {
+        "events": {
+          "STAGE_SUCCEEDED": "memory_ready",
+          "TRANSIENT_FAILURE": "retryable_failed",
+          "PERMANENT_FAILURE": "needs_attention",
+          "LEASE_LOST": "retryable_failed",
+          "INPUT_SUPERSEDED": "superseded"
+        },
+        "requires_lease": true
+      },
+      "memory_ready": {
+        "events": {
+          "STAGE_SUCCEEDED": "html_published",
+          "TRANSIENT_FAILURE": "retryable_failed",
+          "PERMANENT_FAILURE": "needs_attention",
+          "LEASE_LOST": "retryable_failed",
+          "INPUT_SUPERSEDED": "superseded"
+        },
+        "requires_lease": true
+      },
+      "html_published": {
+        "events": {
+          "COMMIT_AUTHORIZED_WITH_DIFF": "maintenance_committed",
+          "COMMIT_NOT_AUTHORIZED_WITH_DIFF": "commit_not_authorized",
+          "NO_MAINTENANCE_DIFF": "integrated",
+          "TRANSIENT_FAILURE": "retryable_failed",
+          "PERMANENT_FAILURE": "needs_attention",
+          "LEASE_LOST": "retryable_failed",
+          "INPUT_SUPERSEDED": "superseded"
+        },
+        "requires_lease": true
+      },
+      "maintenance_committed": {
+        "events": {
+          "INTEGRATION_SUCCEEDED": "integrated",
+          "INTEGRATION_REQUIRES_MANUAL": "ready_to_integrate",
+          "TRANSIENT_FAILURE": "retryable_failed",
+          "PERMANENT_FAILURE": "needs_attention",
+          "LEASE_LOST": "retryable_failed",
+          "INPUT_SUPERSEDED": "superseded"
+        },
+        "requires_lease": true
+      },
+      "commit_not_authorized": {
+        "events": {
+          "INTEGRATION_SUCCEEDED": "integrated",
+          "INTEGRATION_REQUIRES_MANUAL": "ready_to_integrate",
+          "TRANSIENT_FAILURE": "retryable_failed",
+          "PERMANENT_FAILURE": "needs_attention",
+          "LEASE_LOST": "retryable_failed",
+          "INPUT_SUPERSEDED": "superseded"
+        },
+        "requires_lease": true
+      },
+      "ready_to_integrate": {
+        "events": {
+          "INTEGRATION_SUCCEEDED": "integrated",
+          "NEWER_JOB_INTEGRATED": "superseded",
+          "TRANSIENT_FAILURE": "retryable_failed",
+          "PERMANENT_FAILURE": "needs_attention",
+          "LEASE_LOST": "retryable_failed",
+          "INPUT_SUPERSEDED": "superseded"
+        },
+        "requires_lease": true
+      },
+      "retryable_failed": {
+        "events": {
+          "RETRY_BUDGET_AVAILABLE": "queued",
+          "RETRY_BUDGET_EXHAUSTED": "needs_attention",
+          "INPUT_SUPERSEDED": "superseded"
+        },
+        "requires_lease": false
+      },
+      "integrated": {
+        "events": {
+          "RECEIPT_MATCH": "done",
+          "RECEIPT_TRANSIENT_MISMATCH": "retryable_failed",
+          "RECEIPT_PERMANENT_MISMATCH": "needs_attention",
+          "INPUT_SUPERSEDED": "superseded"
+        },
+        "requires_lease": false
+      }
+    },
+    "model_validation": {
+      "exactly_one_transition_per_declared_state_event": true,
+      "no_transition_for_undeclared_event": true,
+      "all_nonterminal_states_have_exhaustive_declared_events": true,
+      "bounded_retry_reaches_terminal_or_reacquired_execution": true,
+      "every_state_reaches_one_of": [
+        "done",
+        "superseded",
+        "needs_attention"
+      ],
+      "success_event_requires_current_input_lease_and_fencing": true
+    }
+  },
+  "commands": [
+    "project index refresh|check|rebuild",
+    "project snapshot --html [--check|--rebuild|--open|--serve] [--profile]",
+    "project find",
+    "project show",
+    "project trace",
+    "project context",
+    "project sync head",
+    "project maintain --dry-run|--apply"
+  ],
+  "architecture": {
+    "dependency_chain": "access -> application -> domain -> runtime -> settings",
+    "composition_root": "src/settings/composition",
+    "cli_infrastructure_logic": false,
+    "extractor_extensions_behind_ports": true
+  },
+  "machine_consistency": {
+    "schema_id": "RequirementProjectionCanonicalization/v1",
+    "semantic_source": ".factory/workitems/FLOW-CONTRACT-001/drafts/REQ-CHANGE-PROJECT-KNOWLEDGE-001-R008.md",
+    "extraction": {
+      "text": "UTF_8_LF_Unicode_NFC_trim_trailing_space",
+      "requirement_fields": [
+        "id",
+        "title",
+        "priority",
+        "normative_statements",
+        "acceptance_criteria.id",
+        "acceptance_criteria.statement"
+      ],
+      "nfr_fields": [
+        "id",
+        "title",
+        "metric",
+        "verification"
+      ],
+      "serialization": "RFC8785_JCS",
+      "digest": "SHA-256"
+    },
+    "section_digest_preimage": "single_normative_object_without_projection_sha256_status_or_markdown_section_id",
+    "root_envelope": {
+      "schema_id": "RequirementProjectionRoot/v1",
+      "preimage_value_shape": "{\"requirements\":[<normative requirement objects in Markdown order>],\"nfrs\":[<normative NFR objects in Markdown order>]}",
+      "object_keys": [
+        "requirements",
+        "nfrs"
+      ],
+      "requirement_array_order": "Markdown section order",
+      "nfr_array_order": "Markdown table order",
+      "excluded_fields": [
+        "schema_id",
+        "projection_sha256",
+        "status",
+        "markdown_section_id",
+        "all_other_derived_or_envelope_fields"
+      ],
+      "canonical_bytes": 23717,
+      "projection_root_sha256": "96be53fe34052219ae3ac01326797c8e60234d7eae12f26ce5f070ac11a3045e"
+    },
+    "requirement_objects": 16,
+    "acceptance_criteria_objects": 64,
+    "nfr_objects": 11,
+    "validator": "reextract_markdown_normative_objects_compare_every_field_and_section_digest_then_build_exact_root_envelope_compare_canonical_byte_length_and_root_digest",
+    "count_or_id_only_validation_forbidden": true,
+    "final_manifest_binds_all_candidate_files": true
+  },
+  "excluded_candidate": "TASK-IMPLEMENT-002-R001",
+  "human_confirmation_required_before_formal_design_or_implementation": true,
+  "design_or_implementation_authorized": false
+}

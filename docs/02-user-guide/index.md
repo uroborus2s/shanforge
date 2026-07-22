@@ -1,33 +1,28 @@
-# 用户指南目录
+# 用户指南入口
 
-`02-user-guide` 现在只保留两个内容文档：
+## 文档控制
 
-1. [使用指南](./user-guide.md)
-2. [提示词速查](./prompt-templates.md)
+| 项目 | 内容 |
+|---|---|
+| 文档 ID | `DOC-NAV-USER-001` |
+| 正式版本 | `v1.0.0` |
+| 来源候选 | `TASK-DESIGN-001-R019` |
+| 发布事务 | `DESIGN-RELEASE-TX-R019-G001` |
+| 负责人 | `HUMAN_PRODUCT_ANALYST` |
+| 修改 / 审核 / 批准 | `uroborus` / `uroborus` / `uroborus` |
+| 状态 | 已批准并生效 |
+| 上游 | `docs/index.md` |
+| 下游 | `user-guide`、`prompt-templates` |
 
-## 这三个文档分别解决什么问题
+## 本目录职责
 
-| 文档 | 解决的问题 | 什么时候读 |
-|---|---|---|
-| `user-guide.md` | 第一次接触 `shanforge`，如何完成安装准备、判断项目类型、开始第一轮会话、日常使用 | 第一次上手和忘记流程时 |
-| `prompt-templates.md` | 不同场景下直接复制什么自然语言 Prompt，应该期待 AI 返回什么 | 每次真正开工前 |
+正式使用和人机协作说明。
 
-## 推荐阅读顺序
+## 正式文档
 
-### 如果你是第一次接触 `shanforge`
+1. [使用指南](./user-guide.md)：`DOC-USER-GUIDE-001`。
+2. [提示词速查](./prompt-templates.md)：`DOC-PROMPT-GUIDE-001`。
 
-1. 先读 [使用指南](./user-guide.md)
-2. 再读 [提示词速查](./prompt-templates.md)
+## 维护规则
 
-### 如果你已经会用自然语言，但总写不好 Prompt
-
-1. 先读 [提示词速查](./prompt-templates.md)
-2. 再回看 [使用指南](./user-guide.md) 中的“第一轮会话怎么开始”
-
-## 使用边界
-
-- 这里讲的是“怎么使用 shanforge”
-- 不展开内部实现细节
-- 不承载需求、设计、测试、发布等项目阶段正式文档
-
-如果你只想先看一篇，先看 [使用指南](./user-guide.md)。
+[返回文档总入口](../index.md)。TaskCard、计划、状态、评审和证据只进入 `.factory/workitems/`。

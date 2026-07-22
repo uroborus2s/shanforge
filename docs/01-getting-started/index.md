@@ -1,23 +1,29 @@
-# 入门说明
+# 项目概览入口
 
-本目录面向第一次接触 `shanforge v2` 的读者，解决三个问题：这是什么、平台核心是什么、应该先看什么。
+## 文档控制
 
-## 1. 适合谁先看
+| 项目 | 内容 |
+|---|---|
+| 文档 ID | `DOC-NAV-GETTING-001` |
+| 正式版本 | `v1.0.0` |
+| 来源候选 | `TASK-DESIGN-001-R019` |
+| 发布事务 | `DESIGN-RELEASE-TX-R019-G001` |
+| 负责人 | `HUMAN_PROJECT_OWNER` |
+| 修改 / 审核 / 批准 | `uroborus` / `uroborus` / `uroborus` |
+| 状态 | 已批准并生效 |
+| 上游 | `docs/index.md` |
+| 下游 | `project-overview`、`project-charter`、`quick-start` |
 
-- 第一次接手本仓库的维护者
-- 计划在平台上开发业务 Agent App 的协作者
-- 想快速理解平台结构和文档入口的开发者
+## 本目录职责
 
-## 2. 推荐阅读顺序
+项目身份、章程和最快开始入口。
 
-1. [项目概览](./project-overview.md)
-2. [快速开始](./quick-start.md)
-3. [文档地图](./document-map.md)
+## 正式文档
 
-## 3. 阅读完成后的预期
+1. [项目概览](./project-overview.md)：`DOC-PROJECT-OVERVIEW-001`。
+2. [项目章程](./project-charter.md)：`DOC-PROJECT-CHARTER-001`。
+3. [快速开始](./quick-start.md)：`DOC-QUICK-START-001`。
 
-读完本目录后，应能知道：
+## 维护规则
 
-- 当前仓库的产品目标是抽象 Agent 平台
-- 正式人类文档只看 `docs/`
-- 业务开发入口是 Agent App、Workflow DSL 和平台契约
+[返回文档总入口](../index.md)。TaskCard、计划、状态、评审和证据只进入 `.factory/workitems/`。

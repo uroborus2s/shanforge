@@ -51,11 +51,7 @@ docs/
 │   │   └── roadmap.md
 │   ├── 02-discovery/
 │   │   ├── index.md
-│   │   ├── input.md
-│   │   ├── brainstorm-record.md
-│   │   ├── current-state-analysis.md
-│   │   ├── business-flow.md
-│   │   └── scope-outline.md
+│   │   └── hermes-agent-source-analysis-report.md
 │   ├── 03-requirements/
 │   │   ├── index.md
 │   │   ├── prd.md
@@ -70,73 +66,50 @@ docs/
 │   │   ├── solution-overview.md
 │   │   ├── technical-selection.md
 │   │   ├── system-architecture.md
+│   │   ├── agent-platform-architecture.md
+│   │   ├── layered-domain-interface-catalog.md
 │   │   ├── module-boundaries.md
+│   │   ├── infrastructure-layer-design.md
 │   │   ├── api-design.md
-│   │   ├── backend-design.md
-│   │   ├── database-design.md
-│   │   ├── security-design.md
-│   │   ├── deployment-architecture.md
-│   │   ├── ux-ui-design.md
-│   │   ├── contracts/
-│   │   │   ├── index.md
-│   │   │   ├── api/
-│   │   │   ├── events/
-│   │   │   └── internal/
-│   │   ├── adr/
-│   │   │   └── index.md
+│   │   ├── memory-runtime-design.md
+│   │   ├── memory-system-detailed-design.md
+│   │   ├── memory-runtime-interfaces.md
+│   │   ├── memory-session-ledger-design.md
+│   │   ├── memory-promotion-design.md
+│   │   ├── memory-recall-design.md
+│   │   ├── memory-distillation-learning-design.md
+│   │   ├── ai-drama-production-skill-system.md
+│   │   ├── v2-architecture-pages.md
 │   │   └── assets/
 │   ├── 05-development-process/
 │   │   ├── index.md
-│   │   ├── software-development-process.md
 │   │   ├── implementation-plan.md
-│   │   ├── task-breakdown.md
-│   │   ├── wbs.md
-│   │   ├── execution-log.md
-│   │   ├── iteration-plan.md
-│   │   ├── migration-plan.md
-│   │   └── historical-project-onboarding-checklist.md
+│   │   └── task-execution-contract.md
 │   ├── 06-testing-verification/
 │   │   ├── index.md
-│   │   ├── test-strategy.md
 │   │   ├── test-plan.md
-│   │   ├── test-cases.md
-│   │   ├── test-data.md
-│   │   ├── defect-log.md
 │   │   ├── test-report.md
-│   │   └── uat-report.md
 │   ├── 07-release-delivery/
 │   │   ├── index.md
-│   │   ├── acceptance-checklist.md
-│   │   ├── delivery-package.md
-│   │   ├── release-checklist.md
 │   │   ├── release-notes.md
-│   │   ├── rollback-plan.md
-│   │   ├── stage-check-report.md
-│   │   └── quality-check-report.md
 │   ├── 08-operations-maintenance/
 │   │   ├── index.md
 │   │   ├── deployment-guide.md
-│   │   ├── operations-runbook.md
-│   │   ├── monitoring-alerting.md
-│   │   ├── incident-playbook.md
-│   │   ├── backup-dr.md
-│   │   ├── support-handbook.md
-│   │   └── configuration-matrix.md
+│   │   └── operations-runbook.md
 │   ├── 09-evolution/
-│   │   ├── index.md
-│   │   ├── skill-evolution-plan.md
-│   │   ├── retrospective.md
-│   │   ├── postmortem.md
-│   │   └── deprecation-plan.md
+│   │   └── index.md
 │   └── 10-traceability/
 │       ├── index.md
 │       ├── requirements-matrix.md
 │       ├── interface-matrix.md
 │       └── document-index.md
 └── .factory/
+    ├── README.md
     ├── project.json
+    ├── project.lock
+    ├── tech-profile.json
     ├── memory/
-    ├── process/
+    ├── pm/
     └── workitems/
 ```
 
@@ -242,3 +215,23 @@ traceability   -> 04-project-development/10-traceability
 - 新增正式页面后，同步根 `docs/index.md`；需要 AI 恢复时同步 `.factory/memory/doc-map.md`
 - 临时过程材料不得放入 `docs/`
 - 正式文档模板必须包含中文 `版本信息` 和 `版本历史`
+
+## 模板资产与输出路径
+
+内部模板资产可以继续按旧阶段分组命名，但输出路径必须落到 4 大模块结构。
+
+常用映射：
+
+- 根索引：`assets/templates/00-root/docs-index.md` -> `docs/index.md`
+- 入门概览：`assets/templates/01-getting-started/project-overview.md` -> `docs/01-getting-started/project-overview.md`
+- 快速开始：`assets/templates/01-getting-started/quick-start.md` -> `docs/01-getting-started/quick-start.md`
+- 用户指南：`assets/templates/08-handover/user-guide.md` -> `docs/02-user-guide/user-guide.md`
+- 管理员指南：`assets/templates/08-handover/admin-guide.md` -> `docs/02-user-guide/admin-guide.md`
+- PRD：`assets/templates/02-requirements/prd.md` -> `docs/04-project-development/03-requirements/prd.md`
+- 技术选型：`assets/templates/03-solution/technical-selection.md` -> `docs/04-project-development/04-design/technical-selection.md`
+- 系统架构：`assets/templates/03-solution/system-architecture.md` -> `docs/04-project-development/04-design/system-architecture.md`
+- API 设计：`assets/templates/03-solution/api-design.md` -> `docs/04-project-development/04-design/api-design.md`
+- 测试计划：`assets/templates/05-quality/test-plan.md` -> `docs/04-project-development/06-testing-verification/test-plan.md`
+- 发布说明：`assets/templates/06-release/release-notes.md` -> `docs/04-project-development/07-release-delivery/release-notes.md`
+- 运维手册：`assets/templates/07-operations/operations-runbook.md` -> `docs/04-project-development/08-operations-maintenance/operations-runbook.md`
+- 需求追踪矩阵：`assets/templates/traceability/requirements-matrix.md` -> `docs/04-project-development/10-traceability/requirements-matrix.md`

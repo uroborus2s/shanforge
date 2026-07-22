@@ -83,11 +83,8 @@
 
 | 文档 | 默认性 | 主要作用 |
 |---|---|---|
-| `input.md` | 必备 | 固化原始创意、背景、约束和启动输入 |
-| `brainstorm-record.md` | 必备 | 保留问题空间、方案比较和决策过程 |
-| `current-state-analysis.md` | 条件 | 历史项目现状基线 |
-| `business-flow.md` | 条件 | 说明业务流程或用户旅程 |
-| `scope-outline.md` | 条件 | 列清范围内/范围外 |
+| `hermes-agent-source-analysis-report.md` | 必备 | 固化 Hermes Agent 调研事实和可借鉴设计 |
+| work item brief | 条件 | 保留问题空间、方案比较和用户批准的决策过程 |
 
 ### `03-requirements`
 
@@ -107,27 +104,20 @@
 |---|---|---|
 | `technical-selection.md` | 必备 | 固化技术栈、工程规则和必装模块 |
 | `system-architecture.md` | 必备 | 描述系统上下文、分层和关键组件 |
+| `agent-platform-architecture.md` | 必备 | 描述平台核心能力和业务装配面 |
+| `layered-domain-interface-catalog.md` | 必备 | 明确层、领域、接口 owner 和下游依赖 |
 | `module-boundaries.md` | 必备 | 明确职责、数据所有权和耦合边界 |
+| `infrastructure-layer-design.md` | 必备 | 定义基础设置层和外部资源实现边界 |
 | `api-design.md` | 必备 | 统一 API / CLI / 契约语义 |
-| `backend-design.md` | 条件 | 细化服务、任务、幂等和可观测性 |
-| `database-design.md` | 条件 | 定义实体、关系、索引和迁移 |
-| `security-design.md` | 条件 | 说明安全控制和威胁模型 |
-| `deployment-architecture.md` | 条件 | 描述环境拓扑和部署约束 |
-| `ux-ui-design.md` | 条件 | 说明交互、页面和设计交付物 |
-| `contracts/*` | 条件 | 放内部接口、事件、Schema 和契约说明 |
+| `memory-*.md` | 条件 | 记忆运行时、接口和子设计 |
+| `v2-architecture-pages.md` | 条件 | draw.io 设计资产索引 |
 
 ### `05-development-process`
 
 | 文档 | 默认性 | 主要作用 |
 |---|---|---|
-| `software-development-process.md` | 必备 | 说明阶段顺序、输入输出和准入准出 |
 | `implementation-plan.md` | 必备 | 把设计转成实施波次和顺序 |
-| `task-breakdown.md` | 条件 | 形成任务颗粒和依赖 |
-| `wbs.md` | 条件 | 给出工作分解结构 |
-| `execution-log.md` | 条件 | 留存推进日志和回写记录 |
-| `iteration-plan.md` | 条件 | 管理迭代或冲刺 |
-| `migration-plan.md` | 条件 | 迁移、切换、回滚规划 |
-| `historical-project-onboarding-checklist.md` | 条件 | 历史项目纳管收口清单 |
+| `task-execution-contract.md` | 必备 | 固定任务类型、输出包、落盘和 gate |
 
 ### `06-testing-verification`
 
@@ -169,10 +159,7 @@
 
 | 文档 | 默认性 | 主要作用 |
 |---|---|---|
-| `skill-evolution-plan.md` | 条件 | 记录技能和流程演进方案 |
-| `retrospective.md` | 条件 | 迭代或阶段回顾 |
-| `postmortem.md` | 条件 | 事故复盘 |
-| `deprecation-plan.md` | 条件 | 退役和替换规划 |
+| `index.md` | 必备 | 保留演进复盘阶段入口；具体旧专题页不进入当前正式基线 |
 
 ### `10-traceability`
 

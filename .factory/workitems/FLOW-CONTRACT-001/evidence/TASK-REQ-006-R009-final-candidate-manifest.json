@@ -1,0 +1,97 @@
+{
+  "schema_id": "ExactRequirementCandidateManifest/v1",
+  "work_item": "FLOW-CONTRACT-001",
+  "task_id": "TASK-REQ-006-project-knowledge-index-and-deterministic-docs",
+  "requirement_change_id": "REQ-CHANGE-PROJECT-KNOWLEDGE-001",
+  "candidate_revision": "R009",
+  "status": "candidate_pending_exact_hash_human_confirmation",
+  "approvable": true,
+  "independent_review": {
+    "decision": "approved",
+    "score": 99,
+    "critical": 0,
+    "important": 0,
+    "minor": 0,
+    "reviewer_type": "independent_subagent",
+    "reviewer_id": "/root/req006_r005_review"
+  },
+  "semantic_summary": {
+    "requirements": 16,
+    "acceptance_criteria": 64,
+    "nfrs": 11,
+    "knowledge_core_tables": 29,
+    "pm_projection_tables": 10,
+    "total_tables": 39,
+    "pm_fields": 137,
+    "state_transitions": 50,
+    "snapshot_schema": "ProjectProgressSnapshot/v2",
+    "requirement_projection_root_sha256": "d917dce3287bf004233f436fcb407fc7314a20845ac598dcb58711c1041dd5de"
+  },
+  "root_algorithm": "SHA256(concat(sort_by_path(path + NUL + lowercase_sha256 + LF)))",
+  "root_preimage_bytes": 936,
+  "candidate_root_sha256": "ce079fcd80c4e5e7a58e68103e8f225d2b90cdfea703c12adde88f95b3f0df68",
+  "artifacts": [
+    {
+      "path": ".factory/workitems/FLOW-CONTRACT-001/drafts/REQ-CHANGE-PROJECT-KNOWLEDGE-001-R009.md",
+      "sha256": "eacd27cf9beeee857d868d7856cb2a0cd275614fdb734b1c73d519039493ab7a",
+      "bytes": 29476,
+      "role": "human_requirement_candidate"
+    },
+    {
+      "path": ".factory/workitems/FLOW-CONTRACT-001/drafts/REQ-CHANGE-PROJECT-KNOWLEDGE-001.contract.R009.json",
+      "sha256": "53923f55c2bcc16bce6ad60ed1045c671dd490b6733885725641fe39e6859977",
+      "bytes": 57175,
+      "role": "machine_requirement_contract"
+    },
+    {
+      "path": ".factory/workitems/FLOW-CONTRACT-001/drafts/REQ-CHANGE-PROJECT-KNOWLEDGE-001.pm-field-map.R009.json",
+      "sha256": "17af8c254017bc60eb44e73b8e61322bc57eb577ffa6baa2711f100d48251055",
+      "bytes": 162374,
+      "role": "pm_137_field_owner_map"
+    },
+    {
+      "path": ".factory/workitems/FLOW-CONTRACT-001/drafts/project-progress-requirement-contract.R014.json",
+      "sha256": "836fadc2c214ef2f56b2a21ef2fb705445a58ca7ddb0047f3b638292ba578d33",
+      "bytes": 242589,
+      "role": "released_project_progress_machine_contract"
+    },
+    {
+      "path": ".factory/workitems/FLOW-CONTRACT-001/evidence/TASK-REQ-002-R014-release-manifest.json",
+      "sha256": "ea84805f62b9c20d17f625e0e4f68efcd510c19897cc1b5c8ebacf70a5bdef4e",
+      "bytes": 3155,
+      "role": "R014_release_status_owner"
+    },
+    {
+      "path": ".factory/workitems/FLOW-CONTRACT-001/reviews/TASK-REQ-006-R009-independent-rereview.md",
+      "sha256": "5c3077a27f10a99451902c42d5617aff0663650ffcd4bebae2795239ea0dc7b3",
+      "bytes": 1648,
+      "role": "independent_requirements_review"
+    }
+  ],
+  "approval_effect": {
+    "authorizes": [
+      "formalize_R009_into_existing_owner_documents_in_place",
+      "enter_scoped_design_planning_implementation_testing_and_migration_workflow",
+      "create_only_project_applicable_human_documents",
+      "local_current_task_commit_via_gitcommitzh_after_verification"
+    ],
+    "does_not_authorize": [
+      "mutation_or_release_of_TASK_IMPLEMENT_002_R001",
+      "git_push",
+      "pull_request",
+      "merge",
+      "deployment",
+      "remote_or_external_actions",
+      "bypassing_later_architecture_test_or_release_quality_gates"
+    ],
+    "R014_status": "already_released_by_existing_manifest_not_approved_by_this_decision"
+  },
+  "design_or_implementation_authorized": false,
+  "human_confirmation_required": true,
+  "decision_owner": "uroborus",
+  "allowed_decisions": [
+    "approve_exact_manifest_sha256",
+    "request_changes",
+    "pause"
+  ]
+}

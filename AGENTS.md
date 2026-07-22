@@ -1,7 +1,8 @@
 # shanforge Agent 规则
 
 - 项目：`shanforge`，根目录：`.`。
-- 默认只读 `.factory/memory/agent-session.md`；缺上下文再读 `.factory/memory/runtime-brief.md`、`.factory/memory/current-state.md`、`.factory/memory/doc-map.md`、`.factory/project.json` 和相关 summary。正式事实按 `doc-map.md` 单文件回源，不散读 `docs/`。
+- 先根据当前消息判定处理模式。无项目影响的直接回答和轻量分析不读取 `.factory/memory/`，不创建任务卡、ledger 或项目状态包。
+- 项目状态查询、任务延续、项目事实修改或仓内持久化才进入项目化流程：默认先读 `.factory/memory/agent-session.md`；缺上下文再读 `.factory/memory/runtime-brief.md`、`.factory/memory/current-state.md`、`.factory/memory/doc-map.md`、`.factory/project.json` 和相关 summary。正式事实按 `doc-map.md` 单文件回源，不散读 `docs/`。
 - 会话恢复：`skills/project-memory/SKILL.md`。流程路由、review gate、人工确认、提交门：`skills/using-shanforge/SKILL.md`。
 - `/技能名` 直接执行默认工作流；高风险动作真正执行前确认。
 - 明确执行请求优先同轮落地；本地提交用 `gitcommitzh`，只提交当前任务范围。

@@ -1,0 +1,952 @@
+{
+  "schema_id": "AI-SDLC-CatalogCompactSource/R019/v1",
+  "schema_version": "1.0.0-candidate",
+  "candidate_revision": "TASK-DESIGN-001-R019",
+  "gate_generation": "TASK-DESIGN-001-R019-G001",
+  "formal_binding": {
+    "formal_requirements_path": "docs/04-project-development/03-requirements/prd.md",
+    "formal_requirements_version": "v4.0.0",
+    "formal_requirements_sha256": "648db794e87d20c4b3f4d28d8ef1a3bbbddd5013a6ee386c013960e9e2b557f3",
+    "plan_revision": "TASK-DESIGN-001-P022",
+    "plan_sha256": "c3d6a5987dd6fbf5b7038b27b26a8005b3244ff67dfe55f0a846b955e661e2b1",
+    "design_path": ".factory/workitems/FLOW-CONTRACT-001/drafts/DESIGN-AI-WORKFLOW-001.R019.md",
+    "information_architecture_path": ".factory/workitems/FLOW-CONTRACT-001/drafts/docs-information-architecture.R019.json",
+    "formal_catalog_source_path": ".factory/catalog/ai-sdlc-catalog.source.json",
+    "stable_builder_path": "tools/ai-sdlc-catalog/build.mjs",
+    "source_candidate_revision": "TASK-DESIGN-001-R018",
+    "release_preflight_finding_ids": [
+      "R018-RELEASE-C-001",
+      "R018-RELEASE-C-002",
+      "R018-RELEASE-C-003"
+    ]
+  },
+  "workflow_inventory": {
+    "baseline_revision": "TASK-DESIGN-001-R017",
+    "baseline_source_sha256": "a08c8ae64e06e37b7575fca4cc061c2d77b0ba70eba73df7b261f9436f4e593f",
+    "count": 123,
+    "canonical_id_array_sha256": "78adcba726e686bb37c670eaa03228c992e8c19f71981508f9b5a53bf0e2df38",
+    "workflow_ids": [
+      "WF-CTL-001",
+      "WF-CTL-002",
+      "WF-CTL-003",
+      "WF-CTL-004",
+      "WF-CTL-005",
+      "WF-CTL-006",
+      "WF-CTL-007",
+      "WF-CTL-008",
+      "WF-CTL-009",
+      "WF-CTL-010",
+      "WF-BASE-001",
+      "WF-BASE-002",
+      "WF-BASE-003",
+      "WF-BASE-004",
+      "WF-BASE-005",
+      "WF-BASE-006",
+      "WF-BASE-007",
+      "WF-BASE-008",
+      "WF-DISC-001",
+      "WF-DISC-002",
+      "WF-DISC-003",
+      "WF-DISC-004",
+      "WF-DISC-005",
+      "WF-DISC-006",
+      "WF-DISC-007",
+      "WF-REQ-001",
+      "WF-REQ-002",
+      "WF-REQ-003",
+      "WF-REQ-004",
+      "WF-REQ-005",
+      "WF-REQ-006",
+      "WF-REQ-007",
+      "WF-REQ-008",
+      "WF-UX-001",
+      "WF-UX-002",
+      "WF-UX-003",
+      "WF-UX-004",
+      "WF-UX-005",
+      "WF-UX-006",
+      "WF-UX-007",
+      "WF-UI-001",
+      "WF-UI-002",
+      "WF-UI-003",
+      "WF-UI-004",
+      "WF-UI-005",
+      "WF-UI-006",
+      "WF-UI-007",
+      "WF-ARCH-001",
+      "WF-ARCH-002",
+      "WF-ARCH-003",
+      "WF-ARCH-004",
+      "WF-ARCH-005",
+      "WF-ARCH-006",
+      "WF-ARCH-007",
+      "WF-ARCH-008",
+      "WF-DATA-001",
+      "WF-DATA-002",
+      "WF-DATA-003",
+      "WF-DATA-004",
+      "WF-DATA-005",
+      "WF-DATA-006",
+      "WF-DATA-007",
+      "WF-DATA-008",
+      "WF-DATA-009",
+      "WF-API-001",
+      "WF-API-002",
+      "WF-API-003",
+      "WF-API-004",
+      "WF-API-005",
+      "WF-API-006",
+      "WF-API-007",
+      "WF-API-008",
+      "WF-PLAN-001",
+      "WF-PLAN-002",
+      "WF-PLAN-003",
+      "WF-PLAN-004",
+      "WF-PLAN-005",
+      "WF-PLAN-006",
+      "WF-IMPL-001",
+      "WF-IMPL-002",
+      "WF-IMPL-003",
+      "WF-IMPL-004",
+      "WF-IMPL-005",
+      "WF-IMPL-006",
+      "WF-IMPL-007",
+      "WF-IMPL-008",
+      "WF-IMPL-009",
+      "WF-IMPL-010",
+      "WF-IMPL-011",
+      "WF-IMPL-012",
+      "WF-QA-001",
+      "WF-QA-002",
+      "WF-QA-003",
+      "WF-QA-004",
+      "WF-QA-005",
+      "WF-QA-006",
+      "WF-QA-007",
+      "WF-QA-008",
+      "WF-QA-009",
+      "WF-QA-010",
+      "WF-QA-011",
+      "WF-QA-012",
+      "WF-QA-013",
+      "WF-DEL-001",
+      "WF-DEL-002",
+      "WF-DEL-003",
+      "WF-DEL-004",
+      "WF-DEL-005",
+      "WF-DEL-006",
+      "WF-DEL-007",
+      "WF-DEL-008",
+      "WF-DEL-009",
+      "WF-DEL-010",
+      "WF-DEL-011",
+      "WF-OPS-001",
+      "WF-OPS-002",
+      "WF-OPS-003",
+      "WF-OPS-004",
+      "WF-OPS-005",
+      "WF-OPS-006",
+      "WF-OPS-007",
+      "WF-OPS-008",
+      "WF-OPS-009"
+    ],
+    "affected_workflow_ids": [
+      "WF-CTL-001",
+      "WF-CTL-010"
+    ],
+    "semantic_workflow_additions": []
+  },
+  "visibility_contract": {
+    "snapshot_position": {
+      "record_id": "VIS-SNAPSHOT-001",
+      "snapshot_schema": "ProjectProgressSnapshot/v2",
+      "position_schema": "ProjectExecutionPosition/v1",
+      "adapter": "PositionViewAdapter/v1",
+      "owner_layer": "application",
+      "implementation_layer": "settings",
+      "required_binding_fields": [
+        "project_id",
+        "snapshot_id",
+        "snapshot_sha256",
+        "as_of_H",
+        "registry_sha256",
+        "event_schema_sha256",
+        "reducer_sha256",
+        "snapshot_schema_sha256",
+        "authorization_digest"
+      ],
+      "failure_code": "project_progress_binding_conflict",
+      "failure_path_counters": {
+        "event_log_read": 0,
+        "event_reduce": 0,
+        "gate_advance": 0
+      },
+      "fixed_H_entries": [
+        "session_recovery",
+        "project_status_query",
+        "task_node_completion_reply"
+      ],
+      "H_plus_1_policy": "defer_to_next_snapshot",
+      "additional_properties": false
+    },
+    "lifecycle_binding": {
+      "record_id": "VIS-LIFECYCLE-001",
+      "schema": "LifecyclePlanBinding/v1",
+      "active_binding_cardinality": 1,
+      "required_fields": [
+        "artifact_id",
+        "artifact_version",
+        "artifact_sha256",
+        "binding_status",
+        "effective_scope",
+        "authorization_digest",
+        "stage_map_id",
+        "stage_map_version",
+        "stage_map_sha256",
+        "as_of_H"
+      ],
+      "failure_codes": [
+        "lifecycle_binding_missing",
+        "multiple_active_lifecycle_bindings",
+        "lifecycle_binding_inactive",
+        "lifecycle_hash_mismatch",
+        "stage_map_conflict",
+        "lifecycle_permission_denied"
+      ],
+      "global_denominator_source": "active LifecyclePlanBinding stage_map",
+      "local_work_item_may_change_denominator": false,
+      "additional_properties": false
+    },
+    "state_model": {
+      "record_id": "VIS-DISPOSITION-001",
+      "dimensions": [
+        "workflow_run_state",
+        "completion_state",
+        "reply_state",
+        "execution_disposition"
+      ],
+      "selectors": [
+        "run_active",
+        "auto_authorized",
+        "ai_ready",
+        "review_dispatched",
+        "human_gate_pending",
+        "terminal_or_fact_conflict",
+        "task_complete"
+      ],
+      "dispositions": [
+        {
+          "id": "running",
+          "requires": {
+            "run_active": true
+          },
+          "forbids": {
+            "auto_authorized": true,
+            "ai_ready": true,
+            "review_dispatched": true,
+            "human_gate_pending": true,
+            "terminal_or_fact_conflict": true,
+            "task_complete": true
+          }
+        },
+        {
+          "id": "auto_continuing",
+          "requires": {
+            "auto_authorized": true
+          },
+          "forbids": {
+            "run_active": true,
+            "ai_ready": true,
+            "review_dispatched": true,
+            "human_gate_pending": true,
+            "terminal_or_fact_conflict": true,
+            "task_complete": true
+          }
+        },
+        {
+          "id": "waiting_ai_execution",
+          "requires": {
+            "ai_ready": true
+          },
+          "forbids": {
+            "run_active": true,
+            "auto_authorized": true,
+            "review_dispatched": true,
+            "human_gate_pending": true,
+            "terminal_or_fact_conflict": true,
+            "task_complete": true
+          }
+        },
+        {
+          "id": "waiting_independent_review",
+          "requires": {
+            "review_dispatched": true
+          },
+          "forbids": {
+            "run_active": true,
+            "auto_authorized": true,
+            "ai_ready": true,
+            "human_gate_pending": true,
+            "terminal_or_fact_conflict": true,
+            "task_complete": true
+          }
+        },
+        {
+          "id": "waiting_human",
+          "requires": {
+            "human_gate_pending": true
+          },
+          "forbids": {
+            "run_active": true,
+            "auto_authorized": true,
+            "ai_ready": true,
+            "review_dispatched": true,
+            "terminal_or_fact_conflict": true,
+            "task_complete": true
+          }
+        },
+        {
+          "id": "blocked",
+          "requires": {
+            "terminal_or_fact_conflict": true
+          },
+          "forbids": {
+            "run_active": true,
+            "auto_authorized": true,
+            "ai_ready": true,
+            "review_dispatched": true,
+            "human_gate_pending": true,
+            "task_complete": true
+          }
+        },
+        {
+          "id": "completed",
+          "requires": {
+            "task_complete": true
+          },
+          "forbids": {
+            "run_active": true,
+            "auto_authorized": true,
+            "ai_ready": true,
+            "review_dispatched": true,
+            "human_gate_pending": true,
+            "terminal_or_fact_conflict": true
+          }
+        }
+      ],
+      "zero_or_multiple_match_result": "blocked/fact_conflict",
+      "priority_resolution_allowed": false,
+      "additional_properties": false
+    },
+    "response_renderer": {
+      "record_id": "VIS-RESPONSE-001",
+      "owner_requirement": "REQ-ASYNC-016",
+      "version": "v4.0.0",
+      "schema": "ProjectStatusResponse/v4",
+      "ordered_lines": [
+        "项目总路线",
+        "当前坐标",
+        "当前任务",
+        "当前节点",
+        "本轮做了什么",
+        "完成了什么",
+        "验证情况",
+        "没有运行什么",
+        "后台任务",
+        "当前状态",
+        "为什么停下",
+        "是否影响下一项工作",
+        "下一责任人",
+        "需要你做什么",
+        "下一步"
+      ],
+      "exact_line_count": 15,
+      "duplicate_label_allowed": false,
+      "second_renderer_allowed": false,
+      "no_stop_text": "未停止，授权范围内继续",
+      "no_user_action_text": "无需操作",
+      "additional_properties": false
+    },
+    "human_gate_types": [
+      "business_decision",
+      "risk_acceptance",
+      "candidate_approval",
+      "formal_action_authorization",
+      "credential_or_permission_grant",
+      "irreversible_action_confirmation"
+    ],
+    "authorization_view": {
+      "record_id": "VIS-AUTHZ-001",
+      "deny_by_default_fields": [
+        "task_title",
+        "task_path",
+        "risk_text",
+        "approval_text",
+        "adjacent_stage_name"
+      ],
+      "preserve_true_global_denominator": true,
+      "restricted_label": "restricted",
+      "forbidden_side_channels": [
+        "length",
+        "hash",
+        "count",
+        "ordering",
+        "error_difference",
+        "timing"
+      ],
+      "render_then_mask_allowed": false,
+      "additional_properties": false
+    },
+    "qualification": {
+      "record_id": "VIS-QUALIFICATION-001",
+      "binding_fields": [
+        "formal_requirements_sha256",
+        "plan_sha256",
+        "candidate_set_root",
+        "gate_generation"
+      ],
+      "invalidated": {
+        "P017_plan_author_validation": false,
+        "P017_independent_review": false,
+        "P017_human_plan_approval": false,
+        "P017_execution_authorization": false,
+        "R017_design_author_validation": false,
+        "R017_independent_review": false,
+        "R017_human_candidate_approval": false,
+        "R017_formalization_eligibility": false,
+        "R017_release_eligibility": false,
+        "R017_commit_or_remote_authorization": false
+      },
+      "drift_result": "qualification_generation_conflict",
+      "additional_properties": false
+    },
+    "candidate_identity": {
+      "record_id": "VIS-CANDIDATE-ROOT-001",
+      "schema": "CandidateArtifactSetRoot/R019/v1",
+      "canonical_member_keys": [
+        "artifact_id",
+        "path",
+        "sha256",
+        "bytes"
+      ],
+      "members_in_hash_order": [
+        {
+          "artifact_id": "design",
+          "path": ".factory/workitems/FLOW-CONTRACT-001/drafts/DESIGN-AI-WORKFLOW-001.R019.md"
+        },
+        {
+          "artifact_id": "catalog_source",
+          "path": ".factory/workitems/FLOW-CONTRACT-001/drafts/ai-sdlc-catalog.R019.source.json"
+        },
+        {
+          "artifact_id": "information_architecture",
+          "path": ".factory/workitems/FLOW-CONTRACT-001/drafts/docs-information-architecture.R019.json"
+        },
+        {
+          "artifact_id": "builder",
+          "path": ".factory/workitems/FLOW-CONTRACT-001/evidence/TASK-DESIGN-001-R019-builder.mjs"
+        },
+        {
+          "artifact_id": "validator",
+          "path": ".factory/workitems/FLOW-CONTRACT-001/evidence/TASK-DESIGN-001-catalog-validator-R019.mjs"
+        },
+        {
+          "artifact_id": "verification_runner",
+          "path": ".factory/workitems/FLOW-CONTRACT-001/evidence/TASK-DESIGN-001-R019-verification-runner.mjs"
+        }
+      ],
+      "domain_separator": "shanforge:CandidateArtifactSetRoot/R019:v1\n",
+      "algorithm": "SHA-256(domain_separator_bytes || compact_canonical_member_array_bytes)",
+      "manifest_is_member": false,
+      "candidate_sha256_alias_rule": "if present, byte-equal candidate_set_root",
+      "identity_conflict_code": "candidate_identity_conflict",
+      "additional_properties": false
+    },
+    "evidence": {
+      "record_id": "VIS-EVIDENCE-001",
+      "execution_identity_schema": "EvidenceExecutionIdentity/v1",
+      "execution_identity_fields": [
+        "gate_id",
+        "artifact_or_candidate_root_sha256",
+        "impact_policy_version",
+        "test_selection_plan_sha256",
+        "required_test_set_sha256",
+        "test_source_sha256",
+        "fixture_sha256",
+        "config_sha256",
+        "runner_name",
+        "runner_version",
+        "runner_sha256",
+        "dependency_lock_sha256",
+        "normalized_command",
+        "environment_attestation_sha256",
+        "external_dependency_fingerprint"
+      ],
+      "execution_identity_domain_separator": "shanforge:EvidenceExecutionIdentity/v1\n",
+      "outcome_fields": [
+        "passed_count",
+        "failed_count",
+        "skipped_count",
+        "not_run_count",
+        "evidence_time"
+      ],
+      "reuse_key_schema": "EvidenceReuseKey/v1",
+      "reuse_key_total_fields": 20,
+      "request_may_predict_outcome": false,
+      "reuse_requires": {
+        "execution_status": "passed",
+        "failed_count": 0,
+        "skipped_count": 0,
+        "not_run_count": 0,
+        "all_required_tests_ran": true
+      },
+      "formal_gate_cas_fields": [
+        "parent_task_id",
+        "gate_id",
+        "artifact_hash",
+        "test_plan_hash",
+        "gate_generation"
+      ],
+      "additional_properties": false
+    },
+    "quick_verification_session": {
+      "record_id": "VIS-QUICK-SESSION-001",
+      "schema": "QuickVerificationSession/v1",
+      "clock": "monotonic",
+      "deadline_ms": 60000,
+      "dispatch_reserve_ms": 5000,
+      "inline_cutoff_ms_from_start": 55000,
+      "budget_policy_version": "R019-quick-session-v1",
+      "inline_admission": "estimated_duration_ms < remaining_inline_ms",
+      "reset_per_test": false,
+      "boundary_fixtures_ms": [
+        54000,
+        55000,
+        56000,
+        59000,
+        60000,
+        61000
+      ],
+      "combination_fixtures_ms": [
+        [
+          59000,
+          59000
+        ],
+        [
+          30000,
+          31000
+        ]
+      ],
+      "additional_properties": false
+    },
+    "regression": {
+      "record_id": "VIS-REGRESSION-001",
+      "request_schema": "RegressionTaskRequest/v3",
+      "result_schema": "RegressionTaskResult/v3",
+      "fork_context": false,
+      "allowed_branch": "transfer",
+      "dispatch_states": [
+        "pending",
+        "dispatched",
+        "dispatch_failed",
+        "dead_lettered"
+      ],
+      "execution_states": [
+        "not_started",
+        "running",
+        "passed",
+        "failed",
+        "infra_failed",
+        "timed_out",
+        "cancelled",
+        "incomplete_required_tests",
+        "superseded"
+      ],
+      "identity_conflict_code": "regression_task_identity_conflict",
+      "no_transfer_async_paths_must_be_absent": true,
+      "additional_properties": false
+    },
+    "provenance": {
+      "record_id": "VIS-PROVENANCE-001",
+      "attestation_schema": "ArtifactWriteAttestation/v1",
+      "attestation_fields": [
+        "schema_version",
+        "event_id",
+        "actor_id",
+        "actor_type",
+        "execution_or_review_task_id",
+        "dispatch_receipt_id",
+        "authorization_event_id",
+        "authorized_write_set_sha256",
+        "target_path",
+        "expected_owner",
+        "gate_id",
+        "gate_generation",
+        "artifact_sha256",
+        "artifact_bytes",
+        "written_at",
+        "tool_receipt_sha256",
+        "ledger_prefix_sha256"
+      ],
+      "work_ledger": ".factory/workitems/FLOW-CONTRACT-001/ledger.jsonl",
+      "review_ledger": ".factory/memory/review-ledger.jsonl",
+      "artifact_self_report_is_authority": false,
+      "append_fsync_readback_required": true,
+      "author_actor_id": "AI_EXECUTOR",
+      "author_actor_type": "ai_agent",
+      "reviewer_actor_id": "/root/p018_plan_review",
+      "reviewer_actor_type": "independent_subagent",
+      "ledger_prefix_recomputed_at_event_position": true,
+      "dispatch_task_actor_tool_receipt_link_required": true,
+      "additional_properties": false
+    },
+    "hygiene": {
+      "record_id": "VIS-WRITE-SCOPE-001",
+      "phase_manifest_schema": "HygienePhaseManifest/v2",
+      "final_receipt_schema": "FinalHygieneReceipt/v2",
+      "canonical_registry_count": 27,
+      "partitions": {
+        "transfer": {
+          "pre_T06": {
+            "present": 24,
+            "absent": 3
+          },
+          "final": {
+            "present": 27,
+            "absent": 0
+          }
+        },
+        "no_transfer": {
+          "pre_T06": {
+            "present": 21,
+            "absent": 6
+          },
+          "final": {
+            "present": 24,
+            "absent": 3
+          }
+        }
+      },
+      "partition_invariants": [
+        "ordered_by_registry",
+        "present_absent_disjoint",
+        "union_exactly_registry",
+        "counts_derived_not_declared"
+      ],
+      "final_receipt_fields": [
+        "schema_version",
+        "receipt_id",
+        "async_branch",
+        "canonical_registry_sha256",
+        "phase_manifest_sha256",
+        "validator_sha256",
+        "normalized_command",
+        "execution_id",
+        "gate_generation",
+        "present_entries",
+        "expected_present_set_root",
+        "absent_proofs",
+        "expected_absent_proof_root",
+        "present_count",
+        "absent_count",
+        "passed_count",
+        "failed",
+        "finished_at"
+      ],
+      "absence_proof_fields": [
+        "path",
+        "checked_at",
+        "absence_code",
+        "validator_execution_id"
+      ],
+      "final_receipt_outside_registry": true,
+      "additional_properties": false
+    },
+    "performance": {
+      "record_id": "VIS-PERFORMANCE-001",
+      "tasks": 10000,
+      "events": 100000,
+      "row_cap": 1000,
+      "byte_cap": 8388608,
+      "time_cap_ms": 3000,
+      "adapter_full_event_log_scan_allowed": false,
+      "additional_properties": false
+    },
+    "release_preflight_corrections": {
+      "record_id": "VIS-R019-RELEASE-PREFLIGHT-CORRECTIONS",
+      "schema": "ReleasePreflightCorrectionContract/v1",
+      "registered_release_target_count": 38,
+      "formal_docs_target_count": 37,
+      "formal_compact_source_path": ".factory/catalog/ai-sdlc-catalog.source.json",
+      "stable_builder_path": "tools/ai-sdlc-catalog/build.mjs",
+      "stable_builder_accepted_source_basenames": [
+        "ai-sdlc-catalog.source.json",
+        "ai-sdlc-catalog.R019.source.json"
+      ],
+      "stable_builder_default_source_path": ".factory/catalog/ai-sdlc-catalog.source.json",
+      "source_preimage_cas": {
+        "docs/04-project-development/03-requirements/prd.md": {
+          "version": "v4.0.0",
+          "sha256": "648db794e87d20c4b3f4d28d8ef1a3bbbddd5013a6ee386c013960e9e2b557f3",
+          "bytes": 294455
+        },
+        "docs/04-project-development/10-traceability/requirements-matrix.md": {
+          "version": "v4.0.0",
+          "sha256": "375ed02fa9044a23c05face66f7eb507648cc5d8e8041dfc859dad411d0c28ee",
+          "bytes": 33498
+        },
+        "docs/04-project-development/10-traceability/document-index.md": {
+          "version": "v2.0.0",
+          "sha256": "2bc0cb848d24b366b3389b2d5453eae3141396ca6c6e91eff94bcc29c8877638",
+          "bytes": 11304
+        }
+      },
+      "source_preimage_disposition_refs_required": true,
+      "source_preimage_disposition_ref_count": 55,
+      "source_preimage_disposition_ref_binding_fields": [
+        "disposition_id",
+        "source_path",
+        "source_sha256"
+      ],
+      "legacy_preimage_hashes_rejected": [
+        "9d66a99378ce403b3bcdf1ca0e927876a9141e1c079ce67b4f5d52344da4a1d2",
+        "8b49f54d49e7a080e43ac394c45343d3792f42ab14daf1146802d14b5950a618",
+        "656082229d9e53e8c741c9abdad07ee30d445490cc52a03d71da76fba9ff1435"
+      ],
+      "unregistered_write_result": "blocked",
+      "preimage_drift_result": "blocked"
+    }
+  },
+  "requirement_mappings": [
+    {
+      "requirement_id": "REQ-VIS-001",
+      "design_section": "§34.2",
+      "catalog_record_id": "VIS-LIFECYCLE-001",
+      "validator_case_id": "VIS-LIFECYCLE-FIELDS",
+      "formal_owner": "docs/04-project-development/03-requirements/prd.md"
+    },
+    {
+      "requirement_id": "REQ-VIS-002",
+      "design_section": "§34.1",
+      "catalog_record_id": "VIS-SNAPSHOT-001",
+      "validator_case_id": "VIS-SNAPSHOT-NINE-FIELDS",
+      "formal_owner": "docs/04-project-development/03-requirements/prd.md"
+    },
+    {
+      "requirement_id": "REQ-VIS-003",
+      "design_section": "§34.3",
+      "catalog_record_id": "VIS-DISPOSITION-001",
+      "validator_case_id": "VIS-DISPOSITION-EXCLUSIVE",
+      "formal_owner": "docs/04-project-development/03-requirements/prd.md"
+    },
+    {
+      "requirement_id": "REQ-VIS-004",
+      "design_section": "§34.4",
+      "catalog_record_id": "VIS-SNAPSHOT-001",
+      "validator_case_id": "VIS-FIXED-H",
+      "formal_owner": "docs/04-project-development/03-requirements/prd.md"
+    },
+    {
+      "requirement_id": "REQ-VIS-005",
+      "design_section": "§34.5",
+      "catalog_record_id": "VIS-EVIDENCE-001",
+      "validator_case_id": "VIS-EVIDENCE-CAS",
+      "formal_owner": "docs/04-project-development/03-requirements/prd.md"
+    },
+    {
+      "requirement_id": "REQ-VIS-006",
+      "design_section": "§34.6",
+      "catalog_record_id": "VIS-AUTHZ-001",
+      "validator_case_id": "VIS-DENY-FIELDS",
+      "formal_owner": "docs/04-project-development/03-requirements/prd.md"
+    },
+    {
+      "requirement_id": "REQ-VIS-007",
+      "design_section": "§34.7",
+      "catalog_record_id": "VIS-RESPONSE-001",
+      "validator_case_id": "VIS-RESPONSE-15-LINES",
+      "formal_owner": "docs/04-project-development/03-requirements/prd.md"
+    },
+    {
+      "requirement_id": "REQ-VIS-008",
+      "design_section": "§34.8",
+      "catalog_record_id": "VIS-QUALIFICATION-001",
+      "validator_case_id": "VIS-OLD-QUALIFICATIONS-REJECTED",
+      "formal_owner": "docs/04-project-development/03-requirements/prd.md"
+    },
+    {
+      "requirement_id": "REQ-VIS-009",
+      "design_section": "§34.9",
+      "catalog_record_id": "VIS-WRITE-SCOPE-001",
+      "validator_case_id": "VIS-WRITE-SCOPE",
+      "formal_owner": "docs/04-project-development/03-requirements/prd.md"
+    },
+    {
+      "requirement_id": "NFR-VIS-001",
+      "design_section": "§34.7",
+      "catalog_record_id": "VIS-RESPONSE-001",
+      "validator_case_id": "VIS-RESPONSE-READABILITY",
+      "formal_owner": "docs/04-project-development/03-requirements/prd.md"
+    },
+    {
+      "requirement_id": "NFR-VIS-002",
+      "design_section": "§34.1",
+      "catalog_record_id": "VIS-SNAPSHOT-001",
+      "validator_case_id": "VIS-NO-SECOND-REDUCER",
+      "formal_owner": "docs/04-project-development/03-requirements/prd.md"
+    },
+    {
+      "requirement_id": "NFR-VIS-003",
+      "design_section": "§34.5-§34.9",
+      "catalog_record_id": "VIS-PROVENANCE-001",
+      "validator_case_id": "VIS-SECURITY-MUTATIONS",
+      "formal_owner": "docs/04-project-development/03-requirements/prd.md"
+    },
+    {
+      "requirement_id": "NFR-VIS-004",
+      "design_section": "§34.10",
+      "catalog_record_id": "VIS-PERFORMANCE-001",
+      "validator_case_id": "VIS-PERFORMANCE-FIXTURE",
+      "formal_owner": "docs/04-project-development/03-requirements/prd.md"
+    },
+    {
+      "requirement_id": "REQ-AI-WORKFLOW-008",
+      "design_section": "§34.8",
+      "catalog_record_id": "VIS-QUALIFICATION-001",
+      "validator_case_id": "VIS-HUMAN-GATES",
+      "formal_owner": "docs/04-project-development/03-requirements/prd.md"
+    },
+    {
+      "requirement_id": "REQ-AI-WORKFLOW-042",
+      "design_section": "§34.1",
+      "catalog_record_id": "VIS-SNAPSHOT-001",
+      "validator_case_id": "VIS-PROGRESS-SNAPSHOT",
+      "formal_owner": "docs/04-project-development/03-requirements/prd.md"
+    },
+    {
+      "requirement_id": "REQ-AI-WORKFLOW-045",
+      "design_section": "§34.5",
+      "catalog_record_id": "VIS-EVIDENCE-001",
+      "validator_case_id": "VIS-EVIDENCE-BINDING",
+      "formal_owner": "docs/04-project-development/03-requirements/prd.md"
+    },
+    {
+      "requirement_id": "REQ-AI-WORKFLOW-046",
+      "design_section": "§34.3",
+      "catalog_record_id": "VIS-DISPOSITION-001",
+      "validator_case_id": "VIS-TASK-STATE",
+      "formal_owner": "docs/04-project-development/03-requirements/prd.md"
+    },
+    {
+      "requirement_id": "REQ-AI-WORKFLOW-047",
+      "design_section": "§34.7",
+      "catalog_record_id": "VIS-RESPONSE-001",
+      "validator_case_id": "VIS-REPLY-STATE",
+      "formal_owner": "docs/04-project-development/03-requirements/prd.md"
+    },
+    {
+      "requirement_id": "REQ-AI-WORKFLOW-054",
+      "design_section": "§34.9",
+      "catalog_record_id": "VIS-PROVENANCE-001",
+      "validator_case_id": "VIS-WRITER-PROVENANCE",
+      "formal_owner": "docs/04-project-development/03-requirements/prd.md"
+    },
+    {
+      "requirement_id": "REQ-ASYNC-015",
+      "design_section": "§34.10",
+      "catalog_record_id": "VIS-QUICK-SESSION-001",
+      "validator_case_id": "VIS-ASYNC-BRANCH",
+      "formal_owner": "docs/04-project-development/03-requirements/prd.md"
+    },
+    {
+      "requirement_id": "REQ-ASYNC-016",
+      "design_section": "§34.7",
+      "catalog_record_id": "VIS-RESPONSE-001",
+      "validator_case_id": "VIS-RESPONSE-15-LINES",
+      "formal_owner": "docs/04-project-development/03-requirements/prd.md"
+    }
+  ],
+  "test_seeds": {
+    "position_field_mutations": [
+      "missing_each_of_9",
+      "drift_each_of_9",
+      "adapter_event_log_read",
+      "adapter_reduce",
+      "adapter_gate_advance"
+    ],
+    "lifecycle_mutations": [
+      "zero_active",
+      "multiple_active",
+      "inactive",
+      "hash_drift",
+      "stage_map_drift",
+      "permission_denied",
+      "local_plan_changes_denominator"
+    ],
+    "disposition_mutations": [
+      "all_selector_boolean_combinations",
+      "zero_match",
+      "multiple_match",
+      "fake_review_wait",
+      "fake_human_wait"
+    ],
+    "renderer_mutations": [
+      "line_count",
+      "line_order",
+      "duplicate_label",
+      "missing_label",
+      "strict_nine_line_parser"
+    ],
+    "evidence_mutations": [
+      "each_execution_identity_field",
+      "each_outcome_field",
+      "old_evidence",
+      "retry_attempt",
+      "evidence_time",
+      "wrong_cas"
+    ],
+    "security_mutations": [
+      "secret_text",
+      "length_side_channel",
+      "hash_side_channel",
+      "count_side_channel",
+      "ordering_side_channel",
+      "error_side_channel",
+      "timing_side_channel",
+      "fake_writer"
+    ],
+    "budget_mutations": [
+      "54s",
+      "55s",
+      "56s",
+      "59s",
+      "60s",
+      "61s",
+      "59s+59s",
+      "30s+31s",
+      "cancel_cost",
+      "transaction_cost",
+      "reply_cost",
+      "clock_drift"
+    ],
+    "hygiene_mutations": [
+      "wrong_branch",
+      "swap_async_path",
+      "duplicate_path",
+      "missing_path",
+      "static_gate_only_partition",
+      "post_receipt_drift"
+    ],
+    "release_preflight_corrections": [
+      "compact_source_registered_exactly_once",
+      "stable_builder_accepts_formal_and_candidate_source_names",
+      "three_current_formal_preimages_bound_by_hash_bytes_and_version"
+    ]
+  },
+  "ui": {
+    "applicable": false,
+    "reason": "This compact source defines machine contracts and does not create a product interface.",
+    "alternative_acceptance": "schema, truth-table, renderer byte order, identity and branch mutation tests"
+  },
+  "additional_properties": false
+}

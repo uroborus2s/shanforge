@@ -40,4 +40,4 @@
 
 ## 临时材料
 
-临时草稿、验证输出、review 输入和实现报告写入 `.factory/workitems/<WORKITEM-ID>/evidence/`、`reports/`、`reviews/` 或 `.factory/pm/generated/`。
+临时草稿、验证输出、review 输入和实现报告分别写入 `.factory/workitems/<WORKITEM-ID>/drafts/`、`evidence/`、`reviews/` 或 `reports/`。只读 HTML 由固定项目快照命令写入 `.factory/cache/site/current/`，不作为文档事实。

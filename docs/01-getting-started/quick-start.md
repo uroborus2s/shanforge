@@ -1,5 +1,27 @@
 # 快速开始
 
+## 文档控制
+
+| 项目 | 内容 |
+|---|---|
+| 文档 ID | `DOC-QUICK-START-001` |
+| 正式版本 | `v1.0.0` |
+| 来源候选 | `TASK-DESIGN-001-R019` |
+| 发布事务 | `DESIGN-RELEASE-TX-R019-G001` |
+| 负责人 | `HUMAN_DEVELOPMENT_EXECUTOR` |
+| 修改 / 审核 / 批准 | `uroborus` / `uroborus` / `uroborus` |
+| 状态 | 已批准并生效 |
+| 上游 | `project-overview`、`development-setup` |
+| 下游 | `user-guide`、`application-development` |
+
+## 文档职责
+
+- 允许保存：最小安装启动；常用验证入口；失败时去向。
+- 禁止保存：完整开发手册；临时命令输出；环境密钥。
+- 主要读者：使用者、开发者、维护者。
+
+## 正式内容
+
 ## 1. 先看什么
 
 第一次使用山海工枢，优先阅读：
@@ -7,8 +29,8 @@
 1. [项目概览](./project-overview.md)
 2. [用户指南](../02-user-guide/user-guide.md)
 3. [应用开发](../03-developer-guide/application-development.md)
-4. [项目章程](../04-project-development/01-governance/project-charter.md)
-5. [产品需求文档](../04-project-development/03-requirements/prd.md)
+4. [项目章程](./project-charter.md)
+5. [产品需求文档](../04-product/prd.md)
 
 ## 2. 最小启动步骤
 
@@ -23,3 +45,9 @@
 ## 4. 一条最实用的使用原则
 
 先补正式文档，再推进实现；先修事实源，再修摘要和派生入口。
+
+## 正式版本历史（仅已发布）
+
+| 版本 | 日期 | 变更 | 修改人 | 审核 | 批准 |
+|---|---|---|---|---|---|
+| `v1.0.0` | 2026-07-18 | 基于 `TASK-DESIGN-001-R019` 正式落档 | `uroborus` | `uroborus` | `uroborus` |

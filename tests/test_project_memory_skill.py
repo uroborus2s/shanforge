@@ -24,10 +24,10 @@ def test_project_memory_skill_declares_session_recovery_scope() -> None:
     assert "若已有同一 work item 的新鲜会话卡，复用它" in content
     assert "禁止默认读取阶段 `docs/` 长文" in content
     assert "旧会话脚本只作为已迁移来源记录" in content
-    assert (
-        "不得把旧中心命令、动作注册表或全局脚本当成新流程主控"
-        in content
-    )
+    assert "不得把旧中心命令、动作注册表或全局脚本当成新流程主控" in content
+    assert "不用于无项目影响的 `direct_answer` 或 `lightweight_analysis`" in content
+    assert "只有项目状态查询、任务延续、上下文恢复或项目化流程" in content
+    assert "不得先读 memory 再判断请求是否简单" in content
 
 
 def test_project_memory_references_capture_migrated_session_rules() -> None:
@@ -91,23 +91,24 @@ def test_project_memory_declares_fact_source_priority_and_summary_limits() -> No
     content = read_skill_file("SKILL.md")
     relevance_gate = read_skill_file("references/relevance-gate.md")
     update_checklist = read_skill_file("references/current-state-update-checklist.md")
-    doc_map = (REPO_ROOT / ".factory" / "memory" / "doc-map.md").read_text(
-        encoding="utf-8"
-    )
+    doc_map = (REPO_ROOT / ".factory" / "memory" / "doc-map.md").read_text(encoding="utf-8")
 
     for phrase in (
         "事实源优先级",
         "正式文档和 work item ledger 高于 memory summary",
         "summary 不复制完整正文",
-        "PM generated 非事实源",
-        "不得把 `.factory/pm/generated/status-dashboard.html` 作为唯一事实源",
+        "SQLite、HTML 和 cache 都是可重建投影",
+        (
+            "不得把 `.factory/index/project-knowledge.sqlite3` 或 "
+            "`.factory/cache/site/current/index.html` 作为正式事实源"
+        ),
     ):
         assert phrase in content
 
     for phrase in (
         "summary 不复制完整正文",
         "summary 与正式文档冲突时，以正式文档和 ledger 为准",
-        "PM generated 非事实源",
+        "SQLite、HTML 和 cache 都是非事实投影",
     ):
         assert phrase in relevance_gate
         assert phrase in update_checklist
@@ -115,10 +116,59 @@ def test_project_memory_declares_fact_source_priority_and_summary_limits() -> No
     for phrase in (
         "事实源优先级",
         "正式文档和 work item ledger 高于 memory summary",
-        "PM generated 非事实源",
+        "SQLite、HTML 和 cache 是可重建投影",
         "不作为事实源",
     ):
         assert phrase in doc_map
+
+
+def test_completion_output_persistence_contract_is_explicit() -> None:
+    memory = read_skill_file("SKILL.md")
+    controller = (REPO_ROOT / "skills" / "using-shanforge" / "SKILL.md").read_text(encoding="utf-8")
+    contract = (REPO_ROOT / "docs" / "05-design" / "workflow-execution-design.md").read_text(
+        encoding="utf-8"
+    )
+    factory_readme = (REPO_ROOT / ".factory" / "README.md").read_text(encoding="utf-8")
+
+    for phrase in (
+        "完成输出与持久化契约",
+        "当前会话可见性协议",
+        "`direct_answer` / `lightweight_analysis`",
+        "默认不落盘、不写 ledger、不写 memory",
+        "写 work item ledger、必要 evidence/report",
+        "当前会话必须能看见收口状态",
+        "子 agent 或自循环完成后不得只静默写文件",
+        "任务开始",
+        "阶段切换",
+        "文件编辑前",
+        "关键命令前后",
+        "阻塞 gate",
+    ):
+        assert phrase in controller
+
+    for phrase in (
+        "写入边界",
+        "状态变化、gate 切换、上下文压缩恢复、关闭前验证或提交前检查",
+        "outputs / evidence / review / report 路径索引",
+        "命令全文、临时推理、当前会话答复、子 agent 完整输出和正式文档正文不得写入 memory",
+    ):
+        assert phrase in memory
+
+    for phrase in (
+        "统一任务包",
+        "落盘规则",
+        "Review 不能替代 verification",
+        "Verification 不能替代 human confirmation",
+        "缺 evidence、implementer report、review input package 或 ledger event 时",
+    ):
+        assert phrase in contract
+
+    for phrase in (
+        "破坏性迁移规则",
+        "只保留最新正式资产和正式内容",
+        "执行审计事实",
+    ):
+        assert phrase in factory_readme
 
 
 def test_project_memory_openai_metadata_is_chinese() -> None:

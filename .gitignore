@@ -28,6 +28,12 @@ dist/
 # Local runtime state
 *.log
 tmp/
+.factory/index/
+.factory/cache/
+.factory/runtime/project-state-sync.sqlite3*
+.factory/pm/generated/
+*.sqlite3-wal
+*.sqlite3-shm
 
 # Local docs/workspace settings
 docs/.obsidian/

@@ -1,144 +1,115 @@
-# PM 项目状态查询与看板渲染
+# 项目状态查询与只读站点
 
-本文件供 `using-shanforge` 在人类要求查看项目状态、PM 看板、阶段/任务进度、风险、变更、审批或交付状态时读取。它定义查询与展示合同，不是事实文件，也不是运行时 renderer 的替代实现。
+本文件供 `using-shanforge` 在用户要求查看项目状态、进度、PM 看板、需求、设计、任务、风险、变更或交付详情时读取。它定义会话调用合同，不保存项目事实，也不替代固定 CLI 和 renderer。
 
-## 核心结论
+## 核心合同
 
-- `.factory/pm/` 不是全部事实源；它承载 PM 管理事实和周期性记录。
-- 项目实时状态不得由 AI 在会话里临时扫描文件、自由聚合或计算。
-- 固定代码从登记来源捕获同一不可变高水位 `H`，生成、验证、授权并渲染同一快照。
-- AI 只形成意图候选、核对结果并给出有证据的专业检查；注册工具由确定性策略系统选择和授权。
-- `skills/using-shanforge/references/status-dashboard-template.html` 是展示合同；生成页不是事实源。
+- 正式产品事实在 Git 管理的 `docs/`、代码和测试中；执行事实在 work item ledger、evidence、report 和 review 中。
+- `.factory/index/project-knowledge.sqlite3` 是当前知识投影；`.factory/cache/site/current/` 是最后有效的只读站点。两者可删除重建，均不提交 Git。
+- AI 只识别用户要看的范围和授权画像。AI 不临时扫描文件计算进度，不计算完成率、状态、风险、权限或上线结论，不拼装 HTML。
+- 固定代码按 source registry 刷新索引、投影 PM 十要素、生成多页面静态站点并返回 `ProjectCommandReceipt/v1`。
+- 输入指纹未变化时必须复用最后有效站点；不得为了“看一下项目”重复生成相同 HTML。
+- 索引、权限、来源或定位异常时失败关闭；不得回退到 AI 手工汇总后声称“实时”。
 
-## Excel 样例的一次性角色
+## 标准会话调用
 
-用户提供的 Excel 只用于一次性提取页面名称、管理分区、列语义和阅读顺序，并把这些设计结果固化进 HTML 模板与 slot 合同。完成转换后：
+在仓库根目录执行：
 
-- 标准项目状态查询不得打开、解析或依赖原始 `.xls` / `.xlsx` 文件。
-- Excel 样例不是事实源、运行时输入、模板数据库或每次查询的前置步骤。
-- renderer 每次只消费同一 `AuthorizedProgressSnapshot/v1` 和已固化的 HTML 模板。
-- 即使用户另行要求 XLSX 输出，也由代码从同一快照生成新文件，不回读本次设计样例。
+```bash
+PYTHONPATH=src uv run python -m settings.composition.project_knowledge project snapshot --html --json
+```
 
-## 事实来源边界
+返回数据至少包括：
 
-| 来源 ID | 内容 | 仓内主要承载位置 |
+- `site_path`：最后有效入口，标准位置为 `.factory/cache/site/current/index.html`。
+- `cache_hit`：`true` 表示输入没有变化，直接复用；`false` 表示发布了新 build。
+- `generation_id` 或等价代次标识。
+- `input_token`、页面数、授权画像和只读标志。
+- 索引检查、重建或失败诊断。
+
+可选参数：
+
+| 参数 | 使用条件 | 作用 |
 |---|---|---|
-| `SRC-PROJECT-MASTER-001` | 项目身份、负责人和稳定项目资料 | `.factory/project.json`、经批准的项目资料 |
-| `SRC-FORMAL-DOC-MAP-001` | `doc-map` 指向的正式需求、设计和交付版本 | `docs/` 与 `.factory/memory/doc-map.md` 的受控索引 |
-| `SRC-WORKITEM-LEDGER-001` | WorkItem、TaskCard、状态、评审和人工 Gate 事件 | `.factory/workitems/*/ledger.jsonl`、`reviews/` |
-| `SRC-PM-EVENT-001` | 风险、里程碑、沟通、会议、状态报告、变更和总结 | `.factory/pm/` 的管理事实与事件 |
-| `SRC-TASK-EVIDENCE-001` | 测试、构建、评审和任务证据 | `.factory/workitems/*/evidence/`、`reports/` |
-| `SRC-DEPLOYMENT-EVENT-001` | 发布、部署、回滚和健康证据 | 经登记的交付/部署事件 |
+| `--profile local-owner` | 默认本地项目负责人 | 生成本地 owner 只读视图 |
+| `--profile shared-restricted` | 用户明确要求共享脱敏视图 | 只输出该画像允许的字段 |
+| `--check` | 怀疑索引不完整、损坏或过期 | 在生成前执行只读完整性检查 |
+| `--rebuild` | 用户明确要求冷重建，或诊断证明当前索引需要重建 | 从登记事实原子替换 SQLite，再生成站点 |
 
-`.factory/pm/dashboard.md` 是方便人类和 AI 浏览的 PM 摘要，不替代 work item ledger、正式文档、evidence 或部署事件。`.factory/pm/generated/` 只允许存放可再生成的展示结果；生成页不是事实源，不能反向更新项目状态。
+普通查看不得默认使用 `--rebuild`。第一版 CLI 不提供 `--open` 或 `--serve`；会话直接返回本地 `index.html` 链接即可。
 
-## 会话中的固定九步流程
+## 定向查询
 
-标准总览最多一次主工具调用；只有主结果返回合同登记的缺失、冲突、过期或异常标志时，才允许一次补充诊断调用，并记录原因。
+只有用户需要解释某个具体对象，或站点摘要不足以回答时，才按需调用：
 
-1. **AI 意图候选**：AI 从用户原话、当前项目和允许的会话上下文形成 `IntentCandidate`，只表达候选意图、项目、范围、时间、格式、深度和歧义。
-2. **确定性计划**：策略系统校验字面参数、默认值、认证主体、权限和注册表，输出唯一 `ToolCallPlan/v1`；真正影响唯一计划的歧义才追问一个最小问题。
-3. **投影与截止点**：投影器捕获不可变高水位 `H`，检查 checkpoint、来源链和兼容性；查询不持久化追平，不改变项目业务状态。
-4. **一次注册查询**：注册工具和只读查询层按计划读取同一 `H`，返回完整验证的 `ProjectProgressSnapshot/v2` 和 `ToolExecutionReceipt/v1`。
-5. **权限过滤**：权限系统从受信会话 principal 产生 `AuthorizedProgressSnapshot/v1`；无权限字段在交给 AI 和 renderer 前已省略或脱敏。
-6. **固定代码渲染**：renderer 只消费同一获授权快照和已固化模板，生成固定文本、会话 HTML、独立 HTML/按需 XLSX 输出和 `RenderManifest/v2`；不再次读取事实或 Excel 样例。
-7. **逐字段核对**：核对器用 `ReconciliationResult/v2` 比较区、行、字段、来源、快照和授权摘要；任何不一致都失败关闭。
-8. **AI 专业检查**：AI 只基于核对通过的摘要形成 `AIInspectionResult/v1`，检查范围、新鲜度、真实活动、审批、阻塞、逾期、风险、完成和上线证据。
-9. **会话装配**：`SessionResponseAssembly/v1` 先逐字节放置代码事实看板，再放置独立 AI 检查；禁止改字、重排、补写或覆盖事实。
-
-## AI 与代码边界
-
-- AI 不计算完成率。
-- AI 不计算状态、风险等级、偏差、逾期、权限或上线健康。
-- AI 不拼装 HTML、Excel 或事实摘要。
-- AI 不覆盖代码事实，也不把建议写进事实看板。
-- AI 可以说明用户意图、工具选择、证据限制和专业建议。
-- 每条 AI 发现必须给出严重度、事实陈述、证据引用、影响、建议动作和未验证假设。
-
-会话响应固定分为两个区块：
-
-1. **事实看板**：固定代码生成并通过核对，保持原字节。
-2. **AI 专业检查**：独立建议区，明确不是项目事实。
-
-## 看板信息架构
-
-HTML 固定为第一页项目总览加十个管理页；页面结构已从一次性参考样例固化，不在查询时回读样例：
-
-| 顺序 | 页面 | 固定 ID |
-|---:|---|---|
-| 0 | 项目总览 | `page-overview` |
-| 1 | 项目成员 | `module-team` |
-| 2 | 项目策划 | `module-charter` |
-| 3 | WBS | `module-wbs` |
-| 4 | 进度计划 | `module-schedule` |
-| 5 | 风险管理 | `module-risks` |
-| 6 | 沟通计划 | `module-communications` |
-| 7 | 会议与行动 | `module-meetings` |
-| 8 | 状态报告 | `module-status-reports` |
-| 9 | 变更管理 | `module-changes` |
-| 10 | 项目总结 | `module-closure` |
-
-第一页首屏只显示：项目身份、阶段、固定 `H`、截止时间、验证状态；有效任务总数、完成数、完成率、真正进行中、待审批、阻塞/逾期和已上线；互斥状态分布；真正进行中、待审批、近期完成、已上线、阻塞/逾期和下一里程碑各一行摘要。目录和最多五项明细从首屏下方开始。
-
-每个后续管理页必须显示数据条数、缺失项、冲突项、截止时间、来源摘要和无数据原因，并支持只读筛选、稳定排序、来源展开和键盘操作。
-
-## 模板 slot
-
-总览 scalar slot：
-
-```text
-PROJECT_NAME PROJECT_ID STAGE_NAME AS_OF_H AS_OF_TIME PROJECT_TIMEZONE
-VALIDATION_STATUS VALIDATION_MESSAGE SNAPSHOT_ID SNAPSHOT_SHA256_SHORT
-SOURCE_ROOT_SHA256_SHORT AUTHORIZATION_DIGEST_SHORT RULE_VERSION RENDER_DISPOSITION
-TOTAL_TASKS COMPLETED_TASKS COMPLETION_RATE ACTIVE_TASKS PENDING_APPROVALS
-BLOCKED_OR_OVERDUE_TASKS DEPLOYED_DELIVERABLES ACTIVE_SUMMARY APPROVAL_SUMMARY
-RECENT_COMPLETION_SUMMARY DEPLOYMENT_SUMMARY BLOCKED_OVERDUE_SUMMARY
-NEXT_MILESTONE_SUMMARY ERROR_CODE AFFECTED_PATHS RECOVERY_ACTION REDACTION_NOTICE
+```bash
+PYTHONPATH=src uv run python -m settings.composition.project_knowledge project find '<关键词>' --json
+PYTHONPATH=src uv run python -m settings.composition.project_knowledge project show '<entity_id>' --json
+PYTHONPATH=src uv run python -m settings.composition.project_knowledge project trace '<entity_id>' --depth 2 --json
+PYTHONPATH=src uv run python -m settings.composition.project_knowledge project context '<entity_id>' --max-files 4 --max-bytes 32768 --json
 ```
 
-总览 fragment slot：`STATUS_DISTRIBUTION_SEGMENTS`、`STATUS_DISTRIBUTION_LEGEND`、`OVERVIEW_DETAIL_ROWS`。
+- `find` 找稳定实体 ID，不把文件名或标题文本当主键。
+- `show` 返回单个实体、来源和 semantic locator。
+- `trace` 返回已声明的强关系，不用标题相似度猜依赖。
+- `context` 按 locator 精确切片，受 4 文件、32 KiB 预算约束；定位不唯一时零文件失败。
 
-十模块前缀依次为 `TEAM`、`CHARTER`、`WBS`、`SCHEDULE`、`RISKS`、`COMMUNICATIONS`、`MEETINGS`、`STATUS_REPORTS`、`CHANGES`、`CLOSURE`。每个前缀固定拥有：
+AI 先查索引，再按需读取 receipt 指向的最小原文。不得先散读 `docs/` 或 `.factory/workitems/`。
 
-```text
-COUNT MISSING_COUNT CONFLICT_COUNT AS_OF_TIME SOURCE_DIGEST_SHORT
-EMPTY_REASON ROWS SOURCE_DETAILS
-```
+## 来源与更新边界
 
-### slot 类型和转义
+source registry 是允许读取的来源清单。固定提取器支持：
 
-- `scalar_text`：renderer 做 HTML 文本节点转义；禁止进入 URL、style、script 或未登记属性。
-- `scalar_decimal`：代码先规范化十进制，再按文本节点转义；模板和脚本不得重算。
-- `enum_token`：先按封闭枚举校验，再写入登记的文本和 `data-*` 属性。
-- `render_fragment`：只能由固定 renderer 从类型化 collection 逐项生成；所有业务值按上下文转义；禁止原始 script/style、事件属性、任意 URL 或 AI/调用方 HTML。
+- Markdown：文档控制字段、稳定标题路径、章节内容 Hash。
+- JSON：JSON Pointer 和声明关系。
+- JSONL：稳定事件 UID；缺 UID 记录诊断，不用行号充当身份。
+- Python：AST 模块、类、函数和代码位置。
+- Git：当前提交与受控文件身份。
 
-## 验证状态和输出处置
+当正式文档、代码、测试、ledger 或受控 memory 发生变化时，可以通过同一快照命令增量更新索引和页面。SQLite 不保存第二份业务历史；历史仍由 Git 与权威 ledger 管理。
 
-`RENDER_DISPOSITION` 只允许：
+## 页面信息架构
 
-- `FULL`：验证完整，展示全部获授权业务区。
-- `PARTIAL`：只用于 `incomplete` 且合同明确允许部分输出；显示缺失与脱敏说明。
-- `ERROR_ONLY`：`conflict|stale|failed` 必须使用；只显示身份、H、截止时间、验证、错误码、受影响路径和恢复动作，源码不得包含旧业务值。
+静态站点至少提供：
 
-可见业务看板中的模块 `CONFLICT_COUNT` 必须为 `0`。非零表示资格冲突，必须进入 `ERROR_ONLY`，不能把冲突业务详情混入 `PARTIAL`。
+- 项目总览。
+- 需求、设计、任务、缺陷、代码、文档、质量、版本和报告。
+- PM 十要素：项目章程、团队与干系人、范围/WBS/进度、风险、沟通、会议/决策、行动项、状态报告、变更、交付/收尾。
 
-## 权限与安全
+所有业务对象采用稳定列表页和独立详情页。详情页必须有清晰返回按钮；不得使用 drawer、modal 或侧边详情栏承载完整详情。任务说明优先使用人类可读的目标、当前状态、下一步、来源和关系，不直接把内部事件码当正文。
 
-- 权限过滤先于 renderer 和 AI。
-- 联系方式、财务、风险、变更和审批按字段权限省略、脱敏或显示“无权限”；禁止用 0 代替隐藏金额。
-- HTML 源码、嵌入内容和只读交互脚本不得包含越权明文。
-- 模板不得读取 `.factory/pm/`、work item ledger、Markdown、JSONL、cookie、local storage 或网络。
-- 模板脚本只可筛选/排序已渲染行和展开来源，不计算业务事实，不执行项目写入。
+## 只读与安全
 
-## 输出与失败语义
+- 页面不得提供新增、编辑、删除、审批、状态切换、提交或发布入口。这些变更只能通过用户与 AI 会话进入正式 workflow。
+- renderer 只消费 SQLite 的已验证页面 DTO；不读取 cookie、local storage、网络或原始 Excel。
+- 业务值必须 HTML 转义；站点不得包含越权明文、密钥或未登记来源。
+- `shared-restricted` 页面只能包含已脱敏字段。权限不明时不得生成宽松结果。
+- 查看、查询和渲染不得创建 WorkItem、修改正式事实、同步 memory 或提交 Git。
 
-- 客户端支持时，默认直接返回会话 HTML 事实看板；否则返回固定文本摘要和独立 HTML 入口。
-- 用户明确要求独立 HTML 时，固定 renderer 可以使用 `status-dashboard-template.html` 写入 `.factory/pm/generated/status-dashboard.html`。
-- 查询、渲染和查看不得创建 WorkItem、修改事实、更新 memory、提交 Git 或生成永久归档。
-- 工具未注册、投影未就绪、来源链损坏、快照过期、权限不明或跨格式不一致时返回稳定错误；不得由 AI 退回手工扫描并声称“实时”。
+## PM 十要素的实现
 
-## 当前实现边界（2026-07-21）
+十要素不是十份手工维护文档，也不是 `.factory/pm/` 第二套事实。它们由固定 137 字段映射从同一代次投影到 10 张 SQLite PM 表，再由 renderer 生成列表和详情页。
 
-当前代码已存在 `ProjectStatusAPI` / `ProjectStatusService`、GET route 声明、固定 H 上下文、九字段位置绑定、权限过滤、disposition 和 15 行 `ProjectStatusResponse/v4` renderer。默认本地 composition 仍使用固定的 in-memory 项目状态夹具。
+字段只有四种显式状态：`known`、`unknown`、`not_registered`、`not_applicable`。页面只展示投影结果，不在浏览器中推导业务值。没有来源的要素显示“未登记”或“不适用”及原因，不创建空文档补位。
 
-以下能力尚不能按事实宣称已交付：会话中的已注册项目状态工具、六类来源的完整生产投影、十区/137 字段获授权快照、总览加十页生产 HTML renderer、可选 XLSX 输出 renderer、`RenderManifest/v2` / `ReconciliationResult/v2` 跨格式核对和正式性能门。因此旧的“AI 读取文件后填模板”不是实时状态实现；本 reference 和 HTML 只完成查询/展示契约校准，不冒充生产 renderer 已完成。
+## 缓存与维护
+
+- `current` 永远指向最后成功发布的 build；失败构建不得覆盖它。
+- 页面按 fingerprint 增量复用；静态文件只保留当前 build、一个回滚 build和 legal hold 项。
+- 清理前运行 `project maintain --dry-run --json`；只有已登记 cache 才能执行 `--apply`。
+- `.factory/index/`、`.factory/cache/`、`.factory/runtime/project-state-sync.sqlite3*` 由 `.gitignore` 排除。
+- 未授权 Git 提交时，后台同步以 `commit_not_authorized` 正常收口，不把派生物提交到仓库。
+
+## 失败语义
+
+| 情况 | 行为 |
+|---|---|
+| 输入未变化 | 返回 `cache_hit=true` 和最后有效入口，不重写页面 |
+| 首次使用且无索引 | 自动冷重建并发布第一版站点 |
+| 索引损坏或原子替换存在活动 reader | 返回稳定失败码；保留旧索引和旧站点 |
+| locator 为 0 个或多个候选 | 定向读取失败，读取文件数为 0 |
+| source registry 越界、软链接越界或来源 Hash 不一致 | 拒绝读取并记录诊断 |
+| 构建中途失败 | 不切换 `current`，继续返回最后成功版本并报告 stale/failed |
+| 授权画像未知 | 失败关闭，不生成 owner 全量视图 |
+
+不新增单独的 `project-management` skill。项目状态页是 `using-shanforge` 的按需只读输出，固定代码负责事实计算与 HTML，工作 skill 仍只处理各自专业任务。

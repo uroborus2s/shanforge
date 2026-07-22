@@ -1,6 +1,6 @@
 ---
 name: project-memory
-description: 每次 Shanforge 会话恢复、上下文压缩后继续工作、同步 .factory/memory 或 work item ledger 时使用；限制读取范围、生成会话卡、写入 ledger，并防止重复执行。
+description: 项目状态查询、任务延续、会话恢复、上下文压缩后继续工作，或同步 .factory/memory / work item ledger 时使用；限制读取范围、生成会话卡、写入 ledger，并防止重复执行。不用于无项目影响的直接回答或轻量分析。
 ---
 
 # 项目记忆
@@ -15,12 +15,20 @@ description: 每次 Shanforge 会话恢复、上下文压缩后继续工作、�
 - 需要更新 `.factory/memory/`、会话卡或 work item ledger。
 - 用户提到继续、恢复、同步记忆、ledger、current-state、work item 状态。
 
+## 排除与进入条件
+
+- 本 skill 不用于无项目影响的 `direct_answer` 或 `lightweight_analysis`。
+- 只有项目状态查询、任务延续、上下文恢复或项目化流程才能进入本 skill。
+- 入口必须先由当前消息完成处理模式判定；不得先读 memory 再判断请求是否简单。
+- 若被错误路由到快速通道请求，立即返回调用方，不读取 `.factory/memory/`，不写 ledger 或会话卡。
+
 ## 目标
 
 - 先复用已有会话卡和压缩记忆，再判断还需要哪些 summary。
 - 默认只读与当前任务相关的文件。
 - 输出压缩后的会话卡，并写清本轮排除的背景文件。
 - 明确当前阶段、当前 work item、待决事项和禁止动作。
+- 把项目整体进度、当前任务、停止原因和唯一下一动作放在恢复输出头部。
 - 写入会话 ledger 或 work item ledger，避免重复执行已完成动作。
 - 同步 `.factory/memory/current-state.md`、`tasks.summary.md`、`tests.summary.md` 等摘要时，只写已观察到的事实。
 
@@ -34,18 +42,28 @@ description: 每次 Shanforge 会话恢复、上下文压缩后继续工作、�
 
 ## 默认流程
 
-1. 先看当前对话是否已有可用会话卡、当前阶段、work item 和禁止动作。
-2. 若已有同一 work item 的新鲜会话卡，复用它；不要重复读取源 summary。
-3. 若缺少会话卡，读取 `.factory/memory/agent-session.md`；只在它缺失、过期或与当前任务不匹配时继续读取。
-4. 仍缺关键事实时，按最小集合读取 `.factory/memory/runtime-brief.md` 和 `.factory/memory/current-state.md`。
-5. 只有需要定位正式事实源时，才读取 `.factory/memory/doc-map.md`。
-6. 只有当前任务需要角色协作事实时，才读取 `.factory/memory/role-charter.project.md`。
-7. 只有需要项目元数据时，才读取 `.factory/project.json`。
-8. 按 `references/relevance-gate.md` 判断是否读取任务相关 summary。
-9. 需要实现前，再按项目规则回源技术设计事实。
-10. 读取 work item ledger；`status=approved|done|passed` 且 `idempotency_key` 相同的动作不得重复执行。
-11. 输出压缩会话卡：当前阶段、work item、已读上下文、明确排除项、禁止动作和待决事项。
-12. 需要落盘时，按 references 模板更新会话卡、ledger 和 `.factory/memory/`。
+1. 确认调用方已把请求判定为项目状态查询、任务延续、上下文恢复或项目化流程；否则按“排除与进入条件”退出。
+2. 先看当前对话是否已有可用会话卡、当前阶段、work item 和禁止动作。
+3. 若已有同一 work item 的新鲜会话卡，复用它；不要重复读取源 summary。
+4. 若缺少会话卡，读取 `.factory/memory/agent-session.md`；先读取当前状态头部，再把后续带日期条目视为历史。只在会话卡缺失、过期或与当前任务不匹配时继续读取。
+5. 仍缺关键事实时，按最小集合读取 `.factory/memory/runtime-brief.md` 和 `.factory/memory/current-state.md`。
+6. 只有需要定位正式事实源时，才读取 `.factory/memory/doc-map.md`。
+7. 只有当前任务需要角色协作事实时，才读取 `.factory/memory/role-charter.project.md`。
+8. 只有需要项目元数据时，才读取 `.factory/project.json`。
+9. 按 `references/relevance-gate.md` 判断是否读取任务相关 summary。
+10. 需要实现前，再按项目规则回源技术设计事实。
+11. 读取 work item ledger；以最新有效事件核对当前 Gate，`status=approved|done|passed` 且 `idempotency_key` 相同的动作不得重复执行。
+12. 输出压缩会话卡：项目整体进度、当前任务、已完成、正在执行、停止原因、唯一下一动作、已读上下文、明确排除项和禁止动作。
+13. 需要落盘时，按 references 模板更新会话卡、ledger 和 `.factory/memory/`。
+
+## 当前态恢复不变量
+
+- 当前状态头部优先于历史条目；正式文档和 ledger 仍是更高事实源。
+- 历史条目中的“当前”“下一步”不得覆盖头部，只表示记录发生时的状态。
+- 必须按最新 ledger 事件确认 Gate 是否仍有效；不得恢复已撤销、已取代或已关闭的 Gate。
+- 会话卡头部必须包含项目整体进度、当前任务、停止原因和唯一下一动作。
+- 当前任务已完成但项目未完成时，必须分别记录任务完成态与项目剩余步骤。
+- 没有活动任务、人工 Gate 或后台动作时，明确写“当前无活动任务”“停止原因：无”，不要伪造等待状态。
 
 ## 读取门
 
@@ -61,8 +79,17 @@ description: 每次 Shanforge 会话恢复、上下文压缩后继续工作、�
 - `docs/` 承载人类可审计正式事实。
 - `.factory/workitems/<ID>/ledger.jsonl`、`evidence/`、`reviews/` 和 `reports/` 承载执行事实。
 - `.factory/memory/*.summary.md` 只写 ID、状态、当前 gate、关键约束和索引；summary 不复制完整正文。
-- PM generated 非事实源；不得把 `.factory/pm/generated/status-dashboard.html` 作为唯一事实源。
-- summary 或 PM view 与正式文档、ledger 冲突时，以正式文档和 ledger 为准。
+- SQLite、HTML 和 cache 都是可重建投影；不得把 `.factory/index/project-knowledge.sqlite3` 或 `.factory/cache/site/current/index.html` 作为正式事实源。
+- summary、索引或站点视图与正式文档、ledger 冲突时，以正式文档和 ledger 为准，并重建派生物。
+
+## 写入边界
+
+- `direct_answer` 和 `lightweight_analysis` 不进入本 skill，不得写任何仓内文件、memory、ledger 或 summary；用户要求持久化时必须先升级为项目化流程。
+- `project_workitem` 和 `tracked_task` 发生状态变化、gate 切换、上下文压缩恢复、关闭前验证或提交前检查时，才同步 memory。
+- memory 只写 work item / task ID、状态、当前 gate、`next_required_action`、关键约束、禁止动作和 outputs / evidence / review / report 路径索引。
+- 正式需求、设计、API、UI、用户指南或开发者指南的稳定事实写入 `docs/`；memory 只保留索引和摘要。
+- 命令全文、临时推理、当前会话答复、子 agent 完整输出和正式文档正文不得写入 memory。
+- 子 agent 或自循环完成后，先把状态包交回主流程；是否写 memory 由 `using-shanforge` 根据状态和 gate 判断。
 
 ## 输出
 
@@ -71,6 +98,10 @@ description: 每次 Shanforge 会话恢复、上下文压缩后继续工作、�
 ```text
 阶段：IMPLEMENTATION
 工作项：SF-SP-002
+项目整体进度：第 5/8 步，开发实现
+当前任务：项目记忆 Skill；ready_for_review
+停止原因：无
+唯一下一动作：完成既有授权范围内的独立只读评审
 已读：agent-session、workitem ledger
 未读/排除：role-charter、doc-map、阶段 docs、user-guide
 禁止：散读 docs、重复执行已通过 ledger 事件、自批 done
@@ -88,6 +119,7 @@ description: 每次 Shanforge 会话恢复、上下文压缩后继续工作、�
 - 不得把旧中心命令、动作注册表或全局脚本当成新流程主控。
 - 不得把旧会话脚本的推荐命令照搬为新入口。
 - 不得把计划中未执行的动作写成完成事实。
+- 不得用历史条目复活已关闭 Gate，或把内部 checkpoint 写成人工待办。
 - 不得因为上下文不足而散读整仓文档。
 - 不得把实现者自评写成 `approved` 或 `done`。
 

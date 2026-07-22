@@ -1,17 +1,17 @@
 # 项目压缩运行卡
 
-- 生成时间：2026-04-21 00:00:00
-- 负责人：Codex
+- 生成时间：2026-07-19 08:36:54
+- 负责人：uroborus
 - 项目：shanforge
-- 当前阶段：IMPLEMENTATION
+- 当前阶段：DESIGN R020 FORMAL DESIGN RELEASED / POST-RELEASE VERIFIED
 - 当前模式：cli_direct
 - 技术画像：抽象 Agent 平台规划画像
 - 技术栈：Python 3.14+ / uv / Markdown docs / .factory memory / typed contracts / settings-layer composition
-- 活跃工作项：3
+- 活跃工作项：2
 - 阻塞项：0
 - 开放风险：0
-- 最近交接包：无
-- 最近快照：memory governance 已继续从“可审核 queue”推进到“可解释 reviewer resolution + 可直接消费的 audit/queue read model”。`update_lifecycle_queue(..., resolution=...)` 现可显式持久化人工 review resolution，`reopen_lifecycle_queue(...)` 回到 `pending` 时会清空 resolution；`load_lifecycle_audit(...)` 已支持按 `queue_review_status / resolution` 过滤，并新增 `latest_per_record_only` 视图；`lifecycle_audit_summary.latest_entries` 也已改成真正的最新优先，同时新增 `latest_by_record`。同一轮里，`MemoryLifecycleQueueItem` 还开始直接投影 `resolution_required`、推荐 `resolution_options` 和建议 note 模板，让 reviewer 面不必自己维护 conflict/decay 文案。此前发现的 settings 层 durable store 缺口也已补齐：`JsonlMemoryLifecycleQueueStore` 与 `JsonlMemoryLifecycleAuditStore` 现在都能完整 round-trip `review_resolution / resolution`，跨 container reopen 后 resolution 会被正确清空。相关专项回归 `20 passed`。
+- 最近交接包：`.factory/workitems/FLOW-CONTRACT-001/task-briefs/TASK-DESIGN-001-ai-collaboration-workflow-design.md`
+- 最近快照：R020 已由 `uroborus` 批准完整内容并正式发布。49 项事务激活，docs 37/7，真实离线 pytest 287/287，Ruff/CAS/syntax/diff check 通过；第 3/8 步“设计重基线”完成，无开放人工 Gate。Git、远端和部署未执行。
 - 备注：Hermes-inspired abstract agent platform
 
 ## AI 最小读取顺序
@@ -31,16 +31,25 @@
 
 ## 当前焦点
 
-- `v2` 被定义为全新的抽象 Agent 平台，不再继承旧版本需求叙事。
-- Hermes 核心能力：Agent 主循环、Capability Registry、Session / Memory、Context Engine、Delegation、Gateway。
-- 业务目标：通过 Business Agent App、Workflow DSL、ModelPolicy 和 Capability Registry 快速装配业务流。
-- 大模型解耦：模型交互统一通过 LLM Runtime、LLMProviderPort、Response Normalizer 完成。
-- 当前交付优先级：trace-first 的跨 backend explainability 已贯通 provider manager、preview 回读和 session/manifest 落盘链；`apply_lifecycle()` 已接上 provider-aware `lifecycle_apply` 写回通道，lifecycle review queue 也已具备正式 durable `pending / dismissed / applied` review state，并新增独立 lifecycle audit trail 记录 review/apply 历史；当前又把 `queue_filter` 驱动的 batch `dismiss / reopen`、reviewer resolution taxonomy、更明确的 audit read model 和 queue guidance 一并收口进显式 review workflow。下一步优先补更完整的人工审核闭环和 reviewer-facing 运维能力，而不是继续扩 file-based test transport。
+- 本节首项为当前有效焦点：`FLOW-CONTRACT-001 / TASK-DESIGN-001 / R020-G001` 已正式发布并完成发布后验证；下一动作由流程总控基于正式 R020 进入下一项目阶段。下列 R010 条目仅为历史压缩背景。
+
+- 当前正式需求基线是 `docs/04-project-development/03-requirements/prd.md` `v3.1.0`；正式需求矩阵为 `v3.1.0`，文档索引为 `v1.1.0`。
+- `TASK-REQ-002-R014` 已获独立 AI 复审 `approved / 100` 和 `uroborus` 人工批准，`REQ-CHANGE-WF-CTL-010-001` 已完整并入原 `WF-CTL-010`。
+- R014 固定项目进度查询的确定性快照、代码生成会话摘要/HTML/十表 Excel、事实资格、状态与派生算法、AI 工具计划、137 字段、权限、性能和跨格式验收。
+- 受控下游入口：`.factory/workitems/FLOW-CONTRACT-001/evidence/TASK-REQ-002-R014-release-manifest.json`；清单绑定冻结机器合同、人工批准和正式版本，已批准人工候选归档后默认禁止读取。
+- `TASK-DESIGN-001-P006` 计划 SHA-256 `bdeff4bb6c06f61329e1f9f423f4d1dba165082ec8141d974d7706191bbe3c5e`；同一独立 AI Reviewer Popper 复审 `approved / 96`，P005 六项问题全部关闭。
+- 用户已批准 P006 精确哈希；R008 工作包 A 至 F 已完成，Catalog 为 4006 条记录和 77 条需求覆盖。
+- Reviewer Arendt 对 R009 的只读复审为 `changes_requested / 66`，确认 5 项关闭并独立复现 `I-003`、`I-006` 两个验证假通过。
+- R010 精确校验 13 条 canonical edge、9 个 ActionSpec 上游引用和 11 个接口；56 个 fixture 由 56 个 evaluator 执行 183 条语义断言，69 个 mutation 各有唯一 operator、目标和已发布语义探针绑定。
+- R010 56/56、69/69、9 个定向攻击、全部旧 profile、需求影响、158 项暂存发布和三处失败恢复通过。
+- 当前状态 `design_ready_for_same_reviewer_rereview`。下一动作由 AI 冻结最终四哈希并交同一 Reviewer Arendt 只读复审；通过后停在人类四哈希确认门。
+- 当前会话未提交、未 Push、未创建 PR、未 Merge、未部署；PR 仍须用户单独明确批准。
 
 ## 必要时回源的正式文档
 
-- `docs/04-project-development/09-evolution/retrospective.md`
+- `docs/04-project-development/03-requirements/prd.md`
 - `docs/04-project-development/10-traceability/requirements-matrix.md`
+- `docs/04-project-development/10-traceability/document-index.md`
 
 ## 必守规则
 

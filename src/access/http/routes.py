@@ -19,5 +19,9 @@ def build_runtime_routes() -> tuple[HttpRouteSpec, ...]:
         HttpRouteSpec(method="POST", path="/apps/{app_id}/run", name="run_app"),
         HttpRouteSpec(method="POST", path="/manifests/run", name="run_manifest"),
         HttpRouteSpec(method="GET", path="/sessions/{session_id}", name="get_session"),
+        HttpRouteSpec(
+            method="GET",
+            path="/projects/{project_id}/status",
+            name="get_project_status",
+        ),
     )
-

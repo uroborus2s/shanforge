@@ -1,0 +1,208 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://shanforge.local/schemas/test-run-result.schema.json",
+  "title": "TestRunResult/v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_id",
+    "id",
+    "run_id",
+    "test_case_id",
+    "test_case_version",
+    "status",
+    "started_at",
+    "finished_at",
+    "environment",
+    "step_results",
+    "evidence"
+  ],
+  "properties": {
+    "schema_id": {"const": "TestRunResult/v1"},
+    "id": {"type": "string", "pattern": "^RUN-RESULT-[A-Z0-9-]+$"},
+    "run_id": {"type": "string", "pattern": "^RUN-[A-Z0-9-]+$"},
+    "test_case_id": {"type": "string", "pattern": "^TEST-[A-Z0-9-]+$"},
+    "test_case_version": {"type": "string", "minLength": 1},
+    "status": {"$ref": "#/$defs/status"},
+    "started_at": {"type": "string", "format": "date-time"},
+    "finished_at": {"type": "string", "format": "date-time"},
+    "environment": {"$ref": "#/$defs/environment"},
+    "step_results": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/step_result"}
+    },
+    "evidence": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/evidence"}
+    }
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"status": {"const": "passed"}}, "required": ["status"]},
+      "then": {
+        "properties": {
+          "step_results": {
+            "minItems": 1,
+            "items": {
+              "allOf": [
+                {"$ref": "#/$defs/step_result"},
+                {
+                  "properties": {
+                    "status": {"const": "passed"},
+                    "evidence_refs": {"minItems": 1}
+                  }
+                }
+              ]
+            }
+          },
+          "evidence": {"minItems": 1}
+        }
+      }
+    },
+    {
+      "if": {"properties": {"status": {"const": "error"}}, "required": ["status"]},
+      "then": {
+        "properties": {
+          "step_results": {
+            "contains": {
+              "properties": {"status": {"const": "error"}},
+              "required": ["status"]
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {"properties": {"status": {"const": "failed"}}, "required": ["status"]},
+      "then": {
+        "properties": {
+          "step_results": {
+            "contains": {
+              "properties": {"status": {"const": "failed"}},
+              "required": ["status"]
+            },
+            "not": {
+              "contains": {
+                "properties": {"status": {"const": "error"}},
+                "required": ["status"]
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {"properties": {"status": {"const": "blocked"}}, "required": ["status"]},
+      "then": {
+        "properties": {
+          "step_results": {
+            "contains": {
+              "properties": {"status": {"const": "blocked"}},
+              "required": ["status"]
+            },
+            "not": {
+              "contains": {
+                "properties": {"status": {"enum": ["error", "failed"]}},
+                "required": ["status"]
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {"properties": {"status": {"const": "cancelled"}}, "required": ["status"]},
+      "then": {
+        "properties": {
+          "step_results": {
+            "contains": {
+              "properties": {"status": {"const": "cancelled"}},
+              "required": ["status"]
+            },
+            "not": {
+              "contains": {
+                "properties": {
+                  "status": {"enum": ["error", "failed", "blocked"]}
+                },
+                "required": ["status"]
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {"properties": {"status": {"const": "skipped"}}, "required": ["status"]},
+      "then": {
+        "properties": {
+          "step_results": {
+            "minItems": 1,
+            "items": {
+              "allOf": [
+                {"$ref": "#/$defs/step_result"},
+                {"properties": {"status": {"const": "skipped"}}}
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {"properties": {"status": {"const": "not_run"}}, "required": ["status"]},
+      "then": {
+        "properties": {
+          "step_results": {
+            "minItems": 1,
+            "items": {
+              "allOf": [
+                {"$ref": "#/$defs/step_result"},
+                {"properties": {"status": {"const": "not_run"}}}
+              ]
+            }
+          }
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "status": {
+      "enum": ["passed", "failed", "error", "blocked", "skipped", "not_run", "cancelled"]
+    },
+    "environment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "git_commit", "runtime"],
+      "properties": {
+        "id": {"type": "string", "minLength": 1},
+        "git_commit": {"type": "string", "pattern": "^([0-9a-f]{40}|[0-9a-f]{64})$"},
+        "runtime": {"type": "string", "minLength": 1}
+      }
+    },
+    "step_result": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["step", "status", "actual", "evidence_refs"],
+      "properties": {
+        "step": {"type": "integer", "minimum": 1},
+        "status": {"$ref": "#/$defs/status"},
+        "actual": {"type": "string", "minLength": 1},
+        "evidence_refs": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {"type": "string", "minLength": 1}
+        }
+      }
+    },
+    "evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "kind", "path", "sha256"],
+      "properties": {
+        "id": {"type": "string", "minLength": 1},
+        "kind": {"type": "string", "minLength": 1},
+        "path": {"type": "string", "minLength": 1},
+        "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+      }
+    }
+  }
+}

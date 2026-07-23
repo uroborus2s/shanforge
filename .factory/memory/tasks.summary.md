@@ -307,3 +307,8 @@
 - 2026-07-19 历史事件：`TASK-QUALITY-001-P001` 完成全仓静态债务清理并曾生成 `TASK-IMPLEMENT-001-R001`。该候选随后已被用户明确撤销，从未正式发布；原精确哈希 Gate 已关闭且不得恢复。当前状态只以本文件顶部 TASK-QUALITY-002 焦点为准。
 - 2026-07-23：`TASK-IMPLEMENT-003-P001` 已完成 39 表知识索引、137 字段 PM 投影、稳定 locator/query CLI、异步项目状态同步、缓存维护与只读多页面站点；第四轮独立终审 `approved / 98 / C0-I0-M0`，精确范围本地提交已创建。
 - 2026-07-23：`TASK-IMPLEMENT-003-P001` 第五轮整改完成：修复旧 ledger 事件状态丢失、任务去重/时区/父子状态推断和增量投影外键安全问题；项目总览改为六列中文敏捷看板，卡片中文标题、每列最近 10 条、“更多”展开及独立详情页均已落地。自动独立终审 `approved / 96 / C0-I0-M0`，当前进入精确范围本地提交。
+- 2026-07-23：`PROJECT-ARTIFACTS-001-T01` 已完成 Penpot 设计资产合同首轮评审整改：manifest/domain 必填与 ID 约束、Penpot 状态 Schema、路径链 symlink 拒绝、Token 独立解析/限长/校验及 CLI 回归均已验证；`v1.2.0` 保持候选未发布，当前等待同一独立 Reviewer 复审。整个工作项的 OpenAPI、测试资产、SQLite 投影和统一 HTML 展示仍在实施中。
+- 2026-07-23：`PROJECT-ARTIFACTS-001-T01` Iteration 2 已继续封闭组件状态类型/唯一性、Schema 点段路径和合法 Token 集成 fixture；完整合同回归为 `33 passed`，当前再次等待同一独立 Reviewer 复审。
+- 2026-07-23：`PROJECT-ARTIFACTS-001-T01` Iteration 3 独立复审通过，`approved / 97 / C0-I0-M0`；无伪 `.penpot`，`v1.2.0` 继续保持候选未发布。工作项进入 T02 OpenAPI 与稳定 YAML 索引。
+- 2026-07-23：`PROJECT-ARTIFACTS-001-T02` 首轮独立评审 `changes_requested / 76 / C0-I3-M1`；Schema/domain、索引前验证门、完整 source definition 和占位 server 已同范围整改，联合回归 `48 passed`，当前等待同一 Reviewer 复审。
+- 2026-07-23：`PROJECT-ARTIFACTS-001` 四项任务均已实现并独立批准：T01 Penpot 资产合同 `97`、T02 OpenAPI 详细合同 `99`、T03 测试合同与 SQLite 投影 `98`、T04 单一项目文档入口与增量快照 `96`。仓库不伪造 `.penpot`；真实源文件仍需在 Penpot 打开目标文件并连接本地插件后导出。

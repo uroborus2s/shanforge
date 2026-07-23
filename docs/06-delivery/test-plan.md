@@ -64,6 +64,71 @@ R002 的权威运行结果位于 `.factory/workitems/FLOW-CONTRACT-001/evidence/
 - 图形 UI 当前不在 R002 范围；替代验收是 access API、结构化响应、严格十五行文本和三入口集成。
 - 生产部署尚未发生，因此没有线上 SLO、真实告警或生产回滚演练结果可供宣称。
 
+## 7. 测试案例、运行结果与报告标准（候选）
+
+### 7.1 三类内容严格分离
+
+| 内容 | 稳定格式 | 保存位置 | 是否进入知识索引 | 回答的问题 |
+|---|---|---|---|---|
+| 测试案例定义 | `TestCaseCatalog/v1` YAML | `tests/specifications/*.testcases.yaml` | 是 | 应该测什么、为什么测、怎样判定 |
+| 单次运行结果 | `TestRunResult/v1` JSON | 当前 WorkItem 的 `evidence/test-results/` | 否 | 这一次实际发生了什么 |
+| 聚合测试报告 | `TestReport/v1` JSON | 当前 WorkItem 的 `evidence/test-reports/` | 否 | 本次运行整体质量如何 |
+
+同一能力的案例集中保存在一个目录级 catalog，不采用“一条测试一个文件”。运行结果
+和报告按 WorkItem 留作可审计证据，但不登记为长期项目事实源，避免历史运行无限进入
+常驻上下文和 SQLite。
+
+### 7.2 测试案例必填内容
+
+每个案例必须包含稳定 ID 和版本、中文标题、定义状态、测试目标、测试类型、层级、
+优先级、风险、Owner、追踪、前置条件、测试数据、操作/预期成对步骤、后置条件、
+环境、自动化状态和标签。
+
+追踪固定分为需求、验收标准、设计文档、UI 页面、API operation、开发任务六类；
+需求至少一项，另外五类至少一项。测试数据逐项标明 `sensitive`，避免秘密进入日志。
+测试数据值只允许 JSON 标量或对象，不接受数组。
+定义状态只有 `draft / active / deprecated / retired`，不能在案例中写 `passed` 或
+`failed`；案例已登记只表示“测试定义已登记 / 尚未执行”。
+
+### 7.3 单次结果七态
+
+| 状态 | 中文含义 | 是否算通过 |
+|---|---|---|
+| `passed` | 已执行且全部满足预期 | 是 |
+| `failed` | 已执行但断言或验收不满足 | 否 |
+| `error` | 测试基础设施或执行过程异常 | 否 |
+| `blocked` | 前置条件、依赖或权限阻断 | 否 |
+| `skipped` | 本轮按明确条件跳过 | 否 |
+| `not_run` | 已计划但本轮尚未执行 | 否 |
+| `cancelled` | 执行开始前后被取消 | 否 |
+
+结果必须记录案例 ID/版本、run ID、带时区起止时间、环境 ID、Git commit、运行时、
+逐步实际结果和证据。步骤编号从 1 连续递增；证据路径只能位于当前 WorkItem evidence
+目录，必须带 64 位 SHA-256。整体状态由步骤按
+`error > failed > blocked > cancelled > passed/skipped/not_run` 确定；后三种状态要求
+全部步骤同态。`passed` 还要求至少一个步骤、每步引用证据且证据真实登记。
+测试定义、历史结果或人工描述都不能推导出 `passed`。
+
+### 7.4 报告聚合规则
+
+报告只引用已经通过 result validator 的结果，逐项绑定 result ID、case ID、七态、
+证据路径和 SHA-256。`total` 和七个状态计数由引用结果确定性计算；自报数字、缺失
+结果、重复 result ID、状态漂移或证据 hash 漂移都会使报告失败。报告不以文字总结
+覆盖机器计数。报告与所有被引用结果必须使用同一个 `run_id`，禁止跨运行批次拼接。
+
+### 7.5 固定命令与只读站点
+
+稳定案例使用：
+
+```bash
+PYTHONPATH=src .venv/bin/python -m settings.composition.project_knowledge test-cases validate --json
+```
+
+当前首批 catalog 有四个 API 合同案例。SQLite 的 `pk_test` 只保存
+`framework=catalog`、案例类型和 `test_status=definition:<status>`，运行证据为空。
+质量页和文档详情必须将其显示为测试定义，只有明确传入且通过校验的当前报告才能显示
+运行结果。
+
 ## 正式版本历史（仅已发布）
 
 | 版本 | 日期 | 变更 | 修改人 | 审核 | 批准 |

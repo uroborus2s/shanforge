@@ -1,0 +1,42 @@
+{
+  "schema_id": "ProjectKnowledgeSourceRegistry/v1",
+  "registry_version": "1",
+  "sources": [
+    {
+      "registry_source_id": "SRC-DESIGN-ARTIFACTS",
+      "kind": "yaml",
+      "roots": ["design/ux-ui"],
+      "include": ["design-manifest.yaml"],
+      "exclude": [],
+      "extractor_id": "project-artifact-yaml-v1",
+      "access_class": "public",
+      "authority_rank": 100,
+      "stable_id_policy": "declared_design_subject_id_and_yaml_path",
+      "max_file_bytes": 4194304
+    },
+    {
+      "registry_source_id": "SRC-OPENAPI-ARTIFACTS",
+      "kind": "yaml",
+      "roots": ["contracts/openapi"],
+      "include": ["openapi.yaml"],
+      "exclude": [],
+      "extractor_id": "project-artifact-yaml-v1",
+      "access_class": "public",
+      "authority_rank": 100,
+      "stable_id_policy": "x_shanforge_operation_id_and_yaml_path",
+      "max_file_bytes": 4194304
+    },
+    {
+      "registry_source_id": "SRC-TEST-CASE-ARTIFACTS",
+      "kind": "yaml",
+      "roots": ["tests/specifications"],
+      "include": ["*.testcases.yaml", "*.testcases.yml"],
+      "exclude": [],
+      "extractor_id": "project-artifact-yaml-v1",
+      "access_class": "project",
+      "authority_rank": 100,
+      "stable_id_policy": "declared_test_case_id_and_yaml_path",
+      "max_file_bytes": 4194304
+    }
+  ]
+}

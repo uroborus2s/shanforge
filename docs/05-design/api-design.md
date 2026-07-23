@@ -5,12 +5,12 @@
 | 项目 | 内容 |
 |---|---|
 | 文档 ID | `DESIGN-API-001` |
-| 正式版本 | `v3.1.0` |
+| 正式版本 | `v3.1.0`（`v3.2.0` 候选修订待评审） |
 | 来源候选 | `TASK-DESIGN-001-R019` |
 | 发布事务 | `DESIGN-RELEASE-TX-R019-G001` |
 | 负责人 | `HUMAN_API_INTEGRATION_LEAD` |
 | 修改 / 审核 / 批准 | `uroborus` / `uroborus` / `uroborus` |
-| 状态 | 已批准并生效 |
+| 状态 | `v3.1.0` 已批准并生效；`v3.2.0` 候选修订待评审 |
 | 上游 | `system-architecture`、`module-domain-design`、`data-design`、`PRD` |
 | 下游 | `interface-reference`、`frontend-design`、`contract tests` |
 
@@ -1194,9 +1194,44 @@ R019 作者只能把 T01–T06 产物标记为 `ready_for_review`。完整 profi
 
 退出码固定为：`0` 成功，`2` 参数/契约错误，`3` 未找到，`4` locator 歧义或失效，`5` freshness/完整性失败，`6` 权限拒绝，`7` 并发切换忙。`context` 只返回最多四个文件、总计 32 KiB 的读取计划，不直接扩散读取正文。
 
+## 35. OpenAPI 机器合同与统一阅读
+
+本文件继续负责解释接口为什么存在、消费者是谁、权限和兼容策略如何决定；当前
+HTTP 请求响应的可执行机器合同统一保存在 `contracts/openapi/openapi.yaml`，不在
+`docs/` 再维护第二份字段副本。两者通过文档 ID `DESIGN-API-001` 和每个 operation 的
+稳定 `x-shanforge-id` 关联。
+
+当前 OpenAPI 3.1 精确覆盖代码已经声明的四条 route：
+
+| Operation ID | 方法与路径 | 中文用途 |
+|---|---|---|
+| `API-HTTP-RUN-APP` | `POST /apps/{app_id}/run` | 执行一个已注册 Agent App |
+| `API-HTTP-RUN-MANIFEST` | `POST /manifests/run` | 校验并执行调用方提交的 Manifest |
+| `API-HTTP-GET-SESSION` | `GET /sessions/{session_id}` | 查询当前调用方可见的会话摘要 |
+| `API-HTTP-PROJECT-STATUS` | `GET /projects/{project_id}/status` | 只读查询同一快照下的项目状态 |
+
+每个 operation 必须有中文摘要和详细说明、`operationId`、参数/请求/响应/字段说明、
+成功与错误响应、示例、Owner、需求和测试追踪。固定校验命令是：
+
+```bash
+PYTHONPATH=src .venv/bin/python -m settings.composition.project_knowledge api validate --json
+```
+
+校验时方法和路径集合必须与 `build_runtime_routes()` 完全一致；多一条或少一条都失败。
+索引把每个 operation 投影为 `api_operation`，使用 YAML path 定位，不保存行号。
+OpenAPI 中的需求引用形成 `SATISFIES` 强关系；引用目标没有稳定实体时，SQLite 原子
+发布失败，不能留下悬空链接。
+
+只读站点最终只保留“项目文档”一个入口：进入本文件即可阅读正文和 OpenAPI 操作卡；
+不会再提供内容重复的独立“设计”入口。OpenAPI 原文件仍保存在仓库，供生成客户端、
+Mock、契约测试和第三方工具使用。
+
 ## 正式版本历史（仅已发布）
 
 | 版本 | 日期 | 变更 | 修改人 | 审核 | 批准 |
 |---|---|---|---|---|---|
 | `v3.0.0` | 2026-07-18 | 基于 `TASK-DESIGN-001-R019` 正式落档 | `uroborus` | `uroborus` | `uroborus` |
 | `v3.1.0` | 2026-07-22 | 固化项目知识查询、快照、同步与维护命令及退出码 | `uroborus` | `uroborus` | `uroborus` |
+
+候选修订：`v3.2.0` 增补 OpenAPI 3.1 机器合同、四条现有 route、稳定操作 ID、
+需求/测试追踪和统一文档阅读规则；当前尚未进入正式版本历史，待独立评审和用户确认。

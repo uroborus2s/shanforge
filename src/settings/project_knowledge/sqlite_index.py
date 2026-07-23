@@ -1467,24 +1467,43 @@ class SQLiteProjectKnowledgeIndex:
             work_item_rows,
         )
         test_rows: list[tuple[Any, ...]] = []
-        for source_id, contribution in contributions.items():
+        for contribution in contributions.values():
             raw_file = contribution.get("code_file")
-            if not isinstance(raw_file, dict) or not str(raw_file["import_name"]).startswith(
+            if isinstance(raw_file, dict) and str(raw_file["import_name"]).startswith(
                 "tests."
             ):
-                continue
-            for raw_symbol in contribution.get("symbols", []):
-                symbol = dict(raw_symbol)
-                leaf = str(symbol["qualified_name"]).rsplit(".", 1)[-1]
-                if not leaf.startswith("test_") or symbol["entity_id"] not in entities:
-                    continue
+                for raw_symbol in contribution.get("symbols", []):
+                    symbol = dict(raw_symbol)
+                    leaf = str(symbol["qualified_name"]).rsplit(".", 1)[-1]
+                    if not leaf.startswith("test_") or symbol["entity_id"] not in entities:
+                        continue
+                    test_rows.append(
+                        (
+                            symbol["symbol_id"],
+                            symbol["entity_id"],
+                            symbol["symbol_id"],
+                            "pytest",
+                            "automated",
+                            "indexed",
+                            None,
+                        )
+                    )
+            for raw_test in contribution.get("tests", []):
+                test = dict(raw_test)
+                entity_id = str(test["entity_id"])
+                if entity_id not in entities:
+                    raise ValueError(
+                        f"catalog test has missing entity endpoint: {entity_id}"
+                    )
                 test_rows.append(
                     (
-                        symbol["symbol_id"],
-                        symbol["entity_id"],
-                        symbol["symbol_id"],
-                        "pytest",
-                        "automated",
+                        str(test["test_id"]),
+                        entity_id,
+                        test.get("code_symbol_id"),
+                        str(test["framework"]),
+                        str(test["test_kind"]),
+                        str(test["test_status"]),
+                        test.get("last_evidence_entity_id"),
                     )
                 )
         connection.executemany(
@@ -1492,7 +1511,7 @@ class SQLiteProjectKnowledgeIndex:
             INSERT INTO pk_test(
                 test_id,entity_id,code_symbol_id,framework,test_kind,test_status,
                 last_evidence_entity_id
-            ) VALUES (?,?,?,?,?,'indexed',NULL)
+            ) VALUES (?,?,?,?,?,?,?)
             """,
             test_rows,
         )

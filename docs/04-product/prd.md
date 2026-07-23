@@ -283,6 +283,7 @@ PRD 草案、`document-change`、review、人工确认、正式落档、版本�
 
 ## 8. Agent 平台功能需求
 
+<!-- sf:section-id=REQ-001 -->
 ### `REQ-001` 统一 Agent Platform Kernel
 
 - 优先级：P0
@@ -297,6 +298,7 @@ PRD 草案、`document-change`、review、人工确认、正式落档、版本�
 - AC-2: 给定同一业务 App 的不同入口，则它们共享同一套运行时主循环。
 - AC-3: 给定需要恢复的会话，则平台可根据保存状态继续执行或回放。
 
+<!-- sf:section-id=REQ-002 -->
 ### `REQ-002` 业务 Agent App 与平台内核隔离
 
 - 优先级：P0
@@ -311,6 +313,7 @@ PRD 草案、`document-change`、review、人工确认、正式落档、版本�
 - AC-2: 给定底层适配器替换，则业务 App 无需改动业务规则即可复用。
 - AC-3: 给定业务 App 试图直接引用基础设施实现，则契约检查会阻断该设计。
 
+<!-- sf:section-id=REQ-003 -->
 ### `REQ-003` Workflow DSL 与声明式编排
 
 - 优先级：P0
@@ -339,6 +342,7 @@ PRD 草案、`document-change`、review、人工确认、正式落档、版本�
 - AC-2: 给定模型不可用或预算超限，则运行时可执行 fallback 或阻断。
 - AC-3: 给定新增模型供应商，则只需实现 provider adapter 即可接入平台。
 
+<!-- sf:section-id=REQ-005 -->
 ### `REQ-005` Capability Registry 与工具执行契约
 
 - 优先级：P0
@@ -353,6 +357,7 @@ PRD 草案、`document-change`、review、人工确认、正式落档、版本�
 - AC-2: 给定未注册能力调用，则运行时阻断执行。
 - AC-3: 给定高风险能力，则平台在执行前进入审批流程。
 
+<!-- sf:section-id=REQ-006 -->
 ### `REQ-006` Session、Memory 与 Context Engine
 
 - 优先级：P0
@@ -369,6 +374,7 @@ PRD 草案、`document-change`、review、人工确认、正式落档、版本�
 - AC-4: 给定基础摘要兼容且尾部不超过 200 条、1 MiB、1,000 ms，则同一版本化 reducer 生成不超过 8 KiB、绑定权威头的 `MemoryRecoveryContext/v1`。
 - AC-5: 给定摘要损坏、版本漂移或尾部超预算，则返回结构化 `memory_recovery_not_ready` 并异步追平，不无界读取、不把旧摘要当当前事实。
 
+<!-- sf:section-id=REQ-007 -->
 ### `REQ-007` Policy、Approval 与 Execution Sandbox
 
 - 优先级：P0
@@ -397,6 +403,7 @@ PRD 草案、`document-change`、review、人工确认、正式落档、版本�
 - AC-2: 给定不同入口类型，则它们共享相同的 use cases 和 domain contracts。
 - AC-3: 给定写集冲突，则平台能在合并前识别并阻断。
 
+<!-- sf:section-id=REQ-009 -->
 ### `REQ-009` 标准化 AgentResponse 与 Evidence
 
 - 优先级：P0

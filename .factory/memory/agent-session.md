@@ -43,3 +43,12 @@
 
 实现、验证、独立 Review 和记忆同步已完成；当前仅剩 `gitcommitzh` 精确范围本地提交。
 远端、PR、Merge 和部署未授权。
+## 本轮恢复点：PROJECT-ARTIFACTS-001
+
+- 四项任务均已实现并通过独立评审：T01 `97`、T02 `99`、T03 `98`、T04 `96`。
+- 已交付 Penpot 资产 manifest/Token、OpenAPI 3.1、测试案例/结果/报告合同、
+  SQLite 确定性投影和单一“项目文档”静态站点。
+- 本机 Penpot MCP 已安装并注册，`4400–4403` 正在监听；仓库仍无伪 `.penpot`，
+  下一步由用户在真实 Penpot 文件加载 `http://localhost:4400/manifest.json`。
+- 当前唯一内部动作是干净候选验证与 `gitcommitzh` 精确范围提交；不改变
+  `PK-SOURCE-MIGRATION-001-T04`、`FLOW-TASK-015` 的既有人工 Gate。

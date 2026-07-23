@@ -1,0 +1,374 @@
+openapi: 3.1.0
+info:
+  title: Shanforge HTTP API
+  version: 0.2.0
+  description: >-
+    为 Agent App 执行、Manifest 直接执行、会话查询和项目状态查询提供稳定的 HTTP
+    边界。本合同描述当前代码已经声明的路由，不代表已经启动独立 HTTP 服务器。
+paths:
+  /apps/{app_id}/run:
+    post:
+      operationId: runAgentApp
+      summary: 执行 Agent App
+      description: >-
+        根据已注册的 Agent App 标识和输入启动一次工作流执行，并返回稳定运行标识、
+        会话标识、当前状态和结构化输出。调用方不能通过该接口绕过应用层权限和能力策略。
+      security: []
+      parameters:
+        - name: app_id
+          in: path
+          required: true
+          description: 要执行的已注册 Agent App 稳定标识。
+          schema:
+            type: string
+            description: Agent App 的稳定标识。
+          example: project-status-assistant
+      requestBody:
+        required: true
+        description: 本次 Agent App 执行的业务输入和可选会话上下文。
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RunRequest"
+              description: Agent App 执行请求。
+            example:
+              input:
+                question: 当前项目做到哪里了？
+              session_id: session-20260723-001
+      responses:
+        "200":
+          description: 执行请求已完成或已形成可继续追踪的运行状态。
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RunResponse"
+                description: Agent App 执行响应。
+              example:
+                run_id: run-20260723-001
+                session_id: session-20260723-001
+                status: completed
+                output:
+                  summary: 已生成项目状态摘要。
+        "400":
+          description: 请求字段、App 标识或输入合同不合法。
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+                description: 稳定错误响应。
+              example:
+                code: INVALID_REQUEST
+                message: app_id 不符合已注册合同。
+        "403":
+          description: 当前调用方没有执行该 App 或能力的权限。
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+                description: 稳定错误响应。
+              example:
+                code: EXECUTION_FORBIDDEN
+                message: 当前身份不能执行该 Agent App。
+      x-shanforge-id: API-HTTP-RUN-APP
+      x-shanforge-requirements:
+        - REQ-002
+        - REQ-003
+        - REQ-005
+      x-shanforge-tests:
+        - TEST-API-RUN-APP-001
+      x-shanforge-owner: access
+  /manifests/run:
+    post:
+      operationId: runManifest
+      summary: 执行 Manifest
+      description: >-
+        使用调用方提交的 Agent App Manifest 和业务输入执行一次受约束工作流，适用于
+        尚未注册但需要即时验证的 Manifest；组合层仍必须执行 schema、能力和权限检查。
+      security: []
+      requestBody:
+        required: true
+        description: 待执行的 Manifest、业务输入和可选会话标识。
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ManifestRunRequest"
+              description: Manifest 直接执行请求。
+            example:
+              manifest:
+                id: demo-agent
+                domain: project
+                description: 查询项目状态的示例 Agent。
+              input:
+                project_id: shanforge
+      responses:
+        "200":
+          description: Manifest 已通过校验并返回本次执行结果或当前运行状态。
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RunResponse"
+                description: Manifest 执行响应。
+              example:
+                run_id: run-20260723-002
+                session_id: session-20260723-002
+                status: completed
+                output:
+                  project_id: shanforge
+        "400":
+          description: Manifest、输入或引用的能力合同不合法。
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+                description: 稳定错误响应。
+              example:
+                code: INVALID_MANIFEST
+                message: Manifest 缺少稳定输出 schema。
+        "403":
+          description: Manifest 请求了当前调用方无权使用的能力。
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+                description: 稳定错误响应。
+              example:
+                code: CAPABILITY_FORBIDDEN
+                message: Manifest 引用的能力未获授权。
+      x-shanforge-id: API-HTTP-RUN-MANIFEST
+      x-shanforge-requirements:
+        - REQ-002
+        - REQ-005
+        - REQ-007
+      x-shanforge-tests:
+        - TEST-API-RUN-MANIFEST-001
+      x-shanforge-owner: access
+  /sessions/{session_id}:
+    get:
+      operationId: getSession
+      summary: 查询会话
+      description: >-
+        按稳定会话标识读取当前可访问的会话摘要、生命周期状态和最近运行标识，供宿主界面
+        恢复上下文；响应不返回未授权的原始记忆、工具秘密或内部堆栈。
+      security: []
+      parameters:
+        - name: session_id
+          in: path
+          required: true
+          description: 要查询的稳定会话标识。
+          schema:
+            type: string
+            description: 会话的稳定标识。
+          example: session-20260723-001
+      responses:
+        "200":
+          description: 成功返回当前调用方可见的会话摘要。
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SessionResponse"
+                description: 会话查询响应。
+              example:
+                session_id: session-20260723-001
+                status: active
+                latest_run_id: run-20260723-001
+                summary: 正在生成项目状态快照。
+        "404":
+          description: 会话不存在，或当前调用方不可访问该会话。
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+                description: 稳定错误响应。
+              example:
+                code: SESSION_NOT_FOUND
+                message: 未找到可访问的会话。
+      x-shanforge-id: API-HTTP-GET-SESSION
+      x-shanforge-requirements:
+        - REQ-001
+        - REQ-006
+        - REQ-009
+      x-shanforge-tests:
+        - TEST-API-GET-SESSION-001
+      x-shanforge-owner: access
+  /projects/{project_id}/status:
+    get:
+      operationId: getProjectStatus
+      summary: 查询项目状态
+      description: >-
+        读取指定项目在同一快照高水位下的当前任务、进度、阻塞和下一步摘要，供只读项目
+        看板和会话回复使用；调用不会推进任务 Gate，也不会修改项目事实。
+      security: []
+      parameters:
+        - name: project_id
+          in: path
+          required: true
+          description: 要查询的稳定项目标识。
+          schema:
+            type: string
+            description: 项目的稳定标识。
+          example: shanforge
+      responses:
+        "200":
+          description: 成功返回同一快照下的项目当前状态。
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProjectStatusResponse"
+                description: 项目当前状态响应。
+              example:
+                project_id: shanforge
+                status: in_progress
+                completion_ratio: 0.62
+                current_task: 项目设计与测试资产标准化
+                next_action: 校验 OpenAPI 机器合同。
+        "404":
+          description: 项目不存在，或当前调用方不可访问该项目。
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+                description: 稳定错误响应。
+              example:
+                code: PROJECT_NOT_FOUND
+                message: 未找到可访问的项目。
+      x-shanforge-id: API-HTTP-PROJECT-STATUS
+      x-shanforge-requirements:
+        - REQ-PKI-008
+        - REQ-PKI-009
+      x-shanforge-tests:
+        - TEST-API-PROJECT-STATUS-001
+      x-shanforge-owner: access
+components:
+  schemas:
+    RunRequest:
+      type: object
+      description: Agent App 单次执行的业务输入和会话上下文。
+      required:
+        - input
+      properties:
+        input:
+          type: object
+          description: 交给目标工作流的业务输入对象。
+          additionalProperties: true
+        session_id:
+          type:
+            - string
+            - "null"
+          description: 复用的会话标识；为空时由系统创建新会话。
+    ManifestRunRequest:
+      type: object
+      description: Manifest 直接执行时提交的声明、输入和会话上下文。
+      required:
+        - manifest
+        - input
+      properties:
+        manifest:
+          type: object
+          description: 符合 Agent App Manifest 合同的声明对象。
+          additionalProperties: true
+        input:
+          type: object
+          description: 交给 Manifest 工作流的业务输入对象。
+          additionalProperties: true
+        session_id:
+          type:
+            - string
+            - "null"
+          description: 复用的会话标识；为空时由系统创建新会话。
+    RunResponse:
+      type: object
+      description: 一次 Agent App 或 Manifest 执行的稳定响应。
+      required:
+        - run_id
+        - session_id
+        - status
+        - output
+      properties:
+        run_id:
+          type: string
+          description: 本次执行的稳定运行标识。
+        session_id:
+          type: string
+          description: 本次执行所属的稳定会话标识。
+        status:
+          type: string
+          description: 当前执行状态。
+          enum:
+            - running
+            - waiting
+            - completed
+            - blocked
+            - failed
+        output:
+          type: object
+          description: 已按目标输出合同归一化的结构化结果。
+          additionalProperties: true
+    SessionResponse:
+      type: object
+      description: 当前调用方可见的会话状态摘要。
+      required:
+        - session_id
+        - status
+        - latest_run_id
+        - summary
+      properties:
+        session_id:
+          type: string
+          description: 会话的稳定标识。
+        status:
+          type: string
+          description: 会话当前生命周期状态。
+        latest_run_id:
+          type:
+            - string
+            - "null"
+          description: 会话最近一次运行标识；没有运行时为空。
+        summary:
+          type: string
+          description: 经过权限过滤的会话当前摘要。
+    ProjectStatusResponse:
+      type: object
+      description: 同一项目快照下的状态、进度和下一动作摘要。
+      required:
+        - project_id
+        - status
+        - completion_ratio
+        - current_task
+        - next_action
+      properties:
+        project_id:
+          type: string
+          description: 项目的稳定标识。
+        status:
+          type: string
+          description: 项目当前状态。
+        completion_ratio:
+          type:
+            - number
+            - "null"
+          minimum: 0
+          maximum: 1
+          description: 当前完成比例；事实不足时为空。
+        current_task:
+          type:
+            - string
+            - "null"
+          description: 当前主要任务的中文标题；没有活动任务时为空。
+        next_action:
+          type:
+            - string
+            - "null"
+          description: 当前快照确定的下一动作；无需动作时为空。
+    ErrorResponse:
+      type: object
+      description: 不泄漏内部细节的稳定错误响应。
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: string
+          description: 供调用方判断错误类型的稳定代码。
+        message:
+          type: string
+          description: 面向调用方的安全中文错误说明。

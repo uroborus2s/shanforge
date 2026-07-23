@@ -12,7 +12,9 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
+from access.http.routes import build_runtime_routes
 from access.project_cli import run
+from application.project_artifacts.service import ProjectArtifactValidationService
 from application.project_knowledge.index_service import ProjectKnowledgeIndexService
 from application.project_knowledge.query_service import (
     ProjectKnowledgeCommandService,
@@ -21,8 +23,14 @@ from application.project_knowledge.query_service import (
 )
 from application.project_knowledge.site_service import ProjectSiteService
 from application.project_knowledge.sync_service import ProjectStateSyncRequest
-from runtime.project_knowledge.extractors import default_extractors
-from runtime.project_knowledge.site_renderer import RENDERER_VERSION, ProjectSiteRenderer
+from runtime.project_artifacts.site_renderer import (
+    RENDERER_VERSION,
+    ProjectArtifactSiteData,
+    ProjectArtifactSiteRenderer,
+)
+from runtime.project_artifacts.yaml_extractor import project_artifact_extractors
+from settings.project_artifacts.local_repository import LocalProjectArtifactRepository
+from settings.project_artifacts.source_registry import ProjectArtifactSourceRegistry
 from settings.project_knowledge.maintenance import (
     CacheRegistration,
     ProjectKnowledgeMaintenance,
@@ -33,7 +41,6 @@ from settings.project_knowledge.pm_projection import (
 )
 from settings.project_knowledge.query_store import SQLiteKnowledgeQueryStore
 from settings.project_knowledge.site_publisher import AtomicSitePublisher
-from settings.project_knowledge.source_registry import FileSourceRegistry
 from settings.project_knowledge.sqlite_index import (
     SQLiteIndexBusyError,
     SQLiteProjectKnowledgeIndex,
@@ -46,10 +53,22 @@ def _as_of() -> str:
 
 
 def _git_head(root: Path) -> str:
-    head_path = root / ".git/HEAD"
+    git_entry = root / ".git"
+    if git_entry.is_file():
+        marker = git_entry.read_text(encoding="utf-8").strip()
+        if not marker.startswith("gitdir:"):
+            return "unknown"
+        git_dir = Path(marker.removeprefix("gitdir:").strip())
+        if not git_dir.is_absolute():
+            git_dir = (root / git_dir).resolve()
+    else:
+        git_dir = git_entry
+    head_path = git_dir / "HEAD"
+    if not head_path.is_file():
+        return "unknown"
     value = head_path.read_text(encoding="utf-8").strip()
     if value.startswith("ref: "):
-        reference = root / ".git" / value.removeprefix("ref: ")
+        reference = git_dir / value.removeprefix("ref: ")
         if reference.is_file():
             return reference.read_text(encoding="utf-8").strip()
     return value
@@ -90,6 +109,12 @@ def _atomic_replace_index(
 
 def build_application(project_root: Path) -> ProjectKnowledgeCommandService:
     root = project_root.resolve()
+    artifact_repository = LocalProjectArtifactRepository(root)
+    expected_routes = {(route.method.upper(), route.path) for route in build_runtime_routes()}
+    artifact_validation = ProjectArtifactValidationService(
+        artifact_repository,
+        expected_routes=expected_routes,
+    )
     registry_path = root / ".factory/project-knowledge/source-registry.json"
     database_path = root / ".factory/index/project-knowledge.sqlite3"
     sync_database_path = root / ".factory/runtime/project-state-sync.sqlite3"
@@ -101,14 +126,20 @@ def build_application(project_root: Path) -> ProjectKnowledgeCommandService:
 
     def indexer(path: Path = database_path) -> ProjectKnowledgeIndexService:
         return ProjectKnowledgeIndexService(
-            FileSourceRegistry(
+            ProjectArtifactSourceRegistry(
                 root,
                 registry_path,
-                discovery_cache_path=root
+                root / ".factory/project-knowledge/artifact-source-registry.json",
+                base_discovery_cache_path=root
                 / ".factory/cache/project-knowledge/source-discovery.json",
+                artifact_discovery_cache_path=root
+                / ".factory/cache/project-knowledge/artifact-source-discovery.json",
             ),
             SQLiteProjectKnowledgeIndex(path),
-            default_extractors(),
+            project_artifact_extractors(
+                expected_routes=expected_routes,
+                available_design_paths=set(artifact_repository.available_design_paths()),
+            ),
         )
 
     def check() -> dict[str, Any]:
@@ -239,9 +270,14 @@ def build_application(project_root: Path) -> ProjectKnowledgeCommandService:
         else:
             index_result = refresh()
         profile = str(arguments.get("profile") or "local-owner")
+        site_data = SQLiteSiteDataStore(
+            database_path,
+            project_name=root.name,
+            project_root=root,
+        )
         service = ProjectSiteService(
-            SQLiteSiteDataStore(database_path, project_name=root.name, project_root=root),
-            ProjectSiteRenderer(),
+            ProjectArtifactSiteData(site_data),
+            ProjectArtifactSiteRenderer(),
             AtomicSitePublisher(site_root, database_path=database_path),
         )
         result = service.snapshot(profile=profile, built_at=_as_of())
@@ -311,6 +347,9 @@ def build_application(project_root: Path) -> ProjectKnowledgeCommandService:
         sync_head=sync_head,
         snapshot=snapshot,
         maintain=maintain,
+        validate_design=artifact_validation.validate_design,
+        validate_api=artifact_validation.validate_api,
+        validate_test_cases=artifact_validation.validate_test_cases,
     )
 
 

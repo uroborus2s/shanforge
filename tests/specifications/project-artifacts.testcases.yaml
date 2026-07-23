@@ -1,0 +1,145 @@
+schema_id: TestCaseCatalog/v1
+id: TEST-CATALOG-PROJECT-ARTIFACTS
+title: 项目设计、接口与测试资产合同案例
+version: 1.0.0
+status: active
+cases:
+  - id: TEST-API-RUN-APP-001
+    version: 1.0.0
+    title: Agent App 执行接口合同校验
+    definition_status: active
+    objective: 确认 Agent App 执行接口与代码路由一致，并具有完整中文说明和稳定追踪。
+    type: contract
+    level: integration
+    priority: P0
+    risk: high
+    owner: HUMAN_QUALITY_SECURITY_LEAD
+    traceability:
+      requirements: [REQ-002, REQ-003, REQ-005]
+      acceptance_criteria: []
+      designs: [DESIGN-API-001]
+      ui_pages: []
+      api_operations: [API-HTTP-RUN-APP]
+      tasks: []
+    preconditions:
+      - 当前代码路由和 OpenAPI 文件均可读取。
+    test_data:
+      - name: app_id
+        value: project-status-assistant
+        sensitive: false
+    steps:
+      - action: 运行 OpenAPI 固定校验命令。
+        expected: 命令成功，并报告四条 route 与代码声明精确一致。
+      - action: 删除一项错误响应后运行 domain 负例。
+        expected: 校验返回 ERROR_RESPONSE_REQUIRED，且不能发布新索引代次。
+    postconditions:
+      - 未修改 HTTP route 业务实现。
+    environment: TEST-ENV-PYTEST
+    automation:
+      status: automated
+      entrypoint: tests/test_project_artifact_contracts.py::test_repository_openapi_matches_all_declared_runtime_routes
+    tags: [api, contract, traceability]
+
+  - id: TEST-API-RUN-MANIFEST-001
+    version: 1.0.0
+    title: Manifest 执行接口合同校验
+    definition_status: active
+    objective: 确认 Manifest 执行接口清楚说明输入、权限边界、成功响应和失败响应。
+    type: contract
+    level: integration
+    priority: P1
+    risk: high
+    owner: HUMAN_QUALITY_SECURITY_LEAD
+    traceability:
+      requirements: [REQ-002, REQ-005, REQ-007]
+      acceptance_criteria: []
+      designs: [DESIGN-API-001]
+      ui_pages: []
+      api_operations: [API-HTTP-RUN-MANIFEST]
+      tasks: []
+    preconditions:
+      - OpenAPI 机器合同可由严格 repository 读取。
+    test_data:
+      - name: manifest_id
+        value: demo-agent
+        sensitive: false
+    steps:
+      - action: 校验 POST /manifests/run 的请求、响应、错误和示例。
+        expected: 操作通过详细中文合同和稳定追踪校验。
+    postconditions:
+      - 未执行真实 Manifest。
+    environment: TEST-ENV-PYTEST
+    automation:
+      status: automated
+      entrypoint: tests/test_project_artifact_contracts.py::test_repository_openapi_matches_all_declared_runtime_routes
+    tags: [api, manifest, contract]
+
+  - id: TEST-API-GET-SESSION-001
+    version: 1.0.0
+    title: 会话查询接口合同校验
+    definition_status: active
+    objective: 确认会话查询接口不会承诺返回未授权记忆、秘密或内部堆栈。
+    type: security
+    level: integration
+    priority: P1
+    risk: high
+    owner: HUMAN_QUALITY_SECURITY_LEAD
+    traceability:
+      requirements: [REQ-001, REQ-006, REQ-009]
+      acceptance_criteria: []
+      designs: [DESIGN-API-001]
+      ui_pages: []
+      api_operations: [API-HTTP-GET-SESSION]
+      tasks: []
+    preconditions:
+      - 会话接口 OpenAPI 操作已登记。
+    test_data:
+      - name: session_id
+        value: session-20260723-001
+        sensitive: false
+    steps:
+      - action: 校验 GET /sessions/{session_id} 的说明、示例和 404 错误。
+        expected: 校验成功，且接口说明明确限制未授权信息。
+    postconditions:
+      - 未读取真实会话内容。
+    environment: TEST-ENV-PYTEST
+    automation:
+      status: automated
+      entrypoint: tests/test_project_artifact_contracts.py::test_repository_openapi_matches_all_declared_runtime_routes
+    tags: [api, session, security]
+
+  - id: TEST-API-PROJECT-STATUS-001
+    version: 1.0.0
+    title: 项目状态查询接口合同校验
+    definition_status: active
+    objective: 确认项目状态查询是只读操作，并与项目站点、快照和页面 freshness 需求关联。
+    type: contract
+    level: integration
+    priority: P0
+    risk: medium
+    owner: HUMAN_QUALITY_SECURITY_LEAD
+    traceability:
+      requirements: [REQ-PKI-008, REQ-PKI-009]
+      acceptance_criteria: [REQ-PKI-008-AC-1, REQ-PKI-009-AC-2]
+      designs: [DESIGN-API-001, DESIGN-UX-UI-001]
+      ui_pages: [UI-PAGE-PROJECT-DASHBOARD]
+      api_operations: [API-HTTP-PROJECT-STATUS]
+      tasks: []
+    preconditions:
+      - 项目状态路由和只读站点需求已登记。
+    test_data:
+      - name: project_id
+        value: shanforge
+        sensitive: false
+    steps:
+      - action: 校验 GET /projects/{project_id}/status 的完整接口合同。
+        expected: 校验成功，并生成 API、需求、设计、UI 和测试的稳定关系。
+      - action: 比较 OpenAPI method/path 与代码 route 集合。
+        expected: 集合完全相等，不存在缺失或想象路由。
+    postconditions:
+      - 未修改项目事实或推进任务 Gate。
+    environment: TEST-ENV-PYTEST
+    automation:
+      status: automated
+      entrypoint: tests/test_project_artifact_contracts.py::test_repository_openapi_matches_all_declared_runtime_routes
+    tags: [api, project-status, readonly]

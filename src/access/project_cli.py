@@ -31,6 +31,11 @@ class ProjectCommandReceipt:
 def _parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="project", add_help=False, exit_on_error=False)
     root = parser.add_subparsers(dest="root")
+    for artifact_root in ("design", "api", "test-cases"):
+        artifact = root.add_parser(artifact_root, add_help=False, exit_on_error=False)
+        artifact_commands = artifact.add_subparsers(dest="command")
+        validate = artifact_commands.add_parser("validate", add_help=False, exit_on_error=False)
+        validate.add_argument("--json", action="store_true")
     project = root.add_parser("project", add_help=False, exit_on_error=False)
     commands = project.add_subparsers(dest="command")
     index = commands.add_parser("index", add_help=False, exit_on_error=False)
@@ -100,14 +105,19 @@ def run(
     json_only = "--json" in argv
     try:
         arguments = _parser().parse_args(argv)
-        if arguments.root != "project" or arguments.command is None:
-            raise QueryFailure("INVALID_INPUT", "请指定 project 子命令", exit_code=2)
+        if arguments.root not in {"project", "design", "api", "test-cases"}:
+            raise QueryFailure("INVALID_INPUT", "请指定受支持的子命令", exit_code=2)
+        if arguments.command is None:
+            raise QueryFailure("INVALID_INPUT", "请指定具体动作", exit_code=2)
         command_name = str(arguments.command)
+        command_root = str(arguments.root)
         values = vars(arguments)
         values.pop("root", None)
         values.pop("command", None)
         values.pop("json", None)
-        if command_name == "index":
+        if command_root in {"design", "api", "test-cases"}:
+            command_name = f"{command_root}.{command_name}"
+        elif command_name == "index":
             action = str(values.pop("action"))
             command_name = f"index.{action}"
         elif command_name == "sync":

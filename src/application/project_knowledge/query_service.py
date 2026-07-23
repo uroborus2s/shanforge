@@ -106,6 +106,9 @@ class ProjectKnowledgeCommandService:
         sync_head: Callable[[str], dict[str, Any]] | None = None,
         snapshot: Callable[..., dict[str, Any]] | None = None,
         maintain: Callable[[bool], dict[str, Any]] | None = None,
+        validate_design: Callable[[], dict[str, Any]] | None = None,
+        validate_api: Callable[[], dict[str, Any]] | None = None,
+        validate_test_cases: Callable[[], dict[str, Any]] | None = None,
     ) -> None:
         self._query = query_service
         self._check_index = check_index
@@ -115,6 +118,9 @@ class ProjectKnowledgeCommandService:
         self._sync_head = sync_head
         self._snapshot = snapshot
         self._maintain = maintain
+        self._validate_design = validate_design
+        self._validate_api = validate_api
+        self._validate_test_cases = validate_test_cases
 
     def execute(self, command: str, **arguments: Any) -> dict[str, Any]:
         if command == "find":
@@ -143,4 +149,10 @@ class ProjectKnowledgeCommandService:
             return self._snapshot(**arguments)
         if command == "maintain" and self._maintain is not None:
             return self._maintain(bool(arguments["apply"]))
+        if command == "design.validate" and self._validate_design is not None:
+            return self._validate_design()
+        if command == "api.validate" and self._validate_api is not None:
+            return self._validate_api()
+        if command == "test-cases.validate" and self._validate_test_cases is not None:
+            return self._validate_test_cases()
         raise QueryFailure("INVALID_INPUT", f"unsupported command {command!r}", exit_code=2)

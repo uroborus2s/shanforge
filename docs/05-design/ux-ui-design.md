@@ -5,12 +5,12 @@
 | 项目 | 内容 |
 |---|---|
 | 文档 ID | `DESIGN-UX-UI-001` |
-| 正式版本 | `v1.1.0` |
+| 正式版本 | `v1.1.0`（`v1.2.0` 候选修订待评审） |
 | 来源候选 | `TASK-DESIGN-001-R019` |
 | 发布事务 | `DESIGN-RELEASE-TX-R019-G001` |
 | 负责人 | `HUMAN_UX_LEAD` |
 | 修改 / 审核 / 批准 | `uroborus` / `uroborus` / `uroborus` |
-| 状态 | 已批准并生效 |
+| 状态 | `v1.1.0` 已批准并生效；`v1.2.0` 候选修订待评审 |
 | 上游 | `PRD`、`module-domain-design`、`frontend-design` |
 | 下游 | `UI 评审`、`前端实现`、`可用性测试` |
 
@@ -410,9 +410,55 @@ R019 作者只能把 T01–T06 产物标记为 `ready_for_review`。完整 profi
 
 导航采用固定顶部/侧栏入口，详情进入完整内容页并保留返回原列表按钮。站点支持 360、768、1280、1440 px 视口、键盘焦点、跳过导航、语义标题、对比度和打印样式；空、错误、stale、无权限均有独立可理解状态，不以空白页代替。
 
+## 35. UX/UI 设计资产与 Penpot 工作流
+
+### 35.1 一份设计文档，多个机器附件
+
+本文件是 UX、交互和 UI 设计的唯一人类文档。设计工具文件、Token 和导出资源不是
+第二份设计说明，而是本文件的机器附件：
+
+| 资产 | 稳定位置 | 作用 | Git |
+|---|---|---|---|
+| 设计资产清单 | `design/ux-ui/design-manifest.yaml` | 绑定设计文档、Penpot 状态、页面、组件和导出资源 | 提交 |
+| Penpot 源文件 | `design/ux-ui/*.penpot` | 可编辑设计源；只有真实导出后才存在 | 提交 |
+| 设计 Token | `design/ux-ui/tokens.json` | 前端可消费的语义色、字体、间距、圆角和动效参数 | 提交 |
+| 导出资源 | `design/ux-ui/exports/` | 经过 manifest 登记的 SVG、PNG、WebP 或 PDF | 提交 |
+| HTML 展示 | `.factory/cache/site/current/` | 由 SQLite 投影快速生成的只读页面 | 不提交 |
+
+当前 manifest 的状态是 `awaiting_penpot_connection`：Penpot MCP 已安装，但还没有在
+具体 Penpot 文件中加载本地插件，因此仓库没有 `.penpot` 文件。该状态是明确的产品
+事实，不是缺省占位；系统禁止生成假的 `.penpot` 文件或假链接。
+
+### 35.2 Penpot 连接与交付步骤
+
+1. 启动本地 `penpot-mcp` 服务。
+2. 在 Penpot 打开目标文件，并从 `http://localhost:4400/manifest.json` 加载插件。
+3. AI 通过已注册的 `http://127.0.0.1:4401/mcp` 读取或修改当前打开的设计文件。
+4. 从 Penpot 导出真实 `.penpot` 文件到 `design/ux-ui/`。
+5. 更新 manifest 的 `source.file` 和状态，运行 `design validate --json`。
+6. 导出图片或矢量资源时，在 manifest 登记 subject、用途、格式和仓库路径。
+
+MCP 负责操作 Penpot，不替代产品决策、UX 任务流、UI 视觉质量或人工设计评审。
+`.penpot` 可以保存结构、组件、样式和矢量资产，但高质量背景、插画、照片和复杂动效
+仍需要专门美术资源管线；这些资源回到 manifest 后才成为正式交付的一部分。
+
+### 35.3 固定校验
+
+运行：
+
+```bash
+PYTHONPATH=src .venv/bin/python -m settings.composition.project_knowledge design validate --json
+```
+
+校验器检查 schema、稳定 ID、中文标题和用途、页面/组件状态、仓内路径、真实文件存在性
+及 Penpot 等待连接语义。`ready` 或 `deprecated` 状态没有真实 `.penpot` 时必须失败。
+
 ## 正式版本历史（仅已发布）
 
 | 版本 | 日期 | 变更 | 修改人 | 审核 | 批准 |
 |---|---|---|---|---|---|
 | `v1.0.0` | 2026-07-18 | 基于 `TASK-DESIGN-001-R019` 正式落档 | `uroborus` | `uroborus` | `uroborus` |
 | `v1.1.0` | 2026-07-22 | 增补商用品质的项目站点信息架构、详情页、可读任务和无障碍规则 | `uroborus` | `uroborus` | `uroborus` |
+
+候选修订：`v1.2.0` 增补 Penpot 设计资产、Token、导出资源和固定校验工作流；
+当前尚未进入正式版本历史，待独立评审和用户确认后发布。

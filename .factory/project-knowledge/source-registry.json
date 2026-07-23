@@ -62,11 +62,23 @@
       "roots": [".factory/workitems"],
       "include": ["**/*.jsonl"],
       "exclude": ["**/drafts/*.candidate.jsonl", "**/design-assets/**"],
-      "extractor_id": "jsonl-event-v3",
+      "extractor_id": "jsonl-event-v4",
       "access_class": "project",
       "authority_rank": 100,
-      "stable_id_policy": "event_uid_or_idempotency_key",
+      "stable_id_policy": "event_uid_or_idempotency_key_or_semantic_fallback",
       "max_file_bytes": 8388608
+    },
+    {
+      "registry_source_id": "SRC-WORKITEM-BRIEF",
+      "kind": "markdown",
+      "roots": [".factory/workitems"],
+      "include": ["**/task-briefs/*.md"],
+      "exclude": ["**/archive/**", "**/design-assets/**"],
+      "extractor_id": "markdown-v1",
+      "access_class": "project",
+      "authority_rank": 90,
+      "stable_id_policy": "task_brief_heading_or_path",
+      "max_file_bytes": 524288
     },
     {
       "registry_source_id": "SRC-MEMORY",

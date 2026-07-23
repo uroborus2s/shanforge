@@ -504,13 +504,55 @@ class SQLiteProjectKnowledgeIndex:
             (old_artifact_id,),
         ).fetchone():
             return False
-        removed = previous_entities - current_entities
-        if removed:
-            placeholders = ",".join("?" for _ in removed)
+        affected = previous_entities | current_entities
+        placeholders = ",".join("?" for _ in affected)
+        ordered = sorted(affected)
+        if connection.execute(
+            "SELECT 1 FROM pk_edge WHERE "
+            f"from_entity_id IN ({placeholders}) OR to_entity_id IN ({placeholders}) LIMIT 1",
+            (*ordered, *ordered),
+        ).fetchone():
+            return False
+        if connection.execute(
+            "SELECT 1 FROM pk_test WHERE "
+            f"code_symbol_id IN ({placeholders}) OR last_evidence_entity_id IN ({placeholders}) "
+            "LIMIT 1",
+            (*ordered, *ordered),
+        ).fetchone():
+            return False
+        for table, column in (
+            ("pk_entity_alias", "canonical_entity_id"),
+            ("pk_memory_checkpoint", "entity_id"),
+            ("pk_diagnostic", "entity_id"),
+        ):
             if connection.execute(
-                "SELECT 1 FROM pk_edge WHERE source_id<>? AND "
-                f"(from_entity_id IN ({placeholders}) OR to_entity_id IN ({placeholders})) LIMIT 1",
-                (source_id, *sorted(removed), *sorted(removed)),
+                f"SELECT 1 FROM {table} WHERE {column} IN ({placeholders}) LIMIT 1",
+                ordered,
+            ).fetchone():
+                return False
+        locator_ids = [
+            str(row[0])
+            for row in connection.execute(
+                "SELECT locator_id FROM pk_locator WHERE source_id=?", (source_id,)
+            )
+        ]
+        if locator_ids:
+            locator_placeholders = ",".join("?" for _ in locator_ids)
+            for table, column in (
+                ("pk_edge", "evidence_locator_id"),
+                ("pk_work_item", "ledger_locator_id"),
+                ("pk_diagnostic", "locator_id"),
+            ):
+                if connection.execute(
+                    f"SELECT 1 FROM {table} WHERE {column} IN ({locator_placeholders}) LIMIT 1",
+                    locator_ids,
+                ).fetchone():
+                    return False
+            if connection.execute(
+                "SELECT 1 FROM pk_entity_locator WHERE "
+                f"locator_id IN ({locator_placeholders}) "
+                f"AND entity_id NOT IN ({placeholders}) LIMIT 1",
+                (*locator_ids, *ordered),
             ).fetchone():
                 return False
         return True

@@ -64,6 +64,9 @@ _SECTION_ID = re.compile(r"<!--\s*sf:section-id=([^\s]+)\s*-->")
 _HEADING = re.compile(r"^(#{1,6})\s+(.+?)\s*$")
 _TABLE_ROW = re.compile(r"^\|\s*([^|]+?)\s*\|\s*([^|]+?)\s*\|\s*$")
 _AUDIENCE_LINE = re.compile(r"^(?:[-*]\s*)?(?:\*\*)?主要读者(?:\*\*)?[：:]\s*(.+?)\s*$")
+_TASK_BRIEF_TITLE_LINE = re.compile(
+    r"^\s*[-*]\s*任务[：:]\s*`[^`]+`\s+(.+?)\s*$"
+)
 
 
 def _metadata_value(value: str) -> str:
@@ -136,6 +139,19 @@ class MarkdownExtractor:
                 section_id = explicit_id
             headings.append((level, heading_title, section_id, start, end))
         title = headings[0][1] if headings else source.relative_path.rsplit("/", 1)[-1]
+        if title.strip() in {"任务简报", "实施任务简报"} and "/task-briefs/" in (
+            f"/{source.relative_path}"
+        ):
+            declared_title = next(
+                (
+                    match.group(1).strip()
+                    for line in lines
+                    if (match := _TASK_BRIEF_TITLE_LINE.match(line)) is not None
+                ),
+                None,
+            )
+            if declared_title:
+                title = declared_title
         document_metadata = {
             "chinese_name": title,
             "audience": metadata.get("主要读者"),
@@ -748,19 +764,30 @@ class JsonLinesExtractor:
         events: list[dict[str, Any]] = []
         latest_work_items: dict[str, dict[str, Any]] = {}
         missing_event_uid_count = 0
+        derived_uid_occurrences: dict[str, int] = {}
         for raw_line in content.decode("utf-8").splitlines():
             if not raw_line.strip():
                 continue
             event = json.loads(raw_line)
-            event_uid = event.get("event_uid") or event.get("idempotency_key")
+            semantic = _sha256_json(event)
+            event_uid = (
+                event.get("event_uid") or event.get("idempotency_key") or event.get("action_key")
+            )
             if not isinstance(event_uid, str) or not event_uid:
                 missing_event_uid_count += 1
-                continue
-            semantic = _sha256_json(event)
+                occurrence = derived_uid_occurrences.get(semantic, 0) + 1
+                derived_uid_occurrences[semantic] = occurrence
+                event_uid = f"derived:{semantic}:{occurrence}"
             work_item = event.get("task") or event.get("work_item") or event.get("workitem")
             display_name = str(work_item or event_uid)
             safe_summary = _work_item_summary(event)
             safe_details = _business_details(event)
+            updated_at = event.get("ts") or event.get("timestamp") or event.get("updated_at")
+            if isinstance(updated_at, str) and updated_at:
+                safe_details["updated_at"] = updated_at
+            task_title = event.get("task_title") or event.get("title")
+            if isinstance(task_title, str) and task_title.strip():
+                safe_details["task_title"] = task_title.strip()
             events.append(
                 {
                     "event_uid": event_uid,
@@ -849,8 +876,8 @@ class JsonLinesExtractor:
                     "code": "JSONL_EVENT_UID_MISSING",
                     "severity": "warning",
                     "safe_message": (
-                        f"{missing_event_uid_count} JSONL events cannot be strong sources "
-                        "without a stable UID"
+                        f"{missing_event_uid_count} JSONL events use a deterministic derived UID; "
+                        "new events should provide an explicit stable UID"
                     ),
                 }
             )

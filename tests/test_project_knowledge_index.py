@@ -8,6 +8,7 @@ import pytest
 
 from application.project_knowledge.index_service import ProjectKnowledgeIndexService
 from application.project_knowledge.query_service import ProjectKnowledgeQueryService, QueryFailure
+from domain.project_knowledge.models import AccessClass, SourceDefinition, stable_id
 from runtime.project_knowledge.extractors import default_extractors
 from settings.project_knowledge.query_store import SQLiteKnowledgeQueryStore
 from settings.project_knowledge.source_registry import FileSourceRegistry
@@ -162,6 +163,107 @@ def test_single_existing_python_source_uses_consistent_incremental_projection(
             ).fetchone()[0]
             == 0
         )
+
+
+@pytest.mark.parametrize("reference_kind", ["entity", "evidence_locator"])
+def test_python_incremental_refresh_falls_back_for_foreign_key_references(
+    tmp_path: Path, reference_kind: str
+) -> None:
+    source_root = tmp_path / "src"
+    source_root.mkdir()
+    python_source = source_root / "example.py"
+    python_source.write_text("def run() -> int:\n    return 1\n", encoding="utf-8")
+    relation_root = tmp_path / "relations"
+    relation_root.mkdir()
+    code_file_id = stable_id("codefile", ["src/example.py"])
+    symbol_id = "py:src.example:run:function"
+    python_definition = SourceDefinition(
+        source_id="source:python:test",
+        registry_source_id="SRC-PYTHON",
+        kind="python",
+        relative_path="src/example.py",
+        extractor_id="python-ast-v1",
+        registry_version="1",
+        authority_rank=80,
+        access_class=AccessClass.PROJECT,
+    )
+    python_contribution = default_extractors().extract(
+        python_definition, python_source.read_bytes()
+    )
+    evidence_locator_id = str(python_contribution["locators"][0]["locator_id"])
+    if reference_kind == "entity":
+        relation = {
+            "from_entity_id": code_file_id,
+            "to_entity_id": symbol_id,
+            "relation_type": "CONTAINS",
+        }
+        nodes: list[dict[str, str]] = []
+    else:
+        relation = {
+            "from_entity_id": "external-source",
+            "to_entity_id": "external-target",
+            "relation_type": "EVIDENCES",
+            "evidence_locator_id": evidence_locator_id,
+        }
+        nodes = [{"id": "external-source"}, {"id": "external-target"}]
+    (relation_root / "code-map.json").write_text(
+        json.dumps(
+            {
+                "schema_id": "ProjectKnowledgeRelationDeclarations/v1",
+                "nodes": nodes,
+                "relations": [relation],
+            }
+        ),
+        encoding="utf-8",
+    )
+    registry_path = tmp_path / "registry.json"
+    registry_path.write_text(
+        json.dumps(
+            {
+                "schema_id": "ProjectKnowledgeSourceRegistry/v1",
+                "registry_version": "1",
+                "sources": [
+                    {
+                        "registry_source_id": "SRC-PYTHON",
+                        "kind": "python",
+                        "roots": ["src"],
+                        "include": ["*.py"],
+                        "exclude": [],
+                        "extractor_id": "python-ast-v1",
+                        "access_class": "project",
+                        "authority_rank": 80,
+                        "stable_id_policy": "ast-qualified-name",
+                        "max_file_bytes": 100000,
+                    },
+                    {
+                        "registry_source_id": "SRC-RELATION",
+                        "kind": "json",
+                        "roots": ["relations"],
+                        "include": ["*.json"],
+                        "exclude": [],
+                        "extractor_id": "json-pointer-v1",
+                        "access_class": "project",
+                        "authority_rank": 100,
+                        "stable_id_policy": "explicit_or_pointer",
+                        "max_file_bytes": 100000,
+                    },
+                ],
+            }
+        ),
+        encoding="utf-8",
+    )
+    indexer, database = service(tmp_path, registry_path)
+    indexer.refresh(as_of="2026-07-22T00:00:00Z", git_commit="head")
+
+    python_source.write_text("def run() -> int:\n    return 2\n", encoding="utf-8")
+    refreshed = indexer.refresh(as_of="2026-07-22T00:00:01Z", git_commit="head")
+
+    assert refreshed.parsed_count == 1
+    with sqlite3.connect(database) as connection:
+        assert connection.execute("SELECT COUNT(*) FROM pk_edge").fetchone()[0] == 1
+        assert connection.execute(
+            "SELECT COUNT(*) FROM pk_code_symbol WHERE symbol_id=?", (symbol_id,)
+        ).fetchone()[0] == 1
 
 
 def test_failed_conflicting_generation_rolls_back_for_concurrent_reader(tmp_path: Path) -> None:

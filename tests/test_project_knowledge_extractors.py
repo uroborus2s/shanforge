@@ -174,7 +174,9 @@ def test_json_and_jsonl_locators_are_pointer_and_event_uid_based() -> None:
         source("jsonl", ".factory/workitems/A/ledger.jsonl"),
         b'{"event":"created","idempotency_key":"evt:1"}\n{"event":"unsafe-without-id"}\n',
     )
-    assert [event["event_uid"] for event in jsonl_contribution["events"]] == ["evt:1"]
+    event_uids = [event["event_uid"] for event in jsonl_contribution["events"]]
+    assert event_uids[0] == "evt:1"
+    assert event_uids[1].startswith("derived:")
     assert jsonl_contribution["diagnostics"][0]["code"] == "JSONL_EVENT_UID_MISSING"
 
 
@@ -192,3 +194,39 @@ def test_jsonl_projects_latest_readable_work_item_without_losing_event_audit() -
         "最近进展：验证已完成；当前状态：等待独立评审；下一步：独立评审。"
     )
     assert len(contribution["events"]) == 2
+
+
+def test_jsonl_legacy_event_without_uid_updates_current_task_instead_of_being_dropped() -> None:
+    contribution = JsonLinesExtractor().extract(
+        source("jsonl", ".factory/workitems/A/ledger.jsonl"),
+        b'{"event":"implemented","task":"TASK-1","status":"ready_for_review",'
+        b'"ts":"2026-07-01T10:00:00+08:00","idempotency_key":"e1"}\n'
+        b'{"event":"human_confirmation","task":"TASK-1","status":"human_approved",'
+        b'"ts":"2026-07-01T11:00:00+08:00","next_required_action":"none"}\n',
+    )
+
+    work_item = next(
+        item for item in contribution["entities"] if item["entity_kind"] == "work_item"
+    )
+    assert work_item["lifecycle_status"] == "human_approved"
+    assert work_item["details"]["updated_at"] == "2026-07-01T11:00:00+08:00"
+    assert len(contribution["events"]) == 2
+    assert contribution["events"][1]["event_uid"].startswith("derived:")
+
+
+def test_markdown_task_brief_uses_declared_task_name_when_heading_is_generic() -> None:
+    contribution = MarkdownExtractor().extract(
+        source(
+            "markdown",
+            ".factory/workitems/PM-DASHBOARD-002/task-briefs/PM-DASHBOARD-002-T01.md",
+        ),
+        """# 任务简报
+
+## 工作项
+
+- 任务：`PM-DASHBOARD-002-T01` Excel 十模块项目状态查看契约
+""".encode(),
+    )
+
+    assert contribution["document"]["title"] == "Excel 十模块项目状态查看契约"
+    assert contribution["document"]["chinese_name"] == "Excel 十模块项目状态查看契约"

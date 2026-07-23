@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+import re
 import sqlite3
 from pathlib import Path
 
@@ -275,9 +276,274 @@ def test_renderer_translates_unknown_business_values_to_explicit_missing_state()
     page = (
         ProjectSiteRenderer().render(model, profile="local-owner").pages["requirements/REQ-1.html"]
     )
-    assert "当前事实源未登记。" in page
-    assert "<dd>未登记</dd>" in page
-    assert '<h2>背景、问题与目标</h2><p class="missing-state">当前事实源未登记。</p>' in page
+    assert "当前暂无可展示的正式数据。" in page
+    assert "<dd>待补充</dd>" in page
+    assert (
+        '<h2>背景、问题与目标</h2><p class="missing-state">当前暂无可展示的正式数据。</p>'
+        in page
+    )
+
+
+def test_overview_is_a_recent_chinese_task_kanban_with_parent_completion_rollup() -> None:
+    model = site_model()
+    entities = list(model["entities"])  # type: ignore[arg-type]
+    entities.extend(
+        [
+            {
+                "entity_id": "task-parent",
+                "entity_kind": "work_item",
+                "display_name": "TASK-IMPLEMENT-003-P001",
+                "summary": "项目知识索引与只读站点已经完成。",
+                "lifecycle_status": "completed_local_commit_created",
+                "details": {"updated_at": "2026-07-23T00:32:00+08:00"},
+                "work_item": {"task_status": "completed_local_commit_created"},
+                "relations": [],
+                "locators": [],
+            },
+            {
+                "entity_id": "task-parent-stale-duplicate",
+                "entity_kind": "work_item",
+                "display_name": "TASK-IMPLEMENT-003-P001",
+                "summary": "旧记录仍在实施中。",
+                "lifecycle_status": "in_progress",
+                "details": {"updated_at": "2026-07-22T00:00:00+08:00"},
+                "work_item": {"task_status": "in_progress"},
+                "relations": [],
+                "locators": [],
+            },
+            {
+                "entity_id": "task-child",
+                "entity_kind": "work_item",
+                "display_name": "TASK-IMPLEMENT-003-P001-T01",
+                "summary": "合同与数据结构已交付。",
+                "lifecycle_status": "ready_for_review",
+                "details": {"updated_at": "2026-07-22T17:55:00+08:00"},
+                "work_item": {"task_status": "ready_for_review"},
+                "relations": [],
+                "locators": [],
+            },
+            {
+                "entity_id": "task-testing",
+                "entity_kind": "work_item",
+                "display_name": "验证项目快照",
+                "summary": "正在运行浏览器回归。",
+                "lifecycle_status": "verification_in_progress",
+                "details": {"updated_at": "2026-07-23T00:31:00+08:00"},
+                "work_item": {"task_status": "verification_in_progress"},
+                "relations": [],
+                "locators": [],
+            },
+            {
+                "entity_id": "task-parent-without-time",
+                "entity_kind": "work_item",
+                "display_name": "NO-DATE-PARENT",
+                "summary": "无时间父任务已完成。",
+                "lifecycle_status": "done",
+                "details": {},
+                "work_item": {"task_status": "done"},
+                "relations": [],
+                "locators": [],
+            },
+            {
+                "entity_id": "task-child-without-time",
+                "entity_kind": "work_item",
+                "display_name": "NO-DATE-PARENT-T01",
+                "summary": "无时间子任务等待评审。",
+                "lifecycle_status": "ready_for_review",
+                "details": {},
+                "work_item": {"task_status": "ready_for_review"},
+                "relations": [],
+                "locators": [],
+            },
+            {
+                "entity_id": "task-offset-parent",
+                "entity_kind": "work_item",
+                "display_name": "OFFSET-PARENT",
+                "summary": "跨时区父任务已完成。",
+                "lifecycle_status": "done",
+                "details": {"updated_at": "2026-07-23T00:00:00+08:00"},
+                "work_item": {"task_status": "done"},
+                "relations": [],
+                "locators": [],
+            },
+            {
+                "entity_id": "task-offset-child",
+                "entity_kind": "work_item",
+                "display_name": "OFFSET-PARENT-T01",
+                "summary": "跨时区子任务等待评审。",
+                "lifecycle_status": "ready_for_review",
+                "details": {"updated_at": "2026-07-22T17:00:00Z"},
+                "work_item": {"task_status": "ready_for_review"},
+                "relations": [],
+                "locators": [],
+            },
+            {
+                "entity_id": "task-timezone-duplicate-old",
+                "entity_kind": "work_item",
+                "display_name": "TIMEZONE-DUPLICATE",
+                "summary": "跨时区重复任务旧状态。",
+                "lifecycle_status": "done",
+                "details": {"updated_at": "2026-07-23T00:00:00+08:00"},
+                "work_item": {"task_status": "done"},
+                "relations": [],
+                "locators": [],
+            },
+            {
+                "entity_id": "task-timezone-duplicate-new",
+                "entity_kind": "work_item",
+                "display_name": "TIMEZONE-DUPLICATE",
+                "summary": "跨时区重复任务正在执行。",
+                "lifecycle_status": "in_progress",
+                "details": {"updated_at": "2026-07-22T17:00:00Z"},
+                "work_item": {"task_status": "in_progress"},
+                "relations": [],
+                "locators": [],
+            },
+            {
+                "entity_id": "task-unknown-slug",
+                "entity_kind": "work_item",
+                "display_name": "TASK-QUALITY-999-remove-graphql-skill",
+                "summary": "清理旧查询接口。",
+                "lifecycle_status": "done",
+                "details": {"updated_at": "2026-07-22T18:00:00Z"},
+                "work_item": {"task_status": "done"},
+                "relations": [],
+                "locators": [],
+            },
+            {
+                "entity_id": "task-fast-path",
+                "entity_kind": "work_item",
+                "display_name": "TASK-SKILL-003-simple-task-fast-path",
+                "summary": "快速通道已完成。",
+                "lifecycle_status": "done",
+                "details": {"updated_at": "2026-07-22T12:00:00+08:00"},
+                "work_item": {"task_status": "done"},
+                "relations": [],
+                "locators": [],
+            },
+        ]
+    )
+    for index in range(12):
+        entities.append(
+            {
+                "entity_id": f"task-complete-{index}",
+                "entity_kind": "work_item",
+                "display_name": f"完成任务{index + 1}",
+                "summary": "已完成。",
+                "lifecycle_status": "done",
+                "details": {"updated_at": f"2026-07-{index + 1:02d}T10:00:00+08:00"},
+                "work_item": {"task_status": "done"},
+                "relations": [],
+                "locators": [],
+            }
+        )
+    model["entities"] = entities
+    documents = list(model["documents"])  # type: ignore[arg-type]
+    documents.extend(
+        [
+            {
+                "document_id": "BRIEF-PARENT",
+                "title": "TASK-IMPLEMENT-003-P001 项目知识索引与只读站点",
+                "relative_path": (
+                    ".factory/workitems/FLOW-CONTRACT-001/task-briefs/"
+                    "TASK-IMPLEMENT-003-P001.md"
+                ),
+                "doc_status": "active",
+                "sections": [],
+            },
+            {
+                "document_id": "BRIEF-T01",
+                "title": "T01 合同内核与 39 表 Schema",
+                "relative_path": (
+                    ".factory/workitems/FLOW-CONTRACT-001/task-briefs/"
+                    "TASK-IMPLEMENT-003-P001-T01-contract-and-schema.md"
+                ),
+                "doc_status": "active",
+                "sections": [],
+            },
+        ]
+    )
+    model["documents"] = documents
+
+    rendered = ProjectSiteRenderer().render(model, profile="local-owner")
+    overview = rendered.pages["index.html"]
+    tasks_page = rendered.pages["tasks/index.html"]
+
+    for label in ("待开始", "进行中", "测试中", "待评审", "待确认 / 阻塞", "已完成"):
+        assert label in overview
+    assert 'class="kanban-board"' in overview
+    assert "合同内核与 39 表数据结构" in overview
+    assert "简单任务快速通道" in overview
+    assert "TASK-IMPLEMENT-003-P001-T01" not in overview
+    assert "TASK-SKILL-003-simple-task-fast-path" not in overview
+    assert overview.count("项目知识索引与只读站点") == 1
+    assert ">项目任务<" not in overview
+    assert ">等待独立评审<" not in overview
+    assert '<details class="kanban-more">' in overview
+    assert re.search(r"<summary>更多（\d+）</summary>", overview)
+    assert overview.count('class="kanban-card kanban-card--visible"') <= 60
+    assert 'data-kanban-status="testing"' in overview
+    completed_column = re.search(
+        r'<section class="kanban-column" data-kanban-status="done">(.*?)</section>',
+        overview,
+        re.DOTALL,
+    )
+    assert completed_column is not None
+    assert "合同内核与 39 表数据结构" in completed_column.group(1)
+    assert "等待独立评审" not in completed_column.group(1)
+    review_column = re.search(
+        r'<section class="kanban-column" data-kanban-status="review">(.*?)</section>',
+        overview,
+        re.DOTALL,
+    )
+    assert review_column is not None
+    assert "无时间子任务等待评审" in review_column.group(1)
+    assert "无时间子任务等待评审" not in completed_column.group(1)
+    assert "跨时区子任务等待评审" in review_column.group(1)
+    assert "跨时区子任务等待评审" not in completed_column.group(1)
+    in_progress_column = re.search(
+        r'<section class="kanban-column" data-kanban-status="in_progress">(.*?)</section>',
+        overview,
+        re.DOTALL,
+    )
+    assert in_progress_column is not None
+    assert "跨时区重复任务正在执行" in in_progress_column.group(1)
+    assert "跨时区重复任务旧状态" not in completed_column.group(1)
+    assert "清理旧查询接口" in completed_column.group(1)
+    assert ">技能<" not in overview
+    assert 'class="kanban-board"' in tasks_page
+    assert "中文任务标题" in tasks_page
+    assert "TASK-IMPLEMENT-003-P001-T01" in rendered.pages["tasks/task-child.html"]
+    card_titles = re.findall(r'class="kanban-card[^>]*>([^<]+)</a>', overview)
+    assert card_titles
+    assert all(re.search(r"[\u4e00-\u9fff]", title) for title in card_titles)
+    assert all(not re.search(r"[A-Za-z]", title) for title in card_titles)
+
+
+def test_overview_with_only_todo_tasks_reports_todo_instead_of_completed() -> None:
+    model = site_model()
+    model["entities"] = [
+        {
+            "entity_id": "task-todo-only",
+            "entity_kind": "work_item",
+            "display_name": "UNMAPPED-001",
+            "summary": "同步订单状态。",
+            "lifecycle_status": "todo",
+            "details": {"task_title": "接入 FooBar 订单同步"},
+            "work_item": {"task_status": "todo"},
+            "relations": [],
+            "locators": [],
+        }
+    ]
+
+    overview = ProjectSiteRenderer().render(model, profile="local-owner").pages["index.html"]
+
+    hero = re.search(r'<section class="hero">(.*?)</section>', overview, re.DOTALL)
+    assert hero is not None
+    assert '<span class="status-chip">待开始</span>' in hero.group(1)
+    assert '<span class="status-chip">已完成</span>' not in hero.group(1)
+    assert "同步订单状态" in overview
+    assert "接入 订单同步" not in overview
 
 
 def test_code_detail_renders_real_decorated_symbol_definition_signatures() -> None:
@@ -328,6 +594,10 @@ def test_pm_records_have_full_detail_pages_and_preserve_four_states() -> None:
     assert "source_manifest_sha256" not in combined
     assert "row_sha256" not in combined
     assert "generation_id" not in combined
+    assert "暂无数据源" in combined
+    assert "当前项目尚未登记这个字段的数据来源" in rendered.pages[
+        "project-management/index.html"
+    ]
 
 
 def test_atomic_publisher_cache_hit_minimal_redraw_and_old_site_survives_failure(
@@ -349,7 +619,10 @@ def test_atomic_publisher_cache_hit_minimal_redraw_and_old_site_survives_failure
     assert first_index.stat().st_mtime_ns == first_mtime
 
     changed_model = site_model()
-    changed_model["project"]["completion"] = 43  # type: ignore[index]
+    changed_task = changed_model["entities"][1]  # type: ignore[index]
+    changed_task["lifecycle_status"] = "verification_in_progress"
+    changed_task["work_item"]["task_status"] = "verification_in_progress"
+    changed_task["details"]["updated_at"] = "2026-07-22T00:00:02Z"
     changed_render = renderer.render(
         changed_model,
         profile="local-owner",

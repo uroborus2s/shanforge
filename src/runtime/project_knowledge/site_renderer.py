@@ -8,6 +8,7 @@ import hashlib
 import html
 import json
 import re
+from datetime import datetime
 from pathlib import PurePosixPath
 from typing import Any
 
@@ -15,11 +16,11 @@ from application.project_knowledge.site_service import RenderedSite
 from domain.project_knowledge.models import canonical_json
 from domain.project_knowledge.sensitive_values import redact_text
 
-RENDERER_VERSION = "ProjectSiteRenderer/v5"
+RENDERER_VERSION = "ProjectSiteRenderer/v6"
 
 
 _NAVIGATION = (
-    ("index.html", "总览"),
+    ("index.html", "任务看板"),
     ("requirements/index.html", "需求"),
     ("design/index.html", "设计"),
     ("plans/index.html", "计划"),
@@ -122,7 +123,12 @@ def _status_label(value: Any) -> str:
         "passed": "已通过",
         "pending_human_confirmation": "等待人工确认",
         "ready_for_review": "等待独立评审",
-        "unknown": "未登记",
+        "review": "待评审",
+        "testing": "测试中",
+        "todo": "待开始",
+        "blocked": "待确认 / 阻塞",
+        "unknown": "待补充",
+        "not_registered": "暂无数据源",
         "warning": "警告",
     }
     raw = str(value or "unknown")
@@ -135,8 +141,10 @@ def _status(value: Any) -> str:
 
 
 def _definition_value(key: str, value: Any) -> Any:
-    if str(value).casefold() in {"unknown", "not_registered"}:
-        return "未登记"
+    if str(value).casefold() == "unknown":
+        return "待补充"
+    if str(value).casefold() == "not_registered":
+        return "暂无数据源"
     if key in {"lifecycle_status", "doc_status", "status", "severity"}:
         return _status_label(value)
     if key == "entity_kind":
@@ -182,11 +190,418 @@ def _list_items(items: list[dict[str, Any]], route_template: str) -> str:
     return '<ul class="record-list">' + "".join(rows) + "</ul>"
 
 
+_KANBAN_COLUMNS = (
+    ("todo", "待开始"),
+    ("in_progress", "进行中"),
+    ("testing", "测试中"),
+    ("review", "待评审"),
+    ("blocked", "待确认 / 阻塞"),
+    ("done", "已完成"),
+)
+
+_TASK_SLUG_TITLES = {
+    "artifact-retention-and-ephemeral-evidence-policy": "制品保留与临时证据策略",
+    "project-execution-position-and-stop-visibility": "项目执行位置与停止原因可见性",
+    "project-knowledge-index-and-deterministic-docs": "项目知识索引与确定性文档",
+    "project-knowledge-index-and-readonly-site": "项目知识索引与只读站点",
+    "progress-visibility-and-continuous-execution": "进度可见与连续执行",
+    "remaining-skill-project-status-contract": "剩余技能项目状态契约",
+    "simple-task-fast-path": "简单任务快速通道",
+    "work-skill-status-envelope-owner": "工作技能状态信封归属",
+}
+
+_TASK_ID_TITLES = {
+    "DOC-FACTORY-RESTRUCTURE-001": "文档与项目记忆结构重整",
+    "FLOW-CONTRACT-001": "智能开发流程契约治理",
+    "GO-BACKEND-SKILL-001": "后端开发技能建设",
+    "PM-DASHBOARD-002-T01": "项目状态十模块查看契约",
+    "PM-DASHBOARD-003": "项目状态仪表盘原型",
+    "SF-SP-001": "移除旧中心脚本流程入口",
+    "SF-SP-002": "建立项目记忆工作流",
+    "SF-SP-003": "迁移需求工程参考资料",
+    "SF-SP-004": "建立计划编写工作流",
+    "SF-SP-005": "建立任务执行工作流",
+    "SF-SP-006": "建立独立评审工作流",
+    "SF-SP-007": "建立调试与完成验证工作流",
+    "SF-SP-008": "建立提交与交付门禁",
+    "SF-SP-009": "建立黑盒流程评估",
+    "SF-SP-010": "完成工作流集成收尾",
+    "TASK-001-destructive-full-doc-migration": "文档体系完整迁移",
+    "TASK-002-docs-memory-structure-redesign": "文档与项目记忆结构重构",
+    "TASK-DESIGN-001-ai-collaboration-workflow-design": "智能协作工作流设计",
+    "TASK-DELIVERY-001-r002-delivery-and-closeout": "交付与项目收尾",
+    "TASK-IMPLEMENT-001-ai-workflow-platform-implementation": "智能协作工作流平台实施",
+    "TASK-IMPLEMENT-003-P001": "项目知识索引与只读站点实施",
+    "TASK-IMPLEMENT-003-P001-T01": "合同内核与 39 表数据结构",
+    "TASK-IMPLEMENT-003-P001-T02": "来源登记、提取器与增量索引",
+    "TASK-IMPLEMENT-003-P001-T03": "稳定定位、关系图与命令行查询",
+    "TASK-IMPLEMENT-003-P001-T04": "137 字段项目管理投影与只读站点",
+    "TASK-IMPLEMENT-003-P001-T05": "异步同步、有界维护与资料迁移",
+    "TASK-IMPLEMENT-003-P001-T06": "装配、正式文档与整体资格化",
+    "TASK-PRD-001-ai-collaboration-workflow-prd": "智能协作工作流产品需求",
+    "TASK-QUALITY-002-remove-unused-runtime-skill-management": "移除未使用的技能管理链路",
+    "TASK-REQ-001-ai-collaboration-workflow-requirements": "智能协作工作流需求",
+    "TASK-REQ-002-project-progress-snapshot-requirement-change": "项目进度快照需求变更",
+    "TASK-REQ-003-main-task-projection-decoupling-and-risk-based-verification": (
+        "主任务投影解耦与风险分级验证"
+    ),
+    "TASK-WORKFLOW-SEMANTICS-001": "任务工作流语义治理",
+    "TASK-WF-PRD-001-requirement-clarification-to-prd-workflow": (
+        "需求澄清到产品需求工作流"
+    ),
+    "UI-DESIGN-SKILL-001": "全平台界面体验与动效设计技能",
+    "FLOW-TASK-008": "升级任务执行流程",
+    "FLOW-TASK-009": "升级独立评审与完成验证流程",
+    "FLOW-TASK-010": "增加项目基线设计模板",
+}
+
+_TASK_WORDS = {
+    "ai": "智能协作",
+    "artifact": "制品",
+    "collaboration": "协作",
+    "continuous": "连续",
+    "delivery": "交付",
+    "design": "设计",
+    "deterministic": "确定性",
+    "docs": "文档",
+    "execution": "执行",
+    "fast": "快速",
+    "foundation": "基础",
+    "implementation": "实施",
+    "index": "索引",
+    "knowledge": "知识",
+    "memory": "记忆",
+    "policy": "策略",
+    "position": "位置",
+    "progress": "进度",
+    "project": "项目",
+    "readonly": "只读",
+    "requirement": "需求",
+    "requirements": "需求",
+    "simple": "简单",
+    "skill": "技能",
+    "status": "状态",
+    "stop": "停止",
+    "system": "系统",
+    "task": "任务",
+    "visibility": "可见性",
+    "workflow": "工作流",
+}
+
+
+def _clean_chinese_title(value: Any) -> str:
+    title = str(value or "").strip().lstrip("#").strip()
+    title = re.sub(
+        r"^(?:[A-Z][A-Z0-9]*(?:-[A-Z0-9]+)+|T\d+)\s*[|｜:：-]*\s*",
+        "",
+        title,
+    )
+    replacements = (
+        (r"document-templates", "文档模板"),
+        (r"requesting-code-review", "发起独立评审"),
+        (r"receiving-code-review", "处理评审反馈"),
+        (r"React Native", "跨平台移动端"),
+        (r"UI/UX", "界面体验"),
+        (r"SQLite", "本地索引"),
+        (r"Schema", "数据结构"),
+        (r"HTML", "网页"),
+        (r"Excel", "电子表格"),
+        (r"CLI", "命令行"),
+        (r"PM", "项目管理"),
+        (r"API", "接口"),
+        (r"AST", "代码符号"),
+        (r"TDD", "测试驱动开发"),
+        (r"review", "评审"),
+        (r"verification", "完成验证"),
+        (r"baseline", "基线"),
+        (r"eval", "评估"),
+        (r"skill", "技能"),
+    )
+    for pattern, replacement in replacements:
+        title = re.sub(pattern, replacement, title, flags=re.IGNORECASE)
+    if re.search(r"[A-Za-z]", title):
+        return ""
+    title = re.sub(r"\s+", " ", title).strip(" -—_|｜:：,，;；。")
+    title = re.sub(r"(?<=[\u4e00-\u9fff])\s+(?=[\u4e00-\u9fff])", "", title)
+    title = title.replace("表 数据结构", "表数据结构")
+    title = title.replace("智能协作协作", "智能协作")
+    return title
+
+
+def _slug_title(task_id: str) -> str | None:
+    match = re.search(r"-(?=[a-z])([a-z0-9-]+)$", task_id)
+    if match is None:
+        return None
+    slug = match.group(1)
+    if slug in _TASK_SLUG_TITLES:
+        return _TASK_SLUG_TITLES[slug]
+    translated = [_TASK_WORDS.get(token) for token in slug.split("-")]
+    if any(token is None for token in translated):
+        return None
+    return "".join(str(token) for token in translated)
+
+
+def _timestamp(value: Any) -> float | None:
+    raw = str(value or "").strip()
+    if not raw:
+        return None
+    try:
+        parsed = datetime.fromisoformat(raw.replace("Z", "+00:00"))
+    except ValueError:
+        return None
+    if parsed.tzinfo is None:
+        return None
+    return parsed.timestamp()
+
+
+def _brief_title(task_id: str, documents: list[dict[str, Any]]) -> str | None:
+    matches: list[tuple[int, str]] = []
+    work_item_matches: list[str] = []
+    for document in documents:
+        relative_path = str(document.get("relative_path") or "")
+        if "/task-briefs/" not in f"/{relative_path}":
+            continue
+        parts = PurePosixPath(relative_path).parts
+        try:
+            work_item_id = parts[parts.index("workitems") + 1]
+        except (ValueError, IndexError):
+            work_item_id = ""
+        stem = PurePosixPath(relative_path).stem
+        if stem == task_id:
+            score = 3
+        elif stem.startswith(task_id + "-"):
+            score = 2
+        elif task_id.startswith(stem + "-"):
+            score = 1
+        else:
+            continue
+        title = _clean_chinese_title(document.get("chinese_name") or document.get("title"))
+        if title and title not in {"任务简报", "实施任务简报", "工作项"}:
+            matches.append((score, title))
+            if task_id == work_item_id:
+                work_item_matches.append(title)
+    if matches:
+        return max(matches)[1]
+    if len(set(work_item_matches)) == 1:
+        return work_item_matches[0]
+    return None
+
+
+def _summary_title(summary: Any) -> str | None:
+    text = str(summary or "")
+    if not re.search(r"[\u4e00-\u9fff]", text):
+        return None
+    match = re.search(r"[：:]\s*([^，；。]{2,60})", text)
+    candidate = match.group(1) if match else re.split(r"[，；。]", text, maxsplit=1)[0]
+    candidate = re.sub(r"^(?:按用户|按顺序|最近进展|当前状态)\s*", "", candidate)
+    cleaned = _clean_chinese_title(candidate)
+    return cleaned if len(re.findall(r"[\u4e00-\u9fff]", cleaned)) >= 3 else None
+
+
+def _task_title(item: dict[str, Any], documents: list[dict[str, Any]]) -> str:
+    task_id = str(item.get("display_name") or item.get("entity_id") or "")
+    details = dict(item.get("details") or {})
+    explicit = _clean_chinese_title(details.get("task_title"))
+    if explicit:
+        return explicit
+    mapped = _TASK_ID_TITLES.get(task_id)
+    if mapped:
+        return mapped
+    brief = _brief_title(task_id, documents)
+    if brief:
+        return brief
+    if re.search(r"[\u4e00-\u9fff]", task_id):
+        readable = _clean_chinese_title(task_id)
+        if readable:
+            return readable
+    return _slug_title(task_id) or _summary_title(item.get("summary")) or "任务标题待补充"
+
+
+def _kanban_status(item: dict[str, Any]) -> str:
+    work_item = dict(item.get("work_item") or {})
+    raw = str(work_item.get("task_status") or item.get("lifecycle_status") or "")
+    details = dict(item.get("details") or {})
+    next_action = str(details.get("next_action") or details.get("next") or "")
+    normalized = f"{raw} {next_action}".casefold().replace("-", "_").replace(" ", "_")
+    if any(
+        marker in normalized
+        for marker in (
+            "blocked",
+            "failed",
+            "needs_user_input",
+            "pending_human",
+            "awaiting_exact",
+            "human_confirmation",
+            "pause",
+            "reject",
+        )
+    ):
+        return "blocked"
+    if any(
+        marker in raw.casefold()
+        for marker in (
+            "completed",
+            "complete",
+            "closed",
+            "committed",
+            "formalized",
+            "human_approved",
+            "released",
+            "stage_complete",
+        )
+    ) or raw.casefold() in {"approved", "done", "passed"}:
+        return "done"
+    if "review" in next_action.casefold() or any(
+        marker in normalized
+        for marker in ("ready_for_review", "changes_requested", "requirements_ready")
+    ):
+        return "review"
+    if any(marker in normalized for marker in ("test", "verify", "verification", "quality")):
+        return "testing"
+    if any(marker in normalized for marker in ("todo", "draft", "planned", "queued", "backlog")):
+        return "todo"
+    return "in_progress"
+
+
+def _readable_task_summary(summary: Any, title: str) -> str:
+    text = str(summary or "").strip()
+    chinese_count = len(re.findall(r"[\u4e00-\u9fff]", text))
+    latin_count = len(re.findall(r"\b[A-Za-z][A-Za-z0-9_-]*\b", text))
+    if chinese_count >= 12 and latin_count <= chinese_count:
+        return text
+    return f"“{title}”的执行状态已从权威任务记录同步。"
+
+
+def _prepare_tasks(
+    raw_tasks: list[dict[str, Any]], documents: list[dict[str, Any]]
+) -> list[dict[str, Any]]:
+    tasks: list[dict[str, Any]] = []
+    for raw in raw_tasks:
+        task = dict(raw)
+        machine_id = str(task.get("display_name") or task.get("entity_id") or "")
+        title = _task_title(task, documents)
+        status = _kanban_status(task)
+        details = dict(task.get("details") or {})
+        task["task_id"] = machine_id
+        task["display_name"] = title
+        task["summary"] = _readable_task_summary(task.get("summary"), title)
+        task["_raw_status"] = str(task.get("lifecycle_status") or "")
+        task["_kanban_status"] = status
+        task["lifecycle_status"] = status
+        if status == "done":
+            details["next_action"] = "已完成，无需继续操作。"
+        task["details"] = details
+        work_item = dict(task.get("work_item") or {})
+        work_item["task_status"] = status
+        task["work_item"] = work_item
+        tasks.append(task)
+    status_priority = {
+        "todo": 0,
+        "in_progress": 1,
+        "testing": 2,
+        "review": 3,
+        "blocked": 4,
+        "done": 5,
+    }
+    canonical: dict[str, dict[str, Any]] = {}
+    for task in tasks:
+        task_id = str(task["task_id"])
+        current = canonical.get(task_id)
+        updated_at = _timestamp(dict(task.get("details") or {}).get("updated_at"))
+        score = (
+            int(updated_at is not None),
+            updated_at if updated_at is not None else float("-inf"),
+            status_priority.get(str(task.get("_kanban_status") or ""), -1),
+            int(task.get("display_name") != "任务标题待补充"),
+        )
+        current_updated_at = (
+            _timestamp(dict(current.get("details") or {}).get("updated_at"))
+            if current is not None
+            else None
+        )
+        current_score = (
+            int(current_updated_at is not None),
+            current_updated_at if current_updated_at is not None else float("-inf"),
+            status_priority.get(str(current.get("_kanban_status") or ""), -1),
+            int(current.get("display_name") != "任务标题待补充"),
+        ) if current is not None else (0, float("-inf"), -1, 0)
+        if current is None or score > current_score:
+            canonical[task_id] = task
+    tasks = list(canonical.values())
+    by_machine_id = {str(task["task_id"]): task for task in tasks}
+    for task in tasks:
+        if task["_kanban_status"] == "done":
+            continue
+        task_id = str(task["task_id"])
+        ancestors = [
+            parent
+            for parent_id, parent in by_machine_id.items()
+            if task_id.startswith(parent_id + "-")
+        ]
+        if not ancestors:
+            continue
+        parent = max(ancestors, key=lambda item: len(str(item["task_id"])))
+        child_at = _timestamp(dict(task.get("details") or {}).get("updated_at"))
+        parent_at = _timestamp(dict(parent.get("details") or {}).get("updated_at"))
+        if (
+            parent["_kanban_status"] == "done"
+            and parent_at is not None
+            and child_at is not None
+            and parent_at >= child_at
+        ):
+            task["_kanban_status"] = "done"
+            task["lifecycle_status"] = "done"
+            task["work_item"]["task_status"] = "done"
+            task["details"]["next_action"] = "父任务已完成，本子任务同步归档。"
+    return sorted(
+        tasks,
+        key=lambda item: (
+            _timestamp(dict(item.get("details") or {}).get("updated_at"))
+            or float("-inf"),
+            str(item.get("display_name") or ""),
+        ),
+        reverse=True,
+    )
+
+
+def _kanban_board(tasks: list[dict[str, Any]], route_template: str, *, limit: int = 10) -> str:
+    columns = []
+    for status, label in _KANBAN_COLUMNS:
+        matches = [task for task in tasks if task.get("_kanban_status") == status]
+
+        def card(task: dict[str, Any], modifier: str) -> str:
+            entity_id = task.get("entity_id") or task.get("record_id")
+            route = route_template.format(id=_route_id(entity_id))
+            return (
+                f'<a class="kanban-card kanban-card--{modifier}" href="{_escape(route)}">'
+                f'{_escape(task.get("display_name") or "任务标题待补充")}</a>'
+            )
+
+        visible = "".join(card(task, "visible") for task in matches[:limit])
+        remaining = matches[limit:]
+        more = (
+            '<details class="kanban-more"><summary>'
+            f"更多（{len(remaining)}）</summary><div>"
+            + "".join(card(task, "additional") for task in remaining)
+            + "</div></details>"
+            if remaining
+            else ""
+        )
+        empty = '<p class="kanban-empty">暂无任务</p>' if not matches else ""
+        columns.append(
+            f'<section class="kanban-column" data-kanban-status="{_escape(status)}">'
+            f'<header><h2>{_escape(label)}</h2><span>{len(matches)}</span></header>'
+            f'<div class="kanban-cards">{visible}{more}{empty}</div></section>'
+        )
+    return '<div class="kanban-board">' + "".join(columns) + "</div>"
+
+
 def _definition_list(values: dict[str, Any]) -> str:
     labels = {
         "entity_id": "稳定 ID",
         "entity_kind": "内容类型",
         "display_name": "名称",
+        "task_id": "任务编号",
         "summary": "说明",
         "lifecycle_status": "当前状态",
         "primary_artifact_id": "主要来源制品",
@@ -202,6 +617,8 @@ def _definition_list(values: dict[str, Any]) -> str:
     }
     rows = []
     for key, value in values.items():
+        if key.startswith("_"):
+            continue
         if key in {
             "acceptance_criteria",
             "code_symbol",
@@ -226,9 +643,9 @@ def _definition_list(values: dict[str, Any]) -> str:
 
 def _readable(value: Any) -> str:
     if value is None or value == "" or value == [] or value == {}:
-        return '<p class="missing-state">当前事实源未登记。</p>'
+        return '<p class="missing-state">当前暂无可展示的正式数据。</p>'
     if isinstance(value, str) and value.casefold() in {"unknown", "not_registered"}:
-        return '<p class="missing-state">当前事实源未登记。</p>'
+        return '<p class="missing-state">当前暂无可展示的正式数据。</p>'
     if isinstance(value, dict):
         rows = "".join(
             f"<dt>{_escape(key)}</dt><dd>{_readable(item)}</dd>" for key, item in value.items()
@@ -434,12 +851,12 @@ def _business_detail_sections(item: dict[str, Any]) -> str:
 
 def _field_values(values: dict[str, Any]) -> str:
     if not values:
-        return '<div class="empty"><p>未登记字段。</p></div>'
+        return '<div class="empty"><p>当前没有可展示的字段数据。</p></div>'
     rows = []
     state_labels = {
         "known": "已知",
-        "unknown": "未知",
-        "not_registered": "未登记",
+        "unknown": "待补充",
+        "not_registered": "暂无数据源",
         "not_applicable": "不适用",
     }
     for field_id, field in sorted(values.items()):
@@ -502,40 +919,53 @@ class ProjectSiteRenderer:
             if item.get("entity_kind")
             in {"requirement", "non_functional_requirement", "acceptance_criterion"}
         ]
-        tasks = [
+        raw_tasks = [
             item for item in entities if item.get("entity_kind") in {"work_item", "work_item_event"}
         ]
+        tasks = _prepare_tasks(raw_tasks, documents)
         code_files = [item for item in entities if item.get("entity_kind") == "code_file"]
         code_symbols = [item for item in entities if item.get("entity_kind") == "code_symbol"]
         code = code_files or code_symbols
         tests = [item for item in entities if item.get("entity_kind") == "test"]
+        human_documents = [
+            item for item in documents if str(item.get("relative_path") or "").startswith("docs/")
+        ]
         design_documents = [
-            item for item in documents if "/05-design/" in f"/{item.get('relative_path', '')}"
+            item
+            for item in human_documents
+            if "/05-design/" in f"/{item.get('relative_path', '')}"
         ]
+        task_counts = {
+            status: sum(task.get("_kanban_status") == status for task in tasks)
+            for status, _ in _KANBAN_COLUMNS
+        }
+        completed_ratio = round(task_counts["done"] * 100 / len(tasks)) if tasks else 0
         cards = [
-            ("已登记需求", len(requirements), "包含验收条件与非功能要求"),
-            ("执行任务", len(tasks), "从权威 Ledger 索引"),
-            ("代码文件", len(code_files), f"包含 {len(code_symbols)} 个 AST 稳定符号"),
-            ("诊断与风险", len(diagnostics), "不隐藏断链或未知值"),
+            ("任务总数", len(tasks), "来自当前有效任务事实"),
+            ("正在执行", task_counts["in_progress"], "不包含历史已完成任务"),
+            ("测试与评审", task_counts["testing"] + task_counts["review"], "内部步骤自动连续执行"),
+            ("已经完成", task_counts["done"], f"当前完成比例 {completed_ratio}%"),
         ]
+        if any(task_counts[key] for key in ("in_progress", "testing", "review")):
+            project_status = "进行中"
+        elif task_counts["blocked"]:
+            project_status = "待确认 / 阻塞"
+        elif task_counts["todo"]:
+            project_status = "待开始"
+        else:
+            project_status = "已完成"
         overview = (
-            '<section class="hero"><p class="eyebrow">项目实时快照</p>'
-            f"<h1>{_escape(project.get('name') or 'Project')}</h1>"
-            '<p class="hero-copy">从需求、设计、任务、代码和验证事实组装的只读视图。'
+            '<section class="hero"><p class="eyebrow">项目实时任务快照</p>'
+            f"<h1>{_escape(project.get('name') or 'Project')} 任务看板</h1>"
+            '<p class="hero-copy">按真实任务状态展示当前工作；卡片只显示中文标题，点击进入完整详情。'
             '</p><div class="hero-status">'
-            f"{_status(project.get('status'))}<span>"
-            + (
-                f"完成度 {_escape(project.get('completion'))}%"
-                if project.get("completion") is not None
-                else "完成度未登记"
-            )
-            + "</span>"
+            f"{_status(project_status)}<span>已完成 {task_counts['done']} / {len(tasks)}</span>"
             "</div></section>"
-            + _summary_cards(cards)
-            + '<section class="panel"><div class="section-heading"><div><p class="eyebrow">当前焦点</p>'
-            '<h2>最近任务</h2></div><a href="tasks/index.html">查看执行列表</a></div>'
-            + _list_items(tasks[:6], "tasks/{id}.html")
+            + '<section class="kanban-section"><div class="section-heading"><div><p class="eyebrow">敏捷开发</p>'
+            '<h2>任务看板</h2></div><a href="tasks/index.html">打开任务看板</a></div>'
+            + _kanban_board(tasks, "tasks/{id}.html")
             + "</section>"
+            + _summary_cards(cards)
         )
         pages["index.html"] = self._page(
             "项目总览", overview, route="index.html", generation=generation, profile=profile
@@ -569,16 +999,17 @@ class ProjectSiteRenderer:
             generation=generation,
             profile=profile,
         )
-        self._entity_section(
-            pages,
-            title="任务与开发执行",
-            intro="每个任务都显示目标、当前状态、完成条件和来源。",
-            list_route="tasks/index.html",
-            detail_root="tasks",
-            items=tasks,
+        pages["tasks/index.html"] = self._page(
+            "任务看板",
+            '<section class="page-heading"><p class="eyebrow">当前有效视图</p><h1>任务看板</h1>'
+            "<p>每张卡片只显示中文任务标题；点击后查看任务编号、目标、状态、完成条件和来源。</p></section>"
+            + _kanban_board(tasks, "{id}.html"),
+            route="tasks/index.html",
             generation=generation,
             profile=profile,
         )
+        for item in tasks:
+            self._entity_detail(pages, item, "tasks", "tasks/index.html", generation, profile)
         defect_items = diagnostics
         pages["defects/index.html"] = self._page(
             "缺陷与异常",
@@ -624,7 +1055,7 @@ class ProjectSiteRenderer:
             list_route="documents/index.html",
             detail_root="documents",
             title="人类文档目录",
-            documents=documents,
+            documents=human_documents,
             generation=generation,
             profile=profile,
         )
@@ -943,6 +1374,11 @@ class ProjectSiteRenderer:
             "项目管理十要素",
             '<section class="page-heading"><p class="eyebrow">项目经理视图</p><h1>项目管理十要素</h1>'
             "<p>章程、团队、范围进度、风险、沟通、会议、行动、状态、变更和收尾统一追溯。</p></section>"
+            '<section class="state-guide" aria-labelledby="state-guide-title"><h2 id="state-guide-title">字段状态说明</h2>'
+            '<dl><div><dt>已有数据</dt><dd>索引已经找到正式来源和值。</dd></div>'
+            '<div><dt>待补充</dt><dd>字段适用于当前项目，但正式来源暂时没有有效值。</dd></div>'
+            '<div><dt>暂无数据源</dt><dd>当前项目尚未登记这个字段的数据来源，不代表任务被阻塞。</dd></div>'
+            '<div><dt>不适用</dt><dd>项目已明确确认该字段不适用。</dd></div></dl></section>'
             '<div class="module-grid">' + "".join(module_cards) + "</div>",
             route="project-management/index.html",
             generation=generation,
@@ -993,10 +1429,11 @@ _STYLES = """
 *{box-sizing:border-box}body{margin:0;color:var(--ink);background:#fff;line-height:1.6}.skip-link{position:absolute;left:-9999px}.skip-link:focus{left:16px;top:12px;z-index:10;background:#fff;padding:10px;border:2px solid var(--blue)}
 .site-header{position:sticky;top:0;z-index:5;display:flex;align-items:center;gap:24px;padding:12px 28px;border-bottom:1px solid var(--line);background:rgba(255,255,255,.96);backdrop-filter:blur(12px)}.brand{display:flex;align-items:center;gap:9px;color:var(--ink);font-weight:800;text-decoration:none}.brand-mark{display:grid;place-items:center;width:30px;height:30px;border-radius:9px;background:var(--blue);color:#fff}.site-header nav{display:flex;gap:4px;overflow:auto}.site-header nav a{white-space:nowrap;color:var(--muted);text-decoration:none;padding:7px 10px;border-radius:8px}.site-header nav a:hover{background:var(--surface);color:var(--blue-dark)}
 main{width:min(1220px,calc(100% - 40px));margin:0 auto;padding:38px 0 72px}.hero{padding:42px;border-radius:22px;color:#fff;background:linear-gradient(125deg,#173679,#2457d6 62%,#315fc0)}.hero h1,.page-heading h1{margin:.1em 0 .25em;font-size:clamp(2rem,4vw,3.4rem);line-height:1.15}.detail h1{margin:.1em 0 .25em;font-size:clamp(1.7rem,3vw,2.6rem);line-height:1.18}.hero-copy{max-width:760px;font-size:1.08rem}.hero-status{display:flex;gap:14px;align-items:center;margin-top:24px}.eyebrow{text-transform:uppercase;letter-spacing:.12em;font-size:.76rem;font-weight:800;color:var(--blue)}.hero .eyebrow{color:#dbe6ff}.status-chip{display:inline-flex;align-items:center;padding:3px 9px;border-radius:999px;background:#e9efff;color:var(--blue-dark);font-size:.78rem;font-weight:750}
-.metric-grid,.module-grid,.action-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px;margin:22px 0}.metric,.panel,.module-card,.action-card,.detail{border:1px solid var(--line);border-radius:var(--radius);background:#fff;box-shadow:0 8px 28px rgba(34,50,84,.06)}.metric{padding:20px}.metric-label,.metric-note{margin:0;color:var(--muted)}.metric-value{font-size:2rem;font-weight:800;margin:.15em 0}.panel,.detail{padding:28px;margin-top:24px}.section-heading{display:flex;justify-content:space-between;align-items:end;gap:20px}.section-heading h2{margin:0}.section-heading a,.back-link{color:var(--blue);font-weight:700}.page-heading{max-width:850px;margin-bottom:24px}.page-heading p{color:var(--muted);font-size:1.04rem}.record-list{list-style:none;padding:0;margin:0;border-top:1px solid var(--line)}.record-row{display:flex;justify-content:space-between;gap:20px;padding:17px 4px;border-bottom:1px solid var(--line)}.record-row p{margin:.25em 0 0;color:var(--muted)}.record-link{color:var(--ink);font-size:1.02rem;font-weight:760;text-decoration:none}.record-link:hover{color:var(--blue);text-decoration:underline}.empty{padding:30px;border:1px dashed #bbc4d2;border-radius:var(--radius);background:var(--surface);color:var(--muted)}
+.metric-grid,.module-grid,.action-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px;margin:22px 0}.metric,.panel,.module-card,.action-card,.detail,.state-guide{border:1px solid var(--line);border-radius:var(--radius);background:#fff;box-shadow:0 8px 28px rgba(34,50,84,.06)}.metric{padding:20px}.metric-label,.metric-note{margin:0;color:var(--muted)}.metric-value{font-size:2rem;font-weight:800;margin:.15em 0}.panel,.detail,.state-guide{padding:28px;margin-top:24px}.section-heading{display:flex;justify-content:space-between;align-items:end;gap:20px}.section-heading h2{margin:0}.section-heading a,.back-link{color:var(--blue);font-weight:700}.page-heading{max-width:850px;margin-bottom:24px}.page-heading p{color:var(--muted);font-size:1.04rem}.record-list{list-style:none;padding:0;margin:0;border-top:1px solid var(--line)}.record-row{display:flex;justify-content:space-between;gap:20px;padding:17px 4px;border-bottom:1px solid var(--line)}.record-row p{margin:.25em 0 0;color:var(--muted)}.record-link{color:var(--ink);font-size:1.02rem;font-weight:760;text-decoration:none}.record-link:hover{color:var(--blue);text-decoration:underline}.empty{padding:30px;border:1px dashed #bbc4d2;border-radius:var(--radius);background:var(--surface);color:var(--muted)}
+.kanban-section{margin-top:30px}.kanban-board{display:grid;grid-template-columns:repeat(6,minmax(230px,1fr));gap:14px;margin-top:16px;overflow-x:auto;padding:2px 2px 14px;scrollbar-gutter:stable}.kanban-column{min-width:230px;padding:14px;border:1px solid var(--line);border-radius:var(--radius);background:var(--surface)}.kanban-column header{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}.kanban-column h2{margin:0;font-size:1rem}.kanban-column header span{display:grid;place-items:center;min-width:28px;height:28px;padding:0 7px;border-radius:999px;background:#fff;color:var(--muted);font-size:.8rem;font-weight:800}.kanban-cards{display:grid;gap:9px}.kanban-card{display:block;padding:13px 14px;border:1px solid #d9e0eb;border-radius:11px;background:#fff;color:var(--ink);font-weight:760;line-height:1.45;text-decoration:none;box-shadow:0 3px 12px rgba(34,50,84,.05);overflow-wrap:anywhere}.kanban-card:hover{border-color:var(--blue);color:var(--blue-dark)}.kanban-more summary{cursor:pointer;padding:9px 4px;color:var(--blue);font-weight:750}.kanban-more>div{display:grid;gap:9px;margin-top:8px}.kanban-empty{margin:4px 0;color:var(--muted);font-size:.9rem}.state-guide h2{margin-top:0}.state-guide dl{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:0}.state-guide dl div{padding:14px;border-radius:10px;background:var(--surface)}.state-guide dt{font-weight:800}.state-guide dd{margin:5px 0 0;color:var(--muted)}
 .module-grid{grid-template-columns:repeat(3,minmax(0,1fr))}.module-card,.action-card{display:flex;flex-direction:column;padding:22px;text-decoration:none;color:var(--ink)}.module-card strong{font-size:2rem;color:var(--blue)}.module-card small{color:var(--muted)}.module-card:hover,.action-card:hover{border-color:var(--blue);transform:translateY(-1px)}.breadcrumb{margin:12px 0;color:var(--muted);font-size:.88rem}.detail{max-width:980px}.detail section{margin-top:30px}.lead{font-size:1.08rem;color:#34405a}.definition-grid{display:grid;grid-template-columns:minmax(160px,240px) 1fr;border-top:1px solid var(--line)}.definition-grid dt,.definition-grid dd{margin:0;padding:10px;border-bottom:1px solid var(--line)}.definition-grid dt{font-weight:700;background:var(--surface)}.section-list{padding-left:22px}.section-list li{margin:8px 0}.table-scroll{overflow:auto}table{width:100%;border-collapse:collapse;font-size:.9rem}th,td{padding:10px;text-align:left;border-bottom:1px solid var(--line);vertical-align:top}thead{background:var(--surface)}code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.85em;word-break:break-all}.value-state{display:inline-flex;padding:2px 7px;border-radius:999px;font-size:.76rem;font-weight:700}.value-state--known{color:var(--success);background:#e6f6ee}.value-state--unknown{color:var(--warning);background:#fff3dc}.value-state--not_registered{color:#6b7280;background:#eef0f3}.value-state--not_applicable{color:#475569;background:#e8edf5}
 footer{display:flex;justify-content:space-between;gap:24px;padding:24px 28px;border-top:1px solid var(--line);background:var(--surface);color:var(--muted);font-size:.82rem}footer p{margin:.2em 0}.detail h1,.record-link,.definition-grid dd,footer p,.nested-definition dd,.nested-definition p,.breadcrumb{overflow-wrap:anywhere;word-break:break-word}a:focus-visible,button:focus-visible{outline:3px solid #f2a900;outline-offset:3px}@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important}}
-@media (max-width: 1024px){.metric-grid{grid-template-columns:repeat(2,1fr)}.module-grid{grid-template-columns:repeat(2,1fr)}}
-@media (max-width: 768px){.site-header{position:static;display:block;padding:12px 16px}.site-header nav{margin-top:10px}.site-header nav a{min-height:44px;display:flex;align-items:center}main{width:min(100% - 28px,720px);padding-top:24px}.hero{padding:28px}.metric-grid,.module-grid,.action-grid{grid-template-columns:1fr}.record-row,.section-heading,footer{align-items:flex-start;flex-direction:column}.definition-grid{grid-template-columns:1fr}.definition-grid dd{padding-top:3px}.definition-grid dt{border-bottom:0}.detail,.panel{padding:20px}}
+@media (max-width: 1024px){.metric-grid{grid-template-columns:repeat(2,1fr)}.module-grid{grid-template-columns:repeat(2,1fr)}.state-guide dl{grid-template-columns:repeat(2,1fr)}}
+@media (max-width: 768px){.site-header{position:static;display:block;padding:12px 16px}.site-header nav{margin-top:10px}.site-header nav a{min-height:44px;display:flex;align-items:center}main{width:min(100% - 28px,720px);padding-top:24px}.hero{padding:28px}.metric-grid,.module-grid,.action-grid,.state-guide dl{grid-template-columns:1fr}.record-row,.section-heading,footer{align-items:flex-start;flex-direction:column}.definition-grid{grid-template-columns:1fr}.definition-grid dd{padding-top:3px}.definition-grid dt{border-bottom:0}.detail,.panel,.state-guide{padding:20px}.kanban-board{grid-template-columns:repeat(6,minmax(82vw,1fr));scroll-snap-type:x proximity}.kanban-column{scroll-snap-align:start}}
 @media print{.site-header,.skip-link,.back-link{display:none!important}body{font-size:10pt;color:#000}.hero{color:#000;background:#fff;border:1px solid #999}.metric,.panel,.detail,.module-card{box-shadow:none;break-inside:avoid}main{width:100%;padding:0}footer{background:#fff}}
 """.strip()

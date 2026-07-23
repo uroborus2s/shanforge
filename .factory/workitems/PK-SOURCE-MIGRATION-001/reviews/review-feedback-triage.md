@@ -9,3 +9,11 @@
 | I5 缓存与正式设计同步不足 | 成立。renderer 输入语义变化必须失效旧页。 | bump renderer version，验证 miss→stable hit，并原位更新 data/frontend design。 |
 
 所有 Finding 均属于用户已批准范围，不需要新增产品取舍或授权。
+
+## Post-delivery UI follow-up 实现评审
+
+| Finding | 判断 | 处理 |
+|---|---|---|
+| UI-I1 追踪推导未过滤关系方向、强度和类型 | 成立。真实数据虽然合法，但旧实现会把 weak Task→Requirement、非 `SATISFIES` Requirement←Document 和直接 Task→Design 误显示为正式追踪。 | 只接受 outgoing strong Task→Requirement；设计只接受 Requirement 侧 incoming strong `SATISFIES`；删除直接 Task→Design 旁路；增加三类负例。 |
+
+该 Finding 属于已批准 UI follow-up 范围，不需要新增产品决定。

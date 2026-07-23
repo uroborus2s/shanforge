@@ -53,3 +53,27 @@
 ## Gate
 
 `approved`。Critical = 0，Important = 0；返回流程总控继续既有授权范围内收口。
+
+## Post-delivery UI follow-up 独立复审（迭代 2）
+
+- Task: `PK-SOURCE-MIGRATION-001-T03`
+- reviewer_type: `independent_subagent`
+- reviewer_id: `/root/project_knowledge_review`
+- reviewer_independence_evidence: 同一 reviewer 未参与 follow-up 实现或 UI-I1 整改；
+  本轮只读检查代码、负例测试、正式设计、SQLite 和当前 HTML，未修改文件或执行 Git
+  写操作。
+- review_score: `99/100`
+- review_status: `approved`
+- human_confirmation_required: `false`
+
+### 结论
+
+- UI-I1 已关闭：只接受 outgoing strong Task→Requirement；设计只接受 Requirement 侧
+  incoming strong `SATISFIES` 且属于登记 `docs/05-design/` 文档的关系。
+- weak Task→Requirement、incoming `MENTIONS` Design、direct Task→Design 三类负例均
+  不进入任务详情。
+- `FLOW-TASK-011` 的真实需求与设计深链有效，内部 locator 与 DTO 字段不可见。
+- 验证：项目知识回归 `62 passed`，Ruff、Mypy、SQLite、HTML 与 Playwright 均通过。
+- Findings：Critical 0、Important 0、Minor 0。
+
+Gate：`approved`，无需新增人工确认。

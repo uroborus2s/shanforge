@@ -183,3 +183,17 @@ def test_task_requirement_relation_declarations_have_canonical_endpoints() -> No
         and edge["confidence"] == 1.0
         for edge in task_edges
     )
+    flow_task_edges = [
+        edge
+        for edge in declarations["relations"]
+        if edge["from_entity_id"] == "FLOW-TASK-011"
+    ]
+    assert flow_task_edges == [
+        {
+            "from_entity_id": "FLOW-TASK-011",
+            "to_entity_id": "REQ-PKI-008",
+            "relation_type": "IMPLEMENTS",
+            "strength": "strong",
+            "confidence": 1.0,
+        }
+    ]

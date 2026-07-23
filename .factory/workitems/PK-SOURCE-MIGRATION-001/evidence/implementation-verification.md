@@ -64,3 +64,27 @@
 - ledger_event: `PK-SOURCE-MIGRATION-001:completed:v1`
 - needs:
   - none
+
+## 任务详情可读性增补
+
+- 用户验收反馈：任务详情不展示 locator path、`block_sha256`、内部 document ID 或
+  原始 DTO；应直接展示可点击的关联需求和相关设计。
+- Red：
+  `pytest` 定向执行 → `3 failed`，分别证明旧模板仍显示“定向来源”、没有独立的
+  “关联需求 / 相关设计”区域、`FLOW-TASK-011` 没有需求关系。
+- Green：项目站点、PRD 关系声明、索引与安全相关回归 → `41 passed`；
+  Ruff 通过；Mypy 通过。
+- 真实冷重建：来源 599、失败 0；`FLOW-TASK-011 --IMPLEMENTS--> REQ-PKI-008`
+  与 `doc:DESIGN-FRONTEND-001 --SATISFIES--> REQ-PKI-008` 均已落入 SQLite。
+- Playwright 从 `tasks/FLOW-TASK-011.html` 实际点击：
+  - 需求“可商用的只读多页面项目站点” → `requirements/REQ-PKI-008.html`
+  - 设计“前端架构与页面设计” → `design/DESIGN-FRONTEND-001.html`
+  - 六类内部字段不可见，控制台错误 0。
+- 临时截图：`/private/tmp/FLOW-TASK-011-traceability.png`，不进入 Git。
+- 独立评审 UI-I1 整改：仅接受 outgoing strong Task→Requirement，以及
+  Requirement 侧 incoming strong `SATISFIES` Design；删除直接 Task→Design 旁路。
+- 三类攻击负例（weak requirement、非 `SATISFIES` design、direct task-design）
+  均未进入任务详情；完整项目知识回归 `62 passed`，Ruff、Mypy 通过。
+- `ProjectSiteRenderer/v10` 增量发布后再次通过真实页面点击与六类内部字段隐藏断言，
+  控制台错误 0。
+- 同一独立 reviewer 复审：`approved / 99 / C0-I0-M0`，UI-I1 关闭，无需人工确认。

@@ -1,6 +1,6 @@
 {
   "schema_id": "ProjectKnowledgeRelationDeclarations/v1",
-  "version": "3",
+  "version": "4",
   "relations": [
     {"from_entity_id":"doc:DESIGN-ARCH-001","to_entity_id":"REQ-PKI-001","relation_type":"SATISFIES","strength":"strong","confidence":1.0},
     {"from_entity_id":"doc:DOC-NAV-DESIGN-001","to_entity_id":"REQ-PKI-002","relation_type":"SATISFIES","strength":"strong","confidence":1.0},
@@ -18,6 +18,7 @@
     {"from_entity_id":"doc:DESIGN-API-001","to_entity_id":"REQ-PKI-014","relation_type":"SATISFIES","strength":"strong","confidence":1.0},
     {"from_entity_id":"doc:DOC-NAV-DESIGN-001","to_entity_id":"REQ-PKI-015","relation_type":"SATISFIES","strength":"strong","confidence":1.0},
     {"from_entity_id":"doc:DESIGN-API-001","to_entity_id":"REQ-PKI-016","relation_type":"SATISFIES","strength":"strong","confidence":1.0},
+    {"from_entity_id":"FLOW-TASK-011","to_entity_id":"REQ-PKI-008","relation_type":"IMPLEMENTS","strength":"strong","confidence":1.0},
     {"from_entity_id":"py:src.settings.project_knowledge.sqlite_index:SQLiteProjectKnowledgeIndex:class","to_entity_id":"doc:DESIGN-DATA-001","relation_type":"IMPLEMENTS","strength":"strong","confidence":1.0},
     {"from_entity_id":"py:src.runtime.project_knowledge.site_renderer:ProjectSiteRenderer:class","to_entity_id":"doc:DESIGN-FRONTEND-001","relation_type":"IMPLEMENTS","strength":"strong","confidence":1.0},
     {"from_entity_id":"py:src.settings.project_knowledge.sync_worker:ProjectStateSyncWorker:class","to_entity_id":"doc:PROC-TASK-EXECUTION-001","relation_type":"IMPLEMENTS","strength":"strong","confidence":1.0},

@@ -254,7 +254,6 @@ def test_renderer_creates_commercial_readonly_multi_page_information_architectur
         "验收条件",
         "设计、任务、代码与测试",
         "发布与活动",
-        "定向来源",
     ):
         assert heading in requirement_page
     task_page = rendered.pages["tasks/TASK-1.html"]
@@ -263,10 +262,18 @@ def test_renderer_creates_commercial_readonly_multi_page_information_architectur
         "范围与非范围",
         "完成条件",
         "当前进度、阻塞与下一步",
-        "代码、测试与交付关系",
+        "关联需求",
+        "相关设计",
+        "代码、测试与交付",
     ):
         assert heading in task_page
     assert "让用户快速理解项目当前状态" in task_page
+    assert "定向来源" not in requirement_page
+    assert "定向来源" not in task_page
+    assert "block_sha256" not in requirement_page
+    assert "document_id" not in task_page
+    assert "related_requirements" not in task_page
+    assert "related_designs" not in task_page
 
 
 def test_renderer_translates_unknown_business_values_to_explicit_missing_state() -> None:
@@ -313,16 +320,41 @@ def test_renderer_groups_requirements_links_relations_and_renders_full_document_
             "display_name": "demo.run",
             "strength": "strong",
         },
+        {
+            "direction": "incoming",
+            "relation_type": "SATISFIES",
+            "entity_id": "doc:DOC-DESIGN",
+            "entity_kind": "document",
+            "display_name": "系统架构设计",
+            "strength": "strong",
+        },
     ]
     task = model["entities"][1]  # type: ignore[index]
     task["relations"] = [  # type: ignore[index]
         {
+            "direction": "outgoing",
             "relation_type": "IMPLEMENTS",
             "entity_id": "REQ-1",
             "entity_kind": "requirement",
             "display_name": "快速快照",
             "strength": "strong",
-        }
+        },
+        {
+            "direction": "outgoing",
+            "relation_type": "IMPLEMENTS",
+            "entity_id": "REQ-WEAK",
+            "entity_kind": "requirement",
+            "display_name": "弱关系需求不应展示",
+            "strength": "weak",
+        },
+        {
+            "direction": "outgoing",
+            "relation_type": "IMPLEMENTS",
+            "entity_id": "doc:DOC-DIRECT",
+            "entity_kind": "document",
+            "display_name": "直接任务设计不应展示",
+            "strength": "strong",
+        },
     ]
     model["entities"].append(  # type: ignore[union-attr]
         {
@@ -335,6 +367,60 @@ def test_renderer_groups_requirements_links_relations_and_renders_full_document_
             "relations": [],
             "locators": [],
         }
+    )
+    model["entities"].append(  # type: ignore[union-attr]
+        {
+            "entity_id": "REQ-WEAK",
+            "entity_kind": "requirement",
+            "display_name": "弱关系需求不应展示",
+            "summary": "只用于负例。",
+            "lifecycle_status": "approved",
+            "details": {},
+            "requirement": {"acceptance_criteria": []},
+            "relations": [
+                {
+                    "direction": "incoming",
+                    "relation_type": "SATISFIES",
+                    "entity_id": "doc:DOC-WEAK-DESIGN",
+                    "entity_kind": "document",
+                    "display_name": "弱关系派生设计不应展示",
+                    "strength": "strong",
+                }
+            ],
+            "locators": [],
+        }
+    )
+    requirement["relations"].append(  # type: ignore[union-attr]
+        {
+            "direction": "incoming",
+            "relation_type": "MENTIONS",
+            "entity_id": "doc:DOC-NON-SATISFIES",
+            "entity_kind": "document",
+            "display_name": "非满足关系设计不应展示",
+            "strength": "strong",
+        }
+    )
+    model["documents"].extend(  # type: ignore[union-attr]
+        [
+            {
+                "document_id": "DOC-WEAK-DESIGN",
+                "title": "弱关系派生设计不应展示",
+                "relative_path": "docs/05-design/weak.md",
+                "sections": [],
+            },
+            {
+                "document_id": "DOC-NON-SATISFIES",
+                "title": "非满足关系设计不应展示",
+                "relative_path": "docs/05-design/mentioned.md",
+                "sections": [],
+            },
+            {
+                "document_id": "DOC-DIRECT",
+                "title": "直接任务设计不应展示",
+                "relative_path": "docs/05-design/direct.md",
+                "sections": [],
+            },
+        ]
     )
     document = model["documents"][0]  # type: ignore[index]
     document["content_markdown"] = (
@@ -359,6 +445,18 @@ def test_renderer_groups_requirements_links_relations_and_renders_full_document_
         in pages["requirements/REQ-1.html"]
     )
     assert "../requirements/REQ-1.html" in pages["tasks/TASK-1.html"]
+    assert "<h2>关联需求</h2>" in pages["tasks/TASK-1.html"]
+    assert "<h2>相关设计</h2>" in pages["tasks/TASK-1.html"]
+    assert "../design/DOC-DESIGN.html" in pages["tasks/TASK-1.html"]
+    assert "通过需求“快速快照”关联" in pages["tasks/TASK-1.html"]
+    assert "定向来源" not in pages["tasks/TASK-1.html"]
+    assert "related_requirements" not in pages["tasks/TASK-1.html"]
+    assert "related_designs" not in pages["tasks/TASK-1.html"]
+    assert "json_pointer" not in pages["requirements/REQ-1.html"]
+    assert "弱关系需求不应展示" not in pages["tasks/TASK-1.html"]
+    assert "弱关系派生设计不应展示" not in pages["tasks/TASK-1.html"]
+    assert "非满足关系设计不应展示" not in pages["tasks/TASK-1.html"]
+    assert "直接任务设计不应展示" not in pages["tasks/TASK-1.html"]
     document_page = pages["documents/DOC-DESIGN.html"]
     assert "<h1>系统架构设计</h1>" in document_page
     assert "这里是完整正文。" in document_page

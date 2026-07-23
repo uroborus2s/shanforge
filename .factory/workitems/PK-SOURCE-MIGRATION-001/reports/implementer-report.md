@@ -27,3 +27,12 @@ task brief 提供中文标题。
 - 冻结 R009 三个核对文件未修改。
 - 未执行 Push、PR、Merge 或部署。
 - 全仓三项范围外 Skill 合同失败未修改，详见验证证据。
+
+## Post-delivery UI follow-up
+
+- 业务详情不再展示 locator、Hash 和内部 document ID。
+- 任务详情把追踪分为关联需求、相关设计、代码测试与交付。
+- 需求只来自 outgoing strong Task→Requirement；设计只通过
+  `Task → Requirement ← incoming strong SATISFIES Design` 推导。
+- `FLOW-TASK-011` 已登记到 `REQ-PKI-008`，可继续进入
+  `DESIGN-FRONTEND-001`；弱关系、错误关系类型和直接 Task→Design 均有拒绝测试。

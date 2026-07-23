@@ -9,3 +9,14 @@
 - renderer 升级版本并同步现有 data/frontend design。
 
 状态：`ready_for_same_reviewer_rereview`。
+
+## Post-delivery UI follow-up 整改回复
+
+- UI-I1 已修复：追踪推导显式校验方向和强度；相关设计还必须是 Requirement 侧
+  incoming strong `SATISFIES`。
+- 已删除直接 Task→Design 旁路。
+- 已增加 weak Task→Requirement、非 `SATISFIES` Design、直接 Task→Design 三类负例，
+  均不能进入人类页面。
+- 渲染器升级为 `ProjectSiteRenderer/v10`，防止旧 v9 页面被缓存复用。
+
+状态：`ready_for_same_reviewer_rereview`。

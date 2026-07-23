@@ -1,10 +1,10 @@
 # Agent 会话卡
 
-- 生成时间：2026-07-23 11:45 +0800
+- 生成时间：2026-07-23 12:22 +0800
 - 项目：`shanforge`
-- 当前阶段：`PK-SOURCE-MIGRATION-001 / INDEPENDENTLY APPROVED`
+- 当前阶段：`PK-SOURCE-MIGRATION-001-T03 UI FOLLOW-UP / INDEPENDENTLY APPROVED`
 - 当前状态：`completed / independently_approved / ready_for_exact_local_commit`
-- 当前焦点：PRD 单一需求事实源、可重建 SQLite 索引和只读项目站点已落地
+- 当前焦点：任务详情内部定位信息移除，需求与设计追踪深链已落地
 - 下一动作：完成本次精确范围本地提交；不执行 Push、PR、Merge 或部署
 
 ## 当前事实
@@ -21,7 +21,13 @@
   八个历史 ledger 任务有旧 ID alias；task-brief-only 的 T05 没有虚构 alias。
 - HTML 由固定 CLI 增量生成；当前 1892 页，输入未变化时 `cache_hit=true`，
   `rendered_pages=0`。
-- 独立实现复审：`approved / 96 / C0-I0-M1`；Minor 为
+- 任务业务详情不再展示 locator、Hash、内部 document ID 或追踪 DTO；任务详情分为
+  关联需求、相关设计、代码测试与交付三个中文区域。
+- 相关设计只通过 outgoing strong Task→Requirement 与 Requirement 侧 incoming strong
+  `SATISFIES` Design 确定性推导；弱关系、错误类型和直接 Task→Design 均被拒绝。
+- `FLOW-TASK-011` 可点击进入 `REQ-PKI-008` 和 `DESIGN-FRONTEND-001`。
+- UI follow-up 独立复审：`approved / 99 / C0-I0-M0`。
+- 原独立实现复审：`approved / 96 / C0-I0-M1`；Minor 为
   `pk_work_item.task_kind` 后续应改从机器字段派生，当前无消费者，不阻塞。
 - 最新验证：目标回归 `62 passed`；Ruff 通过；Mypy `279 source files` 0 问题；
   全仓 `1342 passed, 3 failed`，三项均为已有范围外 Skill 合同失败。

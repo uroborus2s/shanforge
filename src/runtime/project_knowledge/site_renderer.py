@@ -16,7 +16,7 @@ from application.project_knowledge.site_service import RenderedSite
 from domain.project_knowledge.models import canonical_json
 from domain.project_knowledge.sensitive_values import redact_text
 
-RENDERER_VERSION = "ProjectSiteRenderer/v7"
+RENDERER_VERSION = "ProjectSiteRenderer/v10"
 
 
 _NAVIGATION = (
@@ -631,6 +631,81 @@ def _prepare_tasks(
     )
 
 
+def _enrich_task_traceability(
+    tasks: list[dict[str, Any]],
+    requirements: list[dict[str, Any]],
+    design_documents: list[dict[str, Any]],
+) -> None:
+    requirements_by_id = {
+        str(item.get("entity_id")): item
+        for item in requirements
+        if item.get("entity_id")
+    }
+    designs_by_entity_id = {
+        f"doc:{document['document_id']}": document
+        for document in design_documents
+        if document.get("document_id")
+    }
+    for task in tasks:
+        direct_relations = [dict(value) for value in task.get("relations") or []]
+        related_requirements: dict[str, dict[str, Any]] = {}
+        related_designs: dict[str, dict[str, Any]] = {}
+        for relation in direct_relations:
+            entity_id = str(relation.get("entity_id") or "")
+            requirement = requirements_by_id.get(entity_id)
+            if (
+                requirement is not None
+                and relation.get("direction") == "outgoing"
+                and relation.get("strength") == "strong"
+            ):
+                related_requirements[entity_id] = relation
+                for candidate in requirement.get("relations") or []:
+                    candidate = dict(candidate)
+                    design_id = str(candidate.get("entity_id") or "")
+                    document = designs_by_entity_id.get(design_id)
+                    if (
+                        document is None
+                        or candidate.get("direction") != "incoming"
+                        or candidate.get("relation_type") != "SATISFIES"
+                        or candidate.get("strength") != "strong"
+                    ):
+                        continue
+                    design = related_designs.setdefault(
+                        design_id,
+                        {
+                            "entity_id": design_id,
+                            "entity_kind": "document",
+                            "display_name": document.get("chinese_name")
+                            or document.get("title")
+                            or design_id,
+                            "route_root": "design",
+                            "via_requirements": [],
+                        },
+                    )
+                    via = design["via_requirements"]
+                    requirement_name = str(
+                        relation.get("display_name")
+                        or requirement.get("display_name")
+                        or entity_id
+                    )
+                    if requirement_name not in via:
+                        via.append(requirement_name)
+        task["related_requirements"] = sorted(
+            related_requirements.values(),
+            key=lambda item: (
+                str(item.get("display_name") or ""),
+                str(item.get("entity_id") or ""),
+            ),
+        )
+        task["related_designs"] = sorted(
+            related_designs.values(),
+            key=lambda item: (
+                str(item.get("display_name") or ""),
+                str(item.get("entity_id") or ""),
+            ),
+        )
+
+
 def _kanban_board(tasks: list[dict[str, Any]], route_template: str, *, limit: int = 10) -> str:
     columns = []
     for status, label in _KANBAN_COLUMNS:
@@ -694,6 +769,8 @@ def _definition_list(values: dict[str, Any]) -> str:
             "field_values",
             "locators",
             "relations",
+            "related_designs",
+            "related_requirements",
             "requirement",
             "sections",
             "symbols",
@@ -745,6 +822,8 @@ def _relation_href(relation: dict[str, Any]) -> str | None:
         "test": "quality",
         "document": "documents",
     }.get(kind)
+    if kind == "document" and relation.get("route_root") == "design":
+        root = "design"
     if kind == "acceptance_criterion" and "-AC-" in entity_id:
         requirement_id = entity_id.rsplit("-AC-", 1)[0]
         return (
@@ -779,6 +858,31 @@ def _relation_summary(relations: list[dict[str, Any]]) -> str:
             + " <code>"
             + _escape(relation.get("entity_id"))
             + "</code></li>"
+        )
+    return '<ul class="relation-list">' + "".join(rows) + "</ul>"
+
+
+def _traceability_summary(relations: list[dict[str, Any]], empty_message: str) -> str:
+    if not relations:
+        return f'<p class="missing-state">{_escape(empty_message)}</p>'
+    rows = []
+    for relation in relations:
+        entity_id = str(relation.get("entity_id") or "")
+        label = _escape(relation.get("display_name") or entity_id)
+        href = _relation_href(relation)
+        target = label if href is None else f'<a href="{_escape(href)}">{label}</a>'
+        via_requirements = [
+            str(value) for value in relation.get("via_requirements") or []
+        ]
+        via = (
+            "<br><small>通过需求“"
+            + _escape("、".join(via_requirements))
+            + "”关联</small>"
+            if via_requirements
+            else ""
+        )
+        rows.append(
+            f"<li>{target}" + via + "</li>"
         )
     return '<ul class="relation-list">' + "".join(rows) + "</ul>"
 
@@ -918,22 +1022,6 @@ def _markdown_body(markdown: str) -> str:
     return '<div class="markdown-body">' + "".join(output) + "</div>"
 
 
-def _source_summary(item: dict[str, Any]) -> str:
-    locators = list(item.get("locators") or [])
-    if not locators:
-        return '<p class="missing-state">当前索引没有登记可定向读取的来源。</p>'
-    return (
-        '<ul class="source-list">'
-        + "".join(
-            f"<li><code>{_escape(locator.get('relative_path'))}</code> · "
-            f"{_escape(locator.get('locator_kind'))}<br>"
-            f"<code>{_escape(_display_json(locator.get('selector') or {}))}</code></li>"
-            for locator in locators
-        )
-        + "</ul>"
-    )
-
-
 def _snapshot_script(generation: dict[str, Any], profile: str) -> str:
     payload = canonical_json(
         {
@@ -1009,6 +1097,23 @@ def _business_detail_sections(item: dict[str, Any]) -> str:
         )
     if kind in {"work_item", "work_item_event"}:
         work_item = dict(item.get("work_item") or {})
+        related_requirements = [
+            dict(value) for value in item.get("related_requirements") or []
+        ]
+        related_designs = [
+            dict(value) for value in item.get("related_designs") or []
+        ]
+        other_relations = [
+            relation
+            for relation in relations
+            if str(relation.get("entity_kind") or "")
+            not in {
+                "requirement",
+                "non_functional_requirement",
+                "acceptance_criterion",
+                "document",
+            }
+        ]
         return (
             "<section><h2>任务目标与原因</h2>"
             + _readable(_first_detail(details, "goal", "objective", "why", "reason") or summary)
@@ -1036,8 +1141,18 @@ def _business_detail_sections(item: dict[str, Any]) -> str:
                     "下一步": _first_detail(details, "next_action", "next"),
                 }
             )
-            + "</section><section><h2>代码、测试与交付关系</h2>"
-            + _relation_summary(relations)
+            + "</section><section><h2>关联需求</h2>"
+            + _traceability_summary(
+                related_requirements, "当前任务尚未登记关联需求。"
+            )
+            + "</section><section><h2>相关设计</h2>"
+            + _traceability_summary(
+                related_designs, "当前任务尚未登记相关设计。"
+            )
+            + "</section><section><h2>代码、测试与交付</h2>"
+            + _traceability_summary(
+                other_relations, "当前任务尚未登记代码、测试或交付关系。"
+            )
             + "</section>"
         )
     if kind in {"code_file", "code_symbol"}:
@@ -1171,6 +1286,7 @@ class ProjectSiteRenderer:
             for item in human_documents
             if "/05-design/" in f"/{item.get('relative_path', '')}"
         ]
+        _enrich_task_traceability(tasks, requirements, design_documents)
         task_counts = {
             status: sum(task.get("_kanban_status") == status for task in tasks)
             for status, _ in _KANBAN_COLUMNS
@@ -1441,8 +1557,6 @@ class ProjectSiteRenderer:
             + _business_detail_sections(item)
             + "<section><h2>身份与当前状态</h2>"
             + _definition_list(item)
-            + "</section><section><h2>定向来源</h2>"
-            + _source_summary(item)
             + "</section></article>"
         )
         pages[route] = self._page(

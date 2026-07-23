@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import json
 import sqlite3
 from pathlib import Path
@@ -10,6 +11,8 @@ from application.project_knowledge.index_service import ProjectKnowledgeIndexSer
 from application.project_knowledge.query_service import ProjectKnowledgeQueryService, QueryFailure
 from domain.project_knowledge.models import AccessClass, SourceDefinition, stable_id
 from runtime.project_knowledge.extractors import default_extractors
+from runtime.project_knowledge.site_renderer import ProjectSiteRenderer
+from settings.project_knowledge.pm_projection import SQLiteSiteDataStore
 from settings.project_knowledge.query_store import SQLiteKnowledgeQueryStore
 from settings.project_knowledge.source_registry import FileSourceRegistry
 from settings.project_knowledge.sqlite_index import SQLiteProjectKnowledgeIndex
@@ -649,3 +652,419 @@ def test_declared_relation_is_projected_and_rejects_missing_endpoint(tmp_path: P
     relations.write_text(json.dumps(payload), encoding="utf-8")
     with pytest.raises(ValueError, match="missing relation endpoint"):
         indexer.refresh(as_of="2026-07-22T00:00:01Z")
+
+
+def test_markdown_requirement_sections_populate_source_binding_and_criterion_status(
+    tmp_path: Path,
+) -> None:
+    docs = tmp_path / "docs"
+    docs.mkdir()
+    (docs / "prd.md").write_text(
+        """<!-- sf:document-id=PRD-1 -->
+# 产品需求
+
+<!-- sf:section-id=REQ-PKI-001 -->
+## REQ-PKI-001：确定性项目快照
+
+- 分类：项目查看与管理
+- 优先级：P0
+- 状态：已批准（v4.1.0）
+- 用户故事：作为项目负责人，我希望快速获得当前项目快照。
+- 需求规则 1：输入不变时复用最后有效站点。
+- `REQ-PKI-001-AC-1`：缓存命中时不得重写 HTML。
+
+<!-- sf:section-id=NFR-PKI-001 -->
+## NFR-PKI-001：会话恢复
+
+- 分类：性能与上下文
+- 状态：已批准（v4.1.0）
+- 度量目标：单记忆点不超过 8 KiB。
+- 验证方式：使用事件夹具。
+""",
+        encoding="utf-8",
+    )
+    indexer, database = service(tmp_path, write_registry(tmp_path))
+
+    indexer.refresh(as_of="2026-07-23T00:00:00Z")
+
+    with sqlite3.connect(database) as connection:
+        requirements = connection.execute(
+            "SELECT requirement_id,requirement_status,source_section_key "
+            "FROM pk_requirement ORDER BY requirement_id"
+        ).fetchall()
+        assert [row[0] for row in requirements] == ["NFR-PKI-001", "REQ-PKI-001"]
+        assert all(row[1] == "approved" for row in requirements)
+        assert all(str(row[2]).startswith("mdsec:") for row in requirements)
+        assert connection.execute(
+            "SELECT requirement_id,criterion_status FROM pk_acceptance_criterion "
+            "WHERE acceptance_id='REQ-PKI-001-AC-1'"
+        ).fetchone() == ("REQ-PKI-001", "approved")
+        assert connection.execute(
+            "SELECT s.relative_path,l.locator_kind,l.selector_json "
+            "FROM pk_entity_locator el "
+            "JOIN pk_locator l ON l.locator_id=el.locator_id "
+            "JOIN pk_source s ON s.source_id=l.source_id "
+            "WHERE el.entity_id='REQ-PKI-001' AND el.is_primary=1"
+        ).fetchone() == (
+            "docs/prd.md",
+            "markdown_section",
+            '{"block_sha256":"'
+            + connection.execute(
+                "SELECT block_sha256 FROM pk_document_section WHERE section_id='REQ-PKI-001'"
+            ).fetchone()[0]
+            + '","document_id":"PRD-1","estimated_bytes":'
+            + str(
+                json.loads(
+                    connection.execute(
+                        "SELECT l.selector_json FROM pk_entity_locator el "
+                        "JOIN pk_locator l ON l.locator_id=el.locator_id "
+                        "WHERE el.entity_id='REQ-PKI-001' AND el.is_primary=1"
+                    ).fetchone()[0]
+                )["estimated_bytes"]
+            )
+            + ',"kind":"markdown_section","section_id":"REQ-PKI-001"}',
+        )
+
+
+def test_warm_json_to_prd_migration_matches_cold_prd_rebuild(tmp_path: Path) -> None:
+    legacy = tmp_path / "legacy"
+    docs = tmp_path / "docs"
+    legacy.mkdir()
+    docs.mkdir()
+    (legacy / "requirements.json").write_text(
+        json.dumps(
+            {
+                "requirements": [
+                    {
+                        "id": "REQ-MIG-001",
+                        "title": "迁移需求",
+                        "status": "approved",
+                        "priority": "P0",
+                        "acceptance_criteria": [
+                            {
+                                "id": "REQ-MIG-001-AC-1",
+                                "statement": "迁移后验收标准仍然存在。",
+                                "status": "approved",
+                            }
+                        ],
+                    }
+                ]
+            }
+        ),
+        encoding="utf-8",
+    )
+    (docs / "prd.md").write_text(
+        """<!-- sf:document-id=PRD-MIG -->
+# 产品需求
+
+<!-- sf:section-id=REQ-MIG-001 -->
+## REQ-MIG-001：迁移需求
+
+- 分类：迁移
+- 优先级：P0
+- 状态：已批准
+- 用户故事：作为维护者，我希望迁移当前需求来源。
+- 需求规则 1：当前需求必须从正式 PRD 提取。
+- `REQ-MIG-001-AC-1`：迁移后验收标准仍然存在。
+""",
+        encoding="utf-8",
+    )
+    registry_path = tmp_path / "registry.json"
+    legacy_registry = {
+        "schema_id": "ProjectKnowledgeSourceRegistry/v1",
+        "registry_version": "1",
+        "sources": [
+            {
+                "registry_source_id": "SRC-LEGACY",
+                "kind": "json",
+                "roots": ["legacy"],
+                "include": ["requirements.json"],
+                "exclude": [],
+                "extractor_id": "json-pointer-v5",
+                "access_class": "project",
+                "authority_rank": 90,
+                "stable_id_policy": "json_pointer",
+                "max_file_bytes": 100000,
+            }
+        ],
+    }
+    final_registry = {
+        "schema_id": "ProjectKnowledgeSourceRegistry/v1",
+        "registry_version": "2",
+        "sources": [
+            {
+                "registry_source_id": "SRC-DOCS",
+                "kind": "markdown",
+                "roots": ["docs"],
+                "include": ["*.md"],
+                "exclude": [],
+                "extractor_id": "markdown-v2",
+                "access_class": "public",
+                "authority_rank": 100,
+                "stable_id_policy": "explicit_document_and_section_id",
+                "max_file_bytes": 100000,
+            }
+        ],
+    }
+    registry_path.write_text(json.dumps(legacy_registry), encoding="utf-8")
+    warm_database = tmp_path / "warm.sqlite3"
+
+    def indexer(database: Path) -> ProjectKnowledgeIndexService:
+        return ProjectKnowledgeIndexService(
+            FileSourceRegistry(tmp_path, registry_path),
+            SQLiteProjectKnowledgeIndex(database),
+            default_extractors(),
+        )
+
+    indexer(warm_database).refresh(as_of="2026-07-23T00:00:00Z")
+    registry_path.write_text(json.dumps(final_registry), encoding="utf-8")
+    warm_result = indexer(warm_database).refresh(as_of="2026-07-23T00:00:01Z")
+    assert warm_result.deleted_count == 1
+
+    cold_database = tmp_path / "cold.sqlite3"
+    indexer(cold_database).refresh(as_of="2026-07-23T00:00:01Z")
+
+    semantic_queries = [
+        "SELECT requirement_id,entity_id,priority,requirement_status,"
+        "source_section_key FROM pk_requirement ORDER BY requirement_id",
+        "SELECT acceptance_id,entity_id,requirement_id,display_order,statement,"
+        "criterion_status FROM pk_acceptance_criterion ORDER BY acceptance_id",
+        "SELECT document_id,section_id,parent_section_key,display_order,display_title,"
+        "block_sha256 FROM pk_document_section ORDER BY document_id,display_order",
+        "SELECT el.entity_id,l.locator_kind,l.selector_json,el.locator_role,el.is_primary "
+        "FROM pk_entity_locator el JOIN pk_locator l ON l.locator_id=el.locator_id "
+        "WHERE el.entity_id LIKE 'REQ-MIG-%' ORDER BY el.entity_id,l.locator_id",
+        "SELECT from_entity_id,to_entity_id,relation_type,strength,confidence "
+        "FROM pk_edge ORDER BY from_entity_id,to_entity_id,relation_type",
+    ]
+    with sqlite3.connect(warm_database) as warm_connection, sqlite3.connect(
+        cold_database
+    ) as cold_connection:
+        for query in semantic_queries:
+            assert warm_connection.execute(query).fetchall() == cold_connection.execute(
+                query
+            ).fetchall()
+        assert warm_connection.execute(
+            "SELECT source_section_key FROM pk_requirement "
+            "WHERE requirement_id='REQ-MIG-001'"
+        ).fetchone()[0]
+        assert warm_connection.execute(
+            "SELECT requirement_id,display_order,criterion_status "
+            "FROM pk_acceptance_criterion WHERE acceptance_id='REQ-MIG-001-AC-1'"
+        ).fetchone() == ("REQ-MIG-001", 1, "approved")
+
+
+def test_ledger_status_and_task_brief_chinese_title_merge_by_stable_task_id(
+    tmp_path: Path,
+) -> None:
+    work_items = tmp_path / "workitems"
+    briefs = work_items / "task-briefs"
+    briefs.mkdir(parents=True)
+    (briefs / "TASK-1.md").write_text(
+        """# PRD 与 Markdown 需求提取
+
+## 工作项
+
+- 任务：`TASK-1`
+""",
+        encoding="utf-8",
+    )
+    (work_items / "old-ledger.jsonl").write_text(
+        '{"event":"started","task":"TASK-1","status":"in_progress",'
+        '"ts":"2026-07-22T10:00:00+08:00","idempotency_key":"task-1-started"}\n',
+        encoding="utf-8",
+    )
+    (work_items / "current-ledger.jsonl").write_text(
+        '{"event":"verified","task":"TASK-1","status":"ready_for_review",'
+        '"ts":"2026-07-23T10:00:00+08:00","idempotency_key":"task-1-verified"}\n',
+        encoding="utf-8",
+    )
+    registry_path = tmp_path / "registry.json"
+    registry_path.write_text(
+        json.dumps(
+            {
+                "schema_id": "ProjectKnowledgeSourceRegistry/v1",
+                "registry_version": "2",
+                "sources": [
+                    {
+                        "registry_source_id": "SRC-WORKITEM-LEDGER",
+                        "kind": "jsonl",
+                        "roots": ["workitems"],
+                        "include": ["*.jsonl"],
+                        "exclude": [],
+                        "extractor_id": "jsonl-event-v5",
+                        "access_class": "project",
+                        "authority_rank": 100,
+                        "stable_id_policy": "task_id",
+                        "max_file_bytes": 100000,
+                    },
+                    {
+                        "registry_source_id": "SRC-WORKITEM-BRIEF",
+                        "kind": "markdown",
+                        "roots": ["workitems"],
+                        "include": ["task-briefs/*.md"],
+                        "exclude": [],
+                        "extractor_id": "markdown-v2",
+                        "access_class": "project",
+                        "authority_rank": 90,
+                        "stable_id_policy": "declared_task_id",
+                        "max_file_bytes": 100000,
+                    },
+                ],
+            }
+        ),
+        encoding="utf-8",
+    )
+    indexer, database = service(tmp_path, registry_path)
+
+    indexer.refresh(as_of="2026-07-23T00:00:00Z")
+
+    with sqlite3.connect(database) as connection:
+        assert connection.execute(
+            "SELECT display_name,lifecycle_status FROM pk_entity WHERE entity_id='TASK-1'"
+        ).fetchone() == ("PRD 与 Markdown 需求提取", "ready_for_review")
+        assert connection.execute(
+            "SELECT task_status FROM pk_work_item WHERE work_item_id='TASK-1'"
+        ).fetchone()[0] == "ready_for_review"
+    pages = ProjectSiteRenderer().render(
+        SQLiteSiteDataStore(database, project_root=tmp_path).load(profile="local-owner"),
+        profile="local-owner",
+    ).pages
+    assert "PRD 与 Markdown 需求提取" in pages["tasks/index.html"]
+    task_page = pages["tasks/TASK-1.html"]
+    assert "<h1>PRD 与 Markdown 需求提取</h1>" in task_page
+    assert "<dt>任务编号</dt><dd>TASK-1</dd>" in task_page
+    assert "任务标题待补充" not in task_page
+
+
+def test_jsonl_v4_to_v5_warm_migration_preserves_old_work_item_alias(
+    tmp_path: Path,
+) -> None:
+    work_items = tmp_path / "workitems"
+    work_items.mkdir()
+    ledger = work_items / "ledger.jsonl"
+    content = (
+        '{"event":"started","task":"TASK-ALIAS-001","status":"in_progress",'
+        '"ts":"2026-07-23T10:00:00+08:00","idempotency_key":"alias-started"}\n'
+    ).encode()
+    ledger.write_bytes(content)
+    registry_path = tmp_path / "registry.json"
+
+    def registry(extractor_id: str, registry_version: str) -> dict[str, object]:
+        return {
+            "schema_id": "ProjectKnowledgeSourceRegistry/v1",
+            "registry_version": registry_version,
+            "sources": [
+                {
+                    "registry_source_id": "SRC-WORKITEM-LEDGER",
+                    "kind": "jsonl",
+                    "roots": ["workitems"],
+                    "include": ["*.jsonl"],
+                    "exclude": [],
+                    "extractor_id": extractor_id,
+                    "access_class": "project",
+                    "authority_rank": 100,
+                    "stable_id_policy": "event_uid_or_task_id",
+                    "max_file_bytes": 100000,
+                }
+            ],
+        }
+
+    registry_path.write_text(json.dumps(registry("jsonl-event-v4", "1")), encoding="utf-8")
+    source_registry = FileSourceRegistry(tmp_path, registry_path)
+    source_definition = source_registry.sources()[0]
+    old_contribution = default_extractors().extract(source_definition, content)
+    old_entity_id = stable_id(
+        "workitem", [source_definition.source_id, "TASK-ALIAS-001"]
+    )
+    for entity in old_contribution["entities"]:
+        if entity["entity_id"] == "TASK-ALIAS-001":
+            entity["entity_id"] = old_entity_id
+    for locator in old_contribution["locators"]:
+        if locator["entity_id"] == "TASK-ALIAS-001":
+            locator["entity_id"] = old_entity_id
+    for search in old_contribution["search"]:
+        if search["entity_id"] == "TASK-ALIAS-001":
+            search["entity_id"] = old_entity_id
+    old_contribution.pop("aliases", None)
+    database = tmp_path / "knowledge.sqlite3"
+    SQLiteProjectKnowledgeIndex(database).publish(
+        sources=(source_definition,),
+        contributions={source_definition.source_id: old_contribution},
+        content_hashes={source_definition.source_id: hashlib.sha256(content).hexdigest()},
+        stats={source_definition.source_id: source_registry.stat(source_definition)},
+        as_of="2026-07-23T10:00:00+08:00",
+        git_commit="legacy",
+    )
+
+    registry_path.write_text(json.dumps(registry("jsonl-event-v5", "2")), encoding="utf-8")
+    refreshed = ProjectKnowledgeIndexService(
+        FileSourceRegistry(tmp_path, registry_path),
+        SQLiteProjectKnowledgeIndex(database),
+        default_extractors(),
+    ).refresh(as_of="2026-07-23T11:00:00+08:00")
+
+    assert refreshed.parsed_count == 1
+    with sqlite3.connect(database) as connection:
+        assert connection.execute(
+            "SELECT canonical_entity_id,reason FROM pk_entity_alias "
+            "WHERE alias_entity_id=?",
+            (old_entity_id,),
+        ).fetchone() == (
+            "TASK-ALIAS-001",
+            "jsonl-v5 canonical work-item ID migration from source-scoped identity",
+        )
+        assert connection.execute(
+            "SELECT COUNT(*) FROM pk_entity WHERE entity_id=?", (old_entity_id,)
+        ).fetchone()[0] == 0
+    assert (
+        SQLiteKnowledgeQueryStore(database, tmp_path).resolve_alias(old_entity_id)
+        == "TASK-ALIAS-001"
+    )
+
+
+def test_same_natural_work_item_label_in_two_ledgers_does_not_collide(
+    tmp_path: Path,
+) -> None:
+    work_items = tmp_path / "workitems"
+    work_items.mkdir()
+    for name in ("a", "b"):
+        (work_items / f"{name}.jsonl").write_text(
+            '{"event":"started","task":"shared-label","status":"in_progress",'
+            f'"idempotency_key":"{name}-started"}}\n',
+            encoding="utf-8",
+        )
+    registry_path = tmp_path / "registry.json"
+    registry_path.write_text(
+        json.dumps(
+            {
+                "schema_id": "ProjectKnowledgeSourceRegistry/v1",
+                "registry_version": "2",
+                "sources": [
+                    {
+                        "registry_source_id": "SRC-WORKITEM-LEDGER",
+                        "kind": "jsonl",
+                        "roots": ["workitems"],
+                        "include": ["*.jsonl"],
+                        "exclude": [],
+                        "extractor_id": "jsonl-event-v5",
+                        "access_class": "project",
+                        "authority_rank": 100,
+                        "stable_id_policy": "event_uid_or_task_id",
+                        "max_file_bytes": 100000,
+                    }
+                ],
+            }
+        ),
+        encoding="utf-8",
+    )
+    indexer, database = service(tmp_path, registry_path)
+
+    indexer.refresh(as_of="2026-07-23T11:00:00+08:00")
+
+    with sqlite3.connect(database) as connection:
+        work_items = connection.execute(
+            "SELECT work_item_id FROM pk_work_item ORDER BY work_item_id"
+        ).fetchall()
+        assert len(work_items) == 2
+        assert all(str(row[0]).startswith("workitem:") for row in work_items)

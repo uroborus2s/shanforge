@@ -65,7 +65,23 @@ _HEADING = re.compile(r"^(#{1,6})\s+(.+?)\s*$")
 _TABLE_ROW = re.compile(r"^\|\s*([^|]+?)\s*\|\s*([^|]+?)\s*\|\s*$")
 _AUDIENCE_LINE = re.compile(r"^(?:[-*]\s*)?(?:\*\*)?主要读者(?:\*\*)?[：:]\s*(.+?)\s*$")
 _TASK_BRIEF_TITLE_LINE = re.compile(
-    r"^\s*[-*]\s*任务[：:]\s*`[^`]+`\s+(.+?)\s*$"
+    r"^\s*[-*]\s*任务[：:]\s*`(?P<task_id>[A-Za-z][A-Za-z0-9._-]{1,160})`"
+    r"(?:\s+(?P<title>.+?))?\s*$"
+)
+_TASK_BRIEF_STATUS_LINE = re.compile(
+    r"^\s*[-*]\s*(?:当前)?状态[：:]\s*`?(?P<status>[^`]+?)`?\s*$"
+)
+_CANONICAL_WORK_ITEM_ID = re.compile(
+    r"^[A-Z][A-Z0-9]*(?=[A-Za-z0-9-]*\d)(?:-[A-Za-z0-9]+)+$"
+)
+_REQUIREMENT_SECTION_ID = re.compile(r"^(?:REQ|NFR)-[A-Z0-9][A-Z0-9-]*\d$")
+_REQUIREMENT_FIELD = re.compile(
+    r"^\s*[-*]\s*(?P<key>分类|优先级|状态|用户故事|需求规则(?:\s*\d+)?|度量目标|验证方式)"
+    r"[：:]\s*(?P<value>.+?)\s*$"
+)
+_ACCEPTANCE_LINE = re.compile(
+    r"^\s*[-*]\s*`?(?P<id>(?:REQ|NFR)-[A-Z0-9][A-Z0-9-]*-AC-\d+)`?"
+    r"[：:]\s*(?P<statement>.+?)\s*$"
 )
 
 
@@ -91,6 +107,188 @@ def _markdown_metadata(lines: list[str]) -> dict[str, str]:
 def _slug(title: str) -> str:
     normalized = re.sub(r"[^\w\-\u4e00-\u9fff]+", "-", title.strip().lower()).strip("-")
     return normalized or _sha256_json(title)[:16]
+
+
+def _requirement_status(value: str | None) -> str:
+    normalized = str(value or "").strip().casefold()
+    if not normalized:
+        return "unknown"
+    if normalized.startswith("已批准") or normalized.startswith("approved"):
+        return "approved"
+    if normalized.startswith("草稿") or normalized.startswith("draft"):
+        return "draft"
+    if normalized.startswith("已完成") or normalized.startswith("done"):
+        return "done"
+    if normalized.startswith("已废弃") or normalized.startswith("deprecated"):
+        return "deprecated"
+    return normalized.replace(" ", "_")
+
+
+def _requirement_title(section_id: str, heading_title: str) -> str:
+    title = re.sub(
+        rf"^`?{re.escape(section_id)}`?\s*(?:[：:—–-]\s*)?",
+        "",
+        heading_title.strip(),
+    ).strip()
+    return title or section_id
+
+
+def _append_markdown_requirement(
+    contribution: dict[str, Any],
+    *,
+    section: Mapping[str, Any],
+    heading_title: str,
+    block_lines: list[str],
+) -> None:
+    section_id = str(section["section_id"])
+    if _REQUIREMENT_SECTION_ID.fullmatch(section_id) is None:
+        return
+    fields: dict[str, list[str]] = {}
+    criteria: list[tuple[str, str]] = []
+    for line in block_lines[1:]:
+        criterion = _ACCEPTANCE_LINE.match(line)
+        if criterion:
+            criteria.append(
+                (criterion.group("id"), criterion.group("statement").strip())
+            )
+            continue
+        field = _REQUIREMENT_FIELD.match(line)
+        if field:
+            fields.setdefault(field.group("key"), []).append(field.group("value").strip())
+    for criterion_id, _ in criteria:
+        if not criterion_id.startswith(f"{section_id}-AC-"):
+            raise ValueError(
+                f"acceptance criterion {criterion_id} does not belong to {section_id}"
+            )
+
+    status_text = fields.get("状态", [None])[0]
+    lifecycle_status = _requirement_status(status_text)
+    category = fields.get("分类", [None])[0]
+    user_story = fields.get("用户故事", [None])[0]
+    priority = fields.get("优先级", [None])[0]
+    if priority is not None:
+        priority = priority.rstrip("。.;；")
+    statements = [
+        value
+        for key, values in fields.items()
+        if key.startswith("需求规则")
+        for value in values
+    ]
+    metric = fields.get("度量目标", [None])[0]
+    verification = fields.get("验证方式", [None])[0]
+    title = _requirement_title(section_id, heading_title)
+    details: dict[str, Any] = {
+        "goal": title,
+        "category": category,
+        "user_scenario": user_story,
+        "scope": category,
+    }
+    if statements:
+        details["expected_result"] = statements
+        details["normative_statements"] = statements
+    if metric is not None:
+        details["metric"] = metric
+        details["expected_result"] = metric
+    if verification is not None:
+        details["verification"] = verification
+    details = {key: value for key, value in details.items() if value not in (None, "", [])}
+    summary = statements[0] if statements else metric or title
+    entity_kind = (
+        "non_functional_requirement" if section_id.startswith("NFR-") else "requirement"
+    )
+    semantic = _sha256_json(
+        {
+            "id": section_id,
+            "kind": entity_kind,
+            "title": title,
+            "status": lifecycle_status,
+            "priority": priority,
+            "details": details,
+            "criteria": criteria,
+        }
+    )
+    contribution["entities"].append(
+        {
+            "entity_id": section_id,
+            "entity_kind": entity_kind,
+            "display_name": title,
+            "summary": summary,
+            "lifecycle_status": lifecycle_status,
+            "semantic_sha256": semantic,
+            "definition": True,
+            "priority": priority,
+            "source_section_key": section["section_key"],
+            "details": details,
+        }
+    )
+    locator = dict(section["locator"])
+    contribution["locators"].append(
+        {
+            "locator_id": locator["locator_id"],
+            "locator_kind": "markdown_section",
+            "selector": locator["selector"],
+            "entity_id": section_id,
+            "locator_role": "definition",
+        }
+    )
+    contribution["search"].append(
+        {
+            "entity_id": section_id,
+            "title": title,
+            "summary": summary,
+            "tags": " ".join(
+                value for value in (entity_kind, category or "") if value
+            ),
+        }
+    )
+    for criterion_id, statement in criteria:
+        criterion_semantic = _sha256_json(
+            [criterion_id, section_id, statement, lifecycle_status]
+        )
+        contribution["entities"].append(
+            {
+                "entity_id": criterion_id,
+                "entity_kind": "acceptance_criterion",
+                "display_name": statement,
+                "summary": statement,
+                "lifecycle_status": lifecycle_status,
+                "semantic_sha256": criterion_semantic,
+                "definition": True,
+                "source_section_key": section["section_key"],
+                "details": {
+                    "statement": statement,
+                    "requirement_id": section_id,
+                    "category": category,
+                },
+            }
+        )
+        contribution["locators"].append(
+            {
+                "locator_id": locator["locator_id"],
+                "locator_kind": "markdown_section",
+                "selector": locator["selector"],
+                "entity_id": criterion_id,
+                "locator_role": "definition",
+            }
+        )
+        contribution["search"].append(
+            {
+                "entity_id": criterion_id,
+                "title": statement,
+                "summary": statement,
+                "tags": f"acceptance_criterion {section_id}",
+            }
+        )
+        contribution["relations"].append(
+            {
+                "from_entity_id": section_id,
+                "to_entity_id": criterion_id,
+                "relation_type": "CONTAINS",
+                "strength": "strong",
+                "confidence": 1.0,
+                "evidence_locator_id": locator["locator_id"],
+            }
+        )
 
 
 class MarkdownExtractor:
@@ -139,19 +337,39 @@ class MarkdownExtractor:
                 section_id = explicit_id
             headings.append((level, heading_title, section_id, start, end))
         title = headings[0][1] if headings else source.relative_path.rsplit("/", 1)[-1]
-        if title.strip() in {"任务简报", "实施任务简报"} and "/task-briefs/" in (
-            f"/{source.relative_path}"
-        ):
-            declared_title = next(
+        declared_task = (
+            next(
                 (
-                    match.group(1).strip()
+                    (
+                        match.group("task_id"),
+                        (match.group("title") or "").strip() or title,
+                    )
                     for line in lines
                     if (match := _TASK_BRIEF_TITLE_LINE.match(line)) is not None
                 ),
                 None,
             )
-            if declared_title:
-                title = declared_title
+            if "/task-briefs/" in f"/{source.relative_path}"
+            else None
+        )
+        if declared_task is not None and (
+            len(declared_task[0]) > 160
+            or _CANONICAL_WORK_ITEM_ID.fullmatch(declared_task[0]) is None
+        ):
+            declared_task = None
+        if title.strip() in {"任务简报", "实施任务简报"} and "/task-briefs/" in (
+            f"/{source.relative_path}"
+        ):
+            if declared_task:
+                title = declared_task[1]
+        declared_task_status = next(
+            (
+                match.group("status").strip()
+                for line in lines
+                if (match := _TASK_BRIEF_STATUS_LINE.match(line)) is not None
+            ),
+            "planned",
+        )
         document_metadata = {
             "chinese_name": title,
             "audience": metadata.get("主要读者"),
@@ -191,6 +409,36 @@ class MarkdownExtractor:
         contribution["search"].append(
             {"entity_id": document_entity_id, "title": title, "summary": "", "tags": "document"}
         )
+        if declared_task is not None:
+            task_id, task_title = declared_task
+            contribution["entities"].append(
+                {
+                    "entity_id": task_id,
+                    "entity_kind": "work_item",
+                    "display_name": task_title,
+                    "summary": "任务简报已登记，等待或正在执行。",
+                    "lifecycle_status": declared_task_status,
+                    "semantic_sha256": _sha256_json(
+                        [task_id, task_title, declared_task_status, semantic]
+                    ),
+                    "definition": True,
+                    "details": {
+                        "task_id": task_id,
+                        "task_title": task_title,
+                        "task_status": declared_task_status,
+                        "source_document_id": document_id,
+                    },
+                }
+            )
+            contribution["search"].append(
+                {
+                    "entity_id": task_id,
+                    "title": task_title,
+                    "summary": "任务简报已登记，等待或正在执行。",
+                    "tags": f"work-item task-brief {task_id}",
+                }
+            )
+        contribution["relations"] = []
         sections: list[dict[str, Any]] = []
         parent_stack: list[tuple[int, str]] = []
         for order, (level, heading_title, section_id, start, end) in enumerate(headings):
@@ -254,6 +502,16 @@ class MarkdownExtractor:
                         "locator_role": "definition",
                     }
                 )
+                if declared_task is not None:
+                    contribution["locators"].append(
+                        {
+                            "locator_id": locator_id,
+                            "locator_kind": "markdown_section",
+                            "selector": selector,
+                            "entity_id": declared_task[0],
+                            "locator_role": "definition",
+                        }
+                    )
             contribution["search"].append(
                 {
                     "entity_id": section_key,
@@ -261,6 +519,12 @@ class MarkdownExtractor:
                     "summary": "",
                     "tags": f"section {document_id}",
                 }
+            )
+            _append_markdown_requirement(
+                contribution,
+                section=section,
+                heading_title=heading_title,
+                block_lines=lines[start:end],
             )
             parent_stack.append((level, section_key))
         contribution["sections"] = sections
@@ -782,6 +1046,8 @@ class JsonLinesExtractor:
             display_name = str(work_item or event_uid)
             safe_summary = _work_item_summary(event)
             safe_details = _business_details(event)
+            if work_item:
+                safe_details["task_id"] = display_name
             updated_at = event.get("ts") or event.get("timestamp") or event.get("updated_at")
             if isinstance(updated_at, str) and updated_at:
                 safe_details["updated_at"] = updated_at
@@ -834,7 +1100,12 @@ class JsonLinesExtractor:
                 }
             )
         for work_item, latest in latest_work_items.items():
-            entity_id = stable_id("workitem", [source.source_id, work_item])
+            legacy_entity_id = stable_id("workitem", [source.source_id, work_item])
+            is_canonical = (
+                len(work_item) <= 160
+                and _CANONICAL_WORK_ITEM_ID.fullmatch(work_item) is not None
+            )
+            entity_id = work_item if is_canonical else legacy_entity_id
             selector = {
                 "kind": "jsonl_event",
                 "source_id": source.source_id,
@@ -869,6 +1140,17 @@ class JsonLinesExtractor:
                     "tags": "work-item current ledger",
                 }
             )
+            if is_canonical and legacy_entity_id != entity_id:
+                contribution.setdefault("aliases", []).append(
+                    {
+                        "alias_entity_id": legacy_entity_id,
+                        "canonical_entity_id": entity_id,
+                        "reason": (
+                            "jsonl-v5 canonical work-item ID migration from "
+                            "source-scoped identity"
+                        ),
+                    }
+                )
         contribution["events"] = events
         if missing_event_uid_count:
             contribution["diagnostics"].append(

@@ -8,6 +8,7 @@ import re
 import sqlite3
 from collections.abc import Mapping
 from contextlib import closing
+from datetime import datetime
 from pathlib import Path
 from typing import Any
 
@@ -169,11 +170,67 @@ class SQLiteProjectKnowledgeIndex:
                 continue
             highest = max(option[0] for option in definitions)
             winners = [option for option in definitions if option[0] == highest]
-            semantic_hashes = {str(option[2]["semantic_sha256"]) for option in winners}
-            if len(semantic_hashes) > 1:
-                raise ValueError(f"conflicting definitions for entity {entity_id}")
-            winner = sorted(winners, key=lambda option: option[1])[0]
-            merged[entity_id] = winner[2]
+            if all(option[2].get("entity_kind") == "work_item" for option in winners):
+
+                def work_item_recency(
+                    option: tuple[int, str, dict[str, Any]],
+                ) -> tuple[int, str, str]:
+                    updated_at = str(
+                        dict(option[2].get("details") or {}).get("updated_at") or ""
+                    )
+                    try:
+                        parsed = datetime.fromisoformat(updated_at.replace("Z", "+00:00"))
+                    except ValueError:
+                        return (0, updated_at, option[1])
+                    if parsed.tzinfo is None:
+                        return (1, updated_at, option[1])
+                    return (2, f"{parsed.timestamp():020.6f}", option[1])
+
+                winner = max(winners, key=work_item_recency)
+            else:
+                semantic_hashes = {str(option[2]["semantic_sha256"]) for option in winners}
+                if len(semantic_hashes) > 1:
+                    raise ValueError(f"conflicting definitions for entity {entity_id}")
+                winner = sorted(winners, key=lambda option: option[1])[0]
+            resolved = dict(winner[2])
+            if (
+                resolved.get("entity_kind") == "work_item"
+                and str(resolved.get("display_name") or "") == entity_id
+            ):
+                readable_candidates = [
+                    option
+                    for option in options
+                    if str(option[2].get("display_name") or "") not in {"", entity_id}
+                ]
+                if readable_candidates:
+                    readable_rank = max(option[0] for option in readable_candidates)
+                    readable_winners = [
+                        option
+                        for option in readable_candidates
+                        if option[0] == readable_rank
+                    ]
+                    readable_names = {
+                        str(option[2]["display_name"]) for option in readable_winners
+                    }
+                    if len(readable_names) > 1:
+                        raise ValueError(
+                            f"conflicting human titles for work item {entity_id}"
+                        )
+                    readable = sorted(readable_winners, key=lambda option: option[1])[0][2]
+                    resolved["display_name"] = readable["display_name"]
+                    details = dict(resolved.get("details") or {})
+                    details.setdefault("task_title", readable["display_name"])
+                    resolved["details"] = details
+                    resolved["semantic_sha256"] = hashlib.sha256(
+                        canonical_json(
+                            [
+                                winner[2]["semantic_sha256"],
+                                readable["semantic_sha256"],
+                                readable["display_name"],
+                            ]
+                        ).encode("utf-8")
+                    ).hexdigest()
+            merged[entity_id] = resolved
             owners[entity_id] = winner[1]
         return merged, owners
 
@@ -1332,6 +1389,7 @@ class SQLiteProjectKnowledgeIndex:
                     entity_id,
                     entity.get("priority"),
                     entity["lifecycle_status"],
+                    entity.get("source_section_key"),
                 )
             )
             requirement_ids.add(entity_id)
@@ -1339,7 +1397,7 @@ class SQLiteProjectKnowledgeIndex:
             """
             INSERT INTO pk_requirement(
                 requirement_id,entity_id,priority,requirement_status,owner,source_section_key
-            ) VALUES (?,?,?,?,NULL,NULL)
+            ) VALUES (?,?,?,?,NULL,?)
             """,
             requirement_rows,
         )

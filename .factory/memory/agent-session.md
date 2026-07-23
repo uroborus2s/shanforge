@@ -1,31 +1,39 @@
 # Agent 会话卡
 
-- 生成时间：2026-07-23 09:50 +0800
+- 生成时间：2026-07-23 11:45 +0800
 - 项目：`shanforge`
-- 当前阶段：`TASK-IMPLEMENT-003-P001 / KANBAN REMEDIATION INDEPENDENTLY APPROVED`
+- 当前阶段：`PK-SOURCE-MIGRATION-001 / INDEPENDENTLY APPROVED`
 - 当前状态：`completed / independently_approved / ready_for_exact_local_commit`
-- 当前焦点：项目快照任务状态与中文敏捷看板修复已完成
+- 当前焦点：PRD 单一需求事实源、可重建 SQLite 索引和只读项目站点已落地
 - 下一动作：完成本次精确范围本地提交；不执行 Push、PR、Merge 或部署
 
 ## 当前事实
 
-- 项目总览已改为六列中文敏捷看板：待开始、进行中、测试中、待评审/待确认、阻塞、已完成。
-- 看板卡片只显示中文任务标题；每列默认显示最近 10 条，使用“更多”展开；点击卡片进入带返回按钮的独立详情页。
-- “暂无数据源”只表示该管理项没有登记权威事实源，不表示任务阻塞；“已有数据 / 待补充 / 暂无数据源 / 不适用”四态已写入页面说明。
-- 旧 ledger 事件即使没有 `event_uid` 或 `idempotency_key` 也会生成确定性派生 ID，不再丢失后续评审、批准和完成状态。
-- 任务状态按机器 ID 去重；父任务只在父子时间都有效且父事件不早于子事件时继承完成态；时间比较统一为带时区的绝对时间。
-- SQLite 增量更新在实体或 locator 被其他记录引用时自动回退完整投影，避免外键失败；SQLite、HTML、FTS、cache 和浏览器截图仍是可重建投影，不提交 Git。
-- 第五轮独立终审：`approved / 96 / C0-I0-M0`，`human_confirmation_required=false`。
-- 最新验证：项目知识与站点相关回归 `102 passed`；Ruff、mypy `279 source files`、Chromium 桌面/移动端看板与详情页检查全部通过。
-- 固定 CLI：`PYTHONPATH=src uv run python -m settings.composition.project_knowledge project snapshot --html --json`；输入未变时直接返回最后有效 `.factory/cache/site/current/index.html`。
+- `docs/04-product/prd.md` 是当前需求唯一正式事实源；当前投影为 16 个 REQ、
+  64 个 AC、11 个 NFR。
+- R009 requirement contract 仍保留为冻结历史证据，但已退出当前 source registry；
+  R009 PM map、R014 合同和 final manifest 仍保留。
+- SQLite 只保存可重建索引、关系、章节定位和代码地图；正文继续按 locator 回源，
+  SQLite、HTML、FTS 和 cache 不提交 Git。
+- 需求、任务、代码、测试和文档详情使用独立静态页面与返回按钮；需求按中文能力分类，
+  AC 嵌套在所属需求，任务显示中文标题并保留 canonical 编号。
+- 九个任务端点与 88 条 `Task --IMPLEMENTS--> Requirement/NFR` 强关系完整。
+  八个历史 ledger 任务有旧 ID alias；task-brief-only 的 T05 没有虚构 alias。
+- HTML 由固定 CLI 增量生成；当前 1892 页，输入未变化时 `cache_hit=true`，
+  `rendered_pages=0`。
+- 独立实现复审：`approved / 96 / C0-I0-M1`；Minor 为
+  `pk_work_item.task_kind` 后续应改从机器字段派生，当前无消费者，不阻塞。
+- 最新验证：目标回归 `62 passed`；Ruff 通过；Mypy `279 source files` 0 问题；
+  全仓 `1342 passed, 3 failed`，三项均为已有范围外 Skill 合同失败。
 
 ## 最小读取顺序
 
 1. 本文件。
-2. `.factory/workitems/FLOW-CONTRACT-001/evidence/TASK-IMPLEMENT-003-P001-review-remediation.md`。
-3. `docs/05-design/frontend-design.md` 的“只读项目站点前端增补”。
+2. `.factory/workitems/PK-SOURCE-MIGRATION-001/evidence/implementation-verification.md`。
+3. `.factory/workitems/PK-SOURCE-MIGRATION-001/reviews/implementation-rereview-decision.md`。
 4. 需要查事实时先用 `project find/show/trace/context`；只按 locator 单文件回源。
 
 ## 当前 Gate
 
-实现、验证、自动独立 Review 和记忆同步已完成；当前仅剩 `gitcommitzh` 精确范围本地提交。远端、PR、Merge 和部署未授权。`TASK-IMPLEMENT-002-R001` 仍保持冻结且不属于本任务。
+实现、验证、独立 Review 和记忆同步已完成；当前仅剩 `gitcommitzh` 精确范围本地提交。
+远端、PR、Merge 和部署未授权。

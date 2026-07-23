@@ -34,6 +34,7 @@ def site_model() -> dict[str, object]:
             "requirement": {
                 "acceptance_criteria": [
                     {
+                        "acceptance_id": "REQ-1-AC-1",
                         "statement": "输入未变化时复用最后站点。",
                         "criterion_status": "approved",
                     }
@@ -284,6 +285,92 @@ def test_renderer_translates_unknown_business_values_to_explicit_missing_state()
     )
 
 
+def test_renderer_groups_requirements_links_relations_and_renders_full_document_body() -> None:
+    model = site_model()
+    requirement = model["entities"][0]  # type: ignore[index]
+    requirement["details"]["category"] = "项目查看与管理"  # type: ignore[index]
+    requirement["relations"] = [  # type: ignore[index]
+        {
+            "relation_type": "IMPLEMENTS",
+            "entity_id": "TASK-1",
+            "entity_kind": "work_item",
+            "display_name": "实现项目索引",
+            "strength": "strong",
+        },
+        {
+            "relation_type": "CONTAINS",
+            "entity_id": "REQ-1-AC-1",
+            "entity_kind": "acceptance_criterion",
+            "display_name": "缓存命中时不重写 HTML",
+            "strength": "strong",
+        },
+        {
+            "relation_type": "IMPLEMENTS",
+            "entity_id": "py:demo:run:function",
+            "entity_kind": "code_symbol",
+            "route_entity_id": "py:demo:file",
+            "route_fragment": "symbol-py-demo-run-function",
+            "display_name": "demo.run",
+            "strength": "strong",
+        },
+    ]
+    task = model["entities"][1]  # type: ignore[index]
+    task["relations"] = [  # type: ignore[index]
+        {
+            "relation_type": "IMPLEMENTS",
+            "entity_id": "REQ-1",
+            "entity_kind": "requirement",
+            "display_name": "快速快照",
+            "strength": "strong",
+        }
+    ]
+    model["entities"].append(  # type: ignore[union-attr]
+        {
+            "entity_id": "REQ-1-AC-1",
+            "entity_kind": "acceptance_criterion",
+            "display_name": "缓存命中时不重写 HTML",
+            "summary": "approved",
+            "lifecycle_status": "approved",
+            "details": {"statement": "缓存命中时不重写 HTML。"},
+            "relations": [],
+            "locators": [],
+        }
+    )
+    document = model["documents"][0]  # type: ignore[index]
+    document["content_markdown"] = (
+        "# 系统架构设计\n\n这里是完整正文。\n\n"
+        "- 第一项\n- 第二项\n\n`inline_code`\n\n<script>alert(1)</script>\n\n"
+        "[危险链接](javascript:alert(1))"
+    )
+
+    pages = ProjectSiteRenderer().render(model, profile="local-owner").pages
+
+    requirements_index = pages["requirements/index.html"]
+    assert "项目查看与管理" in requirements_index
+    assert "REQ-1-AC-1" not in requirements_index
+    assert "../tasks/TASK-1.html" in pages["requirements/REQ-1.html"]
+    assert (
+        "../requirements/REQ-1.html#acceptance-REQ-1-AC-1"
+        in pages["requirements/REQ-1.html"]
+    )
+    assert 'id="acceptance-REQ-1-AC-1"' in pages["requirements/REQ-1.html"]
+    assert (
+        "../code/py-demo-file-273556e6d64265a0.html#symbol-py-demo-run-function"
+        in pages["requirements/REQ-1.html"]
+    )
+    assert "../requirements/REQ-1.html" in pages["tasks/TASK-1.html"]
+    document_page = pages["documents/DOC-DESIGN.html"]
+    assert "<h1>系统架构设计</h1>" in document_page
+    assert "这里是完整正文。" in document_page
+    assert "<li>第一项</li>" in document_page
+    assert "<code>inline_code</code>" in document_page
+    assert "<script>alert(1)</script>" not in document_page
+    assert "&lt;script&gt;alert(1)&lt;/script&gt;" in document_page
+    assert 'href="javascript:' not in document_page
+    assert "[危险链接](javascript:alert(1))" in document_page
+    assert '<details class="snapshot-details">' in pages["requirements/REQ-1.html"]
+
+
 def test_overview_is_a_recent_chinese_task_kanban_with_parent_completion_rollup() -> None:
     model = site_model()
     entities = list(model["entities"])  # type: ignore[arg-type]
@@ -295,7 +382,10 @@ def test_overview_is_a_recent_chinese_task_kanban_with_parent_completion_rollup(
                 "display_name": "TASK-IMPLEMENT-003-P001",
                 "summary": "项目知识索引与只读站点已经完成。",
                 "lifecycle_status": "completed_local_commit_created",
-                "details": {"updated_at": "2026-07-23T00:32:00+08:00"},
+                "details": {
+                    "task_id": "TASK-IMPLEMENT-003-P001",
+                    "updated_at": "2026-07-23T00:32:00+08:00",
+                },
                 "work_item": {"task_status": "completed_local_commit_created"},
                 "relations": [],
                 "locators": [],
@@ -306,7 +396,10 @@ def test_overview_is_a_recent_chinese_task_kanban_with_parent_completion_rollup(
                 "display_name": "TASK-IMPLEMENT-003-P001",
                 "summary": "旧记录仍在实施中。",
                 "lifecycle_status": "in_progress",
-                "details": {"updated_at": "2026-07-22T00:00:00+08:00"},
+                "details": {
+                    "task_id": "TASK-IMPLEMENT-003-P001",
+                    "updated_at": "2026-07-22T00:00:00+08:00",
+                },
                 "work_item": {"task_status": "in_progress"},
                 "relations": [],
                 "locators": [],
@@ -317,7 +410,10 @@ def test_overview_is_a_recent_chinese_task_kanban_with_parent_completion_rollup(
                 "display_name": "TASK-IMPLEMENT-003-P001-T01",
                 "summary": "合同与数据结构已交付。",
                 "lifecycle_status": "ready_for_review",
-                "details": {"updated_at": "2026-07-22T17:55:00+08:00"},
+                "details": {
+                    "task_id": "TASK-IMPLEMENT-003-P001-T01",
+                    "updated_at": "2026-07-22T17:55:00+08:00",
+                },
                 "work_item": {"task_status": "ready_for_review"},
                 "relations": [],
                 "locators": [],
@@ -339,7 +435,7 @@ def test_overview_is_a_recent_chinese_task_kanban_with_parent_completion_rollup(
                 "display_name": "NO-DATE-PARENT",
                 "summary": "无时间父任务已完成。",
                 "lifecycle_status": "done",
-                "details": {},
+                "details": {"task_id": "NO-DATE-PARENT"},
                 "work_item": {"task_status": "done"},
                 "relations": [],
                 "locators": [],
@@ -350,7 +446,7 @@ def test_overview_is_a_recent_chinese_task_kanban_with_parent_completion_rollup(
                 "display_name": "NO-DATE-PARENT-T01",
                 "summary": "无时间子任务等待评审。",
                 "lifecycle_status": "ready_for_review",
-                "details": {},
+                "details": {"task_id": "NO-DATE-PARENT-T01"},
                 "work_item": {"task_status": "ready_for_review"},
                 "relations": [],
                 "locators": [],
@@ -361,7 +457,10 @@ def test_overview_is_a_recent_chinese_task_kanban_with_parent_completion_rollup(
                 "display_name": "OFFSET-PARENT",
                 "summary": "跨时区父任务已完成。",
                 "lifecycle_status": "done",
-                "details": {"updated_at": "2026-07-23T00:00:00+08:00"},
+                "details": {
+                    "task_id": "OFFSET-PARENT",
+                    "updated_at": "2026-07-23T00:00:00+08:00",
+                },
                 "work_item": {"task_status": "done"},
                 "relations": [],
                 "locators": [],
@@ -372,7 +471,10 @@ def test_overview_is_a_recent_chinese_task_kanban_with_parent_completion_rollup(
                 "display_name": "OFFSET-PARENT-T01",
                 "summary": "跨时区子任务等待评审。",
                 "lifecycle_status": "ready_for_review",
-                "details": {"updated_at": "2026-07-22T17:00:00Z"},
+                "details": {
+                    "task_id": "OFFSET-PARENT-T01",
+                    "updated_at": "2026-07-22T17:00:00Z",
+                },
                 "work_item": {"task_status": "ready_for_review"},
                 "relations": [],
                 "locators": [],
@@ -383,7 +485,10 @@ def test_overview_is_a_recent_chinese_task_kanban_with_parent_completion_rollup(
                 "display_name": "TIMEZONE-DUPLICATE",
                 "summary": "跨时区重复任务旧状态。",
                 "lifecycle_status": "done",
-                "details": {"updated_at": "2026-07-23T00:00:00+08:00"},
+                "details": {
+                    "task_id": "TIMEZONE-DUPLICATE",
+                    "updated_at": "2026-07-23T00:00:00+08:00",
+                },
                 "work_item": {"task_status": "done"},
                 "relations": [],
                 "locators": [],
@@ -394,7 +499,10 @@ def test_overview_is_a_recent_chinese_task_kanban_with_parent_completion_rollup(
                 "display_name": "TIMEZONE-DUPLICATE",
                 "summary": "跨时区重复任务正在执行。",
                 "lifecycle_status": "in_progress",
-                "details": {"updated_at": "2026-07-22T17:00:00Z"},
+                "details": {
+                    "task_id": "TIMEZONE-DUPLICATE",
+                    "updated_at": "2026-07-22T17:00:00Z",
+                },
                 "work_item": {"task_status": "in_progress"},
                 "relations": [],
                 "locators": [],
@@ -405,7 +513,10 @@ def test_overview_is_a_recent_chinese_task_kanban_with_parent_completion_rollup(
                 "display_name": "TASK-QUALITY-999-remove-graphql-skill",
                 "summary": "清理旧查询接口。",
                 "lifecycle_status": "done",
-                "details": {"updated_at": "2026-07-22T18:00:00Z"},
+                "details": {
+                    "task_id": "TASK-QUALITY-999-remove-graphql-skill",
+                    "updated_at": "2026-07-22T18:00:00Z",
+                },
                 "work_item": {"task_status": "done"},
                 "relations": [],
                 "locators": [],
@@ -416,7 +527,10 @@ def test_overview_is_a_recent_chinese_task_kanban_with_parent_completion_rollup(
                 "display_name": "TASK-SKILL-003-simple-task-fast-path",
                 "summary": "快速通道已完成。",
                 "lifecycle_status": "done",
-                "details": {"updated_at": "2026-07-22T12:00:00+08:00"},
+                "details": {
+                    "task_id": "TASK-SKILL-003-simple-task-fast-path",
+                    "updated_at": "2026-07-22T12:00:00+08:00",
+                },
                 "work_item": {"task_status": "done"},
                 "relations": [],
                 "locators": [],
@@ -542,7 +656,8 @@ def test_overview_with_only_todo_tasks_reports_todo_instead_of_completed() -> No
     assert hero is not None
     assert '<span class="status-chip">待开始</span>' in hero.group(1)
     assert '<span class="status-chip">已完成</span>' not in hero.group(1)
-    assert "同步订单状态" in overview
+    assert "接入 FooBar 订单同步" in overview
+    assert "任务标题待补充" not in overview
     assert "接入 订单同步" not in overview
 
 
@@ -656,6 +771,19 @@ def test_atomic_publisher_cache_hit_minimal_redraw_and_old_site_survives_failure
         )
     assert os.readlink(current) == old_target
     assert (current / "index.html").is_file()
+
+
+def test_atomic_publisher_accepts_internal_fragments_and_rejects_unsafe_schemes() -> None:
+    AtomicSitePublisher._validate_routes_and_links(
+        {
+            "index.html": '<a href="details.html#acceptance-1">详情</a>',
+            "details.html": '<div id="acceptance-1">验收标准</div>',
+        }
+    )
+    with pytest.raises(ValueError, match="unsafe external link"):
+        AtomicSitePublisher._validate_routes_and_links(
+            {"index.html": '<a href="javascript:alert(1)">危险</a>'}
+        )
 
 
 def test_atomic_publisher_rejects_tampered_cached_entry_content(tmp_path: Path) -> None:

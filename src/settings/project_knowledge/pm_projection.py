@@ -4,8 +4,10 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 import re
 import sqlite3
+import stat
 import unicodedata
 from collections import Counter
 from dataclasses import dataclass
@@ -573,9 +575,72 @@ class SQLiteSiteDataStore:
         "pm_project_summary": "summary_id",
     }
 
-    def __init__(self, database_path: Path, *, project_name: str = "Shanforge") -> None:
+    def __init__(
+        self,
+        database_path: Path,
+        *,
+        project_name: str = "Shanforge",
+        project_root: Path | None = None,
+    ) -> None:
         self._path = database_path
         self._project_name = project_name
+        self._project_root = None if project_root is None else project_root.resolve()
+
+    def _document_markdown(self, relative_path: str, expected_sha256: str) -> str | None:
+        if self._project_root is None:
+            return None
+        relative = Path(relative_path)
+        if (
+            relative.is_absolute()
+            or len(relative.parts) < 2
+            or relative.parts[0] != "docs"
+            or any(part in {"", ".", ".."} for part in relative.parts)
+        ):
+            return None
+        directory_flags = os.O_RDONLY | os.O_DIRECTORY
+        no_follow = getattr(os, "O_NOFOLLOW", 0)
+        open_fds: list[int] = []
+        try:
+            current_fd = os.open(self._project_root, directory_flags)
+            open_fds.append(current_fd)
+            for part in relative.parts[:-1]:
+                current_fd = os.open(
+                    part,
+                    directory_flags | no_follow,
+                    dir_fd=current_fd,
+                )
+                open_fds.append(current_fd)
+            file_fd = os.open(
+                relative.parts[-1],
+                os.O_RDONLY | no_follow,
+                dir_fd=current_fd,
+            )
+            open_fds.append(file_fd)
+            file_status = os.fstat(file_fd)
+            if not stat.S_ISREG(file_status.st_mode) or file_status.st_size > 2_097_152:
+                return None
+            chunks: list[bytes] = []
+            remaining = 2_097_153
+            while remaining:
+                chunk = os.read(file_fd, min(65_536, remaining))
+                if not chunk:
+                    break
+                chunks.append(chunk)
+                remaining -= len(chunk)
+            content = b"".join(chunks)
+            if len(content) > 2_097_152:
+                return None
+        except OSError:
+            return None
+        finally:
+            for descriptor in reversed(open_fds):
+                os.close(descriptor)
+        if hashlib.sha256(content).hexdigest() != expected_sha256:
+            return None
+        try:
+            return content.decode("utf-8")
+        except UnicodeDecodeError:
+            return None
 
     @staticmethod
     def _pm_digest(connection: sqlite3.Connection) -> str:
@@ -614,6 +679,19 @@ class SQLiteSiteDataStore:
             for entity in entities:
                 entity["details"] = json.loads(str(entity.pop("detail_json") or "{}"))
             visible_entity_ids = {str(item["entity_id"]) for item in entities}
+            test_entity_ids = {
+                str(row[0]) for row in connection.execute("SELECT entity_id FROM pk_test")
+            }
+            code_symbol_parents = {
+                str(row["entity_id"]): str(row["file_entity_id"])
+                for row in connection.execute(
+                    """
+                    SELECT s.entity_id,cf.entity_id AS file_entity_id
+                      FROM pk_code_symbol s
+                      JOIN pk_code_file cf ON cf.code_file_id=s.code_file_id
+                    """
+                )
+            }
             edges = [
                 dict(row)
                 for row in connection.execute("SELECT * FROM pk_edge")
@@ -621,6 +699,19 @@ class SQLiteSiteDataStore:
                 and str(row["to_entity_id"]) in visible_entity_ids
             ]
             entity_by_id = {str(item["entity_id"]): item for item in entities}
+            for entity_id in test_entity_ids & visible_entity_ids:
+                entity_by_id[entity_id]["entity_kind"] = "test"
+
+            def relation_target(entity_id: str) -> dict[str, Any]:
+                target = {
+                    "entity_id": entity_id,
+                    "entity_kind": entity_by_id[entity_id]["entity_kind"],
+                    "display_name": entity_by_id[entity_id]["display_name"],
+                }
+                if entity_id in code_symbol_parents and entity_id not in test_entity_ids:
+                    target["route_entity_id"] = code_symbol_parents[entity_id]
+                return target
+
             for entity in entities:
                 entity["relations"] = []
                 entity["locators"] = []
@@ -631,18 +722,16 @@ class SQLiteSiteDataStore:
                     {
                         "direction": "outgoing",
                         "relation_type": edge["relation_type"],
-                        "entity_id": to_id,
-                        "display_name": entity_by_id[to_id]["display_name"],
                         "strength": edge["strength"],
+                        **relation_target(to_id),
                     }
                 )
                 entity_by_id[to_id]["relations"].append(
                     {
                         "direction": "incoming",
                         "relation_type": edge["relation_type"],
-                        "entity_id": from_id,
-                        "display_name": entity_by_id[from_id]["display_name"],
                         "strength": edge["strength"],
+                        **relation_target(from_id),
                     }
                 )
             for row in connection.execute(
@@ -715,7 +804,7 @@ class SQLiteSiteDataStore:
             documents: list[dict[str, Any]] = []
             for row in connection.execute(
                 """
-                SELECT d.*,a.relative_path,a.access_class
+                SELECT d.*,a.relative_path,a.access_class,a.content_sha256
                   FROM pk_document d JOIN pk_artifact a ON a.artifact_id=d.artifact_id
                  WHERE (? = 'local-owner' OR a.access_class = 'public')
                  ORDER BY d.title
@@ -731,6 +820,11 @@ class SQLiteSiteDataStore:
                         (row["document_id"],),
                     )
                 ]
+                content_markdown = self._document_markdown(
+                    str(row["relative_path"]), str(row["content_sha256"])
+                )
+                if content_markdown is not None:
+                    document["content_markdown"] = content_markdown
                 documents.append(document)
             diagnostics = (
                 [

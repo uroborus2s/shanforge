@@ -240,7 +240,7 @@ def build_application(project_root: Path) -> ProjectKnowledgeCommandService:
             index_result = refresh()
         profile = str(arguments.get("profile") or "local-owner")
         service = ProjectSiteService(
-            SQLiteSiteDataStore(database_path, project_name=root.name),
+            SQLiteSiteDataStore(database_path, project_name=root.name, project_root=root),
             ProjectSiteRenderer(),
             AtomicSitePublisher(site_root, database_path=database_path),
         )

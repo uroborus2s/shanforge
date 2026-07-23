@@ -5,8 +5,8 @@
 | 项目 | 内容 |
 |---|---|
 | 文档 ID | `DESIGN-DATA-001` |
-| 正式版本 | `v1.1.0` |
-| 来源候选 | `TASK-DESIGN-001-R019` |
+| 正式版本 | `v1.3.0` |
+| 来源候选 | `PK-SOURCE-MIGRATION-001` |
 | 发布事务 | `DESIGN-RELEASE-TX-R019-G001` |
 | 负责人 | `HUMAN_DATABASE_LEAD` |
 | 修改 / 审核 / 批准 | `uroborus` / `uroborus` / `uroborus` |
@@ -933,6 +933,30 @@ R019 作者只能把 T01–T06 产物标记为 `ready_for_review`。完整 profi
 
 `pk_entity_alias`、`pk_module`、`pk_document_revision`、`pk_memory_checkpoint` 由索引发布事务写入；`pk_render_view` 和 `pk_cache_entry` 由站点发布器在 generation 匹配后登记。缓存登记 owner、TTL、字节上限、legal hold 和 realpath；维护器只删除登记且仍位于受控根内的派生文件。所有 contribution、SQLite 可展示文本、HTML 和 CLI receipt 共用同一敏感值策略，凭证模式统一替换为 `[REDACTED]`。
 
+当前项目知识需求只从 `docs/04-product/prd.md` 中带稳定 `sf:section-id` 的
+`REQ-PKI-*`、`NFR-PKI-*` 章节提取。Markdown extractor 为需求、非功能需求和验收标准
+生成稳定实体，以 `doc_id + section_id + block_sha256` 形成 locator，并把同一
+`section_key` 写入 `pk_requirement.source_section_key`；标题、顺序或前置章节变化不会
+改变实体 ID。SQLite 不复制 PRD 正文，文档详情构建时只按已登记路径读取一次源字节，
+校验大小、普通文件、无 symlink、项目根边界与索引 Hash 后交给渲染器。
+
+冻结的 `REQ-CHANGE-PROJECT-KNOWLEDGE-001.contract.R009.json` 不再属于当前 source
+registry，只保留为历史候选和迁移核对证据。R009 PM 字段映射、R014 合同和最终发布
+清单继续按各自职责登记，不能随需求合同一起移除。迁移验证同时执行 warm refresh 与
+空库 cold rebuild，并对 requirement、AC、section、locator 和 edge 的规范化 after-image
+逐行比较；任一差异阻止发布。
+
+WorkItem 使用已登记任务编号作为 canonical `entity_id`。Ledger 负责当前状态和最近
+事件，task brief 负责中文标题与任务说明；两者通过同一任务编号合并，ledger 的较高
+authority 不得把已有中文标题退化成机器编号。关系声明写入前先验证 Task 和 Requirement
+双方端点存在，缺失端点时失败关闭，禁止产生孤儿追踪边。
+
+Canonical 任务编号必须以大写命名空间开头、包含连字符分段且至少包含一个数字；
+不符合该格式的自然标签继续使用 source-scoped 稳定哈希，不能跨 ledger 静默合并。
+从 `jsonl-event-v4` 的 source-scoped WorkItem ID 迁移到任务编号时，每个旧哈希都写入
+`pk_entity_alias`，记录迁移原因和来源；旧 ID 的 `show/trace/context` 先解析 alias，
+不得因当前实体改名而失效。
+
 ## 正式版本历史（仅已发布）
 
 | 版本 | 日期 | 变更 | 修改人 | 审核 | 批准 |
@@ -940,3 +964,4 @@ R019 作者只能把 T01–T06 产物标记为 `ready_for_review`。完整 profi
 | `v1.0.0` | 2026-07-18 | 基于 `TASK-DESIGN-001-R019` 正式落档 | `uroborus` | `uroborus` | `uroborus` |
 | `v1.1.0` | 2026-07-22 | 增补项目知识 SQLite、39 表投影、FTS、generation 与有界 cache 规则 | `uroborus` | `uroborus` | `uroborus` |
 | `v1.2.0` | 2026-07-22 | 增补双 generation 留存和单 Python 来源事务增量投影 | `uroborus` | `uroborus` | `uroborus` |
+| `v1.3.0` | 2026-07-23 | 明确 PRD 单一需求事实源、稳定章节投影、R009 退役边界、warm/cold 等价和任务 canonical ID 合并规则 | `uroborus` | `uroborus` | `uroborus` |

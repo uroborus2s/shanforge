@@ -164,3 +164,116 @@ def test_sensitive_values_never_reach_contribution_sqlite_or_html(tmp_path: Path
     assert secret_token not in html
     assert password not in html
     assert "[REDACTED]" in html
+
+
+def test_site_store_reads_only_hash_matched_registered_docs_inside_project_root(
+    tmp_path: Path,
+) -> None:
+    docs = tmp_path / "docs"
+    docs.mkdir()
+    content = "# 正式文档\n\n完整正文。"
+    document_path = docs / "guide.md"
+    document_path.write_text(content, encoding="utf-8")
+    restricted_content = "# 受限文档\n\n仅本地 Owner 可读。"
+    restricted_path = docs / "private.md"
+    restricted_path.write_text(restricted_content, encoding="utf-8")
+    database = tmp_path / ".factory/index/project-knowledge.sqlite3"
+    database.parent.mkdir(parents=True)
+    with sqlite3.connect(database) as connection:
+        create_schema(connection)
+        connection.execute(
+            "INSERT INTO pk_generation(generation_id,status,source_root_sha256,schema_version,"
+            "created_at) VALUES('g1','current',?,1,'2026-07-23T00:00:00Z')",
+            ("a" * 64,),
+        )
+        connection.execute(
+            "INSERT INTO pk_source(source_id,registry_source_id,kind,relative_path,"
+            "extractor_id,registry_version,authority_rank,access_class,enabled,config_json) "
+            "VALUES('source-doc','SRC-DOCS','markdown','docs/guide.md','markdown-v1','1',"
+            "100,'public',1,'{}')"
+        )
+        digest = hashlib.sha256(content.encode()).hexdigest()
+        connection.execute(
+            "INSERT INTO pk_artifact(artifact_id,source_id,artifact_kind,relative_path,"
+            "content_sha256,semantic_sha256,access_class) "
+            "VALUES('artifact-doc','source-doc','markdown','docs/guide.md',?,?, 'public')",
+            (digest, digest),
+        )
+        connection.execute(
+            "INSERT INTO pk_entity(entity_id,entity_kind,display_name,lifecycle_status,"
+            "primary_artifact_id,semantic_sha256) "
+            "VALUES('doc:DOC-1','document','正式文档','active','artifact-doc',?)",
+            (digest,),
+        )
+        connection.execute(
+            "INSERT INTO pk_document(document_id,entity_id,artifact_id,title,chinese_name,"
+            "doc_status) VALUES('DOC-1','doc:DOC-1','artifact-doc','正式文档','正式文档','active')"
+        )
+        restricted_digest = hashlib.sha256(restricted_content.encode()).hexdigest()
+        connection.execute(
+            "INSERT INTO pk_source(source_id,registry_source_id,kind,relative_path,"
+            "extractor_id,registry_version,authority_rank,access_class,enabled,config_json) "
+            "VALUES('source-private','SRC-DOCS','markdown','docs/private.md','markdown-v2','2',"
+            "100,'restricted',1,'{}')"
+        )
+        connection.execute(
+            "INSERT INTO pk_artifact(artifact_id,source_id,artifact_kind,relative_path,"
+            "content_sha256,semantic_sha256,access_class) "
+            "VALUES('artifact-private','source-private','markdown','docs/private.md',"
+            "?,?,'restricted')",
+            (restricted_digest, restricted_digest),
+        )
+        connection.execute(
+            "INSERT INTO pk_entity(entity_id,entity_kind,display_name,lifecycle_status,"
+            "primary_artifact_id,semantic_sha256) "
+            "VALUES('doc:DOC-PRIVATE','document','受限文档','active','artifact-private',?)",
+            (restricted_digest,),
+        )
+        connection.execute(
+            "INSERT INTO pk_document(document_id,entity_id,artifact_id,title,chinese_name,"
+            "doc_status) VALUES('DOC-PRIVATE','doc:DOC-PRIVATE','artifact-private',"
+            "'受限文档','受限文档','active')"
+        )
+
+    store = SQLiteSiteDataStore(database, project_root=tmp_path)
+    model = store.load(profile="local-owner")
+    by_id = {item["document_id"]: item for item in model["documents"]}
+    assert by_id["DOC-1"]["content_markdown"] == content
+    assert by_id["DOC-PRIVATE"]["content_markdown"] == restricted_content
+    shared = store.load(profile="shared-restricted")
+    assert [item["document_id"] for item in shared["documents"]] == ["DOC-1"]
+
+    document_path.write_text("# 已被篡改", encoding="utf-8")
+    stale = store.load(profile="local-owner")
+    assert "content_markdown" not in {
+        item["document_id"]: item for item in stale["documents"]
+    }["DOC-1"]
+
+    outside = tmp_path / "outside.md"
+    outside.write_text("# 越界内容", encoding="utf-8")
+    document_path.unlink()
+    document_path.symlink_to(outside)
+    outside_digest = hashlib.sha256(outside.read_bytes()).hexdigest()
+    with sqlite3.connect(database) as connection:
+        connection.execute(
+            "UPDATE pk_artifact SET content_sha256=? WHERE artifact_id='artifact-doc'",
+            (outside_digest,),
+        )
+    symlinked = store.load(profile="local-owner")
+    assert "content_markdown" not in {
+        item["document_id"]: item for item in symlinked["documents"]
+    }["DOC-1"]
+
+    document_path.unlink()
+    oversized = b"x" * (2_097_152 + 1)
+    document_path.write_bytes(oversized)
+    with sqlite3.connect(database) as connection:
+        connection.execute(
+            "UPDATE pk_artifact SET content_sha256=? WHERE artifact_id='artifact-doc'",
+            (hashlib.sha256(oversized).hexdigest(),),
+        )
+    too_large = store.load(profile="local-owner")
+    assert "content_markdown" not in {
+        item["document_id"]: item for item in too_large["documents"]
+    }["DOC-1"]
+    assert store._document_markdown("../outside.md", outside_digest) is None

@@ -1,6 +1,6 @@
 {
   "schema_id": "ProjectKnowledgeSourceRegistry/v1",
-  "registry_version": "1",
+  "registry_version": "2",
   "sources": [
     {
       "registry_source_id": "SRC-DOCS",
@@ -8,7 +8,7 @@
       "roots": ["docs"],
       "include": ["**/*.md"],
       "exclude": [],
-      "extractor_id": "markdown-v1",
+      "extractor_id": "markdown-v2",
       "access_class": "public",
       "authority_rank": 100,
       "stable_id_policy": "explicit_document_and_section_id_or_path",
@@ -31,7 +31,6 @@
       "kind": "json",
       "roots": [".factory/workitems"],
       "include": [
-        "FLOW-CONTRACT-001/drafts/REQ-CHANGE-PROJECT-KNOWLEDGE-001.contract.R009.json",
         "FLOW-CONTRACT-001/drafts/REQ-CHANGE-PROJECT-KNOWLEDGE-001.pm-field-map.R009.json",
         "FLOW-CONTRACT-001/drafts/project-progress-requirement-contract.R014.json",
         "FLOW-CONTRACT-001/evidence/TASK-REQ-002-R014-release-manifest.json",
@@ -62,10 +61,10 @@
       "roots": [".factory/workitems"],
       "include": ["**/*.jsonl"],
       "exclude": ["**/drafts/*.candidate.jsonl", "**/design-assets/**"],
-      "extractor_id": "jsonl-event-v4",
+      "extractor_id": "jsonl-event-v5",
       "access_class": "project",
       "authority_rank": 100,
-      "stable_id_policy": "event_uid_or_idempotency_key_or_semantic_fallback",
+      "stable_id_policy": "event_uid_or_strict_canonical_task_id_or_source_scoped_hash",
       "max_file_bytes": 8388608
     },
     {
@@ -74,10 +73,10 @@
       "roots": [".factory/workitems"],
       "include": ["**/task-briefs/*.md"],
       "exclude": ["**/archive/**", "**/design-assets/**"],
-      "extractor_id": "markdown-v1",
+      "extractor_id": "markdown-v2",
       "access_class": "project",
       "authority_rank": 90,
-      "stable_id_policy": "task_brief_heading_or_path",
+      "stable_id_policy": "declared_task_id_and_document_section",
       "max_file_bytes": 524288
     },
     {
@@ -86,7 +85,7 @@
       "roots": [".factory/memory"],
       "include": ["*.md"],
       "exclude": ["history/**"],
-      "extractor_id": "markdown-v1",
+      "extractor_id": "markdown-v2",
       "access_class": "restricted",
       "authority_rank": 70,
       "stable_id_policy": "checkpoint_and_section_id_or_path",

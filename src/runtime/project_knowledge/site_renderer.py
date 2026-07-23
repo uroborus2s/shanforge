@@ -16,7 +16,7 @@ from application.project_knowledge.site_service import RenderedSite
 from domain.project_knowledge.models import canonical_json
 from domain.project_knowledge.sensitive_values import redact_text
 
-RENDERER_VERSION = "ProjectSiteRenderer/v6"
+RENDERER_VERSION = "ProjectSiteRenderer/v7"
 
 
 _NAVIGATION = (
@@ -62,6 +62,8 @@ def _display_json(value: Any) -> str:
 
 
 _RENDER_INTERNAL_FIELDS = {
+    "content_markdown",
+    "content_sha256",
     "generation_id",
     "source_manifest_sha256",
     "row_sha256",
@@ -188,6 +190,41 @@ def _list_items(items: list[dict[str, Any]], route_template: str) -> str:
             f"{_status(item.get('lifecycle_status') or item.get('status') or item.get('severity'))}</li>"
         )
     return '<ul class="record-list">' + "".join(rows) + "</ul>"
+
+
+def _requirement_groups(items: list[dict[str, Any]]) -> str:
+    groups: dict[str, list[dict[str, Any]]] = {}
+    for item in items:
+        details = dict(item.get("details") or {})
+        category = str(details.get("category") or "未分类需求")
+        groups.setdefault(category, []).append(item)
+    sections = []
+    for category, records in groups.items():
+        functional = [
+            item for item in records if item.get("entity_kind") == "requirement"
+        ]
+        non_functional = [
+            item
+            for item in records
+            if item.get("entity_kind") == "non_functional_requirement"
+        ]
+        sections.append(
+            '<section class="requirement-group"><div class="section-heading"><div>'
+            f'<p class="eyebrow">需求分类</p><h2>{_escape(category)}</h2></div>'
+            f"<span>{len(records)} 条</span></div>"
+            + (
+                "<h3>功能需求</h3>" + _list_items(functional, "{id}.html")
+                if functional
+                else ""
+            )
+            + (
+                "<h3>非功能需求</h3>" + _list_items(non_functional, "{id}.html")
+                if non_functional
+                else ""
+            )
+            + "</section>"
+        )
+    return "".join(sections) or _list_items([], "{id}.html")
 
 
 _KANBAN_COLUMNS = (
@@ -398,12 +435,42 @@ def _summary_title(summary: Any) -> str | None:
     return cleaned if len(re.findall(r"[\u4e00-\u9fff]", cleaned)) >= 3 else None
 
 
-def _task_title(item: dict[str, Any], documents: list[dict[str, Any]]) -> str:
-    task_id = str(item.get("display_name") or item.get("entity_id") or "")
+def _task_machine_id(item: dict[str, Any]) -> str:
     details = dict(item.get("details") or {})
-    explicit = _clean_chinese_title(details.get("task_title"))
+    work_item = dict(item.get("work_item") or {})
+    return str(
+        details.get("task_id")
+        or work_item.get("work_item_id")
+        or work_item.get("entity_id")
+        or item.get("entity_id")
+        or item.get("display_name")
+        or ""
+    )
+
+
+def _declared_task_title(value: Any) -> str | None:
+    cleaned = _clean_chinese_title(value)
+    if cleaned:
+        return cleaned
+    raw = str(value or "").strip()
+    if (
+        2 <= len(raw) <= 120
+        and len(re.findall(r"[\u4e00-\u9fff]", raw)) >= 3
+        and not re.fullmatch(r"[A-Za-z0-9._~-]+", raw)
+    ):
+        return raw
+    return None
+
+
+def _task_title(item: dict[str, Any], documents: list[dict[str, Any]]) -> str:
+    task_id = _task_machine_id(item)
+    details = dict(item.get("details") or {})
+    explicit = _declared_task_title(details.get("task_title"))
     if explicit:
         return explicit
+    display_title = _declared_task_title(item.get("display_name"))
+    if display_title and str(item.get("display_name")) != task_id:
+        return display_title
     mapped = _TASK_ID_TITLES.get(task_id)
     if mapped:
         return mapped
@@ -478,7 +545,7 @@ def _prepare_tasks(
     tasks: list[dict[str, Any]] = []
     for raw in raw_tasks:
         task = dict(raw)
-        machine_id = str(task.get("display_name") or task.get("entity_id") or "")
+        machine_id = _task_machine_id(task)
         title = _task_title(task, documents)
         status = _kanban_status(task)
         details = dict(task.get("details") or {})
@@ -622,6 +689,7 @@ def _definition_list(values: dict[str, Any]) -> str:
         if key in {
             "acceptance_criteria",
             "code_symbol",
+            "content_markdown",
             "details",
             "field_values",
             "locators",
@@ -664,23 +732,190 @@ def _first_detail(details: dict[str, Any], *keys: str) -> Any:
     return None
 
 
+def _relation_href(relation: dict[str, Any]) -> str | None:
+    entity_id = str(relation.get("entity_id") or "")
+    kind = str(relation.get("entity_kind") or "")
+    root = {
+        "requirement": "requirements",
+        "non_functional_requirement": "requirements",
+        "work_item": "tasks",
+        "work_item_event": "tasks",
+        "code_file": "code",
+        "code_symbol": "code",
+        "test": "quality",
+        "document": "documents",
+    }.get(kind)
+    if kind == "acceptance_criterion" and "-AC-" in entity_id:
+        requirement_id = entity_id.rsplit("-AC-", 1)[0]
+        return (
+            f"../requirements/{_route_id(requirement_id)}.html"
+            f"#acceptance-{_route_id(entity_id)}"
+        )
+    if kind == "code_symbol" and relation.get("route_entity_id"):
+        fragment = relation.get("route_fragment") or f"symbol-{_route_id(entity_id)}"
+        return (
+            f"../code/{_route_id(relation['route_entity_id'])}.html"
+            f"#{_escape(fragment)}"
+        )
+    if root is None or not entity_id:
+        return None
+    route_id = entity_id.removeprefix("doc:") if kind == "document" else entity_id
+    return f"../{root}/{_route_id(route_id)}.html"
+
+
 def _relation_summary(relations: list[dict[str, Any]]) -> str:
     if not relations:
         return '<p class="missing-state">当前索引没有登记关联对象。</p>'
-    return (
-        '<ul class="relation-list">'
-        + "".join(
+    rows = []
+    for relation in relations:
+        label = _escape(relation.get("display_name") or relation.get("entity_id"))
+        href = _relation_href(relation)
+        target = label if href is None else f'<a href="{_escape(href)}">{label}</a>'
+        rows.append(
             "<li><strong>"
             + _escape(relation.get("relation_type"))
             + "</strong> · "
-            + _escape(relation.get("display_name") or relation.get("entity_id"))
+            + target
             + " <code>"
             + _escape(relation.get("entity_id"))
             + "</code></li>"
-            for relation in relations
         )
-        + "</ul>"
-    )
+    return '<ul class="relation-list">' + "".join(rows) + "</ul>"
+
+
+def _markdown_inline(value: str) -> str:
+    rendered = _escape(value)
+    rendered = re.sub(r"`([^`\n]+)`", r"<code>\1</code>", rendered)
+    rendered = re.sub(r"\*\*([^*\n]+)\*\*", r"<strong>\1</strong>", rendered)
+    return rendered
+
+
+def _markdown_body(markdown: str) -> str:
+    lines = markdown.splitlines()
+    output: list[str] = []
+    paragraph: list[str] = []
+    list_kind: str | None = None
+    in_code = False
+    code_language = ""
+    code_lines: list[str] = []
+
+    def flush_paragraph() -> None:
+        if paragraph:
+            output.append("<p>" + _markdown_inline(" ".join(paragraph)) + "</p>")
+            paragraph.clear()
+
+    def close_list() -> None:
+        nonlocal list_kind
+        if list_kind is not None:
+            output.append(f"</{list_kind}>")
+            list_kind = None
+
+    position = 0
+    while position < len(lines):
+        line = lines[position]
+        stripped = line.strip()
+        if in_code:
+            if stripped.startswith("```"):
+                language = (
+                    f' class="language-{_escape(code_language)}"' if code_language else ""
+                )
+                output.append(
+                    f"<pre><code{language}>{_escape(chr(10).join(code_lines))}</code></pre>"
+                )
+                code_lines.clear()
+                code_language = ""
+                in_code = False
+            else:
+                code_lines.append(line)
+            position += 1
+            continue
+        if stripped.startswith("```"):
+            flush_paragraph()
+            close_list()
+            in_code = True
+            code_language = stripped[3:].strip()
+            position += 1
+            continue
+        if not stripped:
+            flush_paragraph()
+            close_list()
+            position += 1
+            continue
+        heading = re.match(r"^(#{1,6})\s+(.+)$", line)
+        if heading:
+            flush_paragraph()
+            close_list()
+            level = len(heading.group(1))
+            output.append(
+                f"<h{level}>{_markdown_inline(heading.group(2).strip())}</h{level}>"
+            )
+            position += 1
+            continue
+        if (
+            "|" in line
+            and position + 1 < len(lines)
+            and re.fullmatch(
+                r"\s*\|?\s*:?-{3,}:?\s*(?:\|\s*:?-{3,}:?\s*)+\|?\s*",
+                lines[position + 1],
+            )
+        ):
+            flush_paragraph()
+            close_list()
+
+            def cells(row: str) -> list[str]:
+                return [cell.strip() for cell in row.strip().strip("|").split("|")]
+
+            headers = cells(line)
+            position += 2
+            rows: list[list[str]] = []
+            while position < len(lines) and "|" in lines[position] and lines[position].strip():
+                rows.append(cells(lines[position]))
+                position += 1
+            output.append(
+                '<div class="table-scroll"><table><thead><tr>'
+                + "".join(f"<th>{_markdown_inline(cell)}</th>" for cell in headers)
+                + "</tr></thead><tbody>"
+                + "".join(
+                    "<tr>"
+                    + "".join(f"<td>{_markdown_inline(cell)}</td>" for cell in row)
+                    + "</tr>"
+                    for row in rows
+                )
+                + "</tbody></table></div>"
+            )
+            continue
+        bullet = re.match(r"^\s*[-*+]\s+(.+)$", line)
+        ordered = re.match(r"^\s*\d+[.)]\s+(.+)$", line)
+        if bullet or ordered:
+            flush_paragraph()
+            expected = "ul" if bullet else "ol"
+            if list_kind != expected:
+                close_list()
+                list_kind = expected
+                output.append(f"<{expected}>")
+            if bullet is not None:
+                value = bullet.group(1)
+            else:
+                assert ordered is not None
+                value = ordered.group(1)
+            output.append(f"<li>{_markdown_inline(value)}</li>")
+            position += 1
+            continue
+        quote = re.match(r"^\s*>\s?(.*)$", line)
+        if quote:
+            flush_paragraph()
+            close_list()
+            output.append(f"<blockquote>{_markdown_inline(quote.group(1))}</blockquote>")
+            position += 1
+            continue
+        close_list()
+        paragraph.append(stripped)
+        position += 1
+    if in_code:
+        output.append(f"<pre><code>{_escape(chr(10).join(code_lines))}</code></pre>")
+    flush_paragraph()
+    close_list()
+    return '<div class="markdown-body">' + "".join(output) + "</div>"
 
 
 def _source_summary(item: dict[str, Any]) -> str:
@@ -730,7 +965,8 @@ def _business_detail_sections(item: dict[str, Any]) -> str:
         criteria_html = (
             "<ol>"
             + "".join(
-                f"<li>{_escape(criterion.get('statement'))} "
+                f'<li id="acceptance-{_escape(_route_id(criterion.get("acceptance_id")))}">'
+                f"{_escape(criterion.get('statement'))} "
                 f"{_status(criterion.get('criterion_status'))}</li>"
                 for criterion in criteria
             )
@@ -917,7 +1153,7 @@ class ProjectSiteRenderer:
             item
             for item in entities
             if item.get("entity_kind")
-            in {"requirement", "non_functional_requirement", "acceptance_criterion"}
+            in {"requirement", "non_functional_requirement"}
         ]
         raw_tasks = [
             item for item in entities if item.get("entity_kind") in {"work_item", "work_item_event"}
@@ -970,16 +1206,25 @@ class ProjectSiteRenderer:
         pages["index.html"] = self._page(
             "项目总览", overview, route="index.html", generation=generation, profile=profile
         )
-        self._entity_section(
-            pages,
-            title="需求与验收",
-            intro="说清为什么做、做到什么程度，以及如何验收。",
-            list_route="requirements/index.html",
-            detail_root="requirements",
-            items=requirements,
+        pages["requirements/index.html"] = self._page(
+            "需求与验收",
+            '<section class="page-heading"><p class="eyebrow">当前正式需求</p>'
+            "<h1>需求与验收</h1><p>需求从正式 PRD 的稳定章节确定性提取；"
+            "按产品能力分类展示，验收条件在对应需求详情中查看。</p></section>"
+            + _requirement_groups(requirements),
+            route="requirements/index.html",
             generation=generation,
             profile=profile,
         )
+        for item in requirements:
+            self._entity_detail(
+                pages,
+                item,
+                "requirements",
+                "requirements/index.html",
+                generation,
+                profile,
+            )
         self._document_section(
             pages,
             list_route="design/index.html",
@@ -1128,13 +1373,15 @@ class ProjectSiteRenderer:
             for href, label in _NAVIGATION
         )
         footer = (
-            "<footer><div><strong>可追溯快照</strong><p>"
-            'Generation <span data-snapshot-field="generation">unknown</span> · '
-            'Git <span data-snapshot-field="git">unknown</span> · '
-            'H <span data-snapshot-field="high_watermark">unknown</span></p></div>'
-            '<div><p>as_of <span data-snapshot-field="as_of">unknown</span></p>'
-            '<p><span data-snapshot-field="renderer">unknown</span> · '
-            '<span data-snapshot-field="profile">unknown</span></p></div></footer>'
+            '<footer><details class="snapshot-details"><summary>技术快照信息</summary>'
+            "<div><p>用于定位本页面由哪一次项目事实生成，不属于业务内容。</p>"
+            '<p>索引代次：<span data-snapshot-field="generation">unknown</span> · '
+            'Git：<span data-snapshot-field="git">unknown</span> · '
+            '事实高水位：<span data-snapshot-field="high_watermark">unknown</span></p>'
+            '<p>事实截止：<span data-snapshot-field="as_of">unknown</span> · '
+            '渲染器：<span data-snapshot-field="renderer">unknown</span> · '
+            '视图：<span data-snapshot-field="profile">unknown</span></p></div>'
+            "</details></footer>"
         )
         return (
             '<!doctype html><html lang="zh-CN"><head><meta charset="utf-8">'
@@ -1269,6 +1516,13 @@ class ProjectSiteRenderer:
                 '<article class="detail"><p class="eyebrow">文档详情</p>'
                 f"<h1>{_escape(document.get('chinese_name') or document.get('title'))}</h1>"
                 + _definition_list(document)
+                + "<section><h2>文档正文</h2>"
+                + (
+                    _markdown_body(str(document["content_markdown"]))
+                    if document.get("content_markdown")
+                    else '<p class="missing-state">当前索引正文 Hash 与源文件不一致，未展示可能过期的内容。</p>'
+                )
+                + "</section>"
                 + f'<section><h2>章节索引</h2><ol class="section-list">{sections}</ol></section>'
                 "</article>"
             )
@@ -1431,8 +1685,8 @@ _STYLES = """
 main{width:min(1220px,calc(100% - 40px));margin:0 auto;padding:38px 0 72px}.hero{padding:42px;border-radius:22px;color:#fff;background:linear-gradient(125deg,#173679,#2457d6 62%,#315fc0)}.hero h1,.page-heading h1{margin:.1em 0 .25em;font-size:clamp(2rem,4vw,3.4rem);line-height:1.15}.detail h1{margin:.1em 0 .25em;font-size:clamp(1.7rem,3vw,2.6rem);line-height:1.18}.hero-copy{max-width:760px;font-size:1.08rem}.hero-status{display:flex;gap:14px;align-items:center;margin-top:24px}.eyebrow{text-transform:uppercase;letter-spacing:.12em;font-size:.76rem;font-weight:800;color:var(--blue)}.hero .eyebrow{color:#dbe6ff}.status-chip{display:inline-flex;align-items:center;padding:3px 9px;border-radius:999px;background:#e9efff;color:var(--blue-dark);font-size:.78rem;font-weight:750}
 .metric-grid,.module-grid,.action-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px;margin:22px 0}.metric,.panel,.module-card,.action-card,.detail,.state-guide{border:1px solid var(--line);border-radius:var(--radius);background:#fff;box-shadow:0 8px 28px rgba(34,50,84,.06)}.metric{padding:20px}.metric-label,.metric-note{margin:0;color:var(--muted)}.metric-value{font-size:2rem;font-weight:800;margin:.15em 0}.panel,.detail,.state-guide{padding:28px;margin-top:24px}.section-heading{display:flex;justify-content:space-between;align-items:end;gap:20px}.section-heading h2{margin:0}.section-heading a,.back-link{color:var(--blue);font-weight:700}.page-heading{max-width:850px;margin-bottom:24px}.page-heading p{color:var(--muted);font-size:1.04rem}.record-list{list-style:none;padding:0;margin:0;border-top:1px solid var(--line)}.record-row{display:flex;justify-content:space-between;gap:20px;padding:17px 4px;border-bottom:1px solid var(--line)}.record-row p{margin:.25em 0 0;color:var(--muted)}.record-link{color:var(--ink);font-size:1.02rem;font-weight:760;text-decoration:none}.record-link:hover{color:var(--blue);text-decoration:underline}.empty{padding:30px;border:1px dashed #bbc4d2;border-radius:var(--radius);background:var(--surface);color:var(--muted)}
 .kanban-section{margin-top:30px}.kanban-board{display:grid;grid-template-columns:repeat(6,minmax(230px,1fr));gap:14px;margin-top:16px;overflow-x:auto;padding:2px 2px 14px;scrollbar-gutter:stable}.kanban-column{min-width:230px;padding:14px;border:1px solid var(--line);border-radius:var(--radius);background:var(--surface)}.kanban-column header{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}.kanban-column h2{margin:0;font-size:1rem}.kanban-column header span{display:grid;place-items:center;min-width:28px;height:28px;padding:0 7px;border-radius:999px;background:#fff;color:var(--muted);font-size:.8rem;font-weight:800}.kanban-cards{display:grid;gap:9px}.kanban-card{display:block;padding:13px 14px;border:1px solid #d9e0eb;border-radius:11px;background:#fff;color:var(--ink);font-weight:760;line-height:1.45;text-decoration:none;box-shadow:0 3px 12px rgba(34,50,84,.05);overflow-wrap:anywhere}.kanban-card:hover{border-color:var(--blue);color:var(--blue-dark)}.kanban-more summary{cursor:pointer;padding:9px 4px;color:var(--blue);font-weight:750}.kanban-more>div{display:grid;gap:9px;margin-top:8px}.kanban-empty{margin:4px 0;color:var(--muted);font-size:.9rem}.state-guide h2{margin-top:0}.state-guide dl{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:0}.state-guide dl div{padding:14px;border-radius:10px;background:var(--surface)}.state-guide dt{font-weight:800}.state-guide dd{margin:5px 0 0;color:var(--muted)}
-.module-grid{grid-template-columns:repeat(3,minmax(0,1fr))}.module-card,.action-card{display:flex;flex-direction:column;padding:22px;text-decoration:none;color:var(--ink)}.module-card strong{font-size:2rem;color:var(--blue)}.module-card small{color:var(--muted)}.module-card:hover,.action-card:hover{border-color:var(--blue);transform:translateY(-1px)}.breadcrumb{margin:12px 0;color:var(--muted);font-size:.88rem}.detail{max-width:980px}.detail section{margin-top:30px}.lead{font-size:1.08rem;color:#34405a}.definition-grid{display:grid;grid-template-columns:minmax(160px,240px) 1fr;border-top:1px solid var(--line)}.definition-grid dt,.definition-grid dd{margin:0;padding:10px;border-bottom:1px solid var(--line)}.definition-grid dt{font-weight:700;background:var(--surface)}.section-list{padding-left:22px}.section-list li{margin:8px 0}.table-scroll{overflow:auto}table{width:100%;border-collapse:collapse;font-size:.9rem}th,td{padding:10px;text-align:left;border-bottom:1px solid var(--line);vertical-align:top}thead{background:var(--surface)}code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.85em;word-break:break-all}.value-state{display:inline-flex;padding:2px 7px;border-radius:999px;font-size:.76rem;font-weight:700}.value-state--known{color:var(--success);background:#e6f6ee}.value-state--unknown{color:var(--warning);background:#fff3dc}.value-state--not_registered{color:#6b7280;background:#eef0f3}.value-state--not_applicable{color:#475569;background:#e8edf5}
-footer{display:flex;justify-content:space-between;gap:24px;padding:24px 28px;border-top:1px solid var(--line);background:var(--surface);color:var(--muted);font-size:.82rem}footer p{margin:.2em 0}.detail h1,.record-link,.definition-grid dd,footer p,.nested-definition dd,.nested-definition p,.breadcrumb{overflow-wrap:anywhere;word-break:break-word}a:focus-visible,button:focus-visible{outline:3px solid #f2a900;outline-offset:3px}@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important}}
+.module-grid{grid-template-columns:repeat(3,minmax(0,1fr))}.module-card,.action-card{display:flex;flex-direction:column;padding:22px;text-decoration:none;color:var(--ink)}.module-card strong{font-size:2rem;color:var(--blue)}.module-card small{color:var(--muted)}.module-card:hover,.action-card:hover{border-color:var(--blue);transform:translateY(-1px)}.breadcrumb{margin:12px 0;color:var(--muted);font-size:.88rem}.detail{max-width:980px}.detail section{margin-top:30px}.lead{font-size:1.08rem;color:#34405a}.definition-grid{display:grid;grid-template-columns:minmax(160px,240px) 1fr;border-top:1px solid var(--line)}.definition-grid dt,.definition-grid dd{margin:0;padding:10px;border-bottom:1px solid var(--line)}.definition-grid dt{font-weight:700;background:var(--surface)}.section-list{padding-left:22px}.section-list li{margin:8px 0}.requirement-group{padding:24px;margin-top:20px;border:1px solid var(--line);border-radius:var(--radius);background:#fff}.requirement-group h3{margin:22px 0 8px}.markdown-body{font-size:1rem;line-height:1.75}.markdown-body h1,.markdown-body h2,.markdown-body h3,.markdown-body h4{margin:1.4em 0 .55em;line-height:1.3}.markdown-body pre{padding:16px;overflow:auto;border-radius:10px;background:#111827;color:#f8fafc}.markdown-body blockquote{margin:16px 0;padding:10px 16px;border-left:4px solid var(--blue);background:var(--surface);color:var(--muted)}.markdown-body ul,.markdown-body ol{padding-left:24px}.table-scroll{overflow:auto}table{width:100%;border-collapse:collapse;font-size:.9rem}th,td{padding:10px;text-align:left;border-bottom:1px solid var(--line);vertical-align:top}thead{background:var(--surface)}code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.85em;word-break:break-all}.value-state{display:inline-flex;padding:2px 7px;border-radius:999px;font-size:.76rem;font-weight:700}.value-state--known{color:var(--success);background:#e6f6ee}.value-state--unknown{color:var(--warning);background:#fff3dc}.value-state--not_registered{color:#6b7280;background:#eef0f3}.value-state--not_applicable{color:#475569;background:#e8edf5}
+footer{padding:20px 28px;border-top:1px solid var(--line);background:var(--surface);color:var(--muted);font-size:.82rem}.snapshot-details{width:min(1160px,100%);margin:0 auto}.snapshot-details summary{cursor:pointer;font-weight:750;color:#536078}.snapshot-details div{padding-top:10px}footer p{margin:.2em 0}.detail h1,.record-link,.definition-grid dd,footer p,.nested-definition dd,.nested-definition p,.breadcrumb{overflow-wrap:anywhere;word-break:break-word}a:focus-visible,button:focus-visible,summary:focus-visible{outline:3px solid #f2a900;outline-offset:3px}@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important}}
 @media (max-width: 1024px){.metric-grid{grid-template-columns:repeat(2,1fr)}.module-grid{grid-template-columns:repeat(2,1fr)}.state-guide dl{grid-template-columns:repeat(2,1fr)}}
 @media (max-width: 768px){.site-header{position:static;display:block;padding:12px 16px}.site-header nav{margin-top:10px}.site-header nav a{min-height:44px;display:flex;align-items:center}main{width:min(100% - 28px,720px);padding-top:24px}.hero{padding:28px}.metric-grid,.module-grid,.action-grid,.state-guide dl{grid-template-columns:1fr}.record-row,.section-heading,footer{align-items:flex-start;flex-direction:column}.definition-grid{grid-template-columns:1fr}.definition-grid dd{padding-top:3px}.definition-grid dt{border-bottom:0}.detail,.panel,.state-guide{padding:20px}.kanban-board{grid-template-columns:repeat(6,minmax(82vw,1fr));scroll-snap-type:x proximity}.kanban-column{scroll-snap-align:start}}
 @media print{.site-header,.skip-link,.back-link{display:none!important}body{font-size:10pt;color:#000}.hero{color:#000;background:#fff;border:1px solid #999}.metric,.panel,.detail,.module-card{box-shadow:none;break-inside:avoid}main{width:100%;padding:0}footer{background:#fff}}

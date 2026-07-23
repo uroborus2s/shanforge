@@ -15,6 +15,7 @@ import sys
 from ctypes import CDLL, c_char_p, c_int, get_errno
 from dataclasses import dataclass
 from pathlib import Path, PurePosixPath
+from urllib.parse import urlsplit
 
 from application.project_knowledge.site_service import RenderedSite
 
@@ -548,8 +549,15 @@ class AtomicSitePublisher:
             if not route.endswith(".html"):
                 continue
             for href in re.findall(r'href="([^"]+)"', content):
-                if href.startswith(("#", "http://", "https://", "mailto:")):
+                parsed = urlsplit(href)
+                if parsed.scheme in {"http", "https", "mailto"}:
                     continue
-                target = posixpath.normpath(posixpath.join(posixpath.dirname(route), href))
+                if parsed.scheme or parsed.netloc:
+                    raise ValueError(f"unsafe external link from {route} to {href}")
+                if not parsed.path:
+                    continue
+                target = posixpath.normpath(
+                    posixpath.join(posixpath.dirname(route), parsed.path)
+                )
                 if target not in routes:
                     raise ValueError(f"broken internal link from {route} to {href}")

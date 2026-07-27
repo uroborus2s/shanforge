@@ -1,10 +1,14 @@
 # 任务摘要
 
-- 当前阶段：`STATE-RECONCILIATION-001 / CLOSED`
-- 当前焦点：12 个已提交 WorkItem 的 ledger 终态已补齐并验证关闭；下一顺位为 `SKILL-CLEANUP-001`。
+- 当前阶段：`SKILL-CLEANUP-001 + GO-BACKEND-SKILL-001 / CLOSED`
+- 当前焦点：Go 开发 Skill 与仓内 Skill 清理已提交并关闭；下一顺位为 `ENTERPRISE-AI-DELIVERY-001`。
 
 > 历史读取规则：以下所有带日期条目都是记录发生时的历史快照。条目中的“当前”“下一步”只表示当时状态，不得覆盖本文件顶部的当前焦点和当前动作。
 
+- 2026-07-27：`SKILL-CLEANUP-001` 与 `GO-BACKEND-SKILL-001` 已由本地提交
+  `89982b3` 完成：Go Skill 更名为 `go-developer` 并补齐规范和可运行模板，
+  仓内 `skill-creator` 及专属工具/测试退役。独立评审 `96/98`，两个 WorkItem
+  均已关闭；项目实际待办由 8 个降为 6 个。
 - 2026-07-27：`STATE-RECONCILIATION-001-T01` 已核实 6 个本地提交并为 12 个历史
   WorkItem 各补记唯一 `closed` 事件；JSONL、最新状态、唯一性与 Git 祖先关系检查通过，
   独立评审 `approved / 99 / C0-I0-M1`，当前已关闭。

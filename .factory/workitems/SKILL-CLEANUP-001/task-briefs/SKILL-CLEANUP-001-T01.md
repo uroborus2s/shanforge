@@ -1,7 +1,7 @@
 # SKILL-CLEANUP-001-T01
 
 - 父 WorkItem：`SKILL-CLEANUP-001`
-- 状态：`approved_ready_for_local_commit`
+- 状态：`closed`
 - 目标：
   - 退役仓内 `skills/skill-creator` 及专属测试。
   - 将 `go-backend-developer` 改名为 `go-developer`。
@@ -18,5 +18,5 @@
   - `.factory/workitems/SKILL-CLEANUP-001/**`
   - 必要的 `.factory/memory/` 精确 hunk
 - 禁止：其他产品代码、正式文档、远端和发布动作。
-- 当前 Gate：`approved`
-- 唯一下一动作：精确暂存、验证 index 快照并执行本地提交。
+- 当前 Gate：无
+- 唯一下一动作：无。

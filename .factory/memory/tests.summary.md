@@ -1,9 +1,12 @@
 # 测试摘要
 
-- 当前阶段：`STATE-RECONCILIATION-001 CLOSED`
-- 当前验证结论：12 个目标 ledger JSON 有效、最新状态均为 `closed`、对账事件各唯一 1 条；
-  6 个对应提交均属于当前 `HEAD` 祖先。
+- 当前阶段：`SKILL-CLEANUP-001 + GO-BACKEND-SKILL-001 CLOSED`
+- 当前验证结论：Go 模板 `tidy / gofmt / vet / test / race` 通过；精确 index 快照
+  任务相关 `13 passed, 3 deselected`，Ruff、Skill 集合、digest、JSONL 和 diff check 通过。
 
+- 2026-07-27：Skill 联合收口验证通过。独立评审 `approved / 96 / C0-I0-M1`；
+  Go 既有复审 `approved / 98 / C0-I0-M0`。Index 完整目标的 3 个失败均由 HEAD
+  既存 runtime-skill 目录与其他工作项 digest 漂移解释，本任务白名单外暂存为 0。
 - 2026-07-27：`STATE-RECONCILIATION-001-T01` 状态治理验证通过：
   `closed=12`、唯一对账事件 `12`、JSONL 有效、6/6 提交祖先检查通过。
   8 个实际待办保持非终态，独立评审 `approved / 99 / C0-I0-M1`。

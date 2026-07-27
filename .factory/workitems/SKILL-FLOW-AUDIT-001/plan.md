@@ -53,3 +53,11 @@
 ## Memory Sync
 
 本轮不修改共享 `.factory/memory/*.summary.md`，因为工作区已有大量既有脏改动。当前事实先落在本 work item 的 report、evidence 和 ledger 中，避免混入其他任务范围。
+
+## Iteration 6 最小路径修订（已批准）
+
+- 冻结 8 个明确整改 Skill，不再用当前 37 个 Skill 的全仓平均分验收本整改包。
+- 冻结双维度评分公式和 37 个相关 workflow 测试节点。
+- 不修改当前已通过的旧失败测试；验证通过后直接进入独立复评。
+- 详细合同：
+  `task-briefs/iteration-6-minimal-acceptance-amendment.md`。

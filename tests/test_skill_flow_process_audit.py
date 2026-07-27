@@ -228,3 +228,82 @@ def test_brainstorming_reports_status_while_using_shanforge_owns_routing() -> No
 
     assert "选择唯一下一步 skill" in using_shanforge
     assert "工作 skill 完成时只返回状态包，不写下一步 skill" in using_shanforge
+
+
+def test_agent_harness_construction_has_work_item_status_package() -> None:
+    content = read("skills/agent-harness-construction/SKILL.md")
+    for phrase in (
+        "Codex skill 文本、触发、评估或打包",
+        "- work_item: <WORKITEM-ID or none>",
+        "- skill: agent-harness-construction",
+        "- status: ready_for_review | blocked | needs_user_input",
+        "- ledger_event: <event id or none>",
+        "`needs_user_input` 用于必须由用户决定目标 agent",
+    ):
+        assert phrase in content
+
+
+def test_article_writing_has_work_item_status_package() -> None:
+    content = read("skills/article-writing/SKILL.md")
+    for phrase in (
+        "发布型公开长文归本 skill；工作文档",
+        "- work_item: <WORKITEM-ID or none>",
+        "- skill: article-writing",
+        "- status: ready_for_review | blocked | needs_user_input",
+        "- verification:",
+        "- ledger_event: <event id or none>",
+        "`needs_user_input` 用于缺少目标读者",
+    ):
+        assert phrase in content
+
+
+def test_other_prompt_review_target_skills_have_work_item_status_packages() -> None:
+    expected = {
+        "skills/ai-first-engineering/SKILL.md": (
+            "- work_item: <WORKITEM-ID or none>",
+            "- skill: ai-first-engineering",
+            "- status: ready_for_review | blocked | needs_user_input",
+            "- ledger_event: <event id or none>",
+            "`needs_user_input` 用于必须由用户决定团队约束",
+        ),
+        "skills/doc-coauthoring/SKILL.md": (
+            "非 Shanforge work item 的轻量交付",
+            "- work_item: <WORKITEM-ID or none>",
+            "- skill: doc-coauthoring",
+            "- status: ready_for_review | blocked | needs_user_input",
+            "- outputs:",
+            "- evidence:",
+            "- ledger_event: <event id or none>",
+            "- needs:",
+            "`needs_user_input` 用于必须由用户决定目标读者",
+        ),
+        "skills/algorithmic-art/SKILL.md": (
+            "非 Shanforge work item 的轻量交付",
+            "- work_item: <WORKITEM-ID or none>",
+            "- skill: algorithmic-art",
+            "- status: ready_for_review | blocked | needs_user_input",
+            "- ledger_event: <event id or none>",
+        ),
+        "skills/shadcn/SKILL.md": (
+            "非 Shanforge work item 的轻量交付",
+            "- work_item: <WORKITEM-ID or none>",
+            "- skill: shadcn",
+            "- status: ready_for_review | blocked | needs_user_input",
+            "- ledger_event: <event id or none>",
+        ),
+        "skills/ui-ux-pro-max/SKILL.md": (
+            "非 Shanforge work item 的轻量交付",
+            "- work_item: <WORKITEM-ID or none>",
+            "- skill: ui-ux-pro-max",
+            "- status: ready_for_review | blocked | needs_user_input",
+            "- outputs:",
+            "- evidence:",
+            "- ledger_event: <event id or none>",
+            "- needs:",
+        ),
+    }
+
+    for path, phrases in expected.items():
+        content = read(path)
+        for phrase in phrases:
+            assert phrase in content, f"{path} missing {phrase}"

@@ -153,6 +153,7 @@ Input:
 Allowed context:
 - `.factory/memory/agent-session.md`
 - current work item ledger
+- current review ledger
 - relevant evidence/review/report files listed by the memory card
 - `skills/project-memory/SKILL.md`
 
@@ -164,6 +165,8 @@ Observed actions:
 
 Files read:
 - `.factory/memory/agent-session.md`
+- `.factory/workitems/SKILL-FLOW-AUDIT-001/ledger.jsonl`
+- `.factory/memory/review-ledger.jsonl`
 - `.factory/workitems/SKILL-FLOW-AUDIT-001/reviews/skill-flow-completeness-test-iteration-4.md`
 - `skills/project-memory/SKILL.md`
 
@@ -172,6 +175,8 @@ Files written:
 
 Commands run:
 - `sed -n '1,260p' .factory/memory/agent-session.md`
+- `tail -n 12 .factory/workitems/SKILL-FLOW-AUDIT-001/ledger.jsonl`
+- `tail -n 40 .factory/memory/review-ledger.jsonl`
 - `sed -n '1,240p' skills/project-memory/SKILL.md`
 
 Critical assertions:
@@ -208,6 +213,8 @@ Observed actions:
 
 Files read:
 - `.factory/memory/agent-session.md`
+- `.factory/workitems/SKILL-FLOW-AUDIT-001/ledger.jsonl`
+- `.factory/memory/review-ledger.jsonl`
 - `.factory/workitems/SKILL-FLOW-AUDIT-001/reviews/skill-flow-completeness-test-iteration-4.md`
 - `skills/using-shanforge/references/black-box-flow-eval.md`
 - `skills/using-shanforge/references/remote-pr-handoff.md`
@@ -216,6 +223,8 @@ Files written:
 - None during the scenario dry-run.
 
 Commands run:
+- `tail -n 12 .factory/workitems/SKILL-FLOW-AUDIT-001/ledger.jsonl`
+- `tail -n 40 .factory/memory/review-ledger.jsonl`
 - `test -f skills/using-shanforge/references/remote-pr-handoff.md && sed -n '1,260p' skills/using-shanforge/references/remote-pr-handoff.md || true`
 
 Critical assertions:

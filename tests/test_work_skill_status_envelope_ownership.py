@@ -33,7 +33,7 @@ PROFESSIONAL_PREFIX_SHA256 = {
     "docx": "4c0902897179193845cd2e3e2772047bdf17ed4fa5d6f33dd58919a1626220e8",
     "frontend-patterns": "577d8a43d0f5783ff88ef30f51639db5b8c88bf64855a9902b0ba09c257aa727",
     "gitcommitzh": "f8ddcf2b910ff6a3e37118cf660ad4eb7098473943a51e0ed35f61d7a85e8751",
-    "go-backend-developer": "9e7e4e7c3e598367d91ca7e10baa4be37784417d345603163f64490ee2b33da8",
+    "go-developer": "136813832ae13f66f81f1fa906b29fde5e47d8e826296bbd3f1011382646ff3a",
     "humanizer": "2a5b0a33077aafda23e54e46577a0bf964ad22c7a7f0c939f350bdd8d2e88557",
     "java-developer": "a299f7ea659a3f1b00809835aa2affe6fa9c9346b15902a6dd9d5a5b35acfa62",
     "pdf": "9ac28dc422d7ccd697e7ef5612979b32bae6eb01e5088e9112fc66ee60107085",
@@ -41,7 +41,6 @@ PROFESSIONAL_PREFIX_SHA256 = {
     "receiving-code-review": "bcb549457979f8f1297f6a1651b2bd3e6b6fe47ea2de3ab91ee2e9758169fd0f",
     "requirements-engineering": "992c25aab74397b6d6ebd78a54c7db1fb1b86fa74f1782860264e1a055898408",
     "shadcn": "0cba439d7e48e9d6f2b805379129ef06d835286bda44a2eee280578f13b07b23",
-    "skill-creator": "9d26d5b7655215911732d79ca6301cbdb239c8fcfdaea82d76d66ae0fb1f8b9a",
     "stratix-admin-web": "2a35b86d6681d1c934e680fb94d8c894f80daf4060289d964df06379588f93f6",
     "stratix-service": "3e9c5ad0837a2667d574790f29367d80a93b26c4fd60bfaca1fb16ab0419c08d",
     "systematic-debugging": "d55a7d6ba2ab071f27b9502e8ef55708d615360bac1e9a79c0b9f7e690a49741",
@@ -53,7 +52,7 @@ PROFESSIONAL_PREFIX_SHA256 = {
 }
 
 
-def test_professional_prefixes_are_unchanged_for_exactly_32_work_skills() -> None:
+def test_professional_prefixes_are_unchanged_for_exactly_31_work_skills() -> None:
     assert set(PROFESSIONAL_PREFIX_SHA256) == WORK_SKILLS
 
     # Keep the trailing newline that preceded the removed heading in the frozen prefix.

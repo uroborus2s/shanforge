@@ -29,7 +29,7 @@ WORK_SKILLS = {
     "docx",
     "frontend-patterns",
     "gitcommitzh",
-    "go-backend-developer",
+    "go-developer",
     "humanizer",
     "java-developer",
     "pdf",
@@ -37,7 +37,6 @@ WORK_SKILLS = {
     "receiving-code-review",
     "requirements-engineering",
     "shadcn",
-    "skill-creator",
     "stratix-admin-web",
     "stratix-service",
     "systematic-debugging",
@@ -63,8 +62,8 @@ def read_skill(name: str) -> str:
 def test_remaining_skill_scope_is_exactly_the_non_owner_top_level_set() -> None:
     actual = {path.parent.name for path in (REPO_ROOT / "skills").glob("*/SKILL.md")}
 
-    assert len(actual) == 38
-    assert len(WORK_SKILLS) == 32
+    assert len(actual) == 37
+    assert len(WORK_SKILLS) == 31
     assert actual == OWNER_SKILLS | WORK_SKILLS
     assert not OWNER_SKILLS & WORK_SKILLS
 

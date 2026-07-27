@@ -1,0 +1,22 @@
+# SKILL-CLEANUP-001-T01
+
+- 父 WorkItem：`SKILL-CLEANUP-001`
+- 状态：`approved_ready_for_local_commit`
+- 目标：
+  - 退役仓内 `skills/skill-creator` 及专属测试。
+  - 将 `go-backend-developer` 改名为 `go-developer`。
+  - 核对相关契约测试与 Codex 全局项目 Skill 软链接。
+- 允许路径：
+  - `skills/skill-creator/**`
+  - `skills/go-backend-developer/**`
+  - `skills/go-developer/**`
+  - `tests/test_skill_creator_*.py`
+  - `tests/test_go_developer_skill.py`
+  - `tests/test_crawler4j_model_skill_integration.py`
+  - `tests/test_remaining_skill_project_status_contract.py`
+  - `tests/test_work_skill_status_envelope_ownership.py`
+  - `.factory/workitems/SKILL-CLEANUP-001/**`
+  - 必要的 `.factory/memory/` 精确 hunk
+- 禁止：其他产品代码、正式文档、远端和发布动作。
+- 当前 Gate：`approved`
+- 唯一下一动作：精确暂存、验证 index 快照并执行本地提交。

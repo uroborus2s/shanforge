@@ -1,0 +1,11 @@
+module {{MODULE_PATH}}
+
+go {{GO_VERSION}}
+
+require (
+	github.com/gin-gonic/gin {{GIN_VERSION}}
+	github.com/hashicorp/consul/api {{CONSUL_API_VERSION}}
+	github.com/sirupsen/logrus {{LOGRUS_VERSION}}
+	gorm.io/driver/postgres {{GORM_POSTGRES_VERSION}}
+	gorm.io/gorm {{GORM_VERSION}}
+)

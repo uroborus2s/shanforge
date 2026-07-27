@@ -1,10 +1,13 @@
 # 任务摘要
 
-- 当前阶段：`FLOW-CONTRACT-001 / CLOSED`
-- 当前焦点：15/15 项已完成并关闭；当前无活动任务，等待从未关闭 WorkItem 清单选择下一项。
+- 当前阶段：`STATE-RECONCILIATION-001 / CLOSED`
+- 当前焦点：12 个已提交 WorkItem 的 ledger 终态已补齐并验证关闭；下一顺位为 `SKILL-CLEANUP-001`。
 
 > 历史读取规则：以下所有带日期条目都是记录发生时的历史快照。条目中的“当前”“下一步”只表示当时状态，不得覆盖本文件顶部的当前焦点和当前动作。
 
+- 2026-07-27：`STATE-RECONCILIATION-001-T01` 已核实 6 个本地提交并为 12 个历史
+  WorkItem 各补记唯一 `closed` 事件；JSONL、最新状态、唯一性与 Git 祖先关系检查通过，
+  独立评审 `approved / 99 / C0-I0-M1`，当前已关闭。
 - 2026-07-27：`FLOW-CONTRACT-001` 已关闭。`FLOW-TASK-015` 实现复审
   `approved / 98 / C0-I0-M0`，本地提交 `f21654d`；15/15 项队列完成。
   其他 WorkItem 盘点为 8 个仍有实际后续动作、12 个仅缺 ledger 显式关闭事件；

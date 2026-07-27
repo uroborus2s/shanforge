@@ -1,36 +1,39 @@
 # Agent 会话卡
 
-- 生成时间：2026-07-27 14:03 +0800
+- 生成时间：2026-07-27 14:52 +0800
 - 项目：`shanforge`
-- 当前阶段：`FLOW-CONTRACT-001 / CLOSEOUT`
+- 当前阶段：`STATE-RECONCILIATION-001 / CLOSED`
 - 当前状态：`closed`
-- 当前焦点：无活动任务；等待选择其他未关闭 WorkItem
-- 下一动作：按收口审计清单选择一个未关闭 WorkItem；不自动恢复旁路任务
+- 当前焦点：12 个历史 WorkItem 终态对账已完成
+- 下一动作：进入 `SKILL-CLEANUP-001` 独立评审
 
 ## 当前事实
 
-- `FLOW-CONTRACT-001` 顺序实施队列 15/15 项全部完成。
-- `FLOW-TASK-015` 已由独立 Reviewer 以 `approved / 98 / C0-I0-M0` 通过。
-- 正式工作流契约 v1.2.0、9 个 runtime Skills 和契约测试已由本地提交
-  `f21654d082f8e5ca4fba41372ccf66e1865fdbcd` 固化。
-- 本 WorkItem 已关闭；Push、PR、Merge 和部署均未执行。
-- 其他 WorkItem 盘点得到 8 个仍有实际后续动作的项目，以及 12 个只有 ledger
-  终态补记需求的项目。
-- 盘点报告：
-  `.factory/workitems/FLOW-CONTRACT-001/reports/FLOW-CONTRACT-001-closeout-and-open-workitems-audit.md`。
+- `FLOW-CONTRACT-001` 已由本地提交 `f5d3b21` 关闭。
+- 用户授权继续推进剩余任务，直至完成或遇到真实人工 Gate。
+- `STATE-RECONCILIATION-001 / T01` 已完成并关闭。
+- 12 个目标 WorkItem 已各新增唯一 `closed` 事件。
+- 对应 6 个本地提交均存在且属于当前 `HEAD` 祖先。
+- 独立评审 `approved / 99 / C0-I0-M1`，完成验证通过。
+- 当前尚有 8 个实际待办 WorkItem。
 
-## 最小读取顺序
+## 已读取上下文
 
-1. 本文件。
-2. 用户选定的 WorkItem ledger 最新事件。
-3. 对应 TaskCard；只在缺正式事实时按 doc-map 单文件回源。
+- `FLOW-CONTRACT-001` 收口盘点：确定 12 个对账目标。
+- 12 个目标 ledger 最新事件：核对原有 review、verification 与人工批准。
+- Git 提交对象：核对提交存在性、范围和祖先关系。
+
+## 未读 / 已排除
+
+- 阶段 `docs/` 长文：状态对账不需要修改正式事实。
+- 8 个实际待办的实现文件：尚未进入对应 WorkItem。
 
 ## 当前 Gate
 
-无。当前没有活动任务，也不把未选择的旁路 WorkItem 自动恢复为当前焦点。
+无。当前治理 WorkItem 已关闭。
 
 ## 禁止动作
 
-- 不自动修改其他 WorkItem。
-- 不把本 WorkItem 完成推导为 Shanforge 项目整体完成。
+- 不修改产品代码、正式文档或 8 个实际待办的实现。
 - 不执行 Push、PR、Merge 或部署。
+- 不把本批次完成推导为项目整体完成。

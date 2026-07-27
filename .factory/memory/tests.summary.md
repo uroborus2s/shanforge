@@ -1,9 +1,13 @@
 # 测试摘要
 
-- 当前阶段：`FLOW-CONTRACT-001 CLOSED`
-- 当前验证结论：任务已由提交 `f21654d` 固化并关闭；正式 v1.2.0 与 9 个 runtime Skills
-  的规定组合 `57 passed`，定向 `8 passed`，Ruff、9/9 Skill validator 和 ledger/queue 收口校验通过。
+- 当前阶段：`STATE-RECONCILIATION-001 CLOSED`
+- 当前验证结论：12 个目标 ledger JSON 有效、最新状态均为 `closed`、对账事件各唯一 1 条；
+  6 个对应提交均属于当前 `HEAD` 祖先。
 
+- 2026-07-27：`STATE-RECONCILIATION-001-T01` 状态治理验证通过：
+  `closed=12`、唯一对账事件 `12`、JSONL 有效、6/6 提交祖先检查通过。
+  8 个实际待办保持非终态，独立评审 `approved / 99 / C0-I0-M1`。
+  未运行产品测试，因为本批次只新增 ledger 终态。
 - 2026-07-27：`FLOW-CONTRACT-001` 收口状态迁移 Red 两轮均为 `2 failed, 55 passed`，
   根因分别为旧 `in_progress` 断言、通用 ledger 回源缺失、父 WorkItem/Task 状态身份混用和零活动任务未覆盖；
   最小修正后同组 `57 passed`，Ruff、JSONL、15/15 队列、commit/close 唯一事件和 diff check 通过。

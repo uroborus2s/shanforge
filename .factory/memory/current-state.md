@@ -1,42 +1,39 @@
 # 当前状态
 
 - 当前模式：`codex_desktop`
-- 当前阶段：`FLOW-CONTRACT-001 / FLOW-TASK-015`
-- 活跃任务数：1
+- 当前阶段：`FLOW-CONTRACT-001 / CLOSED`
+- 活跃任务数：0
 - 阻塞项数：0
-- 当前 Gate：`approved_ready_for_exact_local_commit`
+- 当前 Gate：`none`
 - 停止原因：无
 
 ## 活跃任务
 
-- `FLOW-TASK-015`：重塑完整软件项目会话行为与工作流归因契约。
-  - 状态：`approved_ready_for_exact_local_commit`
-  - 目标：实现复审 `approved / 98 / C0-I0-M0`，当前只执行按 hunk 精确本地提交。
-  - TaskCard：`.factory/workitems/FLOW-CONTRACT-001/task-briefs/FLOW-TASK-015.md`
-  - Ledger：`.factory/workitems/FLOW-CONTRACT-001/ledger.jsonl`
+- 当前无活动任务。
 
 ## 阻塞项
 
-- 无。
+- 无。其他未关闭 WorkItem 尚未被选为当前任务。
 
 ## 最近事实
 
-- 用户已批准冻结候选 SHA-256 `3d5f4cba…` 进入正式发布、runtime Skill 同步、验证、独立实现 Review 和精确本地提交。
-- 唯一正式文档已在工作树原位晋升为 v1.2.0，9 个 runtime Skills 已同步最小路由合同；定向 Red/Green 为 `1 failed -> 8 passed`。
-- `FLOW-TASK-015` 三轮方案 Review 最终 `approved / 98 / C0-I0-M1`；全部语义 finding 关闭，唯一计数 Minor 已修正。
-- `FLOW-TASK-014` 已通过同一独立 Reviewer 复审：`approved / 98 / C0-I0-M0`。
-- `FLOW-TASK-013` 已通过同一独立 Reviewer 复审：`approved / 98 / C0-I0-M0`；项目级测试治理候选仍明确为未发布，不伪造正式批准。
+- `FLOW-CONTRACT-001` 的 15/15 项顺序实施队列已完成并关闭。
+- `FLOW-TASK-015` 本地提交为 `f21654d`，提交主题为“发布完整项目会话工作流契约”。
+- 实现复审结论为 `approved / 98 / C0-I0-M0`，全部 Finding 关闭。
+- 规定组合验证 `57 passed`，定向验证 `8 passed`，Ruff 与 9/9 Skill validator 通过。
+- 其他 WorkItem 盘点为 8 个实际未收口、12 个仅缺 ledger 显式关闭事件。
 
 ## 唯一下一动作
 
-- 按 hunk 精确暂存 FLOW-TASK-015，核对 staged diff 后执行已授权本地提交。
+- 用户选择一个未关闭 WorkItem 后，再按其最新 ledger 恢复；当前不自动启动。
 
 ## 历史回源
 
 - 任务执行事实：`.factory/workitems/<WORKITEM-ID>/ledger.jsonl`
+- 当前 WorkItem：`.factory/workitems/FLOW-CONTRACT-001/ledger.jsonl`
+- 未关闭盘点：`.factory/workitems/FLOW-CONTRACT-001/reports/FLOW-CONTRACT-001-closeout-and-open-workitems-audit.md`
 - 非活跃任务摘要：`.factory/memory/tasks.summary.md`
 - 测试摘要：`.factory/memory/tests.summary.md`
 - Review 索引：`.factory/memory/review-ledger.jsonl`
-- 正式事实定位：`.factory/memory/doc-map.md`
 
-> 本文件只是有界当前态投影，不是正式事实源。历史任务详情继续保留在 ledger、evidence、review、report 和 summary 中。
+> 本文件只是有界当前态投影，不是正式事实源。

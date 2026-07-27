@@ -1,11 +1,14 @@
 # 任务摘要
 
-- 当前阶段：`FLOW-CONTRACT-001 / FLOW-TASK-015 COMMIT GATE`
-- 当前焦点：第 15/15 项实现复审 `approved / 98 / C0-I0-M0`，全部 Finding 关闭；
-  当前只执行按 hunk 精确本地提交，不执行远端动作。
+- 当前阶段：`FLOW-CONTRACT-001 / CLOSED`
+- 当前焦点：15/15 项已完成并关闭；当前无活动任务，等待从未关闭 WorkItem 清单选择下一项。
 
 > 历史读取规则：以下所有带日期条目都是记录发生时的历史快照。条目中的“当前”“下一步”只表示当时状态，不得覆盖本文件顶部的当前焦点和当前动作。
 
+- 2026-07-27：`FLOW-CONTRACT-001` 已关闭。`FLOW-TASK-015` 实现复审
+  `approved / 98 / C0-I0-M0`，本地提交 `f21654d`；15/15 项队列完成。
+  其他 WorkItem 盘点为 8 个仍有实际后续动作、12 个仅缺 ledger 显式关闭事件；
+  详见 `.factory/workitems/FLOW-CONTRACT-001/reports/FLOW-CONTRACT-001-closeout-and-open-workitems-audit.md`。
 - 2026-07-21：旁路工作项 `PM-DASHBOARD-002-T01` 已把 Excel 样例信息架构一次性固化进 HTML 状态模板；运行时禁止回读 `.xls/.xlsx`。独立复审 `approved / 99 / C0-I0-M0`，最终定向 23、相邻 11+42、Ruff 和五视口截图门通过；不改变顶部主工作项进度或正式产品事实。
 - 2026-07-21：T05 完成 Red/Green 与作者验证：172/79/101/323 tests、Ruff/format/mypy 全绿，当前独立 Review。P001 完成仍为 4/8，无人工 Gate。
 - 2026-07-21：T04 最终 Spec/Quality `approved / 100 / C0-I0-M0`，五项 Finding 全闭；29/101/121/286 tests、事务/竞态探针与静态门全绿。P001 完成 4/8，进入 T05。

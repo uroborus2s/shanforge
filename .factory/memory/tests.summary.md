@@ -1,9 +1,13 @@
 # 测试摘要
 
-- 当前阶段：`FLOW-TASK-015 COMMIT GATE`
-- 当前验证结论：正式 v1.2.0 与 9 个 runtime Skills 的规定组合 `57 passed`，定向 `8 passed`，
-  Ruff、9/9 Skill validator 和范围 diff check 通过；实现复审 `approved / 98 / C0-I0-M0`。
+- 当前阶段：`FLOW-CONTRACT-001 CLOSED`
+- 当前验证结论：任务已由提交 `f21654d` 固化并关闭；正式 v1.2.0 与 9 个 runtime Skills
+  的规定组合 `57 passed`，定向 `8 passed`，Ruff、9/9 Skill validator 和 ledger/queue 收口校验通过。
 
+- 2026-07-27：`FLOW-CONTRACT-001` 收口状态迁移 Red 两轮均为 `2 failed, 55 passed`，
+  根因分别为旧 `in_progress` 断言、通用 ledger 回源缺失、父 WorkItem/Task 状态身份混用和零活动任务未覆盖；
+  最小修正后同组 `57 passed`，Ruff、JSONL、15/15 队列、commit/close 唯一事件和 diff check 通过。
+  其他 WorkItem 只做只读盘点，未运行其产品测试。
 - 2026-07-27：`FLOW-TASK-015` 正式实施完成 Runtime Red/Green `1 failed, 7 passed -> 8 passed`，
   规定组合 `57 passed`，Ruff 和 9/9 Skill validator 通过。首轮独立实现 Review
   `changes_requested / 76 / C0-I3-M0`；旧自动人工 Gate 冲突、测试假通过和状态投影漂移已完成整改，

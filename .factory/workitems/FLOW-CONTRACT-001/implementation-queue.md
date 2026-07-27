@@ -2,12 +2,12 @@
 
 ## 状态
 
-- 当前阶段：`FLOW-TASK-015_approved_ready_for_exact_local_commit`
-- 本会话是否实施：是，`FLOW-TASK-015` 实现复审已批准，进入精确本地提交 Gate
+- 当前阶段：`FLOW-TASK-015_completed_local_commit_created`
+- 本会话是否实施：否；15/15 项已完成并关闭
 - 例外记录：`FLOW-TASK-015` 曾按用户变更指令提前形成方案候选；当前前置任务已全部关闭，恢复顺序执行
 - 执行方式：按任务号顺序逐项实施
 - 并发规则：禁止并发实施；同一时间只允许一个 active task
-- 下一任务：无；当前只执行按 hunk 精确本地提交
+- 下一任务：无
 
 ## 执行规则
 
@@ -31,9 +31,9 @@
 | 7 | `FLOW-TASK-007` | 升级计划编写 | `human_approved` | `FLOW-TASK-006` | `.factory/workitems/FLOW-CONTRACT-001/task-briefs/FLOW-TASK-007.md` |
 | 8 | `FLOW-TASK-008` | 升级执行类 skill | `human_approved` | `FLOW-TASK-007` | `.factory/workitems/FLOW-CONTRACT-001/task-briefs/FLOW-TASK-008.md` |
 | 9 | `FLOW-TASK-009` | 升级 review 和 verification | `human_approved` | `FLOW-TASK-008` | `.factory/workitems/FLOW-CONTRACT-001/task-briefs/FLOW-TASK-009.md` |
-| 10 | `FLOW-TASK-010` | 增加 baseline 设计模板 | `pending_human_confirmation` | `FLOW-TASK-009` | `.factory/workitems/FLOW-CONTRACT-001/task-briefs/FLOW-TASK-010.md` |
-| 11 | `FLOW-TASK-011` | 升级 PM 视图 | `pending` | `FLOW-TASK-010` | `.factory/workitems/FLOW-CONTRACT-001/task-briefs/FLOW-TASK-011.md` |
-| 12 | `FLOW-TASK-012` | 增加黑盒流程 eval | `pending` | `FLOW-TASK-011` | `.factory/workitems/FLOW-CONTRACT-001/task-briefs/FLOW-TASK-012.md` |
-| 13 | `FLOW-TASK-013` | 增加项目级测试治理 | `pending` | `FLOW-TASK-012` | `.factory/workitems/FLOW-CONTRACT-001/task-briefs/FLOW-TASK-013.md` |
-| 14 | `FLOW-TASK-014` | 增加启动记忆和非活跃任务降级规则 | `pending` | `FLOW-TASK-013` | `.factory/workitems/FLOW-CONTRACT-001/task-briefs/FLOW-TASK-014.md` |
-| 15 | `FLOW-TASK-015` | 重塑完整软件项目会话行为与工作流归因契约 | `approved_ready_for_exact_local_commit` | `FLOW-TASK-014` | `.factory/workitems/FLOW-CONTRACT-001/task-briefs/FLOW-TASK-015.md` |
+| 10 | `FLOW-TASK-010` | 增加 baseline 设计模板 | `human_approved` | `FLOW-TASK-009` | `.factory/workitems/FLOW-CONTRACT-001/task-briefs/FLOW-TASK-010.md` |
+| 11 | `FLOW-TASK-011` | 升级 PM 视图 | `completed_independently_approved` | `FLOW-TASK-010` | `.factory/workitems/FLOW-CONTRACT-001/task-briefs/FLOW-TASK-011.md` |
+| 12 | `FLOW-TASK-012` | 增加黑盒流程 eval | `completed_independently_approved` | `FLOW-TASK-011` | `.factory/workitems/FLOW-CONTRACT-001/task-briefs/FLOW-TASK-012.md` |
+| 13 | `FLOW-TASK-013` | 增加项目级测试治理 | `completed_independently_approved` | `FLOW-TASK-012` | `.factory/workitems/FLOW-CONTRACT-001/task-briefs/FLOW-TASK-013.md` |
+| 14 | `FLOW-TASK-014` | 增加启动记忆和非活跃任务降级规则 | `completed_independently_approved` | `FLOW-TASK-013` | `.factory/workitems/FLOW-CONTRACT-001/task-briefs/FLOW-TASK-014.md` |
+| 15 | `FLOW-TASK-015` | 重塑完整软件项目会话行为与工作流归因契约 | `completed_local_commit_created` | `FLOW-TASK-014` | `.factory/workitems/FLOW-CONTRACT-001/task-briefs/FLOW-TASK-015.md` |

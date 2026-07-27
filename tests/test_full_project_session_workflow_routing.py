@@ -393,10 +393,11 @@ def test_runtime_skills_expose_the_minimum_route_and_result_contract() -> None:
     assert runtime_routes == candidate_routes
 
 
-def test_flow_task_015_is_registered_as_in_progress_after_human_approval() -> None:
+def test_flow_task_015_is_registered_as_closed_after_local_commit() -> None:
     task = read(".factory/workitems/FLOW-CONTRACT-001/task-briefs/FLOW-TASK-015.md")
     queue = read(".factory/workitems/FLOW-CONTRACT-001/implementation-queue.md")
     ledger = read(".factory/workitems/FLOW-CONTRACT-001/ledger.jsonl")
+    current_state = read(".factory/memory/current-state.md")
     tests_summary = read(".factory/memory/tests.summary.md")
     events = [
         json.loads(line)
@@ -406,7 +407,7 @@ def test_flow_task_015_is_registered_as_in_progress_after_human_approval() -> No
     latest_status = events[-1]["status"]
 
     assert "完整软件项目会话行为与工作流归因契约" in task
-    assert "状态：`in_progress`" in task
+    assert "状态：`completed_local_commit_created`" in task
     assert "`FLOW-TASK-015`" in queue
     assert f"- 当前阶段：`FLOW-TASK-015_{latest_status}`" in queue
     task_row = next(line for line in queue.splitlines() if "| 15 |" in line)
@@ -414,3 +415,7 @@ def test_flow_task_015_is_registered_as_in_progress_after_human_approval() -> No
     assert "pending_human_confirmation" not in task_row
     assert "FLOW-TASK-015" in tests_summary
     assert "57 passed" in tests_summary
+    assert "- 当前阶段：`FLOW-CONTRACT-001 / CLOSED`" in current_state
+    assert "- 活跃任务数：0" in current_state
+    assert "- 当前无活动任务。" in current_state
+    assert "- 当前 Gate：`none`" in current_state

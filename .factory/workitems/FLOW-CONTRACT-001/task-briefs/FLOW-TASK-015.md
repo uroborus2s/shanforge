@@ -4,7 +4,7 @@
 
 - 工作项：`FLOW-CONTRACT-001`
 - 任务：`FLOW-TASK-015`
-- 状态：`in_progress`
+- 状态：`completed_local_commit_created`
 - 上游计划：`.factory/workitems/FLOW-CONTRACT-001/plan.md`
 - 流水账：`.factory/workitems/FLOW-CONTRACT-001/ledger.jsonl`
 

@@ -1,0 +1,399 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>shanforge · 项目看板设计原型</title>
+  <style>
+    :root{
+      color-scheme:light;
+      --canvas:#f3f5f8;
+      --panel:#fff;
+      --panel-subtle:#f8fafc;
+      --sidebar:#111827;
+      --sidebar-soft:#1f2937;
+      --ink:#172033;
+      --muted:#667085;
+      --quiet:#98a2b3;
+      --line:#d8dee8;
+      --line-strong:#c4ccd8;
+      --brand:#2563eb;
+      --brand-soft:#eff6ff;
+      --success:#087f5b;
+      --success-soft:#ecfdf3;
+      --warning:#a15c00;
+      --warning-soft:#fff7e8;
+      --danger:#b42318;
+      --danger-soft:#fff1f0;
+      --violet:#6941c6;
+      --violet-soft:#f4f3ff;
+      --focus:#fdb022;
+      --shadow-sm:0 1px 2px rgba(16,24,40,.05);
+      --shadow-lg:0 24px 56px rgba(16,24,40,.22);
+      --radius:12px;
+    }
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{margin:0;background:var(--canvas);color:var(--ink);font:14px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif}
+    button,input,select{font:inherit}
+    button{cursor:pointer}
+    button:disabled{cursor:not-allowed;opacity:.55}
+    :focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+    .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+    .skip-link{position:fixed;z-index:1000;top:8px;left:8px;transform:translateY(-150%);padding:8px 12px;border-radius:8px;background:#fff;color:#111827;box-shadow:var(--shadow-lg)}
+    .skip-link:focus{transform:none}
+    .icon{width:18px;height:18px;display:block;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+    .app-shell{display:grid;grid-template-columns:224px minmax(0,1fr);min-height:100vh}
+
+    .sidebar{position:sticky;top:0;height:100vh;display:flex;flex-direction:column;padding:18px 14px;background:var(--sidebar);color:#d0d5dd}
+    .brand{display:flex;align-items:center;gap:10px;padding:0 8px 18px}
+    .brand-mark{width:34px;height:34px;display:grid;place-items:center;border-radius:10px;background:linear-gradient(145deg,#4f8cff,#155eef);color:#fff;box-shadow:0 8px 20px rgba(37,99,235,.32)}
+    .brand-copy strong{display:block;color:#fff;font-size:15px;letter-spacing:.01em}.brand-copy span{display:block;margin-top:1px;color:#98a2b3;font-size:11px}
+    .side-label{margin:14px 10px 6px;color:#667085;font-size:10px;font-weight:800;letter-spacing:.1em;text-transform:uppercase}
+    .side-nav{display:grid;gap:3px}.side-link{width:100%;display:flex;align-items:center;gap:10px;padding:9px 10px;border:0;border-radius:8px;background:transparent;color:#c7ced8;text-align:left;font-weight:650}.side-link:hover{background:var(--sidebar-soft);color:#fff}.side-link.active{background:#24344f;color:#fff}.side-link.active .icon{color:#78a9ff}.side-link .count{margin-left:auto;padding:1px 6px;border-radius:999px;background:#344054;color:#d0d5dd;font-size:10px}
+    .side-project{margin-top:4px;padding:10px;border:1px solid #344054;border-radius:10px;background:#182233}.side-project strong{display:block;color:#fff;font-size:12px}.side-project span{display:block;margin-top:4px;color:#98a2b3;font-size:11px}.mini-track{height:5px;margin-top:9px;overflow:hidden;border-radius:999px;background:#344054}.mini-track span{width:21.14%;height:100%;display:block;background:#32d583}
+    .sidebar-footer{margin-top:auto;padding:12px 9px 2px;border-top:1px solid #344054}.operator{display:flex;align-items:center;gap:9px}.avatar{width:30px;height:30px;display:grid;place-items:center;flex:0 0 auto;border-radius:50%;background:#344054;color:#fff;font-size:11px;font-weight:800}.operator strong{display:block;color:#fff;font-size:11px}.operator span{display:block;color:#98a2b3;font-size:10px}
+
+    .workspace{min-width:0}
+    .topbar{position:sticky;z-index:30;top:0;min-height:64px;display:flex;align-items:center;justify-content:space-between;gap:16px;padding:10px 22px;border-bottom:1px solid var(--line);background:rgba(255,255,255,.94);backdrop-filter:blur(12px)}
+    .project-heading{min-width:0}.breadcrumbs{display:flex;align-items:center;gap:6px;color:var(--muted);font-size:11px}.breadcrumbs strong{color:var(--ink)}.project-title-row{display:flex;align-items:center;gap:9px;margin-top:2px}.project-title-row h1{margin:0;font-size:20px;line-height:1.2}.prototype-chip{padding:2px 7px;border:1px solid #c7d7fe;border-radius:999px;background:var(--brand-soft);color:#1849a9;font-size:10px;font-weight:800}
+    .top-actions{display:flex;align-items:center;justify-content:flex-end;gap:8px}.service-state{display:flex;align-items:center;gap:7px;padding:7px 10px;border:1px solid var(--line);border-radius:9px;background:var(--panel-subtle);color:var(--muted);font-size:11px;white-space:nowrap}.status-dot{width:7px;height:7px;border-radius:50%;background:#f79009;box-shadow:0 0 0 3px #fef0c7}.icon-button,.primary-button{min-height:36px;display:inline-flex;align-items:center;justify-content:center;gap:7px;border-radius:9px;font-weight:750}.icon-button{width:36px;padding:0;border:1px solid var(--line-strong);background:#fff;color:#344054}.icon-button:hover{background:#f8fafc}.primary-button{padding:0 12px;border:1px solid #155eef;background:var(--brand);color:#fff;box-shadow:var(--shadow-sm)}.primary-button:hover{background:#155eef}
+
+    main{padding:18px 22px 28px}
+    .prototype-notice{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:12px;padding:9px 12px;border:1px solid #b2ccff;border-radius:10px;background:#eff4ff;color:#194185;font-size:11px}.prototype-notice strong{color:#1849a9}.prototype-notice button{flex:0 0 auto;border:0;background:transparent;color:#1849a9;font-weight:800}
+    .snapshot-line{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}.snapshot-copy{min-width:0}.snapshot-copy strong{font-size:13px}.snapshot-copy span{margin-left:7px;color:var(--muted);font-size:11px}.snapshot-tags{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:6px}.snapshot-tag{padding:4px 7px;border:1px solid var(--line);border-radius:7px;background:#fff;color:#475467;font:10px/1.2 ui-monospace,SFMono-Regular,Menlo,monospace}
+
+    .metric-grid{display:grid;grid-template-columns:1.3fr 1.3fr repeat(4,minmax(120px,1fr));gap:10px;margin-bottom:12px}.metric-card{min-width:0;padding:12px;border:1px solid var(--line);border-radius:var(--radius);background:var(--panel);box-shadow:var(--shadow-sm)}.metric-card.feature{padding:12px 13px}.metric-top{display:flex;align-items:center;justify-content:space-between;gap:8px;color:var(--muted);font-size:10px;font-weight:750}.metric-top .icon{width:15px;height:15px}.metric-value{margin-top:5px;font-size:21px;font-weight:800;line-height:1.05;letter-spacing:-.02em}.metric-value small{color:var(--muted);font-size:11px;font-weight:650;letter-spacing:0}.metric-sub{margin-top:5px;color:var(--muted);font-size:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.progress-track{height:6px;margin-top:9px;overflow:hidden;border-radius:999px;background:#e9eef5}.progress-track span{display:block;height:100%;border-radius:inherit;background:var(--brand)}.metric-card.success .metric-value{color:var(--success)}.metric-card.warning .metric-value{color:var(--warning)}.metric-card.danger .metric-value{color:var(--danger)}
+
+    .attention-strip{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:11px;margin-bottom:12px;padding:10px 12px;border:1px solid #fedf89;border-radius:var(--radius);background:var(--warning-soft)}.attention-icon{width:30px;height:30px;display:grid;place-items:center;border-radius:9px;background:#fef0c7;color:var(--warning)}.attention-copy{min-width:0}.attention-copy strong{display:block;color:#7a2e0e;font-size:12px}.attention-copy span{display:block;margin-top:1px;color:#854a0e;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.attention-action{border:0;background:transparent;color:#854a0e;font-size:11px;font-weight:800}
+
+    .management-panel{margin-bottom:12px;padding:13px;border:1px solid var(--line);border-radius:14px;background:var(--panel);box-shadow:var(--shadow-sm);scroll-margin-top:76px}.management-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:10px}.management-heading h2{margin:0;font-size:14px}.management-heading p{margin:2px 0 0;color:var(--muted);font-size:10px}.management-legend{display:flex;align-items:center;gap:9px;color:var(--muted);font-size:9px;white-space:nowrap}.management-legend span{display:inline-flex;align-items:center;gap:4px}.legend-dot{width:6px;height:6px;border-radius:50%;background:#12b76a}.legend-dot.watch{background:#f79009}.legend-dot.pending{background:#98a2b3}.element-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}.element-card{position:relative;min-width:0;min-height:96px;padding:10px;border:1px solid #e1e6ee;border-radius:10px;background:#fbfcfe;color:var(--ink);text-align:left;transition:border-color .16s ease,background .16s ease,transform .16s ease}.element-card:hover{transform:translateY(-1px);border-color:#98b8f8;background:#fff}.element-card::after{content:"";position:absolute;top:10px;right:10px;width:7px;height:7px;border-radius:50%;background:#12b76a;box-shadow:0 0 0 3px #d1fadf}.element-card.watch::after{background:#f79009;box-shadow:0 0 0 3px #fef0c7}.element-card.pending::after{background:#98a2b3;box-shadow:0 0 0 3px #eaecf0}.element-index{display:block;color:#98a2b3;font:8px/1.2 ui-monospace,SFMono-Regular,Menlo,monospace;font-weight:850;letter-spacing:.08em}.element-name{display:block;margin-top:6px;padding-right:14px;font-size:11px;font-weight:800}.element-summary{display:block;margin-top:5px;color:#667085;font-size:9px;line-height:1.35;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.element-state{display:inline-flex;margin-top:7px;padding:2px 5px;border-radius:5px;background:var(--success-soft);color:#05603a;font-size:8px;font-weight:800}.element-card.watch .element-state{background:var(--warning-soft);color:#854a0e}.element-card.pending .element-state{background:#f2f4f7;color:#475467}
+
+    .content-card{border:1px solid var(--line);border-radius:14px;background:var(--panel);box-shadow:var(--shadow-sm);overflow:hidden}
+    .view-header{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:0 14px;border-bottom:1px solid var(--line)}
+    .view-tabs{display:flex;align-items:center;gap:2px;overflow-x:auto}.view-tab{position:relative;min-height:48px;padding:0 11px;border:0;background:transparent;color:var(--muted);font-size:12px;font-weight:750;white-space:nowrap}.view-tab:hover{color:var(--ink)}.view-tab.active{color:#1849a9}.view-tab.active::after{content:"";position:absolute;left:10px;right:10px;bottom:-1px;height:2px;border-radius:2px 2px 0 0;background:var(--brand)}
+    .view-meta{display:flex;align-items:center;gap:7px;color:var(--muted);font-size:10px;white-space:nowrap}.readonly-pill{padding:3px 7px;border-radius:999px;background:#f2f4f7;color:#475467;font-weight:750}
+    .board-toolbar{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 14px;border-bottom:1px solid var(--line);background:#fbfcfe}.filter-group{display:flex;align-items:center;gap:7px;min-width:0}.search-field{position:relative;min-width:260px}.search-field .icon{position:absolute;top:9px;left:9px;width:16px;height:16px;color:#667085}.search-field input{width:100%;height:34px;padding:6px 10px 6px 32px;border:1px solid var(--line-strong);border-radius:8px;background:#fff;color:var(--ink)}.search-field input::placeholder{color:#98a2b3}.filter-select{height:34px;padding:5px 28px 5px 9px;border:1px solid var(--line-strong);border-radius:8px;background:#fff;color:#475467;font-size:11px}.toolbar-summary{color:var(--muted);font-size:10px;white-space:nowrap}
+    .mobile-lanes{display:none;padding:9px 10px;border-bottom:1px solid var(--line);overflow-x:auto;background:#fbfcfe}.mobile-lane{flex:0 0 auto;padding:6px 10px;border:1px solid var(--line);border-radius:999px;background:#fff;color:#475467;font-size:11px;font-weight:750}.mobile-lane.active{border-color:#84adff;background:var(--brand-soft);color:#1849a9}
+
+    .board-scroll{overflow-x:auto;padding:12px;background:#f7f8fa;scrollbar-color:#c4ccd8 transparent}.kanban-board{display:grid;grid-template-columns:repeat(5,minmax(216px,1fr));gap:10px;min-width:1100px;align-items:start}.kanban-column{min-width:0;padding:9px;border:1px solid #e1e6ee;border-radius:11px;background:#eef1f5}.column-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:7px;margin-bottom:8px;padding:1px 2px}.column-title{display:flex;align-items:center;gap:7px}.column-dot{width:8px;height:8px;border-radius:50%;background:#98a2b3}.column-dot.ready{background:#528bff}.column-dot.active{background:#12b76a}.column-dot.review{background:#f79009}.column-dot.done{background:#7f56d9}.column-title strong{font-size:11px}.column-title span{min-width:20px;padding:1px 6px;border-radius:999px;background:#dfe4eb;color:#475467;font-size:9px;text-align:center}.wip{color:#7a2e0e;font-size:9px;font-weight:750}
+    .card-stack{display:grid;gap:8px}.work-card{width:100%;display:block;padding:10px;border:1px solid #d6dce5;border-radius:10px;background:#fff;color:var(--ink);text-align:left;box-shadow:var(--shadow-sm);transition:transform .16s ease,border-color .16s ease,box-shadow .16s ease}.work-card:hover{transform:translateY(-1px);border-color:#98b8f8;box-shadow:0 6px 16px rgba(16,24,40,.08)}.work-card[hidden]{display:none}.card-top{display:flex;align-items:center;justify-content:space-between;gap:8px}.card-key{color:#667085;font:9px/1.2 ui-monospace,SFMono-Regular,Menlo,monospace;font-weight:800}.kind{padding:2px 5px;border-radius:5px;background:#eef4ff;color:#3538cd;font-size:8px;font-weight:850;letter-spacing:.04em}.kind.bug{background:var(--danger-soft);color:var(--danger)}.kind.design{background:var(--violet-soft);color:var(--violet)}.card-title{display:block;margin-top:7px;font-size:11px;font-weight:780;line-height:1.4}.card-labels{display:flex;flex-wrap:wrap;gap:4px;margin-top:8px}.label{padding:2px 5px;border-radius:5px;background:#f2f4f7;color:#475467;font-size:8px;font-weight:700}.label.blocked{background:var(--danger-soft);color:var(--danger)}.label.gate{background:var(--warning-soft);color:#854a0e}.label.verified{background:var(--success-soft);color:#05603a}.card-footer{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:9px;padding-top:8px;border-top:1px solid #eef1f5;color:#667085;font-size:9px}.assignee{display:flex;align-items:center;gap:5px}.assignee-avatar{width:20px;height:20px;display:grid;place-items:center;border-radius:50%;background:#e4e7ec;color:#344054;font-size:7px;font-weight:850}.card-health{display:flex;align-items:center;gap:4px}.health-dot{width:6px;height:6px;border-radius:50%;background:#12b76a}.health-dot.warning{background:#f79009}.health-dot.danger{background:#f04438}.load-more{width:100%;margin-top:8px;padding:7px;border:1px dashed #b8c0cc;border-radius:8px;background:transparent;color:#667085;font-size:9px;font-weight:750}.load-more:hover{border-color:#84adff;background:#f5f8ff;color:#1849a9}.empty-state{display:none;padding:16px 8px;color:#667085;font-size:10px;text-align:center}.kanban-column.is-empty .empty-state{display:block}
+    .board-footer{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 14px;border-top:1px solid var(--line);color:#667085;font-size:9px}.binding{min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.binding code{color:#344054}.keyboard-help{white-space:nowrap}
+
+    .drawer-backdrop{position:fixed;z-index:80;inset:0;background:rgba(15,23,42,.28);opacity:0;pointer-events:none;transition:opacity .18s ease}.drawer-backdrop.open{opacity:1;pointer-events:auto}.detail-drawer{position:fixed;z-index:90;top:0;right:0;width:min(520px,92vw);height:100vh;display:flex;flex-direction:column;background:#fff;box-shadow:var(--shadow-lg);transform:translateX(104%);transition:transform .22s ease}.detail-drawer.open{transform:none}.drawer-header{padding:16px 18px 13px;border-bottom:1px solid var(--line)}.drawer-heading-row{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}.drawer-eyebrow{margin:0;color:#667085;font:10px/1.3 ui-monospace,SFMono-Regular,Menlo,monospace;font-weight:800}.drawer-header h2{margin:5px 0 0;font-size:18px;line-height:1.3}.drawer-close{width:34px;height:34px;display:grid;place-items:center;flex:0 0 auto;border:1px solid var(--line);border-radius:9px;background:#fff;color:#475467}.drawer-close:hover{background:#f8fafc}.drawer-summary{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}.drawer-tabs{display:flex;padding:0 12px;border-bottom:1px solid var(--line);overflow-x:auto}.drawer-tab{position:relative;min-height:44px;padding:0 9px;border:0;background:transparent;color:#667085;font-size:11px;font-weight:750;white-space:nowrap}.drawer-tab[aria-selected="true"]{color:#1849a9}.drawer-tab[aria-selected="true"]::after{content:"";position:absolute;right:8px;bottom:-1px;left:8px;height:2px;background:var(--brand)}.drawer-body{flex:1;overflow:auto;padding:16px 18px 28px}.drawer-panel[hidden]{display:none}.detail-section{margin-bottom:18px}.detail-section h3{margin:0 0 8px;font-size:12px}.detail-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.detail-field{padding:9px;border:1px solid #e4e7ec;border-radius:9px;background:#fbfcfe}.detail-field span{display:block;color:#667085;font-size:9px}.detail-field strong{display:block;margin-top:3px;font-size:11px;overflow-wrap:anywhere}.detail-note{padding:11px;border-left:3px solid #84adff;border-radius:8px;background:#f5f8ff;color:#344054;font-size:11px}.detail-list{display:grid;gap:7px;margin:0;padding:0;list-style:none}.detail-list li{position:relative;padding:9px 10px 9px 28px;border:1px solid #e4e7ec;border-radius:9px;background:#fff;font-size:10px}.detail-list li::before{content:"";position:absolute;top:12px;left:11px;width:8px;height:8px;border:2px solid #528bff;border-radius:50%}.evidence-row{display:flex;align-items:center;justify-content:space-between;gap:10px}.evidence-status{color:var(--success);font-size:9px;font-weight:800}.timeline{position:relative;display:grid;gap:12px;padding-left:18px}.timeline::before{content:"";position:absolute;top:4px;bottom:4px;left:5px;width:1px;background:#d0d5dd}.timeline-item{position:relative}.timeline-item::before{content:"";position:absolute;top:4px;left:-17px;width:8px;height:8px;border:2px solid #fff;border-radius:50%;background:#528bff;box-shadow:0 0 0 1px #84adff}.timeline-item strong{display:block;font-size:10px}.timeline-item span{display:block;margin-top:2px;color:#667085;font-size:9px}
+    .drawer-footer{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:11px 18px;border-top:1px solid var(--line);background:#fbfcfe;color:#667085;font-size:9px}.drawer-footer button{padding:7px 10px;border:1px solid var(--line-strong);border-radius:8px;background:#fff;color:#344054;font-size:10px;font-weight:750}
+    .toast{position:fixed;z-index:120;right:20px;bottom:20px;max-width:min(360px,calc(100vw - 40px));padding:10px 12px;border:1px solid #344054;border-radius:10px;background:#101828;color:#fff;box-shadow:var(--shadow-lg);font-size:11px;opacity:0;transform:translateY(12px);pointer-events:none;transition:opacity .16s ease,transform .16s ease}.toast.show{opacity:1;transform:none}
+
+    @media(max-width:1180px){.metric-grid{grid-template-columns:repeat(4,minmax(0,1fr))}.metric-card.feature{grid-column:span 2}.element-grid{grid-template-columns:repeat(5,minmax(150px,1fr));overflow-x:auto;padding-bottom:2px}}
+    @media(max-width:900px){.app-shell{grid-template-columns:minmax(0,1fr)}.sidebar{position:relative;z-index:35;height:auto;display:block;padding:10px 12px}.brand{display:inline-flex;padding:0 10px 8px 0}.brand-mark{width:30px;height:30px}.brand-copy span,.side-label,.side-project,.sidebar-footer{display:none}.side-nav{display:flex;gap:3px;overflow-x:auto}.side-link{flex:0 0 auto;width:auto;padding:7px 9px}.side-link .count{display:none}.topbar{top:0;padding:9px 14px}main{padding:14px}.metric-grid{grid-template-columns:repeat(3,minmax(0,1fr))}.metric-card.feature{grid-column:auto}.service-state{display:none}}
+    @media(max-width:720px){.topbar{align-items:flex-start}.top-actions{gap:6px}.primary-button span{display:none}.primary-button{width:36px;padding:0}.prototype-notice{align-items:flex-start}.snapshot-line{align-items:flex-start;flex-direction:column}.snapshot-tags{justify-content:flex-start}.metric-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.attention-strip{grid-template-columns:auto minmax(0,1fr)}.attention-action{display:none}.management-heading{display:block}.management-legend{margin-top:7px}.element-grid{grid-template-columns:repeat(2,minmax(0,1fr));overflow:visible}.element-card{min-height:92px}.view-header{padding-right:8px}.view-meta{display:none}.board-toolbar{align-items:stretch;flex-direction:column}.filter-group{display:grid;grid-template-columns:1fr 1fr}.search-field{grid-column:1/-1;min-width:0}.toolbar-summary{display:none}.mobile-lanes{display:flex;gap:6px}.board-scroll{padding:10px;overflow:visible}.kanban-board{display:block;min-width:0}.kanban-column{display:none}.kanban-column.mobile-active{display:block}.board-footer{display:block}.keyboard-help{display:none}.detail-drawer{top:auto;bottom:0;width:100%;height:min(82vh,720px);border-radius:18px 18px 0 0;transform:translateY(104%)}.detail-drawer.open{transform:none}.drawer-header{padding-top:20px}.detail-grid{grid-template-columns:1fr}.toast{right:12px;bottom:12px;left:12px;max-width:none}}
+    @media(max-width:420px){main{padding:10px}.project-title-row h1{font-size:17px}.prototype-chip{display:none}.icon-button{display:none}.metric-grid{gap:7px}.metric-card{padding:10px}.metric-value{font-size:18px}.prototype-notice button{display:none}.view-tab{padding:0 9px}.filter-group{grid-template-columns:1fr}.search-field{grid-column:auto}.board-footer{padding:8px 10px}}
+    @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+  </style>
+</head>
+<body>
+  <a class="skip-link" href="#main-content">跳到项目看板</a>
+  <svg class="sr-only" aria-hidden="true">
+    <symbol id="i-board" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M9 4v16M15 4v16"/></symbol>
+    <symbol id="i-chart" viewBox="0 0 24 24"><path d="M4 19V9M10 19V5M16 19v-7M22 19H2"/></symbol>
+    <symbol id="i-roadmap" viewBox="0 0 24 24"><path d="M5 4v16M19 4v16M5 7h9l-2 3 2 3H5"/></symbol>
+    <symbol id="i-list" viewBox="0 0 24 24"><path d="M9 6h11M9 12h11M9 18h11M4 6h.01M4 12h.01M4 18h.01"/></symbol>
+    <symbol id="i-alert" viewBox="0 0 24 24"><path d="M12 3 2.8 19h18.4L12 3Z"/><path d="M12 9v4M12 17h.01"/></symbol>
+    <symbol id="i-activity" viewBox="0 0 24 24"><path d="M3 12h4l2-6 4 12 2-6h6"/></symbol>
+    <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></symbol>
+    <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M20 6v5h-5M4 18v-5h5"/><path d="M18 9a7 7 0 0 0-12-2l-2 2M6 15a7 7 0 0 0 12 2l2-2"/></symbol>
+    <symbol id="i-filter" viewBox="0 0 24 24"><path d="M4 5h16M7 12h10M10 19h4"/></symbol>
+    <symbol id="i-close" viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"/></symbol>
+    <symbol id="i-gate" viewBox="0 0 24 24"><path d="M5 20V5h14v15M9 20V9h6v11M3 20h18"/></symbol>
+  </svg>
+
+  <div class="app-shell">
+    <aside class="sidebar" aria-label="项目导航">
+      <div class="brand"><div class="brand-mark"><svg class="icon"><use href="#i-gate"/></svg></div><div class="brand-copy"><strong>shanforge</strong><span>Project Control</span></div></div>
+      <p class="side-label">项目视图</p>
+      <nav class="side-nav">
+        <button class="side-link" type="button" data-prototype-notice="总览将复用当前页面顶部的决策指标。"><svg class="icon"><use href="#i-chart"/></svg>总览</button>
+        <button class="side-link active" type="button" aria-current="page"><svg class="icon"><use href="#i-board"/></svg>看板<span class="count">9</span></button>
+        <button class="side-link" type="button" data-scroll-target="management-elements"><svg class="icon"><use href="#i-list"/></svg>管理十要素<span class="count">10</span></button>
+        <button class="side-link" type="button" data-prototype-notice="路线图将在后续模板阶段接入里程碑查询。"><svg class="icon"><use href="#i-roadmap"/></svg>路线图</button>
+        <button class="side-link" type="button" data-prototype-notice="需求视图将按需加载，不进入首屏 HTML。"><svg class="icon"><use href="#i-list"/></svg>需求</button>
+        <button class="side-link" type="button" data-prototype-notice="风险与决策视图将按需加载。"><svg class="icon"><use href="#i-alert"/></svg>风险与决策<span class="count">2</span></button>
+        <button class="side-link" type="button" data-prototype-notice="活动与证据视图将使用游标分页。"><svg class="icon"><use href="#i-activity"/></svg>活动与证据</button>
+      </nav>
+      <p class="side-label">当前项目</p>
+      <div class="side-project"><strong>抽象 Agent 平台</strong><span>产品需求实现 26 / 123</span><div class="mini-track" aria-label="产品需求实现 21.14%"><span></span></div></div>
+      <div class="sidebar-footer"><div class="operator"><div class="avatar">AI</div><div><strong>AI_EXECUTOR</strong><span>只读项目查看器</span></div></div></div>
+    </aside>
+
+    <section class="workspace">
+      <header class="topbar">
+        <div class="project-heading"><div class="breadcrumbs"><span>项目</span><span>/</span><strong>shanforge</strong><span>/</span><span>开发实施</span></div><div class="project-title-row"><h1>项目进度看板</h1><span class="prototype-chip">设计原型</span></div></div>
+        <div class="top-actions"><div class="service-state" title="服务模式仍在讨论"><span class="status-dot"></span><span>数据通道 · 未连接</span></div><button class="icon-button" type="button" data-prototype-notice="筛选面板将在模板实现时接入。" aria-label="打开筛选"><svg class="icon"><use href="#i-filter"/></svg></button><button class="primary-button" id="refresh-button" type="button"><svg class="icon"><use href="#i-refresh"/></svg><span>刷新检查</span></button></div>
+      </header>
+
+      <main id="main-content">
+        <aside class="prototype-notice" id="prototype-notice"><span><strong>界面原型：</strong>当前为示例快照，仅用于确认信息层级、看板和详情交互，不代表实时项目事实。</span><button type="button" id="dismiss-notice">知道了</button></aside>
+
+        <div class="snapshot-line"><div class="snapshot-copy"><strong>开发实施 · 精确候选确认</strong><span>示例截止 2026-07-21 13:10 +08:00</span></div><div class="snapshot-tags"><span class="snapshot-tag">H=128</span><span class="snapshot-tag">snapshot a1b2c3d4e5f6</span><span class="snapshot-tag">verified</span></div></div>
+
+        <section class="metric-grid" aria-label="项目关键指标">
+          <article class="metric-card feature"><div class="metric-top"><span>产品需求实现</span><svg class="icon"><use href="#i-roadmap"/></svg></div><div class="metric-value">26 <small>/ 123</small></div><div class="progress-track" aria-label="产品需求实现 21.14%"><span style="width:21.14%"></span></div><div class="metric-sub">项目整体仍未完成</div></article>
+          <article class="metric-card feature success"><div class="metric-top"><span>当前执行计划</span><svg class="icon"><use href="#i-check"/></svg></div><div class="metric-value">8 <small>/ 8</small></div><div class="progress-track" aria-label="当前执行计划 100%"><span style="width:100%;background:#12b76a"></span></div><div class="metric-sub">实现与验证已完成</div></article>
+          <article class="metric-card warning"><div class="metric-top"><span>待确认 Gate</span></div><div class="metric-value">1</div><div class="metric-sub">精确候选哈希</div></article>
+          <article class="metric-card danger"><div class="metric-top"><span>阻塞 / 逾期</span></div><div class="metric-value">1</div><div class="metric-sub">不影响旁路设计</div></article>
+          <article class="metric-card warning"><div class="metric-top"><span>开放风险</span></div><div class="metric-value">2</div><div class="metric-sub">其中高风险 1 项</div></article>
+          <article class="metric-card success"><div class="metric-top"><span>验证通过</span></div><div class="metric-value">1,277</div><div class="metric-sub">候选验证口径</div></article>
+        </section>
+
+        <aside class="attention-strip" aria-label="需要关注"><div class="attention-icon"><svg class="icon"><use href="#i-alert"/></svg></div><div class="attention-copy"><strong>需要你关注：候选发布仍等待精确哈希确认</strong><span>正式发布、Git、远端和部署仍未授权；这不会阻塞本看板原型设计。</span></div><button class="attention-action" type="button" data-card-open="release-candidate">查看 Gate</button></aside>
+
+        <section class="management-panel" id="management-elements" aria-labelledby="management-elements-title">
+          <header class="management-heading"><div><h2 id="management-elements-title">项目管理十要素</h2><p>吸收 Excel 模板的完整管理闭环；这里只显示健康度和摘要，点击后再查询明细。</p></div><div class="management-legend" aria-label="要素状态图例"><span><i class="legend-dot"></i>健康</span><span><i class="legend-dot watch"></i>需关注</span><span><i class="legend-dot pending"></i>未具备</span></div></header>
+          <div class="element-grid">
+            <button class="element-card" type="button" data-element-id="pm-team"><span class="element-index">01 / 10</span><span class="element-name">项目成员</span><span class="element-summary">7 个项目角色 · RACI 已建立</span><span class="element-state">角色完整</span></button>
+            <button class="element-card" type="button" data-element-id="pm-charter"><span class="element-index">02 / 10</span><span class="element-name">项目策划</span><span class="element-summary">目标、范围、验收与 Gate</span><span class="element-state">已定义</span></button>
+            <button class="element-card watch" type="button" data-element-id="pm-wbs"><span class="element-index">03 / 10</span><span class="element-name">WBS</span><span class="element-summary">当前计划 8/8 · 产品 26/123</span><span class="element-state">项目进行中</span></button>
+            <button class="element-card watch" type="button" data-element-id="pm-schedule"><span class="element-index">04 / 10</span><span class="element-name">进度计划</span><span class="element-summary">下一里程碑：候选哈希确认</span><span class="element-state">等待 Gate</span></button>
+            <button class="element-card watch" type="button" data-element-id="pm-risks"><span class="element-index">05 / 10</span><span class="element-name">风险管理</span><span class="element-summary">开放 2 · 高风险 1</span><span class="element-state">需关注</span></button>
+            <button class="element-card" type="button" data-element-id="pm-communications"><span class="element-index">06 / 10</span><span class="element-name">沟通计划</span><span class="element-summary">4 类干系人 · 关键节点沟通</span><span class="element-state">已覆盖</span></button>
+            <button class="element-card watch" type="button" data-element-id="pm-meetings"><span class="element-index">07 / 10</span><span class="element-name">会议与行动</span><span class="element-summary">最近决议 1 · 待行动 1</span><span class="element-state">1 项待办</span></button>
+            <button class="element-card" type="button" data-element-id="pm-status"><span class="element-index">08 / 10</span><span class="element-name">状态报告</span><span class="element-summary">示例 H=128 · verified</span><span class="element-state">快照有效</span></button>
+            <button class="element-card watch" type="button" data-element-id="pm-changes"><span class="element-index">09 / 10</span><span class="element-name">变更管理</span><span class="element-summary">服务生命周期架构取舍 1 项</span><span class="element-state">讨论中</span></button>
+            <button class="element-card pending" type="button" data-element-id="pm-closure"><span class="element-index">10 / 10</span><span class="element-name">项目总结</span><span class="element-summary">项目整体仍在实施</span><span class="element-state">未具备关闭资格</span></button>
+          </div>
+        </section>
+
+        <section class="content-card" aria-labelledby="board-title">
+          <div class="view-header"><nav class="view-tabs" aria-label="项目视图"><button class="view-tab active" type="button" id="board-title" aria-current="page">看板</button><button class="view-tab" type="button" data-prototype-notice="路线图将在按需数据接口确定后实现。">路线图</button><button class="view-tab" type="button" data-prototype-notice="需求列表不会预塞进首屏 HTML。">需求</button><button class="view-tab" type="button" data-prototype-notice="风险与决策视图将在下一阶段实现。">风险与决策</button><button class="view-tab" type="button" data-prototype-notice="活动与证据使用游标分页。">活动与证据</button></nav><div class="view-meta"><span class="readonly-pill">只读</span><span>按状态分组 · 最近更新优先</span></div></div>
+          <div class="board-toolbar"><div class="filter-group"><label class="search-field"><span class="sr-only">搜索工作项</span><svg class="icon"><use href="#i-search"/></svg><input id="board-search" type="search" placeholder="搜索 ID、标题、责任人（按 / 聚焦）" autocomplete="off"></label><label><span class="sr-only">筛选类型</span><select class="filter-select" id="kind-filter"><option value="all">全部类型</option><option value="requirement">需求</option><option value="task">任务</option><option value="bug">缺陷</option><option value="design">设计</option></select></label><label><span class="sr-only">筛选关注项</span><select class="filter-select" id="attention-filter"><option value="all">全部状态</option><option value="attention">仅需关注</option><option value="healthy">仅健康</option></select></label></div><div class="toolbar-summary"><span id="visible-count">9</span> 个首屏工作项 · 完整列表按需加载</div></div>
+          <div class="mobile-lanes" aria-label="移动端看板列"><button class="mobile-lane active" type="button" data-lane="backlog">待办 2</button><button class="mobile-lane" type="button" data-lane="ready">就绪 1</button><button class="mobile-lane" type="button" data-lane="active">进行中 2</button><button class="mobile-lane" type="button" data-lane="review">待评审/确认 2</button><button class="mobile-lane" type="button" data-lane="done">已完成 2</button></div>
+
+          <div class="board-scroll">
+            <div class="kanban-board" id="kanban-board">
+              <section class="kanban-column mobile-active" data-column="backlog" aria-labelledby="column-backlog"><div class="column-heading"><div class="column-title"><span class="column-dot"></span><strong id="column-backlog">待办</strong><span data-column-count>2</span></div></div><div class="card-stack">
+                <button class="work-card" type="button" data-card-id="req-plugin-market" data-kind="requirement" data-attention="healthy" data-owner="产品"><span class="card-top"><span class="card-key">REQ-093</span><span class="kind">需求</span></span><span class="card-title">插件市场与能力包发现体验</span><span class="card-labels"><span class="label">P2</span><span class="label">待澄清</span></span><span class="card-footer"><span class="assignee"><span class="assignee-avatar">产</span>产品负责人</span><span class="card-health"><span class="health-dot"></span>来源完整</span></span></button>
+                <button class="work-card" type="button" data-card-id="bug-memory-drift" data-kind="bug" data-attention="attention" data-owner="运行时"><span class="card-top"><span class="card-key">BUG-017</span><span class="kind bug">缺陷</span></span><span class="card-title">记忆摘要与正式文档存在漂移风险</span><span class="card-labels"><span class="label">P1</span><span class="label blocked">需根因确认</span></span><span class="card-footer"><span class="assignee"><span class="assignee-avatar">运</span>运行时</span><span class="card-health"><span class="health-dot danger"></span>需关注</span></span></button>
+              </div><div class="empty-state">当前筛选下没有待办项</div><button class="load-more" type="button" data-prototype-notice="完整待办列表将通过游标按需加载。">加载更多待办</button></section>
+
+              <section class="kanban-column" data-column="ready" aria-labelledby="column-ready"><div class="column-heading"><div class="column-title"><span class="column-dot ready"></span><strong id="column-ready">就绪</strong><span data-column-count>1</span></div></div><div class="card-stack">
+                <button class="work-card" type="button" data-card-id="task-status-projection" data-kind="task" data-attention="healthy" data-owner="后端"><span class="card-top"><span class="card-key">TASK-PROJECTION-003</span><span class="kind">任务</span></span><span class="card-title">接入仓库实时项目事实投影</span><span class="card-labels"><span class="label">P1</span><span class="label verified">设计就绪</span></span><span class="card-footer"><span class="assignee"><span class="assignee-avatar">后</span>后端工程</span><span class="card-health"><span class="health-dot"></span>依赖明确</span></span></button>
+              </div><div class="empty-state">当前筛选下没有就绪项</div><button class="load-more" type="button" data-prototype-notice="完整就绪列表将通过游标按需加载。">加载更多就绪项</button></section>
+
+              <section class="kanban-column" data-column="active" aria-labelledby="column-active"><div class="column-heading"><div class="column-title"><span class="column-dot active"></span><strong id="column-active">进行中</strong><span data-column-count>2</span></div><span class="wip">WIP 2 / 3</span></div><div class="card-stack">
+                <button class="work-card" type="button" data-card-id="pm-dashboard-design" data-kind="design" data-attention="healthy" data-owner="设计"><span class="card-top"><span class="card-key">PM-DASHBOARD-003</span><span class="kind design">设计</span></span><span class="card-title">看板优先的项目查看页面原型</span><span class="card-labels"><span class="label">P1</span><span class="label verified">本轮</span></span><span class="card-footer"><span class="assignee"><span class="assignee-avatar">UI</span>体验设计</span><span class="card-health"><span class="health-dot"></span>设计中</span></span></button>
+                <button class="work-card" type="button" data-card-id="task-pm-migration" data-kind="task" data-attention="attention" data-owner="项目治理"><span class="card-top"><span class="card-key">TASK-PM-MIGRATION</span><span class="kind">任务</span></span><span class="card-title">迁移 PM 目录中的人工风险与决策事实</span><span class="card-labels"><span class="label">P2</span><span class="label gate">待映射</span></span><span class="card-footer"><span class="assignee"><span class="assignee-avatar">治</span>项目治理</span><span class="card-health"><span class="health-dot warning"></span>需确认来源</span></span></button>
+              </div><div class="empty-state">当前筛选下没有进行中项</div><button class="load-more" type="button" data-prototype-notice="完整进行中列表将通过游标按需加载。">加载更多进行中项</button></section>
+
+              <section class="kanban-column" data-column="review" aria-labelledby="column-review"><div class="column-heading"><div class="column-title"><span class="column-dot review"></span><strong id="column-review">待评审 / 确认</strong><span data-column-count>2</span></div></div><div class="card-stack">
+                <button class="work-card" type="button" data-card-id="release-candidate" data-kind="task" data-attention="attention" data-owner="用户"><span class="card-top"><span class="card-key">TASK-IMPLEMENT-002-R001</span><span class="kind">候选</span></span><span class="card-title">最终实现候选等待精确哈希确认</span><span class="card-labels"><span class="label">P0</span><span class="label gate">人工 Gate</span></span><span class="card-footer"><span class="assignee"><span class="assignee-avatar">人</span>uroborus</span><span class="card-health"><span class="health-dot warning"></span>等待确认</span></span></button>
+                <button class="work-card" type="button" data-card-id="template-service-decision" data-kind="design" data-attention="attention" data-owner="用户"><span class="card-top"><span class="card-key">PM-DASHBOARD-SERVICE</span><span class="kind design">决策</span></span><span class="card-title">项目查看服务采用常驻还是按需模式</span><span class="card-labels"><span class="label">讨论中</span><span class="label gate">架构取舍</span></span><span class="card-footer"><span class="assignee"><span class="assignee-avatar">人</span>uroborus</span><span class="card-health"><span class="health-dot warning"></span>不阻塞 UI</span></span></button>
+              </div><div class="empty-state">当前筛选下没有待确认项</div><button class="load-more" type="button" data-prototype-notice="完整待评审列表将通过游标按需加载。">加载更多待确认项</button></section>
+
+              <section class="kanban-column" data-column="done" aria-labelledby="column-done"><div class="column-heading"><div class="column-title"><span class="column-dot done"></span><strong id="column-done">已完成</strong><span data-column-count>2</span></div></div><div class="card-stack">
+                <button class="work-card" type="button" data-card-id="r020-design" data-kind="design" data-attention="healthy" data-owner="架构"><span class="card-top"><span class="card-key">R020</span><span class="kind design">设计</span></span><span class="card-title">固定 H 项目控制与状态查询合同</span><span class="card-labels"><span class="label verified">released</span><span class="label">100 / 100</span></span><span class="card-footer"><span class="assignee"><span class="assignee-avatar">架</span>架构治理</span><span class="card-health"><span class="health-dot"></span>证据完整</span></span></button>
+                <button class="work-card" type="button" data-card-id="skill-boundary" data-kind="task" data-attention="healthy" data-owner="Skill"><span class="card-top"><span class="card-key">TASK-SKILL-002</span><span class="kind">任务</span></span><span class="card-title">38 / 38 工作 Skill 状态边界覆盖</span><span class="card-labels"><span class="label verified">approved</span><span class="label">全覆盖</span></span><span class="card-footer"><span class="assignee"><span class="assignee-avatar">SK</span>Skill 维护</span><span class="card-health"><span class="health-dot"></span>验证通过</span></span></button>
+              </div><div class="empty-state">当前筛选下没有已完成项</div><button class="load-more" type="button" data-prototype-notice="历史完成项不会进入首屏，将按需分页。">加载历史完成项</button></section>
+            </div>
+          </div>
+          <footer class="board-footer"><div class="binding">示例绑定 · H=<code>128</code> · snapshot=<code>a1b2c3d4e5f6</code> · auth=<code>ffeeddccbbaa</code> · template=<code>prototype/v1</code></div><div class="keyboard-help"><kbd>/</kbd> 搜索 · <kbd>Enter</kbd> 打开 · <kbd>Esc</kbd> 关闭详情</div></footer>
+        </section>
+      </main>
+    </section>
+  </div>
+
+  <div class="drawer-backdrop" id="drawer-backdrop"></div>
+  <aside class="detail-drawer" id="detail-drawer" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="drawer-title">
+    <header class="drawer-header"><div class="drawer-heading-row"><div><p class="drawer-eyebrow" id="drawer-key">PM-DASHBOARD-003</p><h2 id="drawer-title">看板优先的项目查看页面原型</h2></div><button class="drawer-close" id="drawer-close" type="button" aria-label="关闭详情"><svg class="icon"><use href="#i-close"/></svg></button></div><div class="drawer-summary"><span class="label" id="drawer-kind">设计</span><span class="label" id="drawer-status">进行中</span><span class="label verified">同一快照 H=128</span></div></header>
+    <nav class="drawer-tabs" role="tablist" aria-label="工作项详情"><button class="drawer-tab" type="button" role="tab" aria-selected="true" aria-controls="panel-overview" id="tab-overview" data-panel="overview">概要</button><button class="drawer-tab" type="button" role="tab" aria-selected="false" aria-controls="panel-requirements" id="tab-requirements" data-panel="requirements">需求</button><button class="drawer-tab" type="button" role="tab" aria-selected="false" aria-controls="panel-evidence" id="tab-evidence" data-panel="evidence">证据</button><button class="drawer-tab" type="button" role="tab" aria-selected="false" aria-controls="panel-relations" id="tab-relations" data-panel="relations">关系</button><button class="drawer-tab" type="button" role="tab" aria-selected="false" aria-controls="panel-activity" id="tab-activity" data-panel="activity">活动</button></nav>
+    <div class="drawer-body">
+      <section class="drawer-panel" role="tabpanel" id="panel-overview" aria-labelledby="tab-overview"><div class="detail-section"><h3>当前状态</h3><div class="detail-grid"><div class="detail-field"><span>责任人</span><strong id="detail-owner">体验设计</strong></div><div class="detail-field"><span>优先级</span><strong id="detail-priority">P1</strong></div><div class="detail-field"><span>当前节点</span><strong id="detail-node">页面原型</strong></div><div class="detail-field"><span>下一动作</span><strong id="detail-next">视觉确认</strong></div></div></div><div class="detail-section"><h3>目标</h3><div class="detail-note" id="detail-goal">用快速总览、五列看板和按需详情替代 Excel 十模块长页。</div></div><div class="detail-section"><h3>快照一致性</h3><div class="detail-note">详情请求必须携带页面的 H、snapshot 和授权摘要；发现快照变化时中止并提示刷新。</div></div></section>
+      <section class="drawer-panel" role="tabpanel" id="panel-requirements" aria-labelledby="tab-requirements" hidden><div class="detail-section"><h3 id="detail-check-title">验收标准</h3><ul class="detail-list" id="detail-check-list"><li>首屏只包含决策指标与每列最多五张卡片摘要。</li></ul></div></section>
+      <section class="drawer-panel" role="tabpanel" id="panel-evidence" aria-labelledby="tab-evidence" hidden><div class="detail-section"><h3 id="detail-source-title">验证与证据</h3><ul class="detail-list" id="detail-source-list"><li>设计 Brief 已登记</li></ul></div></section>
+      <section class="drawer-panel" role="tabpanel" id="panel-relations" aria-labelledby="tab-relations" hidden><div class="detail-section"><h3>关联对象</h3><ul class="detail-list" id="detail-relation-list"><li>ProjectStatusService 与生产项目事实投影</li></ul></div></section>
+      <section class="drawer-panel" role="tabpanel" id="panel-activity" aria-labelledby="tab-activity" hidden><div class="detail-section"><h3>最近活动</h3><div class="timeline"><div class="timeline-item"><strong>用户确认先完成页面展示设计</strong><span>当前会话 · 设计范围已授权</span></div><div class="timeline-item"><strong>形成看板与按需详情设计 Brief</strong><span>PM-DASHBOARD-003 · design ready</span></div><div class="timeline-item"><strong>固化 Excel 仅作一次性参考</strong><span>PM-DASHBOARD-002 · approved 99</span></div></div></div></section>
+    </div>
+    <footer class="drawer-footer"><span>示例详情 · 尚未连接实时服务</span><button type="button" id="drawer-source">查看来源绑定</button></footer>
+  </aside>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script>
+    (()=>{
+      "use strict";
+      const drawer=document.querySelector("#detail-drawer");
+      const backdrop=document.querySelector("#drawer-backdrop");
+      const closeButton=document.querySelector("#drawer-close");
+      const search=document.querySelector("#board-search");
+      const kindFilter=document.querySelector("#kind-filter");
+      const attentionFilter=document.querySelector("#attention-filter");
+      const visibleCount=document.querySelector("#visible-count");
+      const toast=document.querySelector("#toast");
+      const cards=[...document.querySelectorAll(".work-card")];
+      let returnFocus=null;
+      let toastTimer=0;
+
+      const details={
+        "pm-dashboard-design":{key:"PM-DASHBOARD-003",title:"看板优先的项目查看页面原型",kind:"设计",status:"进行中",owner:"体验设计",priority:"P1",node:"页面原型",next:"视觉确认",goal:"用快速总览、五列看板和按需详情替代 Excel 十模块长页。"},
+        "release-candidate":{key:"TASK-IMPLEMENT-002-R001",title:"最终实现候选等待精确哈希确认",kind:"候选",status:"待人工确认",owner:"uroborus",priority:"P0",node:"精确哈希 Gate",next:"批准或拒绝候选",goal:"只对已冻结的精确候选哈希做人工决策；不自动扩大到正式发布。"},
+        "template-service-decision":{key:"PM-DASHBOARD-SERVICE",title:"项目查看服务采用常驻还是按需模式",kind:"架构决策",status:"讨论中",owner:"uroborus",priority:"P1",node:"服务生命周期",next:"页面确认后继续讨论",goal:"让 Skill 命令能以最少检查快速打开项目状态，同时控制本地服务生命周期与权限边界。"}
+      };
+      const elementDetails={
+        "pm-team":{element:true,key:"PM-01",title:"项目成员",kind:"管理要素",status:"角色完整",owner:"项目负责人",priority:"健康",node:"RACI 已建立",next:"按需核对责任冲突",goal:"明确成员、项目角色、责任和 RACI 审批边界。",checks:["模板字段：成员 / 角色、项目角色、责任、RACI","核心项目角色均有责任定义","审批者与执行者边界可追溯"],sources:["项目角色配置与 RACI","work item 责任人投影"],relations:["影响任务责任人和人工 Gate","关联沟通计划与审批记录"]},
+        "pm-charter":{element:true,key:"PM-02",title:"项目策划",kind:"管理要素",status:"已定义",owner:"项目负责人",priority:"健康",node:"目标与范围",next:"在变更时重新核对",goal:"覆盖项目背景、目标、验收标准、假设和约束。",checks:["模板字段：项目背景、项目目标、验收标准、假设、约束","目标与非目标已定义","成功标准和关键 Gate 可验证"],sources:["正式项目章程","产品需求与设计基线"],relations:["约束 WBS 和进度计划","变更管理必须回溯本要素"]},
+        "pm-wbs":{element:true,key:"PM-03",title:"WBS",kind:"管理要素",status:"项目进行中",owner:"流程总控",priority:"需关注",node:"8/8 当前计划",next:"继续产品剩余范围",goal:"把项目目标分解为可追踪、可验收的 work item 和交付物。",checks:["模板字段：WBS、Work item、目标、输出、当前状态","当前执行计划 8/8 已完成","任务完成与项目完成分开表达"],sources:["work item ledger","需求追踪矩阵与任务卡"],relations:["驱动看板卡片和里程碑","关联验证、评审和交付证据"]},
+        "pm-schedule":{element:true,key:"PM-04",title:"进度计划",kind:"管理要素",status:"等待 Gate",owner:"项目负责人",priority:"需关注",node:"候选确认",next:"处理精确候选哈希",goal:"展示里程碑、目标、当前状态和下一动作。",checks:["模板字段：里程碑、目标、当前状态、下一动作","下一里程碑和 Gate 已识别","正式发布仍需独立授权"],sources:["生命周期位置快照","候选与发布 manifest"],relations:["关联 WBS 和状态报告","Gate 影响后续正式发布"]},
+        "pm-risks":{element:true,key:"PM-05",title:"风险管理",kind:"管理要素",status:"需关注",owner:"风险责任人",priority:"高风险 1",node:"开放风险 2",next:"核对缓解措施",goal:"持续识别风险等级、影响、责任人、缓解措施和关闭状态。",checks:["模板字段：风险 ID、标题、等级、状态、影响、缓解措施、责任人","开放风险 2 项，其中高风险 1 项","风险不能由无权限字段推断"],sources:["风险事件与 work item ledger","评审 Finding 和验证结果"],relations:["阻塞标记保留真实流程位置","影响变更、进度和人工决策"]},
+        "pm-communications":{element:true,key:"PM-06",title:"沟通计划",kind:"管理要素",status:"已覆盖",owner:"项目协调者",priority:"健康",node:"4 类干系人",next:"关键节点触发沟通",goal:"定义干系人所需信息、频率、方法和责任人。",checks:["模板字段：干系人、所需信息、频率、方法、责任人","项目负责人接收 Gate、风险和下一步","执行者与评审者接收范围、标准和证据"],sources:["角色配置与沟通规则","任务 handoff 与确认包"],relations:["关联成员、会议和状态报告","不把通知状态冒充项目事实"]},
+        "pm-meetings":{element:true,key:"PM-07",title:"会议与行动",kind:"管理要素",status:"1 项待办",owner:"会议主持人",priority:"需关注",node:"最近决议 1",next:"跟踪未关闭行动",goal:"保留会议日期、主题、结论和带责任人的行动项。",checks:["模板字段：日期、主题、结论；行动、责任、状态","决议与讨论分开记录","行动项关闭需要可验证证据"],sources:["会议决议事件","关联 work item 与 evidence"],relations:["决议可触发变更管理","行动项映射到看板任务"]},
+        "pm-status":{element:true,key:"PM-08",title:"状态报告",kind:"管理要素",status:"快照有效",owner:"状态查询服务",priority:"健康",node:"示例 H=128",next:"比较快照指纹",goal:"在同一获授权快照上报告当前状态、完成项、未完成项、风险和下一步。",checks:["模板字段：当前状态、已完成、未完成、风险、下一步","所有首屏事实绑定同一 H","无变化直接复用最后 HTML"],sources:["ProjectStatusService","获授权项目进度快照"],relations:["汇总其他九个管理要素","输出 HTML 但不成为事实源"]},
+        "pm-changes":{element:true,key:"PM-09",title:"变更管理",kind:"管理要素",status:"讨论中",owner:"变更批准人",priority:"需关注",node:"服务生命周期取舍",next:"页面确认后继续讨论",goal:"记录变更原因、影响范围、批准人和实施状态。",checks:["模板字段：变更 ID、时间、标题、状态、原因、影响、批准人","常驻服务仍未形成最终决策","正式变更必须产生可追溯事件"],sources:["用户决策与变更事件","受影响设计和任务 ledger"],relations:["影响服务实现与 Skill 命令","不改变当前页面数据适配边界"]},
+        "pm-closure":{element:true,key:"PM-10",title:"项目总结",kind:"管理要素",status:"未具备关闭资格",owner:"项目负责人",priority:"未具备",node:"项目仍在实施",next:"达到关闭条件后生成",goal:"汇总目标达成、有效做法、待修正项、遗留风险和关闭资格。",checks:["模板字段：当前结论、有效做法、需要修正、后续判断","项目整体仍未完成，正式发布未授权","遗留风险尚未全部关闭"],sources:["最终交付与发布证据","关闭审计和项目复盘"],relations:["依赖其他九个要素闭环","不得把阶段完成冒充项目关闭"]}
+      };
+
+      function showToast(message){
+        toast.textContent=message;
+        toast.classList.add("show");
+        window.clearTimeout(toastTimer);
+        toastTimer=window.setTimeout(()=>toast.classList.remove("show"),2600);
+      }
+
+      function cardDetail(card){
+        const id=card.dataset.cardId;
+        if(details[id]) return details[id];
+        return {
+          key:card.querySelector(".card-key")?.textContent||id,
+          title:card.querySelector(".card-title")?.textContent||"工作项",
+          kind:card.querySelector(".kind")?.textContent||"任务",
+          status:card.closest(".kanban-column")?.querySelector(".column-title strong")?.textContent||"未知",
+          owner:card.dataset.owner||"未分配",
+          priority:card.querySelector(".card-labels .label")?.textContent||"未标记",
+          node:"按需详情",
+          next:"从实时服务查询",
+          goal:"原型只保存卡片摘要；完整目标将在打开详情时从同一快照按需查询。"
+        };
+      }
+
+      function setText(selector,value){
+        const node=document.querySelector(selector);
+        if(node) node.textContent=value;
+      }
+
+      function fillList(selector,items){
+        const list=document.querySelector(selector);
+        if(!list) return;
+        list.replaceChildren(...items.map(value=>{
+          const item=document.createElement("li");
+          item.textContent=value;
+          return item;
+        }));
+      }
+
+      function selectDrawerPanel(panelName){
+        document.querySelectorAll(".drawer-tab").forEach(tab=>tab.setAttribute("aria-selected",String(tab.dataset.panel===panelName)));
+        document.querySelectorAll(".drawer-panel").forEach(panel=>{panel.hidden=panel.id!==`panel-${panelName}`;});
+      }
+
+      function openDrawerItem(item,trigger){
+        returnFocus=trigger;
+        setText("#drawer-key",item.key);
+        setText("#drawer-title",item.title);
+        setText("#drawer-kind",item.kind);
+        setText("#drawer-status",item.status);
+        setText("#detail-owner",item.owner);
+        setText("#detail-priority",item.priority);
+        setText("#detail-node",item.node);
+        setText("#detail-next",item.next);
+        setText("#detail-goal",item.goal);
+        setText("#tab-requirements",item.element?"检查项":"需求");
+        setText("#tab-evidence",item.element?"来源":"证据");
+        setText("#detail-check-title",item.element?"管理检查项":"验收标准");
+        setText("#detail-source-title",item.element?"事实来源":"验证与证据");
+        fillList("#detail-check-list",item.checks||["完整内容将在打开详情时从同一快照按需查询。","页面摘要与详情必须保持同一 H。"]);
+        fillList("#detail-source-list",item.sources||["当前获授权项目快照","关联 work item、review 与 evidence"]);
+        fillList("#detail-relation-list",item.relations||["ProjectStatusService 与生产项目事实投影","原始 Excel 不参与运行时查询"]);
+        selectDrawerPanel("overview");
+        drawer.classList.add("open");
+        backdrop.classList.add("open");
+        drawer.setAttribute("aria-hidden","false");
+        document.body.style.overflow="hidden";
+        closeButton.focus();
+      }
+
+      function openDrawer(card){
+        openDrawerItem(cardDetail(card),card);
+      }
+
+      function closeDrawer(){
+        if(!drawer.classList.contains("open")) return;
+        drawer.classList.remove("open");
+        backdrop.classList.remove("open");
+        drawer.setAttribute("aria-hidden","true");
+        document.body.style.overflow="";
+        if(returnFocus instanceof HTMLElement) returnFocus.focus();
+      }
+
+      function applyFilters(){
+        const query=search.value.trim().toLocaleLowerCase("zh-CN");
+        const kind=kindFilter.value;
+        const attention=attentionFilter.value;
+        let total=0;
+        cards.forEach(card=>{
+          const matchesQuery=!query||card.textContent.toLocaleLowerCase("zh-CN").includes(query);
+          const matchesKind=kind==="all"||card.dataset.kind===kind;
+          const matchesAttention=attention==="all"||card.dataset.attention===attention;
+          card.hidden=!(matchesQuery&&matchesKind&&matchesAttention);
+          if(!card.hidden) total+=1;
+        });
+        document.querySelectorAll(".kanban-column").forEach(column=>{
+          const count=[...column.querySelectorAll(".work-card")].filter(card=>!card.hidden).length;
+          column.classList.toggle("is-empty",count===0);
+          const countNode=column.querySelector("[data-column-count]");
+          if(countNode) countNode.textContent=String(count);
+        });
+        visibleCount.textContent=String(total);
+      }
+
+      cards.forEach(card=>card.addEventListener("click",()=>openDrawer(card)));
+      document.querySelectorAll("[data-element-id]").forEach(button=>button.addEventListener("click",()=>{
+        const item=elementDetails[button.dataset.elementId];
+        if(item) openDrawerItem(item,button);
+      }));
+      document.querySelectorAll("[data-card-open]").forEach(button=>button.addEventListener("click",()=>{
+        const target=document.querySelector(`[data-card-id="${button.dataset.cardOpen}"]`);
+        if(target) openDrawer(target);
+      }));
+      closeButton.addEventListener("click",closeDrawer);
+      backdrop.addEventListener("click",closeDrawer);
+      search.addEventListener("input",applyFilters);
+      kindFilter.addEventListener("change",applyFilters);
+      attentionFilter.addEventListener("change",applyFilters);
+      document.querySelectorAll(".drawer-tab").forEach(tab=>tab.addEventListener("click",()=>selectDrawerPanel(tab.dataset.panel)));
+      document.querySelectorAll("[data-prototype-notice]").forEach(button=>button.addEventListener("click",()=>showToast(button.dataset.prototypeNotice||"原型功能")));
+      document.querySelectorAll("[data-scroll-target]").forEach(button=>button.addEventListener("click",()=>{
+        document.querySelector(`#${button.dataset.scrollTarget}`)?.scrollIntoView({behavior:"smooth",block:"start"});
+      }));
+      document.querySelector("#refresh-button").addEventListener("click",()=>showToast("设计原型未连接实时服务；生产版会先比较快照指纹。"));
+      document.querySelector("#drawer-source").addEventListener("click",()=>showToast("H=128 · snapshot=a1b2c3d4e5f6 · prototype/v1"));
+      document.querySelector("#dismiss-notice").addEventListener("click",()=>document.querySelector("#prototype-notice").remove());
+      document.querySelectorAll(".mobile-lane").forEach(button=>button.addEventListener("click",()=>{
+        document.querySelectorAll(".mobile-lane").forEach(item=>item.classList.toggle("active",item===button));
+        document.querySelectorAll(".kanban-column").forEach(column=>column.classList.toggle("mobile-active",column.dataset.column===button.dataset.lane));
+      }));
+
+      document.addEventListener("keydown",event=>{
+        if(event.key==="/"&&!drawer.classList.contains("open")&&document.activeElement!==search){event.preventDefault();search.focus();}
+        if(event.key==="Escape") closeDrawer();
+        if(event.key==="Tab"&&drawer.classList.contains("open")){
+          const focusable=[...drawer.querySelectorAll("button:not([disabled]),[href],input,select,[tabindex]:not([tabindex='-1'])")].filter(node=>!node.hidden);
+          if(!focusable.length) return;
+          const first=focusable[0];
+          const last=focusable[focusable.length-1];
+          if(event.shiftKey&&document.activeElement===first){event.preventDefault();last.focus();}
+          else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first.focus();}
+        }
+      });
+    })();
+  </script>
+</body>
+</html>

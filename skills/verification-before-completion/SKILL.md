@@ -29,6 +29,7 @@ description: 准备声明完成、修复、通过、可提交、可开 PR 或进
 - 需要验证的声明。
 - 相关 plan、task brief、review、diff 或 bug report。
 - 可证明该声明的命令、检查清单或人工验收项。
+- 当前 `project_position`、声明的完成层级和授权范围内剩余工作。
 
 ## 输出
 
@@ -59,7 +60,36 @@ description: 准备声明完成、修复、通过、可提交、可开 PR 或进
 7. 对照 [completion-claim-checklist.md](references/completion-claim-checklist.md) 判断能否声明成功。
 8. 对 Red-Green 场景按 [red-green-verification-template.md](references/red-green-verification-template.md) 记录。
 9. 按 [completion-evidence-template.md](references/completion-evidence-template.md) 写 evidence。
-10. 更新 ledger，输出 `status` 与 `needs`。
+10. 判断完成层级，明确当前声明只覆盖 task、stage 还是 project，并列出 `scope_remaining`。
+11. 更新 ledger，输出 `status`、`project_position`、`completion_level`、`stop_reason` 与 `needs`。
+
+## 项目级测试治理
+
+验证计划必须按变更影响选择测试层级，不能只列当前最容易运行的测试：
+
+| 层级 | 适用场景 | 稳定编号 |
+|---|---|---|
+| 单元 / 契约 | 局部规则、数据结构、接口契约 | `TEST-UNIT-*` / `TEST-CONTRACT-*` |
+| 整体黑盒 | 用户流程、CLI 或跨层闭环 | `TEST-BB-*` |
+| UI | 页面结构、交互、可访问性和响应式 | `TEST-UI-*` |
+| API | schema、状态码、鉴权和兼容性 | `TEST-API-*` |
+| 发布回归 | 影响正式交付、公共契约或发布门 | `TEST-REL-*` |
+
+- 每个正式测试必须建立 `需求 -> 任务 -> 测试 -> 证据` 追踪，使用稳定 `TEST-*` ID；一次运行日志只作为 evidence，不产生新的测试定义。
+- 改动不涉及某一层级时写 `N/A` 并说明不适用原因；不得省略层级后把“未运行”误报成“通过”。
+- 整体黑盒、UI、API 或发布回归需要启动进程时，evidence 必须记录启动命令、端口、健康检查和关闭方式。
+- 静态 HTML、进程内 API 或纯 schema 检查没有独立服务时，对端口和关闭方式写 `N/A`，同时写明静态文件路径或进程内测试入口。
+- 环境字段缺失时只能输出 `needs: verification_plan`，不能开始声称项目级验证完成。
+
+## 完成层级
+
+- `completion_level: task | stage | project` 必须与实际证据范围一致。
+- 任务完成不等于项目完成。任务验证通过时，还要说明所属阶段和项目是否仍有剩余工作。
+- 阶段完成必须有该阶段全部任务、review、verification 和 Gate 状态证据。
+- 项目完成必须证明所有项目步骤和正式交付要求均已满足，不能从单个 task 的 `passed` 推导。
+- `scope_remaining` 列出当前授权范围内尚未完成的动作；若为空，写 `none`。
+- `project_position` 写项目第几步、总步数、阶段和当前任务。
+- `stop_reason` 只能是 `none`、真实 blocker 或真实人工 Gate，不能把普通 review/verification checkpoint 写成停止原因。
 
 ## 通过标准
 
@@ -99,6 +129,10 @@ description: 准备声明完成、修复、通过、可提交、可开 PR 或进
 - work_item: <ID>
 - skill: verification-before-completion
 - status: passed | partial | failed | blocked
+- project_position: <step / total / stage / task>
+- completion_level: task | stage | project
+- stop_reason: <none | blocker | human_gate>
+- scope_remaining: <remaining work | none>
 - outputs:
   - <evidence path>
 - evidence:

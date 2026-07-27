@@ -50,13 +50,23 @@ description: 项目状态查询、任务延续、会话恢复、上下文压缩�
 - 具体开发动作仍由 `brainstorming`、`writing-plans`、`executing-plans`、`tdd-workflow`、`requesting-code-review` 等 skill 执行。
 - 实现者不能自批完成；完成状态必须依赖验证、评审和 memory sync 证据。
 
+## 条件读取链
+
+- 读取目标是恢复当前任务，不是加载固定文件清单；每一级够用即停。
+- 当前对话中的新鲜会话卡足够时，读取 memory 文件数必须为 0。
+- 当前对话不足时只读 `.factory/memory/agent-session.md` 的当前卡；若它新鲜且匹配当前 work item，不再读取其他 memory。
+- 会话卡缺失、过期或不匹配时，每次扩展读取前先写明事实缺口，一次只读取一个最小片段，并在补足后立即停止。
+- 不能只读 `.factory/memory/current-state.md` 就判断权威状态；任务 Gate 必须回到当前 TaskCard 和 work item ledger。
+- 不得固定读取 `agent-session.md`、`runtime-brief.md`、`current-state.md` 三件套；`runtime-brief.md`、`current-state.md`、summary、`doc-map.md` 都只能由明确缺口触发。
+- 读取 receipt 必须列出已读文件、每次扩展原因和明确未读文件，防止压缩记忆再次扩张。
+
 ## 默认流程
 
 1. 确认调用方已把请求判定为项目状态查询、任务延续、上下文恢复或项目化流程；否则按“排除与进入条件”退出。
 2. 先看当前对话是否已有可用会话卡、当前阶段、work item 和禁止动作。
 3. 若已有同一 work item 的新鲜会话卡，复用它；不要重复读取源 summary。
 4. 若缺少会话卡，读取 `.factory/memory/agent-session.md`；先读取当前状态头部，再把后续带日期条目视为历史。只在会话卡缺失、过期或与当前任务不匹配时继续读取。
-5. 仍缺关键事实时，按最小集合读取 `.factory/memory/runtime-brief.md` 和 `.factory/memory/current-state.md`。
+5. 仍缺关键事实时，从 `.factory/memory/runtime-brief.md` 或 `.factory/memory/current-state.md` 二选一，只读取能补足当前缺口的最小片段；够用即停。
 6. 只有需要定位正式事实源时，才读取 `.factory/memory/doc-map.md`。
 7. 只有当前任务需要角色协作事实时，才读取 `.factory/memory/role-charter.project.md`。
 8. 只有需要项目元数据时，才读取 `.factory/project.json`。
@@ -65,6 +75,14 @@ description: 项目状态查询、任务延续、会话恢复、上下文压缩�
 11. 读取 work item ledger；以最新有效事件核对当前 Gate，`status=approved|done|passed` 且 `idempotency_key` 相同的动作不得重复执行。
 12. 输出压缩会话卡：项目整体进度、当前任务、已完成、正在执行、停止原因、唯一下一动作、已读上下文、明确排除项和禁止动作。
 13. 需要落盘时，按 references 模板更新会话卡、ledger 和 `.factory/memory/`。
+
+## 当前态生命周期
+
+- `current-state.md` 只保留活跃任务、真实阻塞项、最近事实、唯一下一动作和历史回源入口，不保存完整任务流水。
+- 已关闭任务在下一次 memory sync 从 `current-state.md` 降级到 `tasks.summary.md` 或其 work item ledger；最近事实最多保留 5 条。
+- `current-state.md` 不超过 16 KiB 和 80 行；超过任一阈值必须在本次 memory sync 压缩后再交接。
+- 降级只改变恢复投影，不改变审计事实；ledger、evidence、review 和 report 永不因降级删除。
+- summary 只保存可定位摘要；需要细节时先查索引，再定向读取 ledger 或正式来源。
 
 ## 当前态恢复不变量
 

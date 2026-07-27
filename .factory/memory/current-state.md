@@ -29,6 +29,8 @@
 
 ## 历史回源
 
+- 通用任务流水：`.factory/workitems/<WORKITEM-ID>/ledger.jsonl`
+- 非活跃任务摘要：`.factory/memory/tasks.summary.md`
 - WorkItem：`.factory/workitems/ENTERPRISE-AI-DELIVERY-001/ledger.jsonl`
 - T03 契约：`.factory/workitems/ENTERPRISE-AI-DELIVERY-001/reports/EAD-TASK-003-raci-and-gate-contract.md`
 - T03 Review 输入：`.factory/workitems/ENTERPRISE-AI-DELIVERY-001/reviews/EAD-TASK-003-review-input.md`

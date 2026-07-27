@@ -4,7 +4,7 @@
 
 - 工作项：`FLOW-CONTRACT-001`
 - 任务：`FLOW-TASK-013`
-- 状态：`draft`
+- 状态：`completed_independently_approved`
 - 上游计划：`.factory/workitems/FLOW-CONTRACT-001/plan.md`
 - 流水账：`.factory/workitems/FLOW-CONTRACT-001/ledger.jsonl`
 
@@ -14,8 +14,9 @@
 
 ## 输入
 
-- `docs/04-project-development/03-requirements/process-workflow-contract-requirements.md`
-- `docs/04-project-development/05-development-process/process-workflow-contract-implementation-plan.md`
+- `docs/04-product/prd.md`
+- `docs/05-design/workflow-execution-design.md`
+- `docs/06-delivery/test-plan.md`
 - `skills/verification-before-completion/SKILL.md`
 - `skills/webapp-testing/SKILL.md`
 - `skills/api-design/SKILL.md`
@@ -25,8 +26,9 @@
 - `skills/verification-before-completion/SKILL.md`
 - `skills/webapp-testing/SKILL.md`
 - `skills/api-design/SKILL.md`
+- `skills/document-templates/SKILL.md`
 - `skills/document-templates/references/test-environment-template.md`
-- `docs/04-project-development/06-testing-verification/test-environment.md`
+- `docs/06-delivery/test-plan.md`
 - 相关测试。
 
 ## 禁止修改
@@ -37,13 +39,13 @@
 ## 验证命令
 
 ```bash
-uv run pytest tests/test_project_management_control_plane.py
+.venv/bin/python -m pytest -q tests/test_project_test_governance.py
 ```
 
 期望输出：
 
 ```text
-通过；新增测试环境、端口记录和 TEST-* 挂载规则断言后同步执行。
+9 passed；同步执行相邻 Skill 与项目管理测试。
 ```
 
 ## 完成口径

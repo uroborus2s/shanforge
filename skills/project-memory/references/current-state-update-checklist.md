@@ -25,6 +25,22 @@
 - 必要时同步 `change-summary.md`：面向后续会话的变更摘要。
 - 必要时同步 `doc-map.md`：新增正式文档或 summary 映射。
 
+## 非活跃任务降级
+
+- 已关闭任务在下一次 memory sync 从 `current-state.md` 降级到 `tasks.summary.md` 或对应 work item ledger。
+- `current-state.md` 只保留活跃任务、真实阻塞项、最近事实、唯一下一动作和历史回源入口。
+- 历史回源固定保留 `.factory/workitems/<WORKITEM-ID>/ledger.jsonl` 和 `.factory/memory/tasks.summary.md`；任务专属链接只能追加，不能替代。
+- 最近事实最多保留 5 条。
+- `current-state.md` 不超过 16 KiB 和 80 行；超过任一阈值必须先压缩。
+- ledger、evidence、review 和 report 永不因降级删除；禁止用压缩当前态代替执行审计。
+
+## 条件读取链自查
+
+- 当前对话中的新鲜会话卡足够时，读取 memory 文件数必须为 0。
+- 不能只读 `.factory/memory/current-state.md` 就判断权威任务状态。
+- 不得固定读取 `agent-session.md`、`runtime-brief.md`、`current-state.md` 三件套。
+- 每次扩展读取前先写明事实缺口，一次只读取一个最小片段，够用即停。
+
 ## 禁止
 
 - 不要把计划中未执行的动作写成已完成。

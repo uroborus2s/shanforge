@@ -69,6 +69,7 @@ description: "创建、审查、整理和升级软件项目正式文档体系。
 - 稳定 ID、阶段关口、旧目录映射和迁移流程：读 [traceability and gates](references/traceability-and-gates.md)。
 - 创建正式文档：读 [formal document template](references/formal-document-template.md)。
 - 已批准需求转轻量技术设计：读 [technical design template](references/technical-design-template.md)。
+- 需要定义测试启动、端口、健康检查、关闭和追踪关系：读 [test environment template](references/test-environment-template.md)。
 
 ## 组织规则
 

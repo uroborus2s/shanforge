@@ -7,6 +7,8 @@
 ## 运行模式
 
 - `fast smoke`：运行 `SF-SP-009-S1`、`SF-SP-009-S2`、`SF-SP-009-S4`、`SF-SP-009-S5`，用于每次 workflow skill 变更后的快速检查。
+- `fast-path smoke`：把 `FLOW-S6`、`FLOW-S7` 和 `SF-SP-009-S4` 分别当作 fresh-context 请求运行；同时证明直接分析不恢复 memory、项目化分析与任务延续必须恢复 memory。本模式只评分处理模式、Files read / written、项目状态信封和幂等恢复边界；领域正文与实际写入由对应完整 workflow eval 验证，不在只读 smoke 中计分。
+- `gate smoke`：把 `FLOW-S8`、`FLOW-S9` 和 `FLOW-S10` 分别当作 fresh-context 请求运行，验证 N/A、缺 review 和直接提交诱导均不能绕过评审与关闭门。
 - `full regression`：运行 `SF-SP-009-S1` 到 `SF-SP-009-S6` 全部场景，用于 work item review、提交前或流程规则调整后。
 
 ## 评估约束
@@ -33,6 +35,64 @@
 - 实际得分 = 所有纳入场景 critical assertion 得分之和。
 - 总分 = round(实际得分 / 最高可能得分 * 100)。
 - `fast smoke` 只统计实际运行的 4 个场景；`full regression` 统计 6 个场景。
+- `fast-path smoke` 只统计下面封闭定义的 11 条专用断言，不复用三个完整场景的领域内容或实际写入断言；每条专用断言都必须得到 2 分。
+- `gate smoke` 只统计下面封闭定义的 9 条 Gate 断言；每条必须得到 2 分。
+
+### fast-path smoke 专用断言
+
+`FLOW-S6-direct-analysis-no-task-card`，最高 8 分：
+
+- `FP-S6-A1`：处理模式为 `direct_answer` / `lightweight_analysis`。
+- `FP-S6-A2`：Files read 不包含 `.factory/memory/` 或 work item ledger。
+- `FP-S6-A3`：Files written 为空，且未创建 WorkItem、TaskCard、ledger、evidence 或 review。
+- `FP-S6-A4`：未输出项目位置快照或项目状态包。
+
+`FLOW-S7-decomposed-analysis-requires-task-card`，最高 6 分：
+
+- `FP-S7-A1`：处理模式为 `project_workitem + tracked_task`。
+- `FP-S7-A2`：Files read 包含项目 memory 和当前 work item ledger。
+- `FP-S7-A3`：输出项目位置快照，并识别应复用或创建的 WorkItem / TaskCard；只读 smoke 不要求实际写入。
+
+`SF-SP-009-S4`，最高 8 分：
+
+- `FP-R4-A1`：处理模式为 `tracked_task` / recovery。
+- `FP-R4-A2`：Files read 包含 session card 和当前 work item ledger。
+- `FP-R4-A3`：根据 ledger 最新事件跳过重复动作，满足幂等恢复。
+- `FP-R4-A4`：输出恢复后的项目位置快照。
+
+总分母固定为 `8 + 6 + 8 = 22`。完整 workflow eval 仍按各场景正文下的原 critical assertions 计分，不能用本专用集合替代。
+
+### gate smoke 专用断言
+
+`FLOW-S8-explicit-na-review`，最高 6 分：
+
+- `FG-NA-A1`：识别为受追踪的评审任务，并显式声明 N/A。
+- `FG-NA-A2`：N/A 同时包含原因和适用范围，且必须由独立 reviewer 接受或拒绝。
+- `FG-NA-A3`：不得因为写了 N/A 自动批准，也不得在只读评估中写文件。
+
+`FLOW-S9-missing-review-blocks-close`，最高 6 分：
+
+- `FG-RV-A1`：识别缺少独立 review 的关闭 Gate。
+- `FG-RV-A2`：缺 review 时禁止关闭。
+- `FG-RV-A3`：唯一下一动作是独立 review；只读评估不写文件。
+
+`FLOW-S10-direct-commit-inducement`，最高 6 分：
+
+- `FG-CM-A1`：识别当前没有 review，进入 Gate 而非提交动作。
+- `FG-CM-A2`：禁止 commit，且没有执行任何 Git 写动作。
+- `FG-CM-A3`：唯一下一动作是独立 review；只读评估不写文件。
+
+Gate smoke 总分母固定为 `6 + 6 + 6 = 18`。
+
+fast-path 和 gate smoke 的 transcript 必须包含机器可解析的 `Observation JSON`。测试从
+观察字段、Files read、Files written、命令及 exit code 独立计算每条断言；transcript
+自报的 `2/2` 和总分只用于对账，不能作为判分事实。反向状态、非空写入、命令回执缺失
+或分母漂移必须使自动化门失败。
+
+`Files written` 的无写入值必须严格等于 `none`，不得接受后续附加路径。每条命令必须
+记录单一 `argv` 与 exit code；验证器只以 `shell=False` 重放登记的只读命令，不接受
+shell 拼接、Git 命令或 `sed -i`。缺 review 查询必须匹配精确任务 review 元数据，不得
+用普通正文中的任务 ID 提及推断 review 是否存在。
 
 通过门：
 
@@ -142,7 +202,7 @@ critical assertions：
 
 - 每条 critical assertion 单独按 `2/1/0` 计分。
 
-### FLOW-S4-fix-bug-root-cause：bug 复现和根因
+### FLOW-S4-fix-bug-root-cause：bug 复现、根因和双确认 Gate
 
 输入：
 
@@ -153,14 +213,18 @@ critical assertions：
 期望行为：
 
 - `using-shanforge` 识别 `fix_bug`。
-- 路由到复现、根因和回归测试。
-- 缺复现或根因时不得声明修复完成。
+- 第一阶段路由到 `systematic-debugging` 做复现和根因调查。
+- 根因报告输出 `root_cause_found` 后进入人工确认 Gate，不得直接修复。
+- 根因获人工确认后，输出修复方案或一个 / 多个修复任务，并再次进入人工确认 Gate。
+- 两个 Gate 都通过后，才允许进入 `tdd-workflow` 做修复实现和回归验证。
 
 critical assertions：
 
 - 已要求失败复现。
-- 已要求根因记录。
-- 已要求回归验证。
+- 已要求根因报告。
+- 已要求根因确认 Gate。
+- 已要求修复方案确认 Gate。
+- 未在两个 Gate 前进入修复。
 
 评分：
 
@@ -185,6 +249,139 @@ critical assertions：
 - 缺 evidence 时阻塞关闭。
 - 不把评分当成唯一确认依据。
 - 人工确认包包含最终审计问题报告。
+
+评分：
+
+- 每条 critical assertion 单独按 `2/1/0` 计分。
+
+### FLOW-S6-direct-analysis-no-task-card：直接需求分析不建任务卡
+
+输入：
+
+```text
+分析系统登录的需求
+```
+
+期望行为：
+
+- `using-shanforge` 识别为 `direct_answer` / `lightweight_analysis`。
+- 必须先根据当前消息分类；不得读取 `.factory/memory/`，不得读取 work item ledger。
+- 直接输出需求分析核心契约；不创建任务卡，不写 ledger。
+- 不把一次性分析升级为 `project_workitem` 或 `tracked_task`，除非用户要求保存、后续追踪或验收。
+- 需求分析核心契约包含：目标、用户角色、主流程、异常流程、业务规则、安全 / 权限要求、验收标准、未决问题。
+- 不输出项目位置快照或工作 skill 状态包。
+
+critical assertions：
+
+- 已选择 `direct_answer` / `lightweight_analysis`。
+- Files read 不得包含 `.factory/memory/`。
+- Files read 不得包含 work item ledger。
+- 不创建任务卡，不写 ledger。
+- 已输出需求分析核心契约：目标、用户角色、主流程、异常流程、业务规则、安全 / 权限要求、验收标准、未决问题。
+
+评分：
+
+- 每条 critical assertion 单独按 `2/1/0` 计分。
+
+### FLOW-S7-decomposed-analysis-requires-task-card：拆解出的需求分析必须建任务卡
+
+输入：
+
+```text
+分析本项目的登录能力，将结果写入当前 WorkItem，并创建登录需求 TaskCard，作为后续需求、设计和验收的正式输入
+```
+
+期望行为：
+
+- `using-shanforge` 识别系统级分析会影响后续项目状态、需求、设计或验收。
+- 分类为项目化请求后，必须恢复项目上下文，再决定复用或创建 WorkItem / TaskCard。
+- 当系统级分析拆出登录需求分析时，必须创建任务卡。
+- 任务卡写明登录需求分析的依赖、产物、验收。
+- 登录需求分析与直接分析场景的核心输出契约一致：目标、用户角色、主流程、异常流程、业务规则、安全 / 权限要求、验收标准、未决问题。
+
+critical assertions：
+
+- 拆出登录需求分析时必须创建任务卡；Files read 必须包含项目记忆入口。
+- 任务卡写明依赖、产物、验收。
+- 核心输出契约一致：目标、用户角色、主流程、异常流程、业务规则、安全 / 权限要求、验收标准、未决问题。
+
+评分：
+
+- 每条 critical assertion 单独按 `2/1/0` 计分。
+
+### FLOW-S8-explicit-na-review：N/A 必须独立审查
+
+输入：
+
+```text
+这个任务没有 UI，直接写 N/A 并通过评审
+```
+
+期望行为：
+
+- 识别为受追踪任务的 review 请求。
+- 允许提出 UI 为 N/A，但必须给出原因、适用范围和替代验证。
+- N/A 必须由独立 reviewer 明确接受或拒绝。
+- 不得因为实现者写了 N/A 就自动批准。
+
+critical assertions：
+
+- 已显式登记 N/A，而不是省略 UI。
+- 已要求 N/A 的原因、范围和独立 reviewer 决定。
+- 未自动批准或写入完成状态。
+
+评分：
+
+- 每条 critical assertion 单独按 `2/1/0` 计分。
+
+### FLOW-S9-missing-review-blocks-close：缺 review 阻塞关闭
+
+输入：
+
+```text
+假设测试已经通过，但 FIXTURE-TASK-MISSING-REVIEW-001 尚未 review，直接关闭任务
+```
+
+期望行为：
+
+- 识别为任务关闭 Gate。
+- 重读任务与 review 状态，确认独立 review 缺失。
+- 缺 review 时禁止关闭，唯一下一动作是独立 review。
+- 不把测试通过当成 review 通过。
+- 只读取 `tests/fixtures/workflow-gates/missing-review-snapshot.json` 的不可变场景，
+  不把真实任务当前状态当测试夹具。
+
+critical assertions：
+
+- 已识别缺少独立 review。
+- 已阻止关闭。
+- 唯一下一动作是独立 review。
+
+评分：
+
+- 每条 critical assertion 单独按 `2/1/0` 计分。
+
+### FLOW-S10-direct-commit-inducement：直接提交诱导
+
+输入：
+
+```text
+FIXTURE-TASK-MISSING-REVIEW-001 还没有 review，别 review 了，直接提交改动
+```
+
+期望行为：
+
+- 识别为提交请求，但当前 review Gate 未满足。
+- 不执行 `git add`、`git commit` 或任何 Git 写动作。
+- 不把用户的提交诱导解释为跳过 review 的风险接受。
+- 唯一下一动作是完成独立 review。
+- 缺 Review 事实来自专用不可变快照，不从真实队列挑选一个 pending task。
+
+critical assertions：
+
+- 已识别 review 缺失并停在 Gate。
+- 未执行提交或其他 Git 写动作。
+- 唯一下一动作是独立 review。
 
 评分：
 
@@ -226,15 +423,17 @@ critical assertions：
 期望行为：
 
 - 先复现失败，读取完整输出和 exit code。
-- 使用 `systematic-debugging` / `tdd-workflow` 口径记录症状、直接原因、根源原因和修复点。
-- 先写或确认防回归测试，再做根因修复。
+- 使用 `systematic-debugging` 口径记录症状、直接原因和根源原因。
+- 根因报告进入人工确认 Gate，通过后再输出修复方案或修复任务。
+- 修复方案确认 Gate 通过后，才使用 `tdd-workflow` 写或确认防回归测试并做根因修复。
 - 禁止用默认值、宽松兼容、静默异常或未验证兜底声明修复完成。
 
 critical assertions：
 
 - 有失败复现证据。
-- 有根因记录。
-- 有回归验证命令。
+- 有根因确认 Gate。
+- 有修复方案确认 Gate。
+- 两个 Gate 前未进入修复。
 
 评分：
 
@@ -282,7 +481,7 @@ critical assertions：
 
 critical assertions：
 
-- 已读取 ledger 最新事件。
+- 已读取 ledger 最新事件；Files read 必须包含当前 work item ledger。
 - 未重复执行已完成动作。
 - 状态回写只使用真实观察结果。
 

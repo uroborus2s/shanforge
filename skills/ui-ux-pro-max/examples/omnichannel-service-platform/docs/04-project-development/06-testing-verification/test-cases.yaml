@@ -1,0 +1,161 @@
+schema_version: 1
+suite:
+  id: TEST-SUITE-P0-001
+  title: 悦享服务 P0 验收套件
+  version: 0.1.0
+  status: example
+cases:
+  - id: TC-CATALOG-001
+    title: 按城市和分类查看可售服务
+    priority: P1
+    level: api_ui
+    requirement_ids: [REQ-CATALOG-001, REQ-CATALOG-002]
+    acceptance_criteria_ids: [AC-CATALOG-001-01, AC-CATALOG-001-02, AC-CATALOG-002-01]
+    api_ids: [API-CATALOG-001, API-CATALOG-002]
+    ui_ids: [UI-IOS-001, UI-IOS-002, UI-AND-001, UI-AND-002, UI-WX-001, UI-WX-002]
+    preconditions:
+      - 城市 A 有已发布和已下架服务，城市 B 无可售服务
+    steps:
+      - action: 在城市 A 选择分类并打开服务详情
+        expected: 只显示可售服务，详情解释价格、时长和取消政策
+      - action: 切换到城市 B
+        expected: 显示空状态，并提供切换城市或清除筛选
+
+  - id: TC-ORDER-001
+    title: 创建包含价格和政策快照的订单
+    priority: P0
+    level: integration
+    requirement_ids: [REQ-BOOKING-001, REQ-ORDER-001]
+    acceptance_criteria_ids: [AC-BOOKING-001-02, AC-ORDER-001-01, AC-ORDER-001-02]
+    api_ids: [API-BOOKING-001, API-ORDER-001]
+    ui_ids: [UI-IOS-003, UI-AND-003, UI-WX-003]
+    preconditions:
+      - 服务、人员和时段可预约
+      - 调用方持有固定幂等键
+    steps:
+      - action: 使用同一请求和幂等键提交两次
+        expected: 两次返回同一订单，不重复占用库存
+      - action: 查询订单
+        expected: 订单包含成交价格和取消政策快照
+
+  - id: TC-ORDER-002
+    title: 库存冲突时恢复选择
+    priority: P0
+    level: end_to_end
+    requirement_ids: [REQ-BOOKING-001]
+    acceptance_criteria_ids: [AC-BOOKING-001-01, AC-BOOKING-001-02]
+    api_ids: [API-BOOKING-001, API-ORDER-001]
+    ui_ids: [UI-IOS-003, UI-AND-003, UI-WX-003]
+    preconditions:
+      - 两个用户同时选择同一最后时段
+    steps:
+      - action: 两个用户并发创建订单
+        expected: 只有一个成功，另一方收到冲突和新的可选时段
+      - action: 失败用户选择替代时段
+        expected: 已填写的其他信息被保留并可继续
+
+  - id: TC-PAY-001
+    title: 支付回调重复和乱序不重复入账
+    priority: P0
+    level: integration
+    requirement_ids: [REQ-PAY-001]
+    acceptance_criteria_ids: [AC-PAY-001-01, AC-PAY-001-02]
+    api_ids: [API-PAY-001, API-ORDER-002]
+    ui_ids: [UI-IOS-004, UI-AND-004, UI-WX-004]
+    preconditions:
+      - 存在待支付订单和支付沙箱签名密钥
+    steps:
+      - action: 先发送成功回调，再重复发送成功和较早的处理中回调
+        expected: 订单只入账一次，最终状态保持已支付，重复事件可审计
+
+  - id: TC-PAY-002
+    title: 客户端中断后恢复支付状态
+    priority: P0
+    level: end_to_end
+    requirement_ids: [REQ-PAY-001]
+    acceptance_criteria_ids: [AC-PAY-001-03]
+    api_ids: [API-ORDER-002, API-PAY-001]
+    ui_ids: [UI-IOS-004, UI-IOS-005, UI-AND-004, UI-AND-005, UI-WX-004]
+    preconditions:
+      - 支付渠道已扣款，但客户端未收到回跳
+    steps:
+      - action: 重启应用并进入订单详情
+        expected: 页面先显示正在确认，随后查询到服务端已支付状态
+      - action: 在确认期间点击主操作
+        expected: 不创建第二笔支付
+
+  - id: TC-AFTER-001
+    title: 取消前展示退款明细并可追踪到账
+    priority: P0
+    level: end_to_end
+    requirement_ids: [REQ-AFTER-001]
+    acceptance_criteria_ids: [AC-AFTER-001-01, AC-AFTER-001-02, AC-AFTER-001-03]
+    api_ids: [API-AFTER-001]
+    ui_ids: [UI-IOS-005, UI-AND-005]
+    preconditions:
+      - 存在已支付且服务未开始的订单
+    steps:
+      - action: 发起取消
+        expected: 确认页显示退款金额、手续费和预计到账时间
+      - action: 确认取消并查询退款
+        expected: 退款状态和原支付流水可对应
+
+  - id: TC-ADMIN-001
+    title: 运营按条件查询订单并返回原列表
+    priority: P1
+    level: ui_api
+    requirement_ids: [REQ-ADMIN-001]
+    acceptance_criteria_ids: [AC-ADMIN-001-01, AC-ADMIN-001-02]
+    api_ids: [API-ADMIN-001]
+    ui_ids: [UI-ADM-001, UI-ADM-002]
+    preconditions:
+      - 运营账户可访问多个状态订单
+    steps:
+      - action: 筛选异常订单并进入详情
+        expected: 列表和详情使用中文业务名称，详情为独立页面
+      - action: 点击返回列表
+        expected: 返回后保留筛选、分页和滚动位置
+
+  - id: TC-ADMIN-002
+    title: 高风险操作执行权限和审计
+    priority: P0
+    level: security
+    requirement_ids: [REQ-ADMIN-001, REQ-ADMIN-003]
+    acceptance_criteria_ids: [AC-ADMIN-001-03, AC-ADMIN-003-01, AC-ADMIN-003-02]
+    api_ids: [API-ADMIN-001, API-ADMIN-002]
+    ui_ids: [UI-ADM-002, UI-ADM-003, UI-ADM-004, UI-ADM-005]
+    preconditions:
+      - 分别准备无权限运营账户和有权限管理员账户
+    steps:
+      - action: 无权限账户调用退款或权限变更接口
+        expected: 返回 403，数据未变化
+      - action: 管理员填写原因并执行同一操作
+        expected: 操作成功，审计记录包含操作者、原因和前后值
+
+  - id: TC-NFR-ACC-001
+    title: 四端核心流程可访问性
+    priority: P1
+    level: accessibility
+    requirement_ids: [NFR-ACC-001]
+    acceptance_criteria_ids: []
+    api_ids: []
+    ui_ids: [UI-IOS-001, UI-AND-001, UI-WX-001, UI-ADM-001]
+    preconditions:
+      - 启用 VoiceOver、TalkBack 或后台键盘操作
+    steps:
+      - action: 完成服务发现到订单详情核心流程
+        expected: 焦点顺序、名称、状态和错误可感知，最大字体或 200% 缩放不丢失操作
+
+  - id: TC-NFR-PERF-001
+    title: 服务列表和订单创建性能
+    priority: P1
+    level: performance
+    requirement_ids: [NFR-PERF-001]
+    acceptance_criteria_ids: []
+    api_ids: [API-CATALOG-001, API-ORDER-001]
+    ui_ids: []
+    preconditions:
+      - 预发布环境具备目标数据规模和稳定观测
+    steps:
+      - action: 以约定并发执行服务列表和订单创建
+        expected: 列表 P95 不超过 800ms，订单创建 P95 不超过 1.5s，错误率满足发布门禁

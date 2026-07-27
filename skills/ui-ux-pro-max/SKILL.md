@@ -1,6 +1,6 @@
 ---
 name: ui-ux-pro-max
-description: 全平台 UI/UX 与动效设计、实现约束和质量评审。用于 Web、响应式网站、微信/支付宝等小程序、iOS/iPadOS/macOS、Android、Windows/Linux 桌面端，以及 Flutter、React Native、Taro、Avalonia 等跨平台产品；覆盖用户流、信息架构、线框、视觉方向、设计系统、组件状态、适配、可访问性、原型、微交互、页面转场、手势动效、设计交付和界面质量检查。纯后端或只生成最终图片资源时不使用。
+description: 全平台 UI/UX 与动效设计、实现约束和质量评审。用于 Web、响应式网站、微信/支付宝等小程序、iOS/iPadOS/macOS、Android、Windows/Linux 桌面端，以及 Flutter、React Native、Taro、Avalonia 等跨平台产品；覆盖用户流、信息架构、线框、移动端高保真视觉方向、设计系统、组件状态、适配、可访问性、原型、微交互、页面转场、手势动效、设计交付和界面质量检查。纯后端或只生成最终图片资源时不使用。
 ---
 
 # UI/UX Pro Max
@@ -14,6 +14,8 @@ description: 全平台 UI/UX 与动效设计、实现约束和质量评审。用
 - 官方平台规范和项目事实高于开源样例；开源项目用于学习工作流和结构，不用于照抄视觉、代码或受限资产。
 - 只做 UI 结构、视觉、交互和动效方案时由本 skill 负责。需要生产图标、插画、启动图、精灵图或最终资源包时，转交 `art-asset-pipeline`。
 - `shadcn` 负责含 `components.json` 的 shadcn/ui 组件工作流；`frontend-patterns` 负责前端代码架构；`webapp-testing` 负责可重复的页面交互验证。本 skill 保留设计决策与体验验收 owner。
+- 新 React 管理后台的组件、图标和动效选型必须遵循 [管理后台设计](references/admin-web.md)，禁止页面级另选技术栈。
+- 移动端要求高保真、品牌化或真实美术表现时，必须遵循 [移动端高保真设计](references/mobile-high-fidelity.md)；禁止把低保真 Penpot 画板或整张 AI 位图当成最终 UI 交付。
 - 修改或创建 Codex skill 才使用 `skill-creator`；普通 UI 任务不得因此加载 skill 编写流程。
 
 ## 按需读取
@@ -24,6 +26,8 @@ description: 全平台 UI/UX 与动效设计、实现约束和质量评审。用
 |---|---|
 | 新设计、重构、设计评审或交付 | [设计流程与交付物](references/design-workflow-and-deliverables.md) |
 | Web、H5、响应式页面、PWA | [Web 设计](references/web.md) |
+| React 管理后台、运营后台、数据后台 | [Web 设计](references/web.md) 和 [管理后台设计](references/admin-web.md) |
+| iOS、Android、小程序高保真视觉与美术交付 | [移动端高保真设计](references/mobile-high-fidelity.md)、目标平台 reference 和 [设计流程与交付物](references/design-workflow-and-deliverables.md) |
 | 微信、支付宝、抖音等小程序 | [小程序设计](references/mini-programs.md) |
 | iOS、iPadOS、macOS、SwiftUI/UIKit | [Apple 平台](references/apple-platforms.md) |
 | Android、Compose、传统 View | [Android 平台](references/android.md) |
@@ -110,6 +114,12 @@ python3 skills/ui-ux-pro-max/scripts/search.py "<关键词>" --stack <react|next
 - `needs_user_input`：必须由用户选择品牌方向、目标平台、关键交互取舍或交付层级；能从项目事实合理确定时不要阻塞。
 - `ready_for_review`：设计或实现产物、证据和实际验证齐备；作者不得自批 `approved`。
 - 不声称已做用户研究、真机测试、无障碍审计或性能验证，除非存在真实记录。
+
+## 完整样例
+
+需要查看 Android、iOS、微信小程序和管理后台如何共享产品语义，又分别遵循平台习惯时，使用 [全渠道生活服务平台样例](examples/omnichannel-service-platform/README.md)。样例包含可复现的 Penpot 生成器、PRD、架构、数据、UX/UI、OpenAPI、测试、发布、运维和追踪关系。
+
+把样例用于真实项目时，只复制该项目实际需要的文档；保留稳定 ID 和版本历史，删除不适用页面，不创建空模板或同一事实的平行版本。
 
 ## 输出契约
 

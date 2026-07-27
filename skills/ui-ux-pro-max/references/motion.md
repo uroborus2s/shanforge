@@ -58,6 +58,7 @@
 | 场景 | 首选 | 何时升级 |
 |---|---|---|
 | 简单 Web 状态 | CSS transition/keyframes、Web Animations | 编排复杂或需手势/共享布局时再用 Motion/GSAP 等 |
+| React 管理后台 | 简单状态使用 CSS；复杂布局、编排和手势只使用 Motion（`motion/react`） | 不升级到第二套通用动效库；例外遵循 [管理后台设计](admin-web.md) |
 | Web/React 手势与布局 | 平台/框架稳定的 motion 库 | 需要时间轴、滚动编排或复杂矢量时升级 |
 | iOS/macOS | SwiftUI/UIKit/AppKit/Core Animation | 复杂矢量或品牌状态机才评估 Lottie/Rive |
 | Android | Compose animation/transition、MotionLayout/Animator | 复杂矢量或品牌状态机才评估 Lottie/Rive |

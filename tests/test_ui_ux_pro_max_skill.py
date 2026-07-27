@@ -85,6 +85,21 @@ def test_skill_keeps_specialized_routing_and_project_contract() -> None:
 def test_platform_references_cover_native_constraints() -> None:
     expected = {
         "web.md": ("语义 HTML", "400%", "prefers-reduced-motion"),
+        "admin-web.md": (
+            "shadcn/ui",
+            "Radix",
+            "`new-york`",
+            "lucide-react",
+            "motion/react",
+            "独立 URL 页面",
+        ),
+        "mobile-high-fidelity.md": (
+            "Penpot 承载",
+            "`imagegen`",
+            "`art-asset-pipeline`",
+            "不写入 `approved/`",
+            "不能直接当组件稿",
+        ),
         "mini-programs.md": ("基础库", "包体", "真机", "宿主", "固定 88rpx"),
         "apple-platforms.md": ("Dynamic Type", "VoiceOver", "多窗口", "44×44 pt"),
         "android.md": ("48×48 dp", "TalkBack", "预测返回", "折叠屏"),
@@ -96,6 +111,26 @@ def test_platform_references_cover_native_constraints() -> None:
         content = read(SKILL_DIR / "references" / name)
         for phrase in phrases:
             assert phrase in content, f"{name} missing {phrase}"
+
+
+def test_admin_web_uses_one_component_icon_and_motion_baseline() -> None:
+    content = read(SKILL_DIR / "references" / "admin-web.md")
+    skill = read(SKILL)
+
+    for forbidden_alternative in (
+        "Tabler",
+        "Heroicons",
+        "Phosphor",
+        "GSAP",
+        "Anime.js",
+        "React Spring",
+    ):
+        assert forbidden_alternative in content
+
+    assert "禁止同项目混用" in content
+    assert "禁止另行引入" in content
+    assert 'iconLibrary: "lucide"' in content
+    assert "禁止页面级另选技术栈" in skill
 
 
 def test_motion_contract_covers_intent_interruption_accessibility_and_budget() -> None:

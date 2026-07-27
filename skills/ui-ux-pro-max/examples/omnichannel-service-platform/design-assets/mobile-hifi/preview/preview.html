@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>移动端高保真资源候选</title>
+  <style>
+    :root { color-scheme: light; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; color: #111b3b; background: #f4f6fa; }
+    * { box-sizing: border-box; }
+    body { margin: 0; }
+    main { width: min(1180px, calc(100% - 32px)); margin: 0 auto; padding: 48px 0 72px; }
+    header { display: flex; gap: 24px; justify-content: space-between; align-items: end; margin-bottom: 28px; }
+    h1 { margin: 0 0 8px; font-size: clamp(28px, 4vw, 44px); letter-spacing: -.03em; }
+    p { margin: 0; color: #5b647d; }
+    .status { padding: 8px 12px; border: 1px solid #b8c7f7; border-radius: 999px; color: #164bc5; background: #eef3ff; font-size: 14px; white-space: nowrap; }
+    h2 { margin: 34px 0 14px; font-size: 20px; }
+    .grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+    article { overflow: hidden; border: 1px solid #dfe3ec; border-radius: 16px; background: white; box-shadow: 0 8px 24px rgb(17 27 59 / 6%); }
+    img, .texture { display: block; width: 100%; aspect-ratio: 3 / 2; object-fit: cover; background: #eee; }
+    .square { aspect-ratio: 1; }
+    .detail { aspect-ratio: 4 / 3; }
+    .texture { background: url("../assets/surface-mineral.webp") repeat; background-size: 160px 160px; }
+    .meta { padding: 14px 16px 16px; }
+    .meta strong { display: block; margin-bottom: 5px; }
+    .meta span { color: #687087; font-size: 13px; }
+    @media (max-width: 820px) { .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+    @media (max-width: 520px) { main { width: min(100% - 24px, 1180px); padding-top: 28px; } header { align-items: start; flex-direction: column; } .grid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <div>
+        <h1>移动端高保真资源候选</h1>
+        <p>B 信息与视觉基线 + A 暖光摄影 + C 少量材质感</p>
+      </div>
+      <div class="status">9 项 · 待独立评审</div>
+    </header>
+
+    <h2>首页与服务卡片</h2>
+    <section class="grid">
+      <article><img src="../assets/home-hero-master.jpg" alt="首页主视觉"><div class="meta"><strong>首页主视觉</strong><span>home-hero-master.jpg · 2400×1600</span></div></article>
+      <article><img src="../assets/service-card-neck.jpg" alt="肩颈理疗卡片"><div class="meta"><strong>肩颈理疗卡片</strong><span>service-card-neck.jpg · 1200×800</span></div></article>
+      <article><img src="../assets/service-card-cleaning.jpg" alt="日常保洁卡片"><div class="meta"><strong>日常保洁卡片</strong><span>service-card-cleaning.jpg · 1200×800</span></div></article>
+      <article><img src="../assets/service-card-appliance.jpg" alt="家电清洗卡片"><div class="meta"><strong>家电清洗卡片</strong><span>service-card-appliance.jpg · 1200×800</span></div></article>
+    </section>
+
+    <h2>服务详情</h2>
+    <section class="grid">
+      <article><img class="detail" src="../assets/service-detail-01.jpg" alt="服务详情主图"><div class="meta"><strong>服务详情主图</strong><span>service-detail-01.jpg · 1800×1350</span></div></article>
+      <article><img class="detail" src="../assets/service-detail-02.jpg" alt="服务环境图"><div class="meta"><strong>服务环境图</strong><span>service-detail-02.jpg · 1800×1350</span></div></article>
+      <article><img class="detail" src="../assets/service-detail-03.jpg" alt="工具与卫生细节"><div class="meta"><strong>工具与卫生细节</strong><span>service-detail-03.jpg · 1800×1350</span></div></article>
+    </section>
+
+    <h2>身份与材质</h2>
+    <section class="grid">
+      <article><img class="square" src="../assets/provider-li.jpg" alt="服务者头像"><div class="meta"><strong>服务者头像</strong><span>provider-li.jpg · 800×800 · 支持圆形裁切</span></div></article>
+      <article><div class="texture" role="img" aria-label="重复平铺的暖石纸张细纹"></div><div class="meta"><strong>暖石纸张细纹</strong><span>surface-mineral.webp · 1024×1024 · 平铺检查</span></div></article>
+    </section>
+  </main>
+</body>
+</html>

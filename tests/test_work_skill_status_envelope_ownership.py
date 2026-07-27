@@ -45,7 +45,7 @@ PROFESSIONAL_PREFIX_SHA256 = {
     "stratix-service": "3e9c5ad0837a2667d574790f29367d80a93b26c4fd60bfaca1fb16ab0419c08d",
     "systematic-debugging": "d55a7d6ba2ab071f27b9502e8ef55708d615360bac1e9a79c0b9f7e690a49741",
     "tdd-workflow": "889c73ca45da361f5275311e5897010acbb39be9c53ccff60d4e508064b817c6",
-    "ui-ux-pro-max": "6c1c3c59be4790c4b0e317b01253a74ceb6a5db1be45f89444a4f863360740af",
+    "ui-ux-pro-max": "c1251201eed9cd7e6ce251c788722c257f4cbaf735b76173c719f01b2fdc82ef",
     "webapp-testing": "dfba94b7e9486c898bada2f3a85c4946ee012cb85f03560cfff2404d2e1ec03f",
     "writing-plans": "33bea287ef47b3f30e68b89445d90825d6be24b708faec3ecc1bacc64bf4474a",
     "xlsx": "109bf2bd5b00710a152d6638d0cb815c12b66afb854acec78bef52f3df6a0ca9",

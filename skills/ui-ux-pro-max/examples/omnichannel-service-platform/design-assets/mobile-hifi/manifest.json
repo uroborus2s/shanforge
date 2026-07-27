@@ -1,0 +1,216 @@
+{
+  "schema_version": "1.0.0",
+  "asset_pack_type": "app",
+  "status": "candidate_ready_for_review",
+  "direction_confirmed_at": "2026-07-24",
+  "resource_list_confirmed_at": "2026-07-24",
+  "rights": "ai_generated_for_this_project",
+  "assets": [
+    {
+      "path": "assets/home-hero-master.jpg",
+      "purpose": "首页主视觉",
+      "width": 2400,
+      "height": 1600,
+      "format": "jpeg",
+      "alpha": false,
+      "color_space": "sRGB IEC 61966-2-1",
+      "sha256": "e9b06e65f4a846bce26cc7cce8cd315a639263038bfca4cbfde87e1ebebcd8f6",
+      "status": "candidate_ready_for_review",
+      "approved_source": [
+        "approved/b-primary-ui-direction.png",
+        "approved/a-warm-photography-reference.png"
+      ],
+      "derived_from": {
+        "type": "imagegen_master",
+        "prompt_id": "neck-service-v1",
+        "path": "sources/neck-service-master.png",
+        "source_sha256": "5666f62fea4175cf7951d3a0db1f63aaab19c8be3f5572214cf37fe16d3a297b",
+        "operation": "center_crop_and_resize_2400x1600"
+      }
+    },
+    {
+      "path": "assets/service-card-neck.jpg",
+      "purpose": "肩颈理疗卡片",
+      "width": 1200,
+      "height": 800,
+      "format": "jpeg",
+      "alpha": false,
+      "color_space": "sRGB IEC 61966-2-1",
+      "sha256": "06ab24a3b44697e6f20beb13db5d74473415b40f710de83d628ba4040f695231",
+      "status": "candidate_ready_for_review",
+      "approved_source": [
+        "approved/b-primary-ui-direction.png",
+        "approved/a-warm-photography-reference.png"
+      ],
+      "derived_from": {
+        "type": "imagegen_master",
+        "prompt_id": "neck-service-v1",
+        "path": "sources/neck-service-master.png",
+        "source_sha256": "5666f62fea4175cf7951d3a0db1f63aaab19c8be3f5572214cf37fe16d3a297b",
+        "operation": "center_crop_and_resize_1200x800"
+      }
+    },
+    {
+      "path": "assets/service-card-cleaning.jpg",
+      "purpose": "日常保洁卡片",
+      "width": 1200,
+      "height": 800,
+      "format": "jpeg",
+      "alpha": false,
+      "color_space": "sRGB IEC 61966-2-1",
+      "sha256": "7b5d3e1ab176934a5ea54b2c6d6e73c9fa1c5cb4f01ba05d8026458d51d9d7e9",
+      "status": "candidate_ready_for_review",
+      "approved_source": [
+        "approved/b-primary-ui-direction.png",
+        "approved/a-warm-photography-reference.png"
+      ],
+      "derived_from": {
+        "type": "imagegen_master",
+        "prompt_id": "cleaning-v1",
+        "path": "sources/service-cleaning-master.png",
+        "source_sha256": "c68943fc9fc8b025100b600d46267a6ffa3f70c2e4e2c37ef67cd22df5fb4013",
+        "operation": "center_crop_and_resize_1200x800"
+      }
+    },
+    {
+      "path": "assets/service-card-appliance.jpg",
+      "purpose": "家电清洗卡片",
+      "width": 1200,
+      "height": 800,
+      "format": "jpeg",
+      "alpha": false,
+      "color_space": "sRGB IEC 61966-2-1",
+      "sha256": "8581e40ea1ef0c6bcf4f9353170ea22aa077b3c1ad0063fbd522832caf8ec5de",
+      "status": "candidate_ready_for_review",
+      "approved_source": [
+        "approved/b-primary-ui-direction.png",
+        "approved/a-warm-photography-reference.png"
+      ],
+      "derived_from": {
+        "type": "imagegen_master",
+        "prompt_id": "appliance-v1",
+        "path": "sources/service-appliance-master.png",
+        "source_sha256": "4cbf8b977a187759bdf9a29d288cac37361f1b07387b9945a3cb37996bdc3481",
+        "operation": "center_crop_and_resize_1200x800"
+      }
+    },
+    {
+      "path": "assets/service-detail-01.jpg",
+      "purpose": "服务详情主图",
+      "width": 1800,
+      "height": 1350,
+      "format": "jpeg",
+      "alpha": false,
+      "color_space": "sRGB IEC 61966-2-1",
+      "sha256": "e23ad6f5c4d4172be4dcd183a50ac66a6740950a340b193d60a53710de901ca6",
+      "status": "candidate_ready_for_review",
+      "approved_source": [
+        "approved/b-primary-ui-direction.png",
+        "approved/a-warm-photography-reference.png"
+      ],
+      "derived_from": {
+        "type": "imagegen_master",
+        "prompt_id": "neck-service-v1",
+        "path": "sources/neck-service-master.png",
+        "source_sha256": "5666f62fea4175cf7951d3a0db1f63aaab19c8be3f5572214cf37fe16d3a297b",
+        "operation": "center_crop_and_resize_1800x1350"
+      }
+    },
+    {
+      "path": "assets/service-detail-02.jpg",
+      "purpose": "服务环境图",
+      "width": 1800,
+      "height": 1350,
+      "format": "jpeg",
+      "alpha": false,
+      "color_space": "sRGB IEC 61966-2-1",
+      "sha256": "f7cafcb248e50ae2ce23045c71f3ed27076beac744c69d081403d70e44418cfa",
+      "status": "candidate_ready_for_review",
+      "approved_source": [
+        "approved/b-primary-ui-direction.png",
+        "approved/a-warm-photography-reference.png",
+        "approved/c-material-reference.png"
+      ],
+      "derived_from": {
+        "type": "imagegen_master",
+        "prompt_id": "environment-v1",
+        "path": "sources/service-environment-master.png",
+        "source_sha256": "761c8c46bf1a28b794b94f4fd893eca2ee099f57dbfc0a37a088df26bd018b44",
+        "operation": "center_crop_and_resize_1800x1350"
+      }
+    },
+    {
+      "path": "assets/service-detail-03.jpg",
+      "purpose": "工具与卫生细节",
+      "width": 1800,
+      "height": 1350,
+      "format": "jpeg",
+      "alpha": false,
+      "color_space": "sRGB IEC 61966-2-1",
+      "sha256": "2a570267214ac31c1b7ae508623b53373efb51bdabc9f9f6a8810a3321bff763",
+      "status": "candidate_ready_for_review",
+      "approved_source": [
+        "approved/b-primary-ui-direction.png",
+        "approved/a-warm-photography-reference.png",
+        "approved/c-material-reference.png"
+      ],
+      "derived_from": {
+        "type": "imagegen_master",
+        "prompt_id": "hygiene-v1",
+        "path": "sources/service-hygiene-master.png",
+        "source_sha256": "e187a7bf92e35ad478931c3b117367f78e719dc6869f0b7655d864a107accfab",
+        "operation": "center_crop_and_resize_1800x1350"
+      }
+    },
+    {
+      "path": "assets/provider-li.jpg",
+      "purpose": "服务者头像",
+      "width": 800,
+      "height": 800,
+      "format": "jpeg",
+      "alpha": false,
+      "color_space": "sRGB IEC 61966-2-1",
+      "sha256": "0aabf37ad3d8f88947f9464e58635626269cdf83c648e1e9eacf6122f98c0864",
+      "status": "candidate_ready_for_review",
+      "approved_source": [
+        "approved/b-primary-ui-direction.png",
+        "approved/a-warm-photography-reference.png"
+      ],
+      "derived_from": {
+        "type": "imagegen_master",
+        "prompt_id": "provider-li-v1",
+        "path": "sources/provider-li-master.png",
+        "source_sha256": "0b668c65510fa06f5600c166171d4ab84dfd36073c1a84c6afe4c6cdc90f2857",
+        "operation": "center_crop_and_resize_800x800"
+      }
+    },
+    {
+      "path": "assets/surface-mineral.webp",
+      "purpose": "暖石纸张细纹",
+      "width": 1024,
+      "height": 1024,
+      "format": "webp",
+      "alpha": false,
+      "color_space": "sRGB IEC 61966-2-1",
+      "sha256": "f69a91d3d11be07c2b8b8c3e3f999b52304939920e7894a1a9f7550c63cf075d",
+      "status": "candidate_ready_for_review",
+      "approved_source": [
+        "approved/c-material-reference.png",
+        "approved/b-primary-ui-direction.png"
+      ],
+      "derived_from": {
+        "type": "imagegen_master",
+        "prompt_id": "surface-mineral-v1",
+        "path": "sources/surface-mineral-master.png",
+        "source_sha256": "a78205884f54560655cadc41a9ff430e8271e9fe94b01e659accdc1b9403c8af",
+        "operation": "mirror_tile_and_resize_1024x1024"
+      }
+    }
+  ],
+  "tooling": {
+    "generation": "Codex built-in imagegen",
+    "build": "tools/build_assets.sh",
+    "inspection": "view_image",
+    "preview": "preview/preview.html"
+  }
+}

@@ -1,0 +1,482 @@
+openapi: 3.1.0
+info:
+  title: 悦享服务公共 API
+  version: 0.1.0
+  description: |
+    支撑 iOS、Android、微信小程序和运营管理后台的样例契约。
+    本文件展示接口说明、认证、幂等、分页和错误语义，不代表真实服务已部署。
+servers:
+  - url: https://api.example.invalid
+    description: 样例地址，不可用于生产
+tags:
+  - name: Catalog
+    description: 面向消费者的可售服务发现与详情
+  - name: Booking
+    description: 服务人员和时间库存查询
+  - name: Orders
+    description: 预约订单创建、查询与取消
+  - name: Payments
+    description: 支付意图创建；最终状态以支付回调处理结果为准
+  - name: Admin
+    description: 受角色和数据范围保护的运营接口
+security:
+  - bearerAuth: []
+paths:
+  /v1/services:
+    get:
+      operationId: listServices
+      tags: [Catalog]
+      summary: 查询当前可售服务
+      description: |
+        为首页搜索、分类列表和推荐位提供统一服务摘要。只返回在当前城市、
+        渠道和时间范围内可售的服务，不返回草稿或已下架项目。
+      parameters:
+        - in: query
+          name: query
+          schema: { type: string, maxLength: 80 }
+          description: 服务名称或关键词
+        - in: query
+          name: category
+          schema: { type: string }
+          description: 稳定分类代码
+        - $ref: '#/components/parameters/Cursor'
+      responses:
+        '200':
+          description: 服务分页结果
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServicePage'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+  /v1/services/{serviceId}:
+    get:
+      operationId: getService
+      tags: [Catalog]
+      summary: 获取服务详情
+      description: |
+        返回用户下单前必须理解的服务内容、价格起点、时长、人员资质、
+        取消规则和风险提示。成交价仍以创建订单时的价格快照为准。
+      parameters:
+        - $ref: '#/components/parameters/ServiceId'
+      responses:
+        '200':
+          description: 服务详情
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Service'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /v1/services/{serviceId}/availability:
+    get:
+      operationId: getAvailability
+      tags: [Booking]
+      summary: 查询可预约人员与时间
+      description: |
+        根据城市、地址区域和日期返回实时可预约时段。结果是短期库存视图，
+        创建订单时必须再次校验，不能把查询成功当成已经占用。
+      parameters:
+        - $ref: '#/components/parameters/ServiceId'
+        - in: query
+          name: date
+          required: true
+          schema: { type: string, format: date }
+        - in: query
+          name: areaCode
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: 可预约时段
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items, expiresAt]
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/AvailabilitySlot'
+                  expiresAt:
+                    type: string
+                    format: date-time
+                    description: 当前库存视图过期时间
+  /v1/orders:
+    post:
+      operationId: createOrder
+      tags: [Orders]
+      summary: 创建预约订单
+      description: |
+        再次校验服务、人员、时间和价格，短暂锁定库存并创建待支付订单。
+        调用方必须提供幂等键；网络重试不能产生重复订单。
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateOrderRequest'
+      responses:
+        '201':
+          description: 订单已创建
+          headers:
+            Location:
+              schema: { type: string }
+              description: 新订单资源地址
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+        '409':
+          description: 时间已被占用或幂等键对应不同请求
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          $ref: '#/components/responses/Unprocessable'
+  /v1/orders/{orderId}:
+    get:
+      operationId: getOrder
+      tags: [Orders]
+      summary: 查询订单聚合状态
+      description: |
+        为支付结果恢复、订单详情和履约跟踪返回统一状态。调用者只能读取本人订单；
+        管理员必须使用管理接口并接受数据范围控制。
+      parameters:
+        - $ref: '#/components/parameters/OrderId'
+      responses:
+        '200':
+          description: 订单详情
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /v1/orders/{orderId}/payments:
+    post:
+      operationId: createPayment
+      tags: [Payments]
+      summary: 创建支付意图
+      description: |
+        根据订单渠道创建一次支付意图并返回平台调用参数。响应只表示支付已发起，
+        不表示已到账；最终结果由服务端支付回调确认。
+      parameters:
+        - $ref: '#/components/parameters/OrderId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [channel]
+              properties:
+                channel:
+                  type: string
+                  enum: [wechat, apple_aggregated, android_aggregated]
+      responses:
+        '201':
+          description: 支付意图已创建
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaymentIntent'
+        '409':
+          description: 订单不可支付或已支付
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /v1/orders/{orderId}/cancellations:
+    post:
+      operationId: cancelOrder
+      tags: [Orders]
+      summary: 申请取消订单
+      description: |
+        根据服务开始时间和取消政策计算退款，并创建可追踪的取消请求。
+        已进入服务中的订单将返回不可直接取消，并引导创建售后申请。
+      parameters:
+        - $ref: '#/components/parameters/OrderId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [reasonCode]
+              properties:
+                reasonCode: { type: string }
+                note: { type: string, maxLength: 300 }
+      responses:
+        '202':
+          description: 取消请求已受理
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [cancellationId, status, estimatedRefund]
+                properties:
+                  cancellationId: { type: string, format: uuid }
+                  status: { type: string, enum: [accepted, pending_review] }
+                  estimatedRefund:
+                    $ref: '#/components/schemas/Money'
+  /v1/admin/orders:
+    get:
+      operationId: listAdminOrders
+      tags: [Admin]
+      summary: 运营分页查询订单
+      description: |
+        供客服、运营和财务按各自角色查询订单。个人信息默认脱敏；
+        查看完整联系方式必须具备额外权限并写入审计日志。
+      parameters:
+        - in: query
+          name: status
+          schema: { type: string }
+        - in: query
+          name: channel
+          schema: { type: string }
+        - $ref: '#/components/parameters/Cursor'
+      responses:
+        '200':
+          description: 管理端订单分页结果
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Order'
+                  nextCursor:
+                    type: [string, 'null']
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /v1/admin/services/{serviceId}:
+    patch:
+      operationId: updateAdminService
+      tags: [Admin]
+      summary: 修改服务草稿或未来配置
+      description: |
+        供具有服务管理权限的运营人员修改服务名称、上下架状态或未来生效价格。
+        已成交订单继续使用下单时保存的价格与取消政策快照。本接口不允许物理删除
+        存在历史订单的服务；调用方应发送 If-Match 防止覆盖他人的并发修改。
+      parameters:
+        - $ref: '#/components/parameters/ServiceId'
+        - in: header
+          name: If-Match
+          required: true
+          schema: { type: string }
+          description: 最近读取到的服务版本 ETag
+      requestBody:
+        required: true
+        content:
+          application/merge-patch+json:
+            schema:
+              $ref: '#/components/schemas/UpdateServiceRequest'
+      responses:
+        '200':
+          description: 服务草稿或未来配置已更新，响应包含新版本
+          headers:
+            ETag:
+              schema: { type: string }
+              description: 更新后的资源版本
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminService'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: If-Match 已过期或当前服务状态不允许该变更
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  parameters:
+    Cursor:
+      in: query
+      name: cursor
+      schema: { type: string }
+      description: 不透明游标；调用方不得解析或拼接
+    IdempotencyKey:
+      in: header
+      name: Idempotency-Key
+      required: true
+      schema: { type: string, minLength: 16, maxLength: 80 }
+      description: 同一用户和操作的唯一重试键
+    ServiceId:
+      in: path
+      name: serviceId
+      required: true
+      schema: { type: string, format: uuid }
+    OrderId:
+      in: path
+      name: orderId
+      required: true
+      schema: { type: string, format: uuid }
+  responses:
+    BadRequest:
+      description: 查询或请求格式不合法
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    Forbidden:
+      description: 已认证但无权访问该资源
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    NotFound:
+      description: 资源不存在或调用者无权得知其存在
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    Unprocessable:
+      description: 格式正确但业务规则不允许处理
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+  schemas:
+    Money:
+      type: object
+      required: [amount, currency]
+      properties:
+        amount:
+          type: integer
+          description: 最小货币单位，人民币为分
+        currency:
+          type: string
+          const: CNY
+    ServiceSummary:
+      type: object
+      required: [id, name, durationMinutes, priceFrom, rating]
+      properties:
+        id: { type: string, format: uuid }
+        name: { type: string }
+        durationMinutes: { type: integer, minimum: 1 }
+        priceFrom: { $ref: '#/components/schemas/Money' }
+        rating: { type: number, minimum: 0, maximum: 5 }
+    Service:
+      allOf:
+        - $ref: '#/components/schemas/ServiceSummary'
+        - type: object
+          required: [description, cancellationPolicy]
+          properties:
+            description: { type: string }
+            cancellationPolicy: { type: string }
+    AdminService:
+      allOf:
+        - $ref: '#/components/schemas/Service'
+        - type: object
+          required: [status, version]
+          properties:
+            status:
+              type: string
+              enum: [draft, published, unpublished]
+            version:
+              type: integer
+              minimum: 1
+            futurePrice:
+              oneOf:
+                - $ref: '#/components/schemas/Money'
+                - type: 'null'
+            futurePriceEffectiveAt:
+              type: [string, 'null']
+              format: date-time
+              description: 新价格生效时间；为空表示没有计划中的价格
+    UpdateServiceRequest:
+      type: object
+      minProperties: 1
+      additionalProperties: false
+      properties:
+        name:
+          type: string
+          minLength: 2
+          maxLength: 80
+        status:
+          type: string
+          enum: [draft, published, unpublished]
+        futurePrice:
+          $ref: '#/components/schemas/Money'
+        futurePriceEffectiveAt:
+          type: string
+          format: date-time
+          description: 必须晚于当前时间，且和 futurePrice 同时提供
+    ServicePage:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items: { $ref: '#/components/schemas/ServiceSummary' }
+        nextCursor:
+          type: [string, 'null']
+    AvailabilitySlot:
+      type: object
+      required: [slotId, providerId, startsAt, durationMinutes]
+      properties:
+        slotId: { type: string }
+        providerId: { type: string, format: uuid }
+        startsAt: { type: string, format: date-time }
+        durationMinutes: { type: integer }
+    CreateOrderRequest:
+      type: object
+      required: [serviceId, slotId, addressId]
+      properties:
+        serviceId: { type: string, format: uuid }
+        slotId: { type: string }
+        addressId: { type: string, format: uuid }
+        note: { type: string, maxLength: 300 }
+    Order:
+      type: object
+      required: [id, orderNo, status, service, amount, createdAt]
+      properties:
+        id: { type: string, format: uuid }
+        orderNo: { type: string }
+        status:
+          type: string
+          enum: [pending_payment, paid, accepted, en_route, in_service, completed, cancelled, refunding, refunded]
+        service: { $ref: '#/components/schemas/ServiceSummary' }
+        amount: { $ref: '#/components/schemas/Money' }
+        createdAt: { type: string, format: date-time }
+    PaymentIntent:
+      type: object
+      required: [id, orderId, status, channel, clientPayload]
+      properties:
+        id: { type: string, format: uuid }
+        orderId: { type: string, format: uuid }
+        status: { type: string, const: pending }
+        channel: { type: string }
+        clientPayload:
+          type: object
+          additionalProperties: true
+          description: 传给对应平台支付 SDK 的短期参数
+    Error:
+      type: object
+      required: [code, message, traceId]
+      properties:
+        code: { type: string, example: SLOT_UNAVAILABLE }
+        message: { type: string, example: 该时间刚刚被预约，请选择其他时间 }
+        traceId: { type: string }
+        details:
+          type: array
+          items:
+            type: object
+            required: [field, reason]
+            properties:
+              field: { type: string }
+              reason: { type: string }

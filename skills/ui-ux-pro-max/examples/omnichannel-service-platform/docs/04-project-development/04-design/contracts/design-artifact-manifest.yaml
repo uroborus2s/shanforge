@@ -1,0 +1,83 @@
+schema_version: 1
+artifact_id: DESIGN-YUEXIANG-001
+title: 悦享服务全渠道 Penpot 设计
+status: example
+version: 0.1.2
+source:
+  kind: penpot
+  connection: local-mcp
+  token_set: Yuexiang/Semantic
+implementation:
+  admin:
+    framework: React
+    component_library: shadcn/ui
+    component_primitives: Radix
+    component_style: new-york
+    icon_library: lucide-react
+    simple_motion: CSS
+    complex_motion: motion/react
+    configuration_source: components.json
+    status: design-decision
+pages:
+  - id: 8b1c6e78-ea22-8156-8008-5fd4466af443
+    name: 00-说明
+    boards:
+      - name: YUEXIANG-OMNICHANNEL-DESIGN
+        id: 774a8d5f-c7ba-80fa-8008-5fd8fc75afc5
+  - id: 774a8d5f-c7ba-80fa-8008-5fd8b35299cd
+    name: 01-设计系统
+    boards:
+      - name: DS-001-共享设计系统
+        id: 774a8d5f-c7ba-80fa-8008-5fd90f8211a0
+  - id: 774a8d5f-c7ba-80fa-8008-5fd8b354b165
+    name: 02-iOS
+    boards:
+      - {id: 774a8d5f-c7ba-80fa-8008-5fd91de99c99, name: UI-IOS-001-首页}
+      - {id: 774a8d5f-c7ba-80fa-8008-5fd91fa90567, name: UI-IOS-002-服务详情}
+      - {id: 774a8d5f-c7ba-80fa-8008-5fd9210925ac, name: UI-IOS-003-预约确认}
+      - {id: 774a8d5f-c7ba-80fa-8008-5fd9237aa286, name: UI-IOS-004-支付结果}
+      - {id: 774a8d5f-c7ba-80fa-8008-5fd924cc9f71, name: UI-IOS-005-订单详情}
+  - id: 774a8d5f-c7ba-80fa-8008-5fd8b355d778
+    name: 03-Android
+    boards:
+      - {id: 774a8d5f-c7ba-80fa-8008-5fd931ee31b5, name: UI-AND-001-首页}
+      - {id: 774a8d5f-c7ba-80fa-8008-5fd933a27f52, name: UI-AND-002-服务详情}
+      - {id: 774a8d5f-c7ba-80fa-8008-5fd93508e0e8, name: UI-AND-003-预约确认}
+      - {id: 774a8d5f-c7ba-80fa-8008-5fd9376c22b8, name: UI-AND-004-支付结果}
+      - {id: 774a8d5f-c7ba-80fa-8008-5fd938a8d0c4, name: UI-AND-005-订单详情}
+  - id: 774a8d5f-c7ba-80fa-8008-5fd8b357411c
+    name: 04-微信小程序
+    boards:
+      - {id: 774a8d5f-c7ba-80fa-8008-5fd947427249, name: UI-WX-001-首页}
+      - {id: 774a8d5f-c7ba-80fa-8008-5fd948efffd4, name: UI-WX-002-服务详情}
+      - {id: 774a8d5f-c7ba-80fa-8008-5fd94a56d4c4, name: UI-WX-003-预约确认}
+      - {id: 774a8d5f-c7ba-80fa-8008-5fd94cb68451, name: UI-WX-004-支付结果}
+  - id: 774a8d5f-c7ba-80fa-8008-5fd8b358a670
+    name: 05-管理后台
+    boards:
+      - {id: 774a8d5f-c7ba-80fa-8008-5fd957133d3a, name: UI-ADM-001-运营总览}
+      - {id: 774a8d5f-c7ba-80fa-8008-5fd95ad9e822, name: UI-ADM-002-订单列表}
+      - {id: 774a8d5f-c7ba-80fa-8008-5fd95df43071, name: UI-ADM-003-订单详情}
+      - {id: 774a8d5f-c7ba-80fa-8008-5fd960607cce, name: UI-ADM-004-服务管理}
+      - {id: 774a8d5f-c7ba-80fa-8008-5fde7e8f50e1, name: UI-ADM-005-权限与审计}
+statistics:
+  page_count: 6
+  key_flow_board_count: 19
+  total_board_count: 21
+  token_count: 15
+exports:
+  status: blocked
+  reason: penpot_mcp_export_shape_http_error
+  verified_at: 2026-07-24
+  requested_boards:
+    - YUEXIANG-OMNICHANNEL-DESIGN
+    - DS-001-共享设计系统
+    - UI-IOS-001-首页
+    - UI-AND-001-首页
+    - UI-WX-001-首页
+    - UI-ADM-001-运营总览
+traceability:
+  requirements: ../../03-requirements/prd.md
+  ui_design: ../ux-ui-design.md
+  platform_matrix: ../platform-matrix.md
+  tests: ../../06-testing-verification/test-cases.yaml

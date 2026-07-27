@@ -1,0 +1,36 @@
+{
+  "$schema": "https://design-tokens.github.io/community-group/format/",
+  "name": "Yuexiang/Semantic",
+  "version": "0.1.0",
+  "color": {
+    "action": {
+      "primary": {"$type": "color", "$value": "#5B4CF0"}
+    },
+    "feedback": {
+      "success": {"$type": "color", "$value": "#1BAA83"},
+      "warning": {"$type": "color", "$value": "#F5A524"},
+      "danger": {"$type": "color", "$value": "#E5485D"}
+    },
+    "surface": {
+      "default": {"$type": "color", "$value": "#FFFFFF"}
+    },
+    "content": {
+      "primary": {"$type": "color", "$value": "#172033"},
+      "secondary": {"$type": "color", "$value": "#667085"}
+    }
+  },
+  "space": {
+    "2": {"$type": "dimension", "$value": "8px"},
+    "3": {"$type": "dimension", "$value": "12px"},
+    "4": {"$type": "dimension", "$value": "16px"},
+    "6": {"$type": "dimension", "$value": "24px"}
+  },
+  "radius": {
+    "control": {"$type": "dimension", "$value": "14px"},
+    "card": {"$type": "dimension", "$value": "18px"}
+  },
+  "font": {
+    "body": {"$type": "dimension", "$value": "16px"},
+    "title": {"$type": "dimension", "$value": "24px"}
+  }
+}

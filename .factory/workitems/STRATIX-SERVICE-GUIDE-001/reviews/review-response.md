@@ -16,3 +16,12 @@
 - disposition：Fixed
 - 修改：源码泄漏检查改为递归扫描全部运行时 skill 材料，并覆盖全部已知框架源码、模板、指南路径类别和旧回源指令。
 - 验证：`19 passed`；Ruff、skill validator、diff check 通过。
+
+## STRATIX-GUIDE-I003
+
+- disposition：Fixed
+- 修改：
+  - 删除 `stratix-service` 的通用工作 Skill 回写合同尾注。
+  - 将维护过程说明替换为五个框架包的精确适用版本。
+  - 共享测试不再强制专业 Skill 内嵌治理尾注，但仍禁止重复引用，并保留项目状态信封唯一 owner 与专业内容哈希检查。
+- 验证：`28 passed`；独立复审 `approved / 100 / C0-I0-M0`。

@@ -42,7 +42,7 @@ PROFESSIONAL_PREFIX_SHA256 = {
     "requirements-engineering": "53129dc1e7e5f3ff0a54e5eaa8dc3b2a35d447fffd6979e29da776c18c59986e",
     "shadcn": "0cba439d7e48e9d6f2b805379129ef06d835286bda44a2eee280578f13b07b23",
     "stratix-admin-web": "2a35b86d6681d1c934e680fb94d8c894f80daf4060289d964df06379588f93f6",
-    "stratix-service": "0e19177531b04f8d56fd19756fa3b18bf3cdee91822620e351ca7aa62dc89c55",
+    "stratix-service": "c19274fd17d0fc04f992e64679fe7fee9369f1dd6d24e41169353b5ec3b1630c",
     "systematic-debugging": "d55a7d6ba2ab071f27b9502e8ef55708d615360bac1e9a79c0b9f7e690a49741",
     "tdd-workflow": "889c73ca45da361f5275311e5897010acbb39be9c53ccff60d4e508064b817c6",
     "ui-ux-pro-max": "c1251201eed9cd7e6ce251c788722c257f4cbaf735b76173c719f01b2fdc82ef",
@@ -59,7 +59,7 @@ def test_professional_prefixes_are_unchanged_for_exactly_31_work_skills() -> Non
     separator = f"\n{PROJECT_CONTRACT_LINK}"
     for name in sorted(WORK_SKILLS):
         skill = read_skill(name)
-        assert skill.count(separator) == 1, name
+        assert skill.count(separator) <= 1, name
         professional_prefix = skill.split(separator, maxsplit=1)[0]
         digest = hashlib.sha256(professional_prefix.encode()).hexdigest()
         assert digest == PROFESSIONAL_PREFIX_SHA256[name], name

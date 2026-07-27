@@ -18,7 +18,9 @@ description: 使用 Stratix 工具链开发、重构、调试和评审 Stratix �
 - 启动、discovery、DI 或插件 token 排错：读 [runtime realities](references/runtime-realities.md)。
 - Stratix `app web-admin`、`admin-page`、`admin-crud` 的前端页面交给 `stratix-admin-web`；本 skill 只负责其后端接口和服务。
 
-框架源码只在维护本 skill 时用于重新提炼和验证规范，调查记录放 work item evidence，不作为业务开发步骤。目标项目只需确认已安装版本和 CLI 能力；若版本不支持本规范，报告兼容性问题并升级或固定版本，不让各项目自行研究源码后形成不同规则。
+## 适用版本
+
+本规范适用于 `@stratix/core@1.1.2`、`@stratix/forge@1.1.4`、`@stratix/create@1.1.2`、`@stratix/database@1.1.1` 和 `@stratix/testing@1.0.0-beta.1`。业务项目直接遵循本规范，无需读取框架源码；目标项目使用其他版本或缺少本文所列 CLI 能力时，报告兼容性差异，由本 skill 维护者更新规范，不由业务项目自行研究源码形成新规则。
 
 ## 默认流程
 
@@ -82,5 +84,3 @@ description: 使用 Stratix 工具链开发、重构、调试和评审 Stratix �
 - needs:
   - review | verification | user_input | none
 ```
-
-项目化执行时，沿用 [工作 Skill 回写契约](../using-shanforge/references/work-skill-return-contract.md)；本 skill 的现有专业输出和失败语义不变。

@@ -45,6 +45,23 @@ def test_skill_bundles_norms_without_runtime_source_reading() -> None:
 
     assert "references/application-development.md" in skill
     assert "业务项目直接遵循本 skill 的规范" in skill
+    for package_version in (
+        "@stratix/core@1.1.2",
+        "@stratix/forge@1.1.4",
+        "@stratix/create@1.1.2",
+        "@stratix/database@1.1.1",
+        "@stratix/testing@1.0.0-beta.1",
+    ):
+        assert package_version in skill
+
+    for maintenance_detail in (
+        "项目化执行时",
+        "工作 Skill 回写契约",
+        "框架源码只在维护本 skill",
+        "work item evidence",
+    ):
+        assert maintenance_detail not in skill
+
     assert "references/source-locations.md" not in skill
     assert not (SKILL_ROOT / "references" / "source-locations.md").exists()
 

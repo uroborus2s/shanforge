@@ -21,7 +21,8 @@ def test_skill_is_renamed_and_uses_current_toolchain() -> None:
     assert "stratix-nodejs-backend" not in content
     assert "npm view @stratix/create dist-tags --json" in cli
     assert "npm view @stratix/forge dist-tags --json" in cli
-    assert "目标项目只需确认已安装版本和 CLI 能力" in content
+    assert "业务项目直接遵循本规范，无需读取框架源码" in content
+    assert "由本 skill 维护者更新规范" in content
     assert "create-stratix" in content
     assert "不使用旧单包 `@stratix/cli`" in cli
 

@@ -147,3 +147,4 @@
 - `AGENTS.md` 同步稳定入口；黑盒 eval 新增 FLOW-S6、FLOW-S7 与恢复场景的 fast-path smoke，要求简单分析不读 memory/ledger、项目化与恢复请求必须读取。
 - 首轮独立评审后进一步统一：任何仓内持久化都会升级；PRD 与 workflow/API/system architecture 的 Session 主链均为先分类、项目化后按需恢复；fast-path smoke 使用 11 条封闭专用断言和固定 22 分分母。
 - `TASK-SKILL-004` 已收敛第二批 32 个工作 Skill：消费者只保留共享合同链接，工作 Skill 透传本地 `status/needs`，`using-shanforge` 独占 `project_position/completion_level/stop_reason/scope_remaining/next_required_action` 项目状态信封；独立复审 `approved / 100 / C0 I0 M0`。
+- 2026-07-28：`stratix-service` 删除无业务价值的项目治理尾注，改为声明 Core 1.1.2、Forge 1.1.4、Create 1.1.2、Database 1.1.1、Testing 1.0.0-beta.1 适用基线；业务项目不读框架源码，版本差异交由 skill 维护者处理。独立复审 `approved / 100 / C0-I0-M0`。

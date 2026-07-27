@@ -47,6 +47,29 @@ def test_writing_plans_skill_localizes_superpowers_semantics() -> None:
     assert "一步只做一个动作" not in skill
 
 
+def test_writing_plans_excludes_simple_code_and_unit_test_changes() -> None:
+    skill = read("skills/writing-plans/SKILL.md")
+    metadata = read("skills/writing-plans/agents/openai.yaml")
+
+    for phrase in (
+        "简单任务不触发",
+        "局部代码修改加对应单测",
+        "不创建 plan、task brief 或计划评审",
+        "定向测试和必要静态检查",
+        "不得因为已有已批准输入或尚无 plan 就强制触发",
+        "用户明确要求正式计划时，覆盖简单任务判定",
+        "公共接口、跨层边界、数据 schema、迁移、依赖、安全权限、外部系统或发布方式",
+        "出现影响扩大的证据时再升级验证范围",
+        "实现阶段是否记录 ledger 和 evidence 由流程总控及实现工作流决定",
+        "`outputs`、`evidence` 和 `ledger_event` 为空",
+    ):
+        assert phrase in skill
+
+    assert "简单任务不触发" in metadata
+    assert "局部代码修改加对应单测" in metadata
+    assert "用户明确要求正式计划" in metadata
+
+
 def test_writing_plans_references_define_plan_and_task_templates() -> None:
     expected = {
         "skills/writing-plans/references/workitem-plan-template.md": (

@@ -346,3 +346,4 @@
 - 2026-07-23：`PROJECT-ARTIFACTS-001-T01` Iteration 3 独立复审通过，`approved / 97 / C0-I0-M0`；无伪 `.penpot`，`v1.2.0` 继续保持候选未发布。工作项进入 T02 OpenAPI 与稳定 YAML 索引。
 - 2026-07-23：`PROJECT-ARTIFACTS-001-T02` 首轮独立评审 `changes_requested / 76 / C0-I3-M1`；Schema/domain、索引前验证门、完整 source definition 和占位 server 已同范围整改，联合回归 `48 passed`，当前等待同一 Reviewer 复审。
 - 2026-07-23：`PROJECT-ARTIFACTS-001` 四项任务均已实现并独立批准：T01 Penpot 资产合同 `97`、T02 OpenAPI 详细合同 `99`、T03 测试合同与 SQLite 投影 `98`、T04 单一项目文档入口与增量快照 `96`。仓库不伪造 `.penpot`；真实源文件仍需在 Penpot 打开目标文件并连接本地插件后导出。
+- 2026-07-27：`TASK-WORKFLOW-SEMANTICS-001` 已获用户关闭确认并通过新鲜关闭验证，完整语义套件 `50 passed`、Ruff 通过，终态为 `closed`。

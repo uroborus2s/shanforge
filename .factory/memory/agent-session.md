@@ -1,54 +1,41 @@
 # Agent 会话卡
 
-- 生成时间：2026-07-23 12:22 +0800
+- 生成时间：2026-07-27 12:50 +0800
 - 项目：`shanforge`
-- 当前阶段：`PK-SOURCE-MIGRATION-001-T03 UI FOLLOW-UP / INDEPENDENTLY APPROVED`
-- 当前状态：`completed / independently_approved / ready_for_exact_local_commit`
-- 当前焦点：任务详情内部定位信息移除，需求与设计追踪深链已落地
-- 下一动作：完成本次精确范围本地提交；不执行 Push、PR、Merge 或部署
+- 当前阶段：`FLOW-CONTRACT-001 / FLOW-TASK-015 / IMPLEMENTATION`
+- 当前状态：`approved_ready_for_exact_local_commit`
+- 当前焦点：完整软件项目会话归因契约精确本地提交
+- 下一动作：按 hunk 暂存 FLOW-TASK-015，完整核对 staged diff 后本地提交；
+  不执行 Push、PR、Merge 或部署
 
 ## 当前事实
 
-- `docs/04-product/prd.md` 是当前需求唯一正式事实源；当前投影为 16 个 REQ、
-  64 个 AC、11 个 NFR。
-- R009 requirement contract 仍保留为冻结历史证据，但已退出当前 source registry；
-  R009 PM map、R014 合同和 final manifest 仍保留。
-- SQLite 只保存可重建索引、关系、章节定位和代码地图；正文继续按 locator 回源，
-  SQLite、HTML、FTS 和 cache 不提交 Git。
-- 需求、任务、代码、测试和文档详情使用独立静态页面与返回按钮；需求按中文能力分类，
-  AC 嵌套在所属需求，任务显示中文标题并保留 canonical 编号。
-- 九个任务端点与 88 条 `Task --IMPLEMENTS--> Requirement/NFR` 强关系完整。
-  八个历史 ledger 任务有旧 ID alias；task-brief-only 的 T05 没有虚构 alias。
-- HTML 由固定 CLI 增量生成；当前 1892 页，输入未变化时 `cache_hit=true`，
-  `rendered_pages=0`。
-- 任务业务详情不再展示 locator、Hash、内部 document ID 或追踪 DTO；任务详情分为
-  关联需求、相关设计、代码测试与交付三个中文区域。
-- 相关设计只通过 outgoing strong Task→Requirement 与 Requirement 侧 incoming strong
-  `SATISFIES` Design 确定性推导；弱关系、错误类型和直接 Task→Design 均被拒绝。
-- `FLOW-TASK-011` 可点击进入 `REQ-PKI-008` 和 `DESIGN-FRONTEND-001`。
-- UI follow-up 独立复审：`approved / 99 / C0-I0-M0`。
-- 原独立实现复审：`approved / 96 / C0-I0-M1`；Minor 为
-  `pk_work_item.task_kind` 后续应改从机器字段派生，当前无消费者，不阻塞。
-- 最新验证：目标回归 `62 passed`；Ruff 通过；Mypy `279 source files` 0 问题；
-  全仓 `1342 passed, 3 failed`，三项均为已有范围外 Skill 合同失败。
+- `FLOW-TASK-015` 是 `FLOW-CONTRACT-001` 第 15/15 项。
+- 冻结候选 SHA-256：
+  `3d5f4cbabda86312da0603db5662175453d12dd5966c788301b0c79c2cb4992f`。
+- 正式基线 SHA-256：
+  `5769beb3478d528a0b0888328381173aa799e1e137925fc393bd98d97d3eb687`。
+- 方案独立复审：`approved / 98 / C0-I0-M1`；语义 Finding 全部关闭。
+- 用户已明确回复“确认方案，开始正式实施”，授权正式版本发布、runtime Skill 同步、
+  验证、独立实现 Review、同范围整改和全部 Gate 通过后的精确本地提交。
+- 唯一正式文档已在工作树原位晋升为 `v1.2.0`；9 个 runtime Skills 已同步最小合同。
+- 正式实施验证：Runtime Red/Green `1 failed, 7 passed -> 8 passed`，规定组合 `57 passed`，
+  Ruff 通过，Skill validator `9/9`。
+- 首轮实现 Review：`changes_requested / 76 / C0-I3-M0`；旧自动人工 Gate、测试假通过和状态投影
+  三项已完成同范围整改，整改 Red 为 `2 failed, 6 passed`。
+- 同一 Reviewer 实现复审：`approved / 98 / C0-I0-M0`，三项 Finding 全部关闭。
+- 远端、Push、PR、Merge 和部署未授权。
+- 此前把用户“继续下一步”误归因到 `PK-SOURCE-MIGRATION-001-T04`；已追加纠正事件，
+  两份设计文档恢复未发布候选状态，误路由诊断产物仅保留审计且排除本主线提交。
 
 ## 最小读取顺序
 
 1. 本文件。
-2. `.factory/workitems/PK-SOURCE-MIGRATION-001/evidence/implementation-verification.md`。
-3. `.factory/workitems/PK-SOURCE-MIGRATION-001/reviews/implementation-rereview-decision.md`。
-4. 需要查事实时先用 `project find/show/trace/context`；只按 locator 单文件回源。
+2. `.factory/workitems/FLOW-CONTRACT-001/task-briefs/FLOW-TASK-015.md`。
+3. `.factory/workitems/FLOW-CONTRACT-001/drafts/FLOW-TASK-015-workflow-contract.v1.2.0.candidate.md`。
+4. `.factory/workitems/FLOW-CONTRACT-001/ledger.jsonl` 最新事件。
+5. 仅按任务允许范围读取目标 Skill 和测试。
 
 ## 当前 Gate
 
-实现、验证、独立 Review 和记忆同步已完成；当前仅剩 `gitcommitzh` 精确范围本地提交。
-远端、PR、Merge 和部署未授权。
-## 本轮恢复点：PROJECT-ARTIFACTS-001
-
-- 四项任务均已实现并通过独立评审：T01 `97`、T02 `99`、T03 `98`、T04 `96`。
-- 已交付 Penpot 资产 manifest/Token、OpenAPI 3.1、测试案例/结果/报告合同、
-  SQLite 确定性投影和单一“项目文档”静态站点。
-- 本机 Penpot MCP 已安装并注册，`4400–4403` 正在监听；仓库仍无伪 `.penpot`，
-  下一步由用户在真实 Penpot 文件加载 `http://localhost:4400/manifest.json`。
-- 当前唯一内部动作是干净候选验证与 `gitcommitzh` 精确范围提交；不改变
-  `PK-SOURCE-MIGRATION-001-T04`、`FLOW-TASK-015` 的既有人工 Gate。
+人工方案 Gate 和独立实现 Review Gate 已关闭。当前无停止原因；只执行已授权的精确本地提交。

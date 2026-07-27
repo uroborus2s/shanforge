@@ -7,6 +7,14 @@ description: 有 written implementation plan 但不使用子 agent，或需要�
 
 本 skill 是 inline 执行者。它在当前会话中执行已批准计划。
 
+## v1.2.0 运行时路由合同
+
+- `SB-EXECUTE` 进入 `execution-workflow`，`write_policy: source_or_test_write`。
+- 写入前，route 必须有已存在且非空的 `work_item_id`、`task_card_id`，以及精确 `allowed_paths`、
+  `forbidden_actions`、`current_gate`、`write_policy`；只改 allowlist 内源码、Skill、测试和任务证据。
+- 返回 `status`、`outputs`、`evidence`、`ledger_event`、`gate`、`next_required_action`；实现最多推进到
+  `ready_for_review`，不得把 Green 写成 Review、Verification 或人工批准。
+
 ## 触发
 
 - 已有 `.factory/workitems/<WORKITEM-ID>/plan.md`。

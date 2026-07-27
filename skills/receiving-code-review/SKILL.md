@@ -7,6 +7,15 @@ description: 收到 review feedback、PR 评论、任务评审意见或外部 re
 
 本 skill 用于处理 review feedback。目标是技术正确，而不是显得顺从。
 
+## v1.2.0 运行时路由合同
+
+- review feedback 仍属于 `SB-REVIEW` / `review-workflow`，`write_policy: state_or_gate_write`；需要修改实现时，
+  由主控重新路由到有 `source_or_test_write` 权限的执行节点。
+- 本 skill 写 triage 或状态前，route 必须有已存在且非空的 `work_item_id`、`task_card_id`，以及精确
+  `allowed_paths`、`forbidden_actions`、`current_gate`、`write_policy`。
+- 返回 `status`、`outputs`、`evidence`、`ledger_event`、`gate`、`next_required_action`；不得用接收反馈
+  直接覆盖 reviewer Decision 或自批 `approved`。
+
 ## 触发
 
 - 用户要求处理 review 意见。

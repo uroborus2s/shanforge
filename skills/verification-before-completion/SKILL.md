@@ -7,6 +7,15 @@ description: 准备声明完成、修复、通过、可提交、可开 PR 或进
 
 本 skill 用于阻止没有证据的完成声明。核心规则很简单：没有新鲜验证证据，不得声明完成。
 
+## v1.2.0 运行时路由合同
+
+- `SB-TEST` 进入 `testing-workflow`，`write_policy: source_or_test_write`；`SB-VERIFY` 进入
+  `verification-workflow`，`write_policy: state_or_gate_write`。
+- 写测试、验证状态或 evidence 前，route 必须有已存在且非空的 `work_item_id`、`task_card_id`，以及精确
+  `allowed_paths`、`forbidden_actions`、`current_gate`、`write_policy`。
+- 返回 `status`、`outputs`、`evidence`、`ledger_event`、`gate`、`next_required_action`；只接受新鲜命令、
+  exit code 和当前输出，Verification 不替代 Review 或人工批准。
+
 ## 触发
 
 - 准备说“完成”“已修复”“通过”“可以提交”“可以进入下一阶段”。

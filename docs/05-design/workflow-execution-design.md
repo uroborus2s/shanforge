@@ -5,11 +5,11 @@
 | 项目 | 内容 |
 |---|---|
 | 文档 ID | `PROC-TASK-EXECUTION-001` |
-| 正式版本 | `v1.1.0` |
-| 来源候选 | `TASK-DESIGN-001-R019` |
-| 发布事务 | `DESIGN-RELEASE-TX-R019-G001` |
+| 正式版本 | `v1.2.0` |
+| 来源候选 | `FLOW-TASK-015-C001` |
+| 发布事务 | `FLOW-TASK-015-RELEASE-TX-001` |
 | 负责人 | `HUMAN_PROJECT_OWNER` |
-| 修改 / 审核 / 批准 | `uroborus` / `uroborus` / `uroborus` |
+| 修改 / 审核 / 批准 | `AI_EXECUTOR` / `/root/project_knowledge_review` / `uroborus` |
 | 状态 | 已批准并生效 |
 | 上游 | `PRD`、`正式设计`、`Catalog` |
 | 下游 | `所有 WorkItem、会话和执行器` |
@@ -22,7 +22,7 @@
 
 ## 正式内容
 
-**最后更新：** 2026-04-15
+**最后更新：** 2026-07-27
 
 ## 1. 目标
 
@@ -53,162 +53,162 @@
 - 当前 `DefaultMemoryDomainService -> EvidenceRepositoryPort` 投影 evidence 时已使用稳定 ID
 - 同一 session 的 repeated distill 不再重复写入同一 evidence record
 
----
-
-本目录记录项目推进方法，而不是产品设计本身。旧流程集成方案、旧项目管理控制面方案和专项过渡计划已经从正式结构中移除；当前只保留实施基线和任务执行契约。
-
-## 1. 适用范围
-
-- 任务拆解、计划和交接
-- 需求变更后的过程回写
-- 阶段切换和评审门禁
-- 平台任务实施与验证收口
-
-## 2. 推荐阅读顺序
-
-1. 实施计划（已融合到当前正式文档）
-2. [任务执行契约](./workflow-execution-design.md)
-
-## 3. 验证入口
-
-- [测试计划](../06-delivery/test-plan.md)
-- [测试报告](../06-delivery/test-plan.md)
-
----
-
-| 项目 | 内容 |
-|---|---|
-| 文档编号 | `PROC-TASK-EXECUTION-001` |
-| 文档类型 | 开发过程契约 |
-| 当前版本 | `0.2.0` |
-| 当前状态 | 评审中 |
-| 最近更新 | 2026-07-09 |
-
-
-| 版本 | 修改内容 | 日期 | 修改人 | 审核 | 批准 |
-|---|---|---|---|---|---|
-| `0.1.0` | 初版，固化六类任务执行方式、输出包和 `.factory` 落盘边界 | 2026-07-08 | 项目负责人 | 待审核 | 待批准 |
-| `0.2.0` | 增加完整软件项目会话归因模型、工作流分类、节点控制和静默修改定义 | 2026-07-09 | 用户授权代执行 | 待审核 | 待批准 |
-
-## 背景
-
-- 上游输入：用户要求按任务分解、系统总设计、模块设计、UI 设计、开发和测试六类任务重构 `04-project-development` 与 `.factory`。
-- 关联 work item：`DOC-FACTORY-RESTRUCTURE-001`
-- 事实源：`skills/using-shanforge/SKILL.md`、`skills/document-templates/SKILL.md`、`skills/writing-plans/SKILL.md`、`skills/executing-plans/SKILL.md`、`skills/subagent-driven-development/SKILL.md`、`skills/tdd-workflow/SKILL.md`、`skills/ui-ux-pro-max/SKILL.md`
-
-## 目标
-
-本文档固定 Shanforge 中不同任务类型的执行方式、输出内容、落盘位置和 gate。它不替代具体 skill；具体执行仍由 `using-shanforge` 路由到对应工作 skill。
-
 ## 完整软件项目会话归因模型
 
-所有完整软件项目会话必须先归因，再执行。归因链固定为：
+本文合同固定跨 Skill 的路由与交接边界，不替代具体 skill 的专业工作流。
+
+所有完整软件项目会话必须先归因，再执行：
 
 ```text
 当前消息 -> 会话行为 -> 工作流 -> 节点 -> 允许动作 -> 状态包
 ```
 
-未归因前不得写文件、创建孤立方案、执行任务、提交或关闭 work item。影响源代码、skill、测试、正式文档或流程状态的会话必须绑定 WorkItem / TaskCard；无法绑定时只能返回 `needs_user_input` 或 `blocked`。
+分类器一次只能选中一个默认工作流。后续 review、verification、commit 是前一工作流产出的显式
+`next_required_action`，不是与当前工作流同时命中的第二条路由。相同优先级出现多个候选、缺少身份或
+事实冲突时必须返回 `needs_user_input` 或 `blocked`，不得猜测。
 
-完整软件项目模式的入口规则：
+普通项目事实写入前必须验证已存在且非空的 work_item_id 和 task_card_id。memory summary 不能作为项目事实写入的唯一凭据。
 
-- 先判断当前消息是否只需要解释，还是会改变项目事实。
-- 只解释、不改变事实时，走 `direct-answer-workflow`，当前会话返回路由结果和答案，默认不落盘。
-- 影响需求、设计、计划、代码、skill、测试、正式文档、ledger、memory、review、verification、commit 或 gate 时，必须进入项目化工作流。
-- 讨论结论如果影响项目事实，必须落到需求、设计、计划、任务或 ledger 中的一种，不能只新增孤立方案文件。
-- 任何工作流节点都不能越权替代后续节点；需求不能直接执行，计划不能直接提交，执行不能自批完成，review 不能替代 verification，verification 不能替代 human confirmation。
+## 会话行为合同
 
-## 会话行为清单
-
-| 会话行为 | 典型输入 | 默认工作流 | 是否默认落盘 |
-|---|---|---|---|
-| 解释问答 | “这是什么意思”“该怎么理解” | `direct-answer-workflow` | 否 |
-| 需求澄清 | “我想做一个系统，但还不清楚边界” | `requirements-workflow` 或 `brainstorming` | 项目化时是 |
-| 需求新增 | “增加导出功能” | `requirements-workflow` | 是 |
-| 需求变更 | “把原来的规则改成...” | `change-control-workflow` | 是 |
-| 方案设计 | “重塑整体方案”“设计模块边界” | `design-workflow` | 是 |
-| 计划分解 | “拆任务”“写实施计划” | `planning-workflow` | 是 |
-| 执行开发 | “执行这个任务”“改代码” | `execution-workflow` | 是 |
-| Bug 调查 | “测试失败了”“线上异常” | `debugging-workflow` | 是 |
-| Review 请求 | “帮我 review”“进入评审” | `review-workflow` | 是 |
-| Review 处理 | “按 reviewer 意见修改” | `review-workflow` | 是 |
-| 验证收口 | “确认是否完成”“跑测试” | `verification-workflow` | 是 |
-| 提交发布 | “提交”“push”“开 PR”“发布” | `commit-workflow` | 是 |
-| 状态恢复 | “现在到哪了”“恢复上下文” | `status-memory-workflow` | 按需 |
-| 暂停废弃 | “暂停”“废弃这个任务” | `change-control-workflow` | 是 |
-
-## 工作流契约
-
-| 工作流 | 触发 | 必须输入 | 允许动作 | 禁止动作 | 输出与 gate |
+| 行为 ID | 中文名称 | 触发谓词 | 默认工作流 | Handler | 默认写策略 |
 |---|---|---|---|---|---|
-| `direct-answer-workflow` | 只要解释、建议、临时分析 | 当前消息和必要最小上下文 | 当前会话回答，说明不落盘原因 | 写项目文件、创建任务卡、改状态 | 答案；`needs: none` |
-| `requirements-workflow` | 新增需求、需求澄清、需求结构化 | 用户意图、已有需求或 brief | 写需求草案、AC、NFR、baseline 影响 | 直接改代码或 skill | `requirements_ready` / `ready_for_review` |
-| `change-control-workflow` | 修改已存在需求、方案、任务、gate 或暂停废弃 | 原事实源、变更原因、影响范围 | 追加版本历史、写影响分析、创建/更新 TaskCard | 覆盖旧事实、无 ledger 变更项目状态 | `ready_for_review` / `needs_user_input` |
-| `design-workflow` | 总体方案、模块方案、UI 方案、流程契约方案 | 已批准需求或明确变更任务 | 写正式设计或过程契约，列边界、接口、风险 | 只写孤立方案文件、不进索引 | `ready_for_review` |
-| `planning-workflow` | 拆实施计划或任务 | 已批准需求/设计/brief | 写 plan、task brief、依赖、验证命令 | 执行任务、修改源码 | `plan_ready_for_review` |
-| `execution-workflow` | 用户确认执行已授权任务 | 已批准 task brief、允许范围、测试设计 | Red、最小实现、Green、evidence、report、review checkpoint | 跳号、越权改文件、自批 approved | `ready_for_review` |
-| `debugging-workflow` | bug、失败测试、异常行为 | 复现信息、失败输出、相关调用链 | 复现、根因、修复方案、回归测试 | 猜测式补丁、无根因直接修 | `root_cause_found` / `blocked` |
-| `review-workflow` | 请求 review 或处理 review feedback | review 输入包或 reviewer 反馈 | 独立评审、triage、修复响应 | 作者自批 approved、忽略 Important | `approved` / `changes_requested` |
-| `verification-workflow` | 完成声明、收口检查、回归验证 | 新鲜命令、exit code、evidence 路径 | 跑验证、记录失败/跳过/风险 | 用旧输出宣称通过 | `verification_passed` / `verification_failed` |
-| `commit-workflow` | 本地提交、push、PR、merge、发布 | 人工确认、review、verification、提交范围 | 按范围提交或远端 handoff | 用提交替代 review 或确认 | `commit_done` / `remote_handoff_blocked` |
-| `status-memory-workflow` | 恢复、查看状态、同步记忆 | memory summary、ledger、必要单文件事实源 | 输出会话卡、同步索引摘要 | 散读 docs、把正文复制进 memory | `session_ready` / `blocked` |
+| `SB-EXPLAIN` | 解释 | 只请求解释或建议且不改变项目事实 | `direct-answer-workflow` | `using-shanforge` | `no_project_write` |
+| `SB-CLARIFY` | 澄清 | 澄清目标、边界或验收且结论将成为项目输入 | `requirements-workflow` | `requirements-engineering` | `project_fact_write` |
+| `SB-REQUIREMENT` | 需求 | 新增、拆分或结构化需求 | `requirements-workflow` | `requirements-engineering` | `project_fact_write` |
+| `SB-CHANGE` | 变更 | 修改已存在需求、设计、计划、任务或 Gate | `change-control-workflow` | `using-shanforge` | `state_or_gate_write` |
+| `SB-DESIGN` | 方案 | 形成或修订系统、模块、接口、UI 或流程方案 | `design-workflow` | `using-shanforge` | `project_fact_write` |
+| `SB-PLAN` | 计划 | 将已批准输入拆成实施计划或任务卡 | `planning-workflow` | `writing-plans` | `project_fact_write` |
+| `SB-EXECUTE` | 执行 | 实施已授权 TaskCard | `execution-workflow` | `executing-plans` | `source_or_test_write` |
+| `SB-BUG` | Bug | 已观察失败、异常或回归，需要先查根因 | `debugging-workflow` | `systematic-debugging` | `project_fact_write` |
+| `SB-TEST` | 测试 | 设计或执行单测、集成、黑盒、UI、API 或发布测试 | `testing-workflow` | `verification-before-completion` | `source_or_test_write` |
+| `SB-REVIEW` | Review | 发起独立评审或处理评审意见 | `review-workflow` | `requesting-code-review` | `state_or_gate_write` |
+| `SB-VERIFY` | 验证 | 对完成声明、修复或发布候选执行新鲜验证 | `verification-workflow` | `verification-before-completion` | `state_or_gate_write` |
+| `SB-COMMIT` | 提交 | 本地提交、push、PR、merge 或发布请求 | `commit-workflow` | `gitcommitzh` | `state_or_gate_write` |
+| `SB-STATUS` | 状态查看 | 查看项目位置、任务状态、阻塞或进度 | `status-memory-workflow` | `project-memory` | `no_project_write` |
+| `SB-RESUME` | 恢复 | 恢复中断或压缩后的当前任务上下文 | `status-memory-workflow` | `project-memory` | `state_or_gate_write` |
+| `SB-PAUSE` | 暂停 | 暂停活动任务并记录恢复条件 | `change-control-workflow` | `using-shanforge` | `state_or_gate_write` |
+| `SB-DEPRECATE` | 废弃 | 废弃、取代或终止任务、候选或方案 | `change-control-workflow` | `using-shanforge` | `state_or_gate_write` |
 
-## 节点控制
+## 工作流合同
 
-每个工作流必须显式声明当前节点。节点名称可以按任务细化，但行为边界必须保持一致：
+| 工作流 ID | 写策略 | 优先级 | 触发 | 输入 Schema | 允许动作 | 禁止动作 | 输出 Schema | Ledger event | Evidence | 进入 Gate | 退出 Gate |
+|---|---|---:|---|---|---|---|---|---|---|---|---|
+| `tracking-identity-workflow` | `create_tracking_identity` | 120 | `project_effect=true and tracking_identity_missing` | `behavior_id, proposed_work_item_id, proposed_task_card_id, exact_write_set` | 原子创建 WorkItem、TaskCard、首条 ledger；readback；重新路由 | 写任何业务事实、源码、测试、正式文档或 memory；留下半成品身份 | `status, work_item_id, task_card_id, ledger_event, identity_receipt, next_required_action=reroute` | `tracking_identity_created` | 原子写入、回滚状态与 readback receipt | `identity_absent` | `identity_created_and_readback or blocked` |
+| `direct-answer-workflow` | `no_project_write` | 10 | `project_effect=false` | `message, minimal_context` | 回答、解释、列建议 | 读取项目记忆、写项目文件、改状态 | `answer, needs=none` | N/A: 无项目写入 | N/A: 无项目写入 | `none` | `stopped` |
+| `requirements-workflow` | `project_fact_write` | 50 | `behavior in SB-CLARIFY,SB-REQUIREMENT` | `work_item_id, task_card_id, intent, current_requirement_ref` | 写需求候选、AC、NFR、影响分析 | 改源码、跳过需求 Review、覆盖历史 | `status, requirement_refs, evidence, ledger_event, gate, next_required_action` | `requirement_candidate_updated` | 需求候选路径与结构验证 receipt | `tracking_identity_valid` | `ready_for_review` |
+| `change-control-workflow` | `state_or_gate_write` | 80 | `behavior in SB-CHANGE,SB-PAUSE,SB-DEPRECATE` | `work_item_id, task_card_id, source_ref, reason, impact_scope` | 追加变更、暂停条件、取代关系、影响分析 | 覆盖历史、静默改 Gate、无来源废弃 | `status, change_ref, impact, evidence, ledger_event, gate, next_required_action` | `change_control_recorded` | before-after、影响范围与授权 receipt | `tracking_identity_valid` | `ready_for_review or pending_human_confirmation` |
+| `design-workflow` | `project_fact_write` | 50 | `behavior=SB-DESIGN` | `work_item_id, task_card_id, approved_input_ref, design_scope` | 写受控设计候选、接口、边界、风险 | 写孤立 docs、新建重复正式文档、直接实现 | `status, design_ref, evidence, ledger_event, gate, next_required_action` | `design_candidate_updated` | 候选路径、基线 hash、候选 hash | `approved_input_available` | `ready_for_review` |
+| `planning-workflow` | `project_fact_write` | 50 | `behavior=SB-PLAN` | `work_item_id, task_card_id, approved_requirement_or_design_ref` | 写 plan、TaskCard、依赖、验证命令 | 修改源码、执行计划、自批计划 | `status, plan_ref, task_refs, evidence, ledger_event, gate, next_required_action` | `plan_candidate_updated` | plan 自审与 review input receipt | `approved_input_available` | `plan_ready_for_review` |
+| `execution-workflow` | `source_or_test_write` | 70 | `behavior=SB-EXECUTE` | `work_item_id, task_card_id, approved_plan_ref, allowed_paths, test_design` | Red、最小实现、Green、报告、review input | 越权路径、跳号、自批 approved、跳验证 | `status, outputs, evidence, ledger_event, gate, next_required_action` | `implementation_ready_for_review` | red-green、diff、report 和命令 receipt | `execution_authorized` | `ready_for_review` |
+| `debugging-workflow` | `project_fact_write` | 90 | `behavior=SB-BUG` | `work_item_id, task_card_id, symptom, reproduction_input` | 复现、追踪、根因、最小修复建议 | 猜测式补丁、无根因改行为 | `status, root_cause_ref, evidence, ledger_event, gate, next_required_action` | `root_cause_investigated` | 复现、失败输出与调用链 receipt | `tracking_identity_valid` | `root_cause_found or blocked` |
+| `testing-workflow` | `source_or_test_write` | 60 | `behavior=SB-TEST` | `work_item_id, task_card_id, test_scope, requirement_refs, environment_ref` | 写测试、运行测试、记录环境与结果 | 无需求追踪测试、伪造通过、遗漏清理 | `status, test_ids, results, evidence, ledger_event, gate, next_required_action` | `test_execution_recorded` | 测试 ID、命令、exit code、结果与环境 receipt | `test_scope_authorized` | `test_passed or test_failed` |
+| `review-workflow` | `state_or_gate_write` | 100 | `behavior=SB-REVIEW or gate=needs_independent_review` | `work_item_id, task_card_id, review_input_ref, reviewer_identity` | 独立只读 Review、finding triage、同范围整改回流 | 作者自批、Reviewer 修改实现、忽略 Important | `status, review_ref, findings, evidence, ledger_event, gate, next_required_action` | `independent_review_recorded` | reviewer 独立性、分数、finding 与命令 receipt | `review_package_complete` | `approved or changes_requested` |
+| `verification-workflow` | `state_or_gate_write` | 95 | `behavior=SB-VERIFY or gate=needs_verification` | `work_item_id, task_card_id, claim, commands, evidence_target` | 运行新鲜完整命令、记录失败与未运行项 | 用旧输出宣称完成、以 Review 代替验证 | `status, command_results, evidence, ledger_event, gate, next_required_action` | `verification_recorded` | 命令、exit code、失败数、输出摘要 | `verification_scope_known` | `verification_passed or verification_failed` |
+| `commit-workflow` | `state_or_gate_write` | 110 | `behavior=SB-COMMIT` | `work_item_id, task_card_id, explicit_authorization, review_ref, verification_ref, scope` | 精确暂存、本地提交、受权远端动作 | 混入无关改动、以提交代替 Review、推断远端授权 | `status, commit_ref, evidence, ledger_event, gate, next_required_action` | `commit_or_handoff_recorded` | staged diff、commit receipt 或阻塞原因 | `review_and_verification_passed` | `commit_done or remote_handoff_blocked` |
+| `status-memory-workflow` | `SB-STATUS=no_project_write; SB-RESUME=state_or_gate_write` | 40 | `behavior in SB-STATUS,SB-RESUME` | `project_id, requested_scope, current_task_ref; SB-RESUME 时必须含 work_item_id 和 task_card_id` | 条件读取、会话卡、索引摘要、必要 memory sync | 散读 docs、把正文复制进 memory、凭 summary 改权威状态 | `status, session_card, sources_read, evidence, ledger_event, gate, next_required_action` | `session_restored` 或 N/A: 纯只读状态查看 | N/A: 纯只读查看；恢复写入时必须有 readback receipt | `none` | `session_ready or blocked` |
 
-| 节点 | 进入条件 | 可做 | 不可做 | 下一 gate |
+同一消息如果同时含“修 Bug 并提交”，先按最高安全前置依赖进入 `debugging-workflow`；只有根因、修复、Review 和
+Verification 的 ledger Gate 依次满足后，后续新节点才可进入 `commit-workflow`。优先级用于冲突解析，不能跳过依赖。
+
+## 写入授权矩阵
+
+| 动作类别 | WorkItem | TaskCard | 唯一允许写入 | Ledger | Evidence | Memory 可单独证明 |
+|---|---|---|---|---|---|---|
+| `no_project_write` | 不要求 | 不要求 | 0 次项目写入 | N/A | N/A | 否 |
+| `create_tracking_identity` | 可不存在 | 可不存在 | 单一原子动作创建 WorkItem + TaskCard + 首条 ledger；其他写入 0 次 | 必须 | 创建 receipt 与 readback | 否 |
+| `project_fact_write` | 必须已存在 | 必须已存在 | 仅 TaskCard allowlist 内候选、文档或任务事实 | 必须 | artifact path、before-after 与 hash | 否 |
+| `source_or_test_write` | 必须已存在 | 必须已存在 | 仅 TaskCard allowlist 内源码、Skill 或测试 | 必须 | Red-Green、diff 和命令 receipt | 否 |
+| `state_or_gate_write` | 必须已存在 | 必须已存在 | 仅合法状态转换、review、verification 或提交记录 | 必须 | transition、授权或命令 receipt | 否 |
+
+`create_tracking_identity` 必须在一个可回滚步骤内创建身份并回读。任一对象创建或首条 ledger 失败时全部回滚；
+不得留下只有 WorkItem、只有 TaskCard 或没有首条 ledger 的半成品。完成后重新路由，普通写入不得复用该例外。
+
+对项目事实执行写入时，路由包必须包含具体 `work_item_id`、`task_card_id`、`allowed_paths`、`forbidden_actions`、
+`current_gate` 和 `write_policy`。`待创建`、空值、通配占位或无法在 ledger 回读的 ID 都视为无效。
+
+## 工作流节点与转换
+
+| 工作流 ID | 允许节点 | 合法主路径 | 停止态 | 人工 Gate 规则 |
 |---|---|---|---|---|
-| `intake` | 收到用户消息 | 做会话行为归因，输出路由包 | 写文件 | `routed` |
-| `routed` | 已确定工作流 | 读取最小上下文，确认 WorkItem / TaskCard | 执行实现 | `scoped` |
-| `scoped` | 范围、输入、允许修改清楚 | 写需求、方案或计划，或准备执行 | 越过允许范围 | `ready_for_review` 或 `needs_user_input` |
-| `executing` | 已授权执行任务 | 修改允许范围内文件并记录 evidence | 自批完成、跳过验证 | `ready_for_review` |
-| `reviewing` | 有 review 输入包 | 独立评审或处理反馈 | 用自检代替 review | `approved` 或 `changes_requested` |
-| `verifying` | 有待收口产物 | 跑新鲜验证命令 | 用计划或旧输出当结果 | `verification_passed` 或 `verification_failed` |
-| `human_confirmation` | reviewer approved 或风险需接受 | 请求用户确认 | 自动进入下一阶段 | `human_approved` 或 `human_changes_requested` |
-| `committing` | 人工确认且有可提交改动 | 按范围提交 | 混入无关改动 | `commit_done` |
+| `tracking-identity-workflow` | `identity_intake,identity_scoped,identity_creating,identity_readback,reroute` | `identity_intake -> identity_scoped -> identity_creating -> identity_readback -> reroute` | `reroute,blocked` | ID 冲突或无法原子创建时阻塞；不自动请求业务批准 |
+| `direct-answer-workflow` | `intake,routed,stopped` | `intake -> routed -> stopped` | `stopped` | 不需要人工 Gate |
+| `requirements-workflow` | `intake,routed,scoped,authoring,stopped` | `intake -> routed -> scoped -> authoring -> stopped` | `ready_for_review,needs_user_input,blocked` | 只有产品边界或正式需求批准需要人工 Gate |
+| `change-control-workflow` | `intake,routed,scoped,impact_analysis,stopped` | `intake -> routed -> scoped -> impact_analysis -> stopped` | `ready_for_review,pending_human_confirmation,blocked` | 不可逆废弃、正式基线变更或风险接受需要人工 Gate |
+| `design-workflow` | `intake,routed,scoped,authoring,stopped` | `intake -> routed -> scoped -> authoring -> stopped` | `ready_for_review,needs_user_input,blocked` | 正式设计发布按项目治理进入人工 Gate |
+| `planning-workflow` | `intake,routed,scoped,planning,stopped` | `intake -> routed -> scoped -> planning -> stopped` | `plan_ready_for_review,needs_user_input,blocked` | 仅范围或授权变化需要人工 Gate |
+| `execution-workflow` | `intake,routed,scoped,executing,verifying,stopped` | `intake -> routed -> scoped -> executing -> verifying -> stopped` | `ready_for_review,needs_user_input,blocked` | 普通授权任务内部执行不新增人工 Gate |
+| `debugging-workflow` | `intake,routed,reproducing,investigating,stopped` | `intake -> routed -> reproducing -> investigating -> stopped` | `root_cause_found,needs_user_input,blocked` | 进入行为修复前按当前调试契约确认根因或方案 |
+| `testing-workflow` | `intake,routed,scoped,testing,stopped` | `intake -> routed -> scoped -> testing -> stopped` | `test_passed,test_failed,blocked` | 测试执行本身不新增人工 Gate |
+| `review-workflow` | `intake,routed,reviewing,stopped` | `intake -> routed -> reviewing -> stopped` | `approved,changes_requested,blocked` | 普通任务 Review 不自动进入人工 Gate；仅正式发布或风险接受按项目规则进入 |
+| `verification-workflow` | `intake,routed,verifying,stopped` | `intake -> routed -> verifying -> stopped` | `verification_passed,verification_failed,blocked` | Verification 不能替代已登记的人工 Gate，也不自动创建人工 Gate |
+| `commit-workflow` | `intake,routed,prechecking,committing,stopped` | `intake -> routed -> prechecking -> committing -> stopped` | `commit_done,remote_handoff_blocked,blocked` | 远端、发布或未包含在当前授权中的动作必须显式人工授权 |
+| `status-memory-workflow` | `intake,routed,restoring,stopped` | `intake -> routed -> restoring -> stopped` | `session_ready,blocked` | 只读查看和正常恢复不需要人工 Gate |
 
-## 路由包
+任意节点都可在缺事实时转 `needs_user_input`，在契约、权限、工具或事实冲突时转 `blocked`。只有表中列出的主路径和
+停止态合法；跨 workflow 转移必须由上一 workflow 的 `next_required_action` 和已写 ledger Gate 重新触发路由。
 
-进入项目化工作流前，当前会话必须先展示路由包。最小格式：
+## 路由包与状态包
+
+身份缺失时只能生成一次性身份创建路由包：
 
 ```text
-路由结果：
-- 处理模式：direct_answer | lightweight_analysis | project_workitem | tracked_task | gate | event
-- 会话行为：<解释问答 / 需求变更 / 方案设计 / ...>
-- 工作流：<workflow-id>
-- 当前节点：<node-id>
-- 所属 WorkItem / TaskCard：<ID 或待创建>
-- 允许修改范围：<path list 或 none>
-- 禁止动作：<list>
-- 当前 gate：<none / review / human_confirmation / blocked>
-- 本轮是否落盘：yes | no
+route:
+  route_kind: tracking_identity_intake
+  behavior_id: <preserved SB-*>
+  workflow_id: tracking-identity-workflow
+  node_id: identity_intake
+  proposed_work_item_id: <new non-empty ID>
+  proposed_task_card_id: <new non-empty ID>
+  allowed_paths: <exact WorkItem, TaskCard and ledger paths>
+  forbidden_actions: <all other writes>
+  current_gate: identity_absent
+  write_policy: create_tracking_identity
 ```
 
-如果路由包缺少处理模式、所属 WorkItem / TaskCard、允许修改范围或当前 gate，且本轮会影响项目事实，则不得写文件。
+身份原子创建与 readback 成功后必须使用已回读身份重新路由原始行为。失败时只能回滚并进入 `blocked`，
+不得降级成普通项目写入，也不得把 proposed ID 当成已存在 ID。
 
-## 静默修改和非静默修改
+普通项目化路由包：
 
-静默修改指：未先在当前会话展示路由包，就修改源代码、skill、测试、正式文档、ledger、memory、work item 状态或流程 gate。事后说明“已更新某文件”不能补救静默修改。
+```text
+route:
+  behavior_id: <SB-*>
+  workflow_id: <workflow-id>
+  node_id: <node-id>
+  work_item_id: <existing non-empty ID>
+  task_card_id: <existing non-empty ID>
+  allowed_paths: <exact paths>
+  forbidden_actions: <actions>
+  current_gate: <gate>
+  write_policy: <matrix action class>
+```
 
-非静默修改必须满足：
+工作流返回状态包：
 
-- 修改前展示路由包。
-- 影响源代码、skill、测试、正式文档或流程状态时，绑定 WorkItem / TaskCard。
-- 说明允许修改范围和禁止动作。
-- 写入后有 ledger、evidence、report 或 memory summary 中至少一种可追踪记录。
-- 当前会话返回 outputs、evidence、ledger event、gate 和 next_required_action。
+```text
+result:
+  status: <workflow-local status>
+  outputs: <artifact refs>
+  evidence: <evidence refs or reasoned N/A>
+  ledger_event: <event id or reasoned N/A>
+  gate: <current gate>
+  next_required_action: <one action or none>
+```
 
-讨论结论如果影响项目事实，必须进入对应工作流：
+状态包只报告已发生事实。`ready_for_review` 不是 `approved`，Review 不是 Verification，Verification 不是人工批准，
+本地提交也不授权 push、PR、merge 或发布。
 
-- 改变预期行为：`change-control-workflow`。
-- 新增能力：`requirements-workflow`。
-- 补方案漏洞：`design-workflow`，并反向关联需求或任务。
-- 修复已观察失败：`debugging-workflow`。
-- 拆执行步骤：`planning-workflow`。
+## 发布与运行同步
 
-禁止把方案讨论结果只写成未登记的临时文件；正式方案写入 `docs/` 登记路径，执行事实写入 `.factory/workitems/<WORKITEM-ID>/`，恢复摘要写入 `.factory/memory/`。
+1. 同一独立 Reviewer 复审本候选、结构测试、基线 hash 和候选 hash。
+2. 复审批准后冻结候选 hash，进入正式版本所需的人工治理 Gate；不得把独立 Review 写成人工批准。
+3. Gate 通过后，以单一发布事务原位更新 `docs/05-design/workflow-execution-design.md`，不在 `docs/` 新建第二份文档。
+4. 发布后从正式 `v1.2.0` 同步最小路由边界到相关 runtime Skills，并运行结构、黑盒和相邻流程验证。
+5. 发布、Skill 同步和验证全部成功后才可将 FLOW-TASK-015 推进到最终独立实现 Review。
 
+失败时正式版本保持 `v1.1.0`；候选、review、evidence 和 ledger 留在 `.factory/workitems/FLOW-CONTRACT-001/`
+作为审计记录，不能伪装成已生效合同。
 ## 统一任务包
 
 轻量分析只在当前会话返回结构化答案，不写 `.factory`。项目化任务必须写入 work item，并使用同一身份与证据骨架；`status/needs` 保留执行 Skill 的本地枚举：
@@ -324,7 +324,8 @@ UI 设计或实现必须覆盖：
 
 - Review 不能替代 verification。
 - Verification 不能替代 human confirmation。
-- Reviewer `approved` 后仍必须进入人工确认门，状态进入 `pending_human_confirmation`。
+- Reviewer `approved` 只完成 Review Gate；仅正式发布、风险接受、产品或设计取舍及明确治理条款要求时，
+  才进入 `pending_human_confirmation`。
 - 有 Critical 必须 `changes_requested`。
 - 有 Important 默认 `changes_requested`，除非用户明确接受风险。
 - 缺 evidence、implementer report、review input package 或 ledger event 时，不得声明完成。
@@ -426,7 +427,10 @@ TaskCard 目标覆盖候选、验证、review、人工批准、正式发布、�
 
 固定 Gate 类型为：`entry`、`output_contract`、`verification`、`independent_review`、`human_decision`、`explicit_authorization`、`formalization_release`。每个决定都绑定 subject ID/hash、WorkflowRun/NodeRun、角色/主体实例、证据、时间、有效期、幂等键和 supersedes/corrects 关系。
 
-`ReviewDecision=approved` 只能把 WorkflowRun 推到 `pending_human_confirmation`；不能产生 `HumanDecision`。Critical/Important 未关闭时，除非人类以绑定对象的 `risk_accepted` 明确接受，人工批准 Gate 必须拒绝。人工退回后旧 review 只保留历史资格，任何对象 hash 变化都要求重新验证和 review。
+`ReviewDecision=approved` 只完成独立 Review Gate，不能产生 `HumanDecision`。只有 `GateDecision` 明确返回
+`needs_human_decision` 时才进入 `pending_human_confirmation`；否则按 `next_required_action` 重新路由。
+Critical/Important 未关闭时，除非人类以绑定对象的 `risk_accepted` 明确接受，对应风险 Gate 必须拒绝。
+人工退回后旧 review 只保留历史资格，任何对象 hash 变化都要求重新验证和 review。
 
 PR 授权必须明确包含 `action_kind=create_pull_request`、仓库、源/目标分支、草稿状态、授权人、绑定提交/evidence、有效期和单次/重复策略。“继续”“任务完成”“已提交”“review approved”均不能推导 PR 授权；push、PR、merge 各自是独立授权对象。
 
@@ -1427,3 +1431,4 @@ R019 作者只能把 T01–T06 产物标记为 `ready_for_review`。完整 profi
 |---|---|---|---|---|---|
 | `v1.0.0` | 2026-07-18 | 基于 `TASK-DESIGN-001-R019` 正式落档 | `uroborus` | `uroborus` | `uroborus` |
 | `v1.1.0` | 2026-07-22 | 增补非阻塞状态同步、durable queue、fencing、重试与 Git 权限边界 | `uroborus` | `uroborus` | `uroborus` |
+| `v1.2.0` | 2026-07-27 | 发布完整项目会话归因、13 个工作流、写入授权、节点转换及状态包契约 | `AI_EXECUTOR` | `/root/project_knowledge_review` | `uroborus` |

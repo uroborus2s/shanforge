@@ -1,7 +1,8 @@
 # 任务摘要
 
-- 当前阶段：`TASK-IMPLEMENT-002 DEVELOPMENT IMPLEMENTATION / T01 T02 T03 T04 COMPLETE 4 OF 8 / T05 UNDER REVIEW`
-- 当前焦点：T05 隔离项目进度投影 Worker 已完成实现验证，当前独立 Spec/Quality Review。无人工 Gate，正式产品事实仍为 15/123。
+- 当前阶段：`FLOW-CONTRACT-001 / FLOW-TASK-015 COMMIT GATE`
+- 当前焦点：第 15/15 项实现复审 `approved / 98 / C0-I0-M0`，全部 Finding 关闭；
+  当前只执行按 hunk 精确本地提交，不执行远端动作。
 
 > 历史读取规则：以下所有带日期条目都是记录发生时的历史快照。条目中的“当前”“下一步”只表示当时状态，不得覆盖本文件顶部的当前焦点和当前动作。
 

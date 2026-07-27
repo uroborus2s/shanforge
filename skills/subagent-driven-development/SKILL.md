@@ -7,6 +7,14 @@ description: 有已批准的 Shanforge work item plan，且任务相对独立、
 
 本 skill 用于执行已批准计划。它只负责执行任务、生成 evidence、写 report 和回写状态。
 
+## v1.2.0 运行时路由合同
+
+- `SB-EXECUTE` 进入 `execution-workflow`，`write_policy: source_or_test_write`；子 agent 不重新选择工作流。
+- 每个派发 route 必须有已存在且非空的 `work_item_id`、`task_card_id`，以及精确 `allowed_paths`、
+  `forbidden_actions`、`current_gate`、`write_policy`；只允许该 TaskCard 的隔离写集。
+- 子 agent 返回 `status`、`outputs`、`evidence`、`ledger_event`、`gate`、`next_required_action`；主控汇总
+  并决定后续节点，子 agent 不自批 Review 或扩大范围。
+
 ## 触发
 
 - 已有 `.factory/workitems/<WORKITEM-ID>/plan.md`。

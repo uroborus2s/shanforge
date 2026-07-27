@@ -1,8 +1,13 @@
 # 测试摘要
 
-- 当前阶段：`TASK-IMPLEMENT-002 P001 FINAL PLAN VERIFICATION PASSED / CODE AUTHORIZATION GATE`
-- 当前验证结论：scope/plan/review SHA、8 briefs、11 requirements、结构/边界/JSONL/diff 全部通过；独立 Review `approved / 98 / C0-I0-M0`。产品测试未运行，因为尚未授权或修改本增量产品代码。
+- 当前阶段：`FLOW-TASK-015 COMMIT GATE`
+- 当前验证结论：正式 v1.2.0 与 9 个 runtime Skills 的规定组合 `57 passed`，定向 `8 passed`，
+  Ruff、9/9 Skill validator 和范围 diff check 通过；实现复审 `approved / 98 / C0-I0-M0`。
 
+- 2026-07-27：`FLOW-TASK-015` 正式实施完成 Runtime Red/Green `1 failed, 7 passed -> 8 passed`，
+  规定组合 `57 passed`，Ruff 和 9/9 Skill validator 通过。首轮独立实现 Review
+  `changes_requested / 76 / C0-I3-M0`；旧自动人工 Gate 冲突、测试假通过和状态投影漂移已完成整改，
+  同一 Reviewer 复审已 `approved / 98 / C0-I0-M0`，当前只执行精确本地提交。
 - 2026-07-23：`TASK-IMPLEMENT-003-P001` 项目快照第五轮整改验证通过。项目知识与站点相关回归 `102 passed`；受影响 Python/测试 Ruff 通过；`mypy src` 为 `279 source files` 全通过；Chromium 桌面 1440×900、移动 390×844 的六列看板、每列最近 10 条与“更多”、中文卡片标题、详情页返回、无横向溢出和零 console/page error 全通过；连续两次 snapshot 第二次 cache hit。独立终审 `approved / 96 / C0-I0-M0`。
 - 2026-07-20：`TASK-IMPLEMENT-002-P001` 最终计划验证 exit 0：scope SHA `ec7e2f69…13cfd`、plan SHA `b88d431d…8f8be1`、review SHA `b3363876…eb8f1` 精确匹配；T01–T08 8/8、需求 11/11、UI N/A/测试/命令/边界 8/8、占位 0、staging/release/append-only/quarantine/replay 和整体候选 Review 路径通过，两份 JSONL 与 diff check 通过。未运行产品 pytest/Ruff/mypy/性能测试，原因是本轮为计划任务且无产品代码授权。Evidence：`.factory/workitems/FLOW-CONTRACT-001/evidence/TASK-IMPLEMENT-002-P001-final-plan-verification.md`。
 - 2026-07-20：R001 正式文档激活后验证通过。正式 validator artifacts `6/6`、candidate/formal manifest/root matched、内容验收/授权/激活事件 `1/1/1`、权限边界通过；expect activation `0` 的负向检查按预期以 `activation_event_count_mismatch` 拒绝。全仓 `832 passed / 0 failed / 0 skipped / 0 not_run`，Ruff 0、format 299、mypy 0/236、Skill 38/38、docs-stratego、lock、JSONL、runtime Skill absence 和 diff check 通过。Evidence：`.factory/workitems/FLOW-CONTRACT-001/evidence/TASK-DELIVERY-001-R001-post-activation-verification.md`。

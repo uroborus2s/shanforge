@@ -13,6 +13,35 @@ description: 项目状态查询、任务延续、项目事实修改、阶段切�
 
 # Shanforge 流程总控
 
+## v1.2.0 运行时路由合同
+
+先把当前消息归为唯一 `behavior_id`，再选唯一 `workflow_id`：
+
+| behavior_id | workflow_id | write_policy |
+|---|---|---|
+| `SB-EXPLAIN` | `direct-answer-workflow` | `no_project_write` |
+| `SB-CLARIFY`、`SB-REQUIREMENT` | `requirements-workflow` | `project_fact_write` |
+| `SB-CHANGE`、`SB-PAUSE`、`SB-DEPRECATE` | `change-control-workflow` | `state_or_gate_write` |
+| `SB-DESIGN` | `design-workflow` | `project_fact_write` |
+| `SB-PLAN` | `planning-workflow` | `project_fact_write` |
+| `SB-EXECUTE` | `execution-workflow` | `source_or_test_write` |
+| `SB-BUG` | `debugging-workflow` | `project_fact_write` |
+| `SB-TEST` | `testing-workflow` | `source_or_test_write` |
+| `SB-REVIEW` | `review-workflow` | `state_or_gate_write` |
+| `SB-VERIFY` | `verification-workflow` | `state_or_gate_write` |
+| `SB-COMMIT` | `commit-workflow` | `state_or_gate_write` |
+| `SB-STATUS` | `status-memory-workflow` | `no_project_write` |
+| `SB-RESUME` | `status-memory-workflow` | `state_or_gate_write` |
+
+普通项目写入的 route 必须有已存在且非空的 `work_item_id`、`task_card_id`，以及精确
+`allowed_paths`、`forbidden_actions`、`current_gate`、`write_policy`；缺一项即 `blocked`，memory summary
+不能单独证明身份。身份缺失时只能进入 `tracking-identity-workflow`，输出
+`route_kind: tracking_identity_intake` 与 `write_policy: create_tracking_identity`。在可回滚步骤中原子创建 WorkItem、TaskCard 和首条 ledger，
+完成 readback 后重新路由原始行为；期间禁止其他写入。
+
+工作流结果只报告已发生事实：`status`、`outputs`、`evidence`、`ledger_event`、`gate`、
+`next_required_action`。Review、Verification、人工批准和 Commit 互不替代。
+
 ## 角色
 
 你扮演流程 CTO / 项目协调者，只负责判断流程位置和路由。

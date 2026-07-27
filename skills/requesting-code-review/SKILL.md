@@ -7,6 +7,15 @@ description: 完成任务、阶段性实现、PR 前或需要独立裁判时使�
 
 本 skill 用于把实现成果交给独立 reviewer。它不替代实现者自检，也不替代人工确认。
 
+## v1.2.0 运行时路由合同
+
+- `SB-REVIEW` 进入 `review-workflow`，`write_policy: state_or_gate_write`。
+- 写 review 或 Gate 前，route 必须有已存在且非空的 `work_item_id`、`task_card_id`，以及精确
+  `allowed_paths`、`forbidden_actions`、`current_gate`、`write_policy`。
+- Reviewer 只读实现输入；只追加 review、ledger 和 evidence，不改实现。
+- 返回 `status`、`outputs`、`evidence`、`ledger_event`、`gate`、`next_required_action`；`approved` 不等于
+  Verification 或人工批准。
+
 ## 触发
 
 - 单个 task 实现完成，准备进入任务级 review。

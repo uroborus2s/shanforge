@@ -7,6 +7,16 @@ description: 项目状态查询、任务延续、会话恢复、上下文压缩�
 
 本 skill 负责把一次会话恢复到可执行状态。它不替代具体开发 skill，也不调度实现。
 
+## v1.2.0 运行时路由合同
+
+- `SB-STATUS` 与 `SB-RESUME` 都使用 `status-memory-workflow`；前者 `write_policy: no_project_write`，
+  后者 `write_policy: state_or_gate_write`。
+- `SB-RESUME` 写入前，route 必须有已存在且非空的 `work_item_id`、`task_card_id`，以及精确
+  `allowed_paths`、`forbidden_actions`、`current_gate`、`write_policy`；memory summary 不能单独证明身份。
+- 只读状态查看不写 ledger；恢复写入必须有 readback evidence 和 ledger event。
+- 返回 `status`、`outputs`、`evidence`、`ledger_event`、`gate`、`next_required_action`；缺事实或身份时
+  返回 `blocked`，不猜测。
+
 ## 触发
 
 - 新会话开始。

@@ -51,13 +51,8 @@ description: 完成任务、阶段性实现、PR 前或需要独立裁判时使�
 - Minor 可以登记到后续。
 - 真实独立 reviewer 结论可以是 `approved` 或 `changes_requested`。
 - 不能把 reviewer approved 当成人工确认。
-- loop 结束必须进入 `pending_human_confirmation`。
-- 同线程作者自检只能输出 `self_check_passed`。
-- 禁止把同线程复核写成 `approved`。
-- 同线程作者自检的 review 输出状态只能是 `self_check_passed`。
-- 同线程作者自检后的下一 gate 状态必须是 `needs_independent_review`。
-- 禁止把 `needs_independent_review` 写成 review 通过结论。
-- 没有真实独立 reviewer 证据时，下一 gate 状态必须是 `needs_independent_review`。
+- loop 结束必须输出 `human_confirmation_required` 和原因；只有真实人工 Gate 才进入 `pending_human_confirmation`。
+- 同线程作者自检只能输出 `self_check_passed`，下一 gate 必须是 `needs_independent_review`，不得写成 `approved` 或 review 通过。
 - `approved` 必须带 `reviewer_type`、`reviewer_id` 和 `reviewer_independence_evidence`。
 
 ## 默认流程
@@ -71,7 +66,16 @@ description: 完成任务、阶段性实现、PR 前或需要独立裁判时使�
 7. 发现 Critical 或 Important 时，结论写 `changes_requested`。
 8. 无阻塞问题且有真实独立 reviewer 证据时，结论才可以写 `approved`。
 9. 写入 review 文件和 `.factory/memory/review-ledger.jsonl`。
-10. loop 结束时，只有真实独立 review `approved` 才能把 work item ledger 写为 `pending_human_confirmation`。
+10. reviewer 返回 `changes_requested` 时，先判断是否能在原目标、允许文件和风险边界内进入同范围整改循环；能修复就继续，不为每轮整改请求人工确认。
+11. loop 结束时写明 `human_confirmation_required: true | false` 和 `gate_reason`。只有真实人工 Gate 才写 `pending_human_confirmation`；普通任务 review 通过则返回流程总控继续既有授权范围内的验证、后续任务或收口。
+
+## 只读评审与同范围整改
+
+- 只读独立评审是已授权任务的内部质量动作。任务已授权且 reviewer 只读取任务输入包时，无需为只读派发单独请求人工授权。
+- review 派发不扩大原授权范围，也不得授权 reviewer 修改代码、正式文档、ledger、Git 或外部系统。
+- `changes_requested` 中的技术 Finding 可以在原目标、允许文件和风险边界内修复时，自动进入同范围整改循环并交同一 reviewer 复审。
+- Finding 需要产品取舍、风险接受、新文件或新系统范围、忽略 Critical/Important，或破坏性或外部动作时，才设置 `human_confirmation_required: true`。
+- reviewer `approved` 只代表独立质量结论，不能冒充 `human_approved`；但也不自动制造人工确认 Gate。
 
 ## 独立性硬门
 
@@ -81,12 +85,11 @@ description: 完成任务、阶段性实现、PR 前或需要独立裁判时使�
 - `same_thread` 表示当前会话作者自检，不是真实独立评审。
 - 作者自检不能 `approved`。
 - 同线程作者自检只能输出 `self_check_passed`，只能写 `author_self_check_score`，不得写 `review_score`。
-- 禁止把同线程复核写成 `approved`。
 - 同线程作者自检的 review 输出状态只能是 `self_check_passed`。
 - 同线程作者自检后的下一 gate 状态必须是 `needs_independent_review`。
 - 禁止把 `needs_independent_review` 写成 review 通过结论。
 - 没有真实独立 reviewer 证据时，下一 gate 状态必须是 `needs_independent_review`。
-- 需要子 agent 但用户未授权时，必须停止并请求授权。
+- 只读 reviewer 已包含在用户授权任务的内部质量范围时，无需重复请求子 agent 授权；若 reviewer 需要写入、访问外部系统或超出输入包，必须停止并请求授权。
 - 没有独立证据时，禁止写 `pending_human_confirmation`。
 
 ## N/A 审查门
@@ -116,13 +119,15 @@ description: 完成任务、阶段性实现、PR 前或需要独立裁判时使�
 
 ## 完成状态
 
-本 skill 的完成状态是 review 文件和 ledger 事件已写入，并输出标准状态包。没有独立评审证据时，`status` 只能是 `self_check_passed`，`next_gate_status` 必须是 `needs_independent_review`。是否进入下一阶段，由人工确认门和流程总控决定。
+本 skill 的完成状态是 review 文件和 ledger 事件已写入，并输出标准状态包。没有独立评审证据时，`status` 只能是 `self_check_passed`，`next_gate_status` 必须是 `needs_independent_review`。是否继续内部流程或进入真实人工 Gate，由授权范围和流程总控决定。
 
 ```text
 工作结果：
 - work_item: <WORKITEM-ID>
 - skill: requesting-code-review
 - status: approved | changes_requested | self_check_passed | blocked | needs_user_input
+- human_confirmation_required: true | false
+- gate_reason: <none | product_decision | risk_acceptance | scope_expansion | destructive_or_external_action | governance_gate>
 - outputs:
   - <review file path>
 - evidence:
@@ -134,4 +139,4 @@ description: 完成任务、阶段性实现、PR 前或需要独立裁判时使�
 
 `blocked` 用于缺 task brief、implementer report、verification evidence、diff package、reviewer 独立性证据或 ledger 写入能力，导致不能给出可信 review 结论的情况。
 
-`needs_user_input` 用于 review 类型、授权子 agent、N/A 风险接受、review 范围或外部 reviewer 身份必须由用户确认的情况。
+`needs_user_input` 用于 review 类型、N/A 风险接受、review 范围或外部 reviewer 身份必须由用户确认的情况。已授权任务内的独立只读 reviewer 派发不属于该状态。

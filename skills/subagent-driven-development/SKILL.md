@@ -41,6 +41,15 @@ description: 有已批准的 Shanforge work item plan，且任务相对独立、
 - 实现报告：`.factory/workitems/<WORKITEM-ID>/reports/`
 - 评审输出：`.factory/workitems/<WORKITEM-ID>/reviews/`
 
+## 授权执行包
+
+主控必须先把用户批准范围固化为授权执行包：目标、任务集合、依赖层、允许文件、共享契约、允许动作、禁止动作、验证命令、同范围整改边界和真实人工 Gate。
+
+- 批次内任务按依赖层连续推进；不要逐项请求继续。
+- 普通 task checkpoint 不是人工 Gate。子任务返回、evidence、report 和 review input 只是内部状态，不应变成用户确认请求。
+- 授权范围不得扩大。子 agent 和主控都不能从“继续执行”推导新文件、新系统或新外部动作权限。
+- 只有需要人类产品决策、超出允许文件范围、需要风险接受，或将执行未授权的破坏性或外部动作时，才停止并升级。
+
 ## 任务 gate
 
 - 执行前必须确认 task brief 已授权；不跳过 dependencies，不提前进入后续依赖层。
@@ -146,6 +155,10 @@ description: 有已批准的 Shanforge work item plan，且任务相对独立、
 - work_item: <ID>
 - skill: subagent-driven-development
 - status: ready_for_review | blocked | needs_user_input
+- project_position: <step / total / stage / task>
+- completion_level: none | task | stage | project
+- stop_reason: <none | blocker | human_gate>
+- scope_remaining: <授权执行包内剩余任务>
 - outputs:
   - <path>
 - evidence:
@@ -157,4 +170,4 @@ description: 有已批准的 Shanforge work item plan，且任务相对独立、
 
 ## 完成状态
 
-本 skill 的单任务完成条件是：实现报告存在，验证证据存在，review input package 存在，ledger 和 memory 已同步，状态已回写为 `ready_for_review`。`approved` 和 `done` 由流程总控、独立评审、验证和人工确认共同决定。
+本 skill 的单任务完成条件是：实现报告存在，验证证据存在，review input package 存在，ledger 和 memory 已同步，状态已回写为 `ready_for_review`。质量结论由流程总控根据独立评审和验证证据判断；只有 `human_confirmation_required: true` 且有完整 `gate_reason` 时，人工确认才参与任务批准或收口。普通授权任务不得额外制造人工 Gate。

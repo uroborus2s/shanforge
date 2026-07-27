@@ -31,6 +31,15 @@ description: 有 written implementation plan 但不使用子 agent，或需要�
 - reports：`.factory/workitems/<WORKITEM-ID>/reports/`
 - reviews：`.factory/workitems/<WORKITEM-ID>/reviews/`
 
+## 授权执行包
+
+开始前把用户已批准输入固化为授权执行包：目标、任务集合、允许文件、允许动作、禁止动作、验证命令、同范围整改边界和真实人工 Gate。
+
+- 授权执行包覆盖的任务按依赖顺序连续执行；不要逐项请求继续。
+- 普通 task checkpoint 不是人工 Gate。写完 evidence、report 和 review input 后继续批次内剩余任务，或把状态事实交回主流程自动路由。
+- 授权范围不得扩大。新目标、新文件范围、新系统写入或新风险处置必须停止并报告。
+- 独立评审、验证和同范围整改是否继续，由授权执行包和流程总控判断；本 skill 不自行扩大权限。
+
 ## 任务 gate
 
 - 执行前必须确认当前 task brief 是已授权的唯一任务；不并发、不跳号、不提前进入后续任务。
@@ -52,10 +61,11 @@ description: 有 written implementation plan 但不使用子 agent，或需要�
 9. 每个任务后写 evidence。
 10. 每个任务后写 implementer report。
 11. 每个任务后设置 review checkpoint。
-12. 写入状态回写包，说明 outputs、evidence、ledger event 和 `needs`。
-13. 更新 `.factory/workitems/<WORKITEM-ID>/ledger.jsonl`，状态只能是 `ready_for_review`、`blocked` 或 `needs_user_input`。
-14. 更新 `.factory/memory/tasks.summary.md`、`tests.summary.md` 和必要 summary。
-15. 所有任务完成后，交还 `using-shanforge` 判断验证、评审、人工确认、提交或 PR 闭环。
+12. 若授权执行包仍有无阻塞任务，继续执行，不向用户逐项请求确认。
+13. 批次完成、出现真实 blocker 或需要人类决策时，写入状态回写包，说明 outputs、evidence、ledger event、`project_position`、`stop_reason` 和 `needs`。
+14. 更新 `.factory/workitems/<WORKITEM-ID>/ledger.jsonl`，状态只能是 `ready_for_review`、`blocked` 或 `needs_user_input`。
+15. 更新 `.factory/memory/tasks.summary.md`、`tests.summary.md` 和必要 summary。
+16. 所有任务完成后，交还 `using-shanforge` 判断验证、评审、人工确认、提交或 PR 闭环。
 
 ## Inline 执行规则
 
@@ -74,11 +84,15 @@ description: 有 written implementation plan 但不使用子 agent，或需要�
 - 缺依赖或缺文件。
 - 验证反复失败。
 - 发现当前任务会越过分层或文件边界。
-- 需要用户产品决策。
+- 需要人类产品决策、需求取舍、风险接受或授权扩展。
+- 超出允许文件范围、目标范围或已批准任务集合。
+- 将执行破坏性或外部动作，但授权执行包没有明确授权。
 - 当前分支是 main/master 且用户未明确允许直接开发。
 - 任务进入 `BLOCKED`。
 
 STOP 后写清楚 blocker、已尝试动作、下一步需要什么。禁止猜测。
+
+验证、evidence、implementer report、review input 或普通 task checkpoint 完成不是 STOP 条件。只要仍在授权执行包内且没有真实 blocker，就继续内部流程。
 
 ## Review Checkpoint
 
@@ -125,6 +139,10 @@ STOP 后写清楚 blocker、已尝试动作、下一步需要什么。禁止猜�
 - work_item: <ID>
 - skill: executing-plans
 - status: ready_for_review | blocked | needs_user_input
+- project_position: <step / total / stage / task>
+- completion_level: none | task | stage | project
+- stop_reason: <none | blocker | human_gate>
+- scope_remaining: <授权执行包内剩余任务>
 - outputs:
   - <path>
 - evidence:

@@ -22,15 +22,16 @@ def test_requesting_code_review_forbids_same_thread_approved() -> None:
     skill = read("skills/requesting-code-review/SKILL.md")
 
     assert "同线程作者自检只能输出 `self_check_passed`" in skill
-    assert "禁止把同线程复核写成 `approved`" in skill
+    assert "同线程作者自检只能输出 `self_check_passed`" in skill
+    assert "不得写成 `approved` 或 review 通过" in skill
     assert (
-        "没有真实独立 reviewer 证据时，下一 gate 状态必须是 "
-        "`needs_independent_review`"
+        "没有真实独立 reviewer 证据时，下一 gate 状态必须是 `needs_independent_review`"
     ) in skill
-    assert "需要子 agent 但用户未授权时，必须停止并请求授权" in skill
+    assert "无需重复请求子 agent 授权" in skill
+    assert "若 reviewer 需要写入、访问外部系统或超出输入包，必须停止并请求授权" in skill
+    assert "需要子 agent 但用户未授权时，必须停止并请求授权" not in skill
     assert (
-        "approved` 必须带 `reviewer_type`、`reviewer_id` "
-        "和 `reviewer_independence_evidence`"
+        "approved` 必须带 `reviewer_type`、`reviewer_id` 和 `reviewer_independence_evidence`"
     ) in skill
     assert "单线程 fallback" not in skill
 
@@ -56,16 +57,18 @@ def test_review_rubric_requires_independence_metadata_for_score() -> None:
     assert "没有 reviewer 独立性证据时，不得写 `approved`" in rubric
 
 
-def test_workflow_plan_makes_independent_review_a_hard_gate() -> None:
-    plan = read(
-        "docs/04-project-development/05-development-process/superpowers-workflow-integration-plan.md"
-    )
+def test_workflow_plan_separates_review_verification_and_true_human_gates() -> None:
+    contract = read("docs/05-design/workflow-execution-design.md")
+    controller = read("skills/using-shanforge/SKILL.md")
 
-    assert "same_thread 只能产生 `self_check_passed`" in plan
-    assert "approved 必须来自真实独立 reviewer" in plan
-    assert "reviewer_type / reviewer_id / reviewer_independence_evidence" in plan
-    assert "未获授权创建子 agent 时，必须停在 `needs_independent_review`" in plan
-    assert "没有独立评审证据，不得进入 `pending_human_confirmation`" in plan
+    assert "Review 不能替代 verification" in contract
+    assert "Verification 不能替代 human confirmation" in contract
+    assert "作者只能推进到 `ready_for_review`" in contract
+    assert "不得自批 `approved`" in contract
+    assert "reviewer `approved` 不自动等于 `pending_human_confirmation`" in controller
+    assert "只有下列情况才能写 `pending_human_confirmation` 并停止" in controller
+    assert "需要产品或需求取舍" in controller
+    assert "将执行破坏性或外部动作" in controller
 
 
 def test_current_sf_sp_007_latest_review_status_requires_independent_review() -> None:
@@ -73,8 +76,7 @@ def test_current_sf_sp_007_latest_review_status_requires_independent_review() ->
     review_events = [
         event
         for event in events
-        if event.get("action")
-        in {"loop_iteration_completed", "review_independence_correction"}
+        if event.get("action") in {"loop_iteration_completed", "review_independence_correction"}
     ]
 
     latest = review_events[-1]
@@ -131,14 +133,12 @@ def test_review_ledger_corrections_override_same_thread_approvals() -> None:
     assert independent_rereview_by_workitem["SF-SP-005"]["status"] == "approved"
     assert independent_rereview_by_workitem["SF-SP-005"]["score"] == 92
     assert (
-        independent_rereview_by_workitem["SF-SP-005"]["next_status"]
-        == "pending_human_confirmation"
+        independent_rereview_by_workitem["SF-SP-005"]["next_status"] == "pending_human_confirmation"
     )
     assert independent_rereview_by_workitem["SF-SP-006"]["status"] == "approved"
     assert independent_rereview_by_workitem["SF-SP-006"]["score"] == 95
     assert (
-        independent_rereview_by_workitem["SF-SP-006"]["next_status"]
-        == "pending_human_confirmation"
+        independent_rereview_by_workitem["SF-SP-006"]["next_status"] == "pending_human_confirmation"
     )
 
     for workitem in ("SF-SP-005", "SF-SP-006", "SF-SP-007"):

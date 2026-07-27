@@ -1,6 +1,6 @@
-# Stratix 运行时事实
+# Stratix 运行时规范
 
-本页记录 `/Users/uroborus/NodeProject/wps/obsync-root` 当前源码行为。处理其他版本时重新核对对应源码。
+业务项目按本页理解启动、配置、discovery、DI 和数据库边界，不需要读取框架源码。
 
 ## 启动链路
 

@@ -87,15 +87,3 @@ pnpm exec stratix start --type web --config ./src/stratix.config.ts
 ```
 
 发布结论必须来自当前目标版本的新鲜执行，不继承 `reports/` 中的历史失败或通过。
-
-## 框架仓库
-
-在 `/Users/uroborus/NodeProject/wps/obsync-root` 修改框架本身时先用包级命令，发布前再跑根门：
-
-```bash
-pnpm run typecheck:supported
-pnpm run test:supported
-pnpm run build:supported
-pnpm run docs:validate
-pnpm run quality:release
-```

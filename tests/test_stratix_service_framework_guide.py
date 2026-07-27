@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
@@ -10,21 +11,42 @@ def read(path: str) -> str:
     return (SKILL_ROOT / path).read_text(encoding="utf-8")
 
 
-def test_skill_requires_source_backed_application_guide() -> None:
+def test_skill_bundles_norms_without_runtime_source_reading() -> None:
     skill = read("SKILL.md")
-    sources = read("references/source-locations.md")
+    runtime_paths = [
+        SKILL_ROOT / "SKILL.md",
+        *(
+            path
+            for root in ("agents", "references")
+            for path in (SKILL_ROOT / root).rglob("*")
+            if path.is_file()
+        ),
+    ]
+    runtime_material = "\n".join(
+        path.read_text(encoding="utf-8", errors="ignore") for path in sorted(runtime_paths)
+    )
+
+    forbidden_patterns = (
+        r"/Users/",
+        r"packages/(?:create|core|forge|database|testing)/(?:src|templates)/",
+        r"docs/03-developer-guide/",
+    )
+    forbidden_instructions = (
+        "先读 [source locations",
+        "再按任务回源",
+        "回源对应源码",
+        "处理其他版本时重新核对对应源码",
+        "以目标版本的源码与类型为准",
+    )
+
+    assert all(re.search(pattern, runtime_material) is None for pattern in forbidden_patterns)
+    assert all(instruction not in runtime_material for instruction in forbidden_instructions)
+    assert any(path.name == "application-development.md" for path in runtime_paths)
 
     assert "references/application-development.md" in skill
-    assert "/Users/uroborus/NodeProject/wps/obsync-root" in sources
-    for source in (
-        "packages/create/src/template/generated-files.ts",
-        "packages/forge/templates/resources/module",
-        "packages/core/src/utils/environment/env.ts",
-        "packages/database/src/config/base-repository.ts",
-        "docs/03-developer-guide/应用后端开发/database-crud.md",
-        "docs/03-developer-guide/应用后端开发/from-crud-to-modules.md",
-    ):
-        assert source in sources
+    assert "业务项目直接遵循本 skill 的规范" in skill
+    assert "references/source-locations.md" not in skill
+    assert not (SKILL_ROOT / "references" / "source-locations.md").exists()
 
 
 def test_application_guide_has_current_stratix_config_template() -> None:
@@ -104,5 +126,5 @@ def test_references_reject_removed_or_stale_configuration_contracts() -> None:
     )
 
     assert "applicationAutoDI" not in references
-    assert "--key \"$STRATIX_ENCRYPTION_KEY\"" not in references
+    assert '--key "$STRATIX_ENCRYPTION_KEY"' not in references
     assert "core 运行时直接把 key 字符串作为字节使用" not in references

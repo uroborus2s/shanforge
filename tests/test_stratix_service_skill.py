@@ -14,7 +14,6 @@ def read_skill_file(path: str) -> str:
 def test_skill_is_renamed_and_uses_current_toolchain() -> None:
     content = read_skill_file("SKILL.md")
     cli = read_skill_file("references/cli-workflow.md")
-    sources = read_skill_file("references/source-locations.md")
     frontmatter = content.split("---", 2)[1]
 
     assert not OLD_SKILL_ROOT.exists()
@@ -22,19 +21,15 @@ def test_skill_is_renamed_and_uses_current_toolchain() -> None:
     assert "stratix-nodejs-backend" not in content
     assert "npm view @stratix/create dist-tags --json" in cli
     assert "npm view @stratix/forge dist-tags --json" in cli
-    assert "目标项目实际版本" in content
+    assert "目标项目只需确认已安装版本和 CLI 能力" in content
     assert "create-stratix" in content
     assert "不使用旧单包 `@stratix/cli`" in cli
-    assert "@stratix/core@1.1.2" in sources
-    assert "@stratix/forge@1.1.4" in sources
 
 
-def test_cli_workflow_covers_obsync_root_and_end_to_end_development() -> None:
+def test_cli_workflow_covers_project_end_to_end_development() -> None:
     content = read_skill_file("references/cli-workflow.md")
 
     for phrase in (
-        "/Users/uroborus/NodeProject/wps/obsync-root",
-        "pnpm run quality:release",
         "create-stratix app api demo-api",
         "create-stratix plugin data @demo/data-plugin",
         "stratix add preset database",
@@ -47,6 +42,8 @@ def test_cli_workflow_covers_obsync_root_and_end_to_end_development() -> None:
         "发布结论必须来自当前目标版本的新鲜执行",
     ):
         assert phrase in content
+
+    assert "## 框架仓库" not in content
 
 
 def test_plugin_selection_rejects_removed_tasks_preset() -> None:
@@ -163,18 +160,20 @@ def test_default_api_examples_use_minimal_testing_preset() -> None:
     assert "app api demo-api --preset database,testing" not in combined
 
 
-def test_implementation_requires_source_backed_current_contracts() -> None:
+def test_implementation_uses_bundled_normative_contracts() -> None:
     content = read_skill_file("SKILL.md")
 
     for phrase in (
-        "source locations",
+        "规范入口",
         "application development",
-        "源码、生成模板、导出类型和正式指南不一致时",
-        "目标版本的源码与类型为准",
+        "业务项目直接遵循本 skill 的规范",
+        "不要求业务项目读取 Stratix 框架源码",
         "repository -> service -> controller",
         "BaseRepository.query()",
     ):
         assert phrase in content
+
+    assert "source-locations.md" not in content
 
 
 def test_latest_production_report_is_current_not_stale() -> None:
@@ -226,7 +225,7 @@ def test_openai_metadata_points_to_new_skill_name() -> None:
     assert "Use $stratix-service" in content
     assert "$stratix-nodejs-backend" not in content
     for phrase in (
-        "installed framework sources",
+        "bundled Stratix contracts",
         "config",
         "module",
         "three-layer",

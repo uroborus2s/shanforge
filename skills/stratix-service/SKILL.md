@@ -5,11 +5,11 @@ description: 使用 Stratix 工具链开发、重构、调试和评审 Stratix �
 
 # Stratix Service
 
-按真实框架源码、生成模板、类型声明和应用后端指南开发 Stratix 项目。不要凭其他框架经验补 Nest 风格模块、配置服务或数据访问层。
+本 skill 已把 Stratix 框架实现提炼为可复用开发规范。业务项目直接遵循本 skill 的规范，不要求业务项目读取 Stratix 框架源码，也不要凭其他框架经验补 Nest 风格模块、配置服务或数据访问层。
 
-## 事实源
+## 规范入口
 
-先读 [source locations](references/source-locations.md)，再按任务读取：
+按任务读取：
 
 - 新建或修改 API、模块、Controller、Service、Repository、Kysely：必须读 [application development](references/application-development.md)。
 - 读取环境、测试模式、`STRATIX_ENCRYPTION_KEY`、加解密：必须读 [environment config](references/environment-config.md)。
@@ -18,7 +18,7 @@ description: 使用 Stratix 工具链开发、重构、调试和评审 Stratix �
 - 启动、discovery、DI 或插件 token 排错：读 [runtime realities](references/runtime-realities.md)。
 - Stratix `app web-admin`、`admin-page`、`admin-crud` 的前端页面交给 `stratix-admin-web`；本 skill 只负责其后端接口和服务。
 
-可访问 `/Users/uroborus/NodeProject/wps/obsync-root` 时，先核对目标项目实际版本，再回源对应源码；reference 只是导航和已核实范例。源码、生成模板、导出类型和正式指南不一致时，以目标版本的源码与类型为准，并明确记录差异。
+框架源码只在维护本 skill 时用于重新提炼和验证规范，调查记录放 work item evidence，不作为业务开发步骤。目标项目只需确认已安装版本和 CLI 能力；若版本不支持本规范，报告兼容性问题并升级或固定版本，不让各项目自行研究源码后形成不同规则。
 
 ## 默认流程
 
@@ -57,7 +57,7 @@ description: 使用 Stratix 工具链开发、重构、调试和评审 Stratix �
 
 | 场景 | 最小验证 |
 |---|---|
-| 解释 / 评审 | 核对实际版本、生成模板和目标 API 导出。 |
+| 解释 / 评审 | 核对实际版本和项目代码是否遵守本规范。 |
 | 局部实现 | 相关测试、`pnpm exec stratix doctor`、`pnpm build`。 |
 | 模块变更 | 再跑 `stratix doctor modules` 和模块测试。 |
 | API 契约 | 再跑目标 inject/contract test 与 OpenAPI 生成。 |
@@ -67,7 +67,7 @@ description: 使用 Stratix 工具链开发、重构、调试和评审 Stratix �
 
 ## 输出
 
-说明实际版本、回源文件、选择的 template/preset、修改路径、分层链路、执行命令和真实结果。
+说明实际版本、选择的 template/preset、修改路径、分层链路、执行命令和真实结果。
 
 ```text
 工作结果：
@@ -83,4 +83,4 @@ description: 使用 Stratix 工具链开发、重构、调试和评审 Stratix �
   - review | verification | user_input | none
 ```
 
-项目化执行时沿用 [工作 Skill 回写契约](../using-shanforge/references/work-skill-return-contract.md)。
+项目化执行时，沿用 [工作 Skill 回写契约](../using-shanforge/references/work-skill-return-contract.md)；本 skill 的现有专业输出和失败语义不变。

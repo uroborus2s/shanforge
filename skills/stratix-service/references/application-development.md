@@ -1,6 +1,6 @@
 # Stratix 应用开发规范
 
-本页以 `/Users/uroborus/NodeProject/wps/obsync-root` 当前生成模板、导出类型和应用后端指南为依据，给出从配置、业务域到 Kysely SQL 的最小完整链路。
+本页定义所有 Stratix 业务项目应遵守的配置、业务域和 Kysely SQL 开发规范。
 
 ## 目录
 

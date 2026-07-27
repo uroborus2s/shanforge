@@ -1,4 +1,4 @@
 interface:
   display_name: "Stratix Service"
-  short_description: "按真实源码开发和评审 Stratix 后端服务"
-  default_prompt: "Use $stratix-service to implement this Stratix backend from the installed framework sources, following its config, module, three-layer, and Kysely contracts."
+  short_description: "按统一规范开发和评审 Stratix 后端服务"
+  default_prompt: "Use $stratix-service to implement this backend by following its bundled Stratix contracts for config, modules, three-layer design, and Kysely."

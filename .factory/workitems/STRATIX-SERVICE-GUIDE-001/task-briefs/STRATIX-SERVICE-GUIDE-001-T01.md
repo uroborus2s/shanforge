@@ -1,7 +1,7 @@
 # STRATIX-SERVICE-GUIDE-001-T01
 
 - task_type：skill correction
-- 状态：`in_progress`
+- 状态：`approved_ready_for_local_commit`
 - 用户反馈：现有 `stratix-service` 未按 Stratix 使用指南与真实框架代码组织，缺少配置、运行时取值、模块配置及 API 到 Kysely 的完整链路。
 - work_item_id：`STRATIX-SERVICE-GUIDE-001`
 - task_card_id：`STRATIX-SERVICE-GUIDE-001-T01`
@@ -9,6 +9,11 @@
   - `skills/stratix-service/**`
   - `tests/test_stratix_service_framework_guide.py`
   - `tests/test_stratix_service_skill.py`
+  - `tests/test_work_skill_status_envelope_ownership.py` 的 `stratix-service`
+    候选哈希行
+  - `.factory/memory/review-ledger.jsonl` 的本任务复审事件
+  - `.factory/memory/skill-updates.summary.md` 与
+    `.factory/memory/tasks.summary.md` 的本任务当前摘要行
   - `.factory/workitems/STRATIX-SERVICE-GUIDE-001/**`
 - forbidden_actions：
   - 不修改 `/Users/uroborus/NodeProject/wps/obsync-root`

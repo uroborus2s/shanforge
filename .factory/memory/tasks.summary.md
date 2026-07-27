@@ -1,10 +1,14 @@
 # 任务摘要
 
-- 当前阶段：`ENTERPRISE-AI-DELIVERY-001 / EAD-TASK-002`
-- 当前焦点：EAD-TASK-002 独立复审和最终验证通过，待精确本地提交。
+- 当前阶段：`ENTERPRISE-AI-DELIVERY-001 / EAD-TASK-003`
+- 当前焦点：T03 已批准待客户岗位确认；候选先本地提交。
 
 > 历史读取规则：以下所有带日期条目都是记录发生时的历史快照。条目中的“当前”“下一步”只表示当时状态，不得覆盖本文件顶部的当前焦点和当前动作。
 
+- 2026-07-27：T03 已定义 6 个岗位、14 个 RACI 活动和 6 类门禁；
+  首轮评审 `84 / C0-I1-M1` 的两项 Finding 已关闭，Iteration 2 独立复审
+  `approved / 100 / C0-I0-M0`。候选待客户确认角色映射、决策权和五组强制
+  actor 分离；确认前不得激活或进入依赖真实角色映射的 T04 执行。
 - 2026-07-27：T02 Iteration 4 独立复审 `approved / 98 / C0-I0-M1`；
   陈旧字段计数 Minor 已修正，最终验证通过，当前
   `approved_ready_for_local_commit`，WorkItem 保持开放。

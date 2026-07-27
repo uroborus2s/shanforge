@@ -41,7 +41,7 @@
 - 周报看板字段模型。
 - 每类 Agent 的输入、输出、人审门禁和失败条件。
 
-### EAD-TASK-003 多岗位协同与流程门禁设计
+### EAD-TASK-003 多岗位协同与流程门禁设计（approved_pending_customer_confirmation）
 
 输出：
 

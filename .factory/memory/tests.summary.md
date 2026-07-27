@@ -1,10 +1,13 @@
 # 测试摘要
 
-- 当前阶段：`ENTERPRISE-AI-DELIVERY-001 / EAD-TASK-002`
-- 当前验证结论：T02 6 类模型、6 类 Agent、12 个审计字段、45 条封闭转移、
-  4 个状态负例、5 个治理负例、Ruff、work item/review ledger、memory scope 和
-  diff check 通过；Iteration 4 独立复审 `approved / 98 / C0-I0-M1`。
+- 当前阶段：`ENTERPRISE-AI-DELIVERY-001 / EAD-TASK-003`
+- 当前验证结论：T03 6 roles、14 RACI、6 gates、T02 45 transitions、
+  Gate 6 transitions、5 authority negative cases、5 separation cases、Ruff 和
+  diff check 通过；独立复审 `approved / 100 / C0-I0-M0`。
 
+- 2026-07-27：T03 最终验证通过：Validator 回读 T02 的 45 条状态转移，
+  验证 6 条 Gate 子集、5 个权限负例和 5 组职责分离负例；Ruff、JSONL、
+  memory 边界和 diff check 通过，候选保持 `pending_customer_confirmation`。
 - 2026-07-27：T02 最终验证通过：validator、4+5 负例、golden digest、Ruff、
   work item/review ledger、收口契约、current-state 边界和 diff check 均通过。
 - 2026-07-27：T02 Iteration 3 整改验证通过：唯一 `data` canonical payload 与

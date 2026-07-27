@@ -1,40 +1,37 @@
 # 当前状态
 
 - 当前模式：`codex_desktop`
-- 当前阶段：`ENTERPRISE-AI-DELIVERY-001 / EAD-TASK-002`
+- 当前阶段：`ENTERPRISE-AI-DELIVERY-001 / EAD-TASK-003`
 - 活跃任务数：1
-- 阻塞项数：0
-- 当前 Gate：`approved_ready_for_exact_local_commit`
-- 停止原因：无
+- 阻塞项数：1
+- 当前 Gate：`customer_role_authority_and_segregation_confirmation`
+- 停止原因：客户尚未确认六角色 actor 映射、决策权和五组强制分离
 
 ## 活跃任务
 
-- `EAD-TASK-002`：Iteration 4 独立复审通过，最终验证通过，待精确本地提交。
+- `EAD-TASK-003`：独立复审 100 分通过，候选待客户岗位授权确认。
 
 ## 阻塞项
 
-- 无。
+- `EAD-TASK-003` 激活与依赖真实角色映射的 T04 执行等待客户确认。
 
 ## 最近事实
 
-- 用户已批准最小路径，EAD-TASK-001 由本地提交 `314983e` 收口。
-- Iteration 4 独立复审 `approved / 98 / C0-I0-M1`，Minor 已修正。
-- T02 已补齐 6 类模型、稳定 actor/版本审计、唯一 `data`、RFC 8785 digest、
-  golden digest、45 条封闭转移、
-  4 个状态负例和 5 个治理负例。
-- 契约、work item/review ledger、memory scope 和 diff check 验证通过。
-- 数据库、API、UI 和外部系统集成均为 N/A。
-- T03–T05 未启动，WorkItem 保持开放。
+- T01 提交 `314983e`、T02 提交 `f5ed0e4` 已完成。
+- T03 Iteration 2 独立复审为 `approved / 100 / C0-I0-M0`。
+- Validator 回读 T02 的 45 条转移，并覆盖 5 个权限负例和 5 组职责分离负例。
+- 真实 actor 映射尚未确认，候选不生效。
+- T04–T05 未启动，WorkItem 保持开放。
 
 ## 唯一下一动作
 
-- 精确暂存并本地提交 EAD-TASK-002。
+- 精确本地提交 T03 候选，再路由其他不受该人工 Gate 阻塞的工作项。
 
 ## 历史回源
 
 - WorkItem：`.factory/workitems/ENTERPRISE-AI-DELIVERY-001/ledger.jsonl`
-- T02 契约：`.factory/workitems/ENTERPRISE-AI-DELIVERY-001/reports/EAD-TASK-002-enterprise-delivery-data-contract.md`
-- T02 Review 输入：`.factory/workitems/ENTERPRISE-AI-DELIVERY-001/reviews/EAD-TASK-002-review-input.md`
+- T03 契约：`.factory/workitems/ENTERPRISE-AI-DELIVERY-001/reports/EAD-TASK-003-raci-and-gate-contract.md`
+- T03 Review 输入：`.factory/workitems/ENTERPRISE-AI-DELIVERY-001/reviews/EAD-TASK-003-review-input.md`
 - Review 索引：`.factory/memory/review-ledger.jsonl`
 
 > 本文件只是有界当前态投影，不是正式事实源。

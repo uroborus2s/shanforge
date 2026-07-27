@@ -5,12 +5,13 @@
 | 项目 | 内容 |
 |---|---|
 | 文档 ID | `DESIGN-DATA-001` |
-| 正式版本 | `v1.3.0` |
+| 正式版本 | `v1.4.0` |
+| 候选版本 | 无 |
 | 来源候选 | `PK-SOURCE-MIGRATION-001` |
 | 发布事务 | `DESIGN-RELEASE-TX-R019-G001` |
 | 负责人 | `HUMAN_DATABASE_LEAD` |
-| 修改 / 审核 / 批准 | `uroborus` / `uroborus` / `uroborus` |
-| 状态 | 已批准并生效 |
+| 修改 / 审核 / 批准 | `AI_EXECUTOR` / `/root/enterprise_delivery_review` / `uroborus` |
+| 状态 | `v1.4.0` 已正式生效 |
 | 上游 | `PRD`、`module-domain-design`、`BusinessField` |
 | 下游 | `api-design`、`测试`、`迁移任务` |
 
@@ -951,6 +952,19 @@ WorkItem 使用已登记任务编号作为 canonical `entity_id`。Ledger 负责
 authority 不得把已有中文标题退化成机器编号。关系声明写入前先验证 Task 和 Requirement
 双方端点存在，缺失端点时失败关闭，禁止产生孤儿追踪边。
 
+Task brief 的稳定章节和同名字段确定性提取为 `goal`、`work_items`、`inputs`、`scope`、
+`out_of_scope`、`deliverables`、`completion_conditions` 和 `verification`，保存到现有
+`pk_entity.detail_json`，不增加任务说明表。合并时 Ledger 继续拥有当前状态、时间和
+下一动作，task brief 拥有人类任务语义；同一 authority 出现不同任务说明时失败关闭。
+同行字段和空值后的缩进列表共用同一字段别名映射；未知字段不生成任务语义，Registry
+登记的任务简报若仍缺少任一正式任务语义，验证必须失败关闭。
+任务简报来源使用 `markdown-v4`，Ledger 来源使用 `jsonl-event-v6`，使中英文、编号章节、
+任务实体兜底和父工作项限定身份规则变更能够使旧贡献失效并重新投影，而不是错误复用
+旧提取器的缓存贡献。像 `TASK-SKILL-001` 这类只在父工作项内唯一的局部任务号，两种来源
+统一投影为 `<父工作项>-<局部任务号>`；全局 canonical 任务号保持原 ID。
+需求树不建立永久层级表，而是从 `pk_requirement`、`pk_acceptance_criterion` 与需求实体
+中的 PRD 分类即时投影，避免再维护一套树关系事实。
+
 Canonical 任务编号必须以大写命名空间开头、包含连字符分段且至少包含一个数字；
 不符合该格式的自然标签继续使用 source-scoped 稳定哈希，不能跨 ledger 静默合并。
 从 `jsonl-event-v4` 的 source-scoped WorkItem ID 迁移到任务编号时，每个旧哈希都写入
@@ -965,3 +979,4 @@ Canonical 任务编号必须以大写命名空间开头、包含连字符分段�
 | `v1.1.0` | 2026-07-22 | 增补项目知识 SQLite、39 表投影、FTS、generation 与有界 cache 规则 | `uroborus` | `uroborus` | `uroborus` |
 | `v1.2.0` | 2026-07-22 | 增补双 generation 留存和单 Python 来源事务增量投影 | `uroborus` | `uroborus` | `uroborus` |
 | `v1.3.0` | 2026-07-23 | 明确 PRD 单一需求事实源、稳定章节投影、R009 退役边界、warm/cold 等价和任务 canonical ID 合并规则 | `uroborus` | `uroborus` | `uroborus` |
+| `v1.4.0` | 2026-07-27 | 增补任务简报共享字段映射、同行值与缩进列表语义、Ledger 状态合并、现有 `detail_json` 字段投影和无新增表的需求树规则 | `AI_EXECUTOR` | `/root/enterprise_delivery_review` | `uroborus` |

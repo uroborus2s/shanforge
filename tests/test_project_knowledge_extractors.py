@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from pathlib import Path
+
 from domain.project_knowledge.models import AccessClass, SourceDefinition, stable_id
 from runtime.project_knowledge.extractors import (
     JsonExtractor,
@@ -7,6 +9,7 @@ from runtime.project_knowledge.extractors import (
     MarkdownExtractor,
     PythonExtractor,
 )
+from settings.project_knowledge.source_registry import FileSourceRegistry
 
 
 def source(kind: str, path: str) -> SourceDefinition:
@@ -263,13 +266,9 @@ def test_jsonl_projects_latest_readable_work_item_without_losing_event_audit() -
     assert len(contribution["events"]) == 2
     assert contribution["aliases"] == [
         {
-            "alias_entity_id": stable_id(
-                "workitem", ["source:jsonl:1", "TASK-1"]
-            ),
+            "alias_entity_id": stable_id("workitem", ["source:jsonl:1", "TASK-1"]),
             "canonical_entity_id": "TASK-1",
-            "reason": (
-                "jsonl-v5 canonical work-item ID migration from source-scoped identity"
-            ),
+            "reason": ("jsonl-v5 canonical work-item ID migration from source-scoped identity"),
         }
     ]
 
@@ -305,18 +304,13 @@ def test_jsonl_natural_labels_remain_source_scoped_and_do_not_become_global_ids(
         access_class=AccessClass.PROJECT,
     )
     content = (
-        b'{"event":"started","task":"shared-label","status":"in_progress",'
-        b'"idempotency_key":"e1"}\n'
+        b'{"event":"started","task":"shared-label","status":"in_progress","idempotency_key":"e1"}\n'
     )
 
     first = JsonLinesExtractor().extract(first_source, content)
     second = JsonLinesExtractor().extract(second_source, content)
-    first_item = next(
-        item for item in first["entities"] if item["entity_kind"] == "work_item"
-    )
-    second_item = next(
-        item for item in second["entities"] if item["entity_kind"] == "work_item"
-    )
+    first_item = next(item for item in first["entities"] if item["entity_kind"] == "work_item")
+    second_item = next(item for item in second["entities"] if item["entity_kind"] == "work_item")
     assert first_item["entity_id"].startswith("workitem:")
     assert second_item["entity_id"].startswith("workitem:")
     assert first_item["entity_id"] != second_item["entity_id"]
@@ -369,3 +363,292 @@ def test_markdown_task_brief_uses_heading_when_declared_task_has_no_inline_title
     assert work_item["entity_id"] == "TASK-IMPLEMENT-003-P001-T05"
     assert work_item["display_name"] == "T05 异步同步、有界维护与资料迁移"
     assert work_item["lifecycle_status"] == "ready_for_review"
+
+
+def test_markdown_task_brief_projects_human_readable_execution_fields() -> None:
+    contribution = MarkdownExtractor().extract(
+        source(
+            "markdown",
+            ".factory/workitems/FLOW-CONTRACT-001/task-briefs/FLOW-TASK-011.md",
+        ),
+        """# FLOW-TASK-011 升级项目管理视图
+
+## 工作项
+
+- 任务：`FLOW-TASK-011`
+- 状态：`in_progress`
+- 设计：将任务详情拆成目的、具体工作和交付结果。
+- UI：把需求按产品、业务域、需求和验收标准逐层展示。
+- 完成条件：用户无需理解内部编号即可说明任务目的和验收结果。
+
+## 目标
+
+让项目成员快速看懂每项任务为什么做、具体做什么、完成后得到什么。
+
+## 允许修改
+
+- 任务简报提取器与 SQLite 投影。
+- 只读站点渲染器和对应测试。
+
+## 交付结果
+
+- 可读的任务详情页。
+- 可展开的需求树。
+
+## 验证命令
+
+`pytest tests/test_project_site_renderer.py`
+""".encode(),
+    )
+
+    work_item = next(
+        item for item in contribution["entities"] if item["entity_kind"] == "work_item"
+    )
+    assert work_item["details"] == {
+        "task_id": "FLOW-TASK-011",
+        "task_title": "FLOW-TASK-011 升级项目管理视图",
+        "task_status": "in_progress",
+        "source_document_id": contribution["document"]["document_id"],
+        "goal": "让项目成员快速看懂每项任务为什么做、具体做什么、完成后得到什么。",
+        "work_items": [
+            "将任务详情拆成目的、具体工作和交付结果。",
+            "把需求按产品、业务域、需求和验收标准逐层展示。",
+        ],
+        "scope": [
+            "任务简报提取器与 SQLite 投影。",
+            "只读站点渲染器和对应测试。",
+        ],
+        "deliverables": ["可读的任务详情页。", "可展开的需求树。"],
+        "completion_conditions": "用户无需理解内部编号即可说明任务目的和验收结果。",
+        "verification": "`pytest tests/test_project_site_renderer.py`",
+    }
+
+
+def test_markdown_task_brief_supports_english_and_numbered_semantic_sections() -> None:
+    contribution = MarkdownExtractor().extract(
+        source(
+            "markdown",
+            ".factory/workitems/DEMO-001/task-briefs/EAD-TASK-001-demo.md",
+        ),
+        """# EAD-TASK-001 Capability assessment
+
+## Goal
+
+Explain whether the current product can close an enterprise delivery loop.
+
+## 8. 开发实现
+
+- Build a readable capability matrix.
+- Link each gap to a delivery task.
+
+## Required Outputs
+
+- A capability assessment.
+- A prioritized product backlog.
+
+## Acceptance Criteria
+
+- The result answers what the system does and why it matters.
+
+## Verification
+
+- Check the generated read-only task page.
+""".encode(),
+    )
+
+    work_item = next(
+        item for item in contribution["entities"] if item["entity_kind"] == "work_item"
+    )
+    assert work_item["entity_id"] == "EAD-TASK-001"
+    assert work_item["details"]["goal"] == (
+        "Explain whether the current product can close an enterprise delivery loop."
+    )
+    assert work_item["details"]["work_items"] == [
+        "Build a readable capability matrix.",
+        "Link each gap to a delivery task.",
+    ]
+    assert work_item["details"]["deliverables"] == [
+        "A capability assessment.",
+        "A prioritized product backlog.",
+    ]
+    assert work_item["details"]["completion_conditions"] == (
+        "The result answers what the system does and why it matters."
+    )
+    assert work_item["details"]["verification"] == ("Check the generated read-only task page.")
+
+
+def test_markdown_task_brief_task_heading_remains_a_semantic_goal() -> None:
+    contribution = MarkdownExtractor().extract(
+        source(
+            "markdown",
+            ".factory/workitems/DEMO-001/task-briefs/DEMO-001-T05.md",
+        ),
+        b"# DEMO-001-T05\n\n## Task\n\nExplain the human goal.\n",
+    )
+
+    work_item = next(
+        item for item in contribution["entities"] if item["entity_kind"] == "work_item"
+    )
+    assert work_item["details"]["goal"] == "Explain the human goal."
+
+
+def test_markdown_task_brief_supports_inline_semantic_aliases() -> None:
+    contribution = MarkdownExtractor().extract(
+        source(
+            "markdown",
+            ".factory/workitems/DEMO-001/task-briefs/DEMO-001-T01.md",
+        ),
+        """# DEMO-001-T01
+
+- 目的：让成员看懂任务。
+- 本轮交付：可验收的任务详情。
+- 决策：复用现有详情字段。
+""".encode(),
+    )
+
+    work_item = next(
+        item for item in contribution["entities"] if item["entity_kind"] == "work_item"
+    )
+    assert work_item["details"]["goal"] == "让成员看懂任务。"
+    assert work_item["details"]["deliverables"] == "可验收的任务详情。"
+    assert work_item["details"]["work_items"] == "复用现有详情字段。"
+
+
+def test_markdown_task_brief_supports_empty_inline_field_with_indented_list() -> None:
+    contribution = MarkdownExtractor().extract(
+        source(
+            "markdown",
+            ".factory/workitems/DEMO-001/task-briefs/DEMO-001-T02.md",
+        ),
+        """# DEMO-001-T02
+
+- 目标：
+  - 退役旧入口。
+  - 保留稳定链接。
+- 状态：`in_progress`
+""".encode(),
+    )
+
+    work_item = next(
+        item for item in contribution["entities"] if item["entity_kind"] == "work_item"
+    )
+    assert work_item["details"]["goal"] == ["退役旧入口。", "保留稳定链接。"]
+
+
+def test_markdown_task_brief_unknown_inline_fields_do_not_invent_semantics() -> None:
+    contribution = MarkdownExtractor().extract(
+        source(
+            "markdown",
+            ".factory/workitems/DEMO-001/task-briefs/DEMO-001-T03.md",
+        ),
+        b"# DEMO-001-T03\n\n- Platform: iOS\n- Status: in_progress\n",
+    )
+
+    work_item = next(
+        item for item in contribution["entities"] if item["entity_kind"] == "work_item"
+    )
+    semantic_keys = {
+        "goal",
+        "work_items",
+        "deliverables",
+        "completion_conditions",
+        "verification",
+    }
+    assert semantic_keys.isdisjoint(work_item["details"])
+
+
+def test_markdown_task_brief_identity_fields_do_not_satisfy_semantic_gate() -> None:
+    contribution = MarkdownExtractor().extract(
+        source(
+            "markdown",
+            ".factory/workitems/DEMO-001/task-briefs/DEMO-001-T04.md",
+        ),
+        b"# DEMO-001-T04\n\n- Task: DEMO-001-T04\n- Status: in_progress\n",
+    )
+
+    work_item = next(
+        item for item in contribution["entities"] if item["entity_kind"] == "work_item"
+    )
+    assert not any(
+        work_item["details"].get(key)
+        for key in (
+            "goal",
+            "work_items",
+            "deliverables",
+            "completion_conditions",
+            "verification",
+        )
+    )
+
+
+def test_all_registered_task_briefs_project_a_work_item_entity() -> None:
+    project_root = Path(__file__).resolve().parents[1]
+    registry = FileSourceRegistry(
+        project_root,
+        project_root / ".factory/project-knowledge/source-registry.json",
+    )
+    task_briefs = [
+        definition
+        for definition in registry.sources()
+        if definition.registry_source_id == "SRC-WORKITEM-BRIEF"
+    ]
+    assert task_briefs
+
+    entity_ids: list[str] = []
+    missing: list[str] = []
+    missing_semantics: list[str] = []
+    for definition in task_briefs:
+        contribution = MarkdownExtractor().extract(
+            definition,
+            registry.read_bytes(definition),
+        )
+        work_items = [
+            entity for entity in contribution["entities"] if entity["entity_kind"] == "work_item"
+        ]
+        if not work_items:
+            missing.append(definition.relative_path)
+            continue
+        work_item = work_items[0]
+        entity_ids.append(str(work_item["entity_id"]))
+        details = work_item.get("details") or {}
+        if not any(
+            details.get(key)
+            for key in (
+                "goal",
+                "work_items",
+                "deliverables",
+                "completion_conditions",
+                "verification",
+            )
+        ):
+            missing_semantics.append(definition.relative_path)
+
+    assert missing == []
+    assert missing_semantics == []
+    assert len(entity_ids) == len(set(entity_ids)), (
+        "registered task briefs must project globally unique work-item identities"
+    )
+
+
+def test_local_task_numbers_are_scoped_by_parent_work_item() -> None:
+    ui = MarkdownExtractor().extract(
+        source(
+            "markdown",
+            ".factory/workitems/UI-DESIGN-SKILL-001/task-briefs/TASK-SKILL-001.md",
+        ),
+        b"# TASK-SKILL-001 UI design skill\n\n## Goal\n\nImprove UI design.\n",
+    )
+    backend = MarkdownExtractor().extract(
+        source(
+            "markdown",
+            ".factory/workitems/GO-BACKEND-SKILL-001/task-briefs/TASK-SKILL-001.md",
+        ),
+        b"# TASK-SKILL-001 Go backend skill\n\n## Goal\n\nImprove Go delivery.\n",
+    )
+
+    ui_task = next(entity for entity in ui["entities"] if entity["entity_kind"] == "work_item")
+    backend_task = next(
+        entity for entity in backend["entities"] if entity["entity_kind"] == "work_item"
+    )
+    assert ui_task["entity_id"] == "UI-DESIGN-SKILL-001-TASK-SKILL-001"
+    assert backend_task["entity_id"] == "GO-BACKEND-SKILL-001-TASK-SKILL-001"

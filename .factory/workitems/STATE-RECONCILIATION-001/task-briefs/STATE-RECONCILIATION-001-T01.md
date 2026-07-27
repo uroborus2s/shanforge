@@ -2,6 +2,7 @@
 
 - 父 WorkItem：`STATE-RECONCILIATION-001`
 - 名称：补齐 12 个已提交 WorkItem 的 ledger 终态
+- 目标：让已提交 WorkItem 的正式 ledger 终态与当前项目状态一致。
 - 状态：`completed`
 - 允许路径：
   - `.factory/workitems/STATE-RECONCILIATION-001/**`

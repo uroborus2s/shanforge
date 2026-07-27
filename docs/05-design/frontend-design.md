@@ -5,12 +5,13 @@
 | 项目 | 内容 |
 |---|---|
 | 文档 ID | `DESIGN-FRONTEND-001` |
-| 正式版本 | `v1.5.1` |
+| 正式版本 | `v1.6.0` |
+| 候选版本 | 无 |
 | 来源候选 | `PK-SOURCE-MIGRATION-001` |
 | 发布事务 | `DESIGN-RELEASE-TX-R019-G001` |
 | 负责人 | `HUMAN_DEVELOPMENT_EXECUTOR` |
-| 修改 / 审核 / 批准 | `uroborus` / `uroborus` / `uroborus` |
-| 状态 | 已批准并生效 |
+| 修改 / 审核 / 批准 | `AI_EXECUTOR` / `/root/enterprise_delivery_review` / `uroborus` |
+| 状态 | `v1.6.0` 已正式生效 |
 | 上游 | `PRD`、`module-domain-design`、`api-design`、`BusinessField` |
 | 下游 | `ux-ui-design`、`前端实现`、`E2E 测试` |
 
@@ -526,11 +527,23 @@ R019 作者只能把 T01–T06 产物标记为 `ready_for_review`。完整 profi
 空态说明。`relative_path`、locator kind、selector JSON、block Hash 和内部 document ID
 只供 CLI、SQLite 查询与诊断使用，不在需求、任务、代码、测试等业务详情页展示。
 
+任务详情的第一信息层级固定回答四个问题：“为什么要做这项任务”“具体要做什么”
+“完成后得到什么”“怎样确认已经完成”。人类说明优先来自任务简报中的目标、具体工作、
+范围、交付结果、完成条件和验证方式；Ledger 只覆盖最新状态、进展、阻塞和下一步，
+不能用机器事件摘要覆盖任务简报中的业务语义。任务简报没有登记某项说明时，页面可以
+显示明确缺失状态，但不得把内部状态码、英文事件名或 locator 当作任务说明。
+
+需求与验收首页使用 `产品 → 业务域 → 具体需求 → 验收标准` 四层树。产品根显示当前项目
+和需求总数；业务域使用 PRD 的中文分类；需求节点显示功能/非功能类型、中文名称、用户
+故事和验收数量；展开需求后直接显示按顺序排列的验收标准，并可深链到需求详情中的稳定
+验收锚点。树使用原生 `details/summary`，业务域默认展开、具体需求按需展开；窄屏缩短
+连接线和内边距，不依赖 hover、拖拽、脚本或网络请求。
+
 文档详情同时展示章节索引和完整 Markdown 正文。正文仅支持确定性安全子集：标题、
 段落、列表、表格、引用、围栏代码、行内代码和粗体；raw HTML、Markdown 链接、图片、
 `javascript:`、`data:` 及属性内容一律不解释，只作为转义文本显示。技术代次、Git、
 事实高水位、`as_of`、renderer 和 profile 收入默认折叠的“技术快照信息”，避免干扰
-业务阅读。该合同使用 `ProjectSiteRenderer/v10`，因此旧页面指纹自动失效；输入不变时
+业务阅读。该合同使用 `ProjectSiteRenderer/v11`，因此旧页面指纹自动失效；输入不变时
 后续快照仍复用最后有效页面。
 
 ## 正式版本历史（仅已发布）
@@ -544,3 +557,4 @@ R019 作者只能把 T01–T06 产物标记为 `ready_for_review`。完整 profi
 | `v1.4.0` | 2026-07-23 | 总览改为六列中文任务看板，增补每列十条、更多展开、任务去重、父子完成投影和项目管理四态说明 | `uroborus` | `uroborus` | `uroborus` |
 | `v1.5.0` | 2026-07-23 | 增补需求分类与验收归属、需求任务双向深链、安全文档正文和折叠技术快照信息 | `uroborus` | `uroborus` | `uroborus` |
 | `v1.5.1` | 2026-07-23 | 任务详情移除内部 locator，拆分关联需求、相关设计及代码测试交付，并按登记关系推导设计深链 | `uroborus` | `uroborus` | `uroborus` |
+| `v1.6.0` | 2026-07-27 | 任务详情改为目的、工作、结果和完成确认四段式说明；需求与验收首页改为四层可展开需求树 | `AI_EXECUTOR` | `/root/enterprise_delivery_review` | `uroborus` |

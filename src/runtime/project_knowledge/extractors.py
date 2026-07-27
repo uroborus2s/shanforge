@@ -65,15 +65,96 @@ _HEADING = re.compile(r"^(#{1,6})\s+(.+?)\s*$")
 _TABLE_ROW = re.compile(r"^\|\s*([^|]+?)\s*\|\s*([^|]+?)\s*\|\s*$")
 _AUDIENCE_LINE = re.compile(r"^(?:[-*]\s*)?(?:\*\*)?主要读者(?:\*\*)?[：:]\s*(.+?)\s*$")
 _TASK_BRIEF_TITLE_LINE = re.compile(
-    r"^\s*[-*]\s*任务[：:]\s*`(?P<task_id>[A-Za-z][A-Za-z0-9._-]{1,160})`"
-    r"(?:\s+(?P<title>.+?))?\s*$"
+    r"^\s*[-*]\s*(?:任务|task)[：:]\s*`?(?P<task_id>[A-Za-z][A-Za-z0-9._-]{1,160})`?"
+    r"(?:\s+(?P<title>.+?))?\s*$",
+    re.IGNORECASE,
 )
 _TASK_BRIEF_STATUS_LINE = re.compile(
-    r"^\s*[-*]\s*(?:当前)?状态[：:]\s*`?(?P<status>[^`]+?)`?\s*$"
+    r"^\s*[-*]\s*(?:(?:当前)?状态|status)[：:]\s*`?(?P<status>[^`]+?)`?\s*$",
+    re.IGNORECASE,
 )
-_CANONICAL_WORK_ITEM_ID = re.compile(
-    r"^[A-Z][A-Z0-9]*(?=[A-Za-z0-9-]*\d)(?:-[A-Za-z0-9]+)+$"
+_TASK_BRIEF_FIELD_LINE = re.compile(
+    r"^\s*[-*]\s*(?P<key>[^：:\n]+?)[：:]\s*(?P<value>.*?)\s*$",
+    re.IGNORECASE,
 )
+_TASK_BRIEF_SECTION_KEYS = {
+    "目标": "goal",
+    "目的": "goal",
+    "任务目标": "goal",
+    "目标和口径": "goal",
+    "目标和场景": "goal",
+    "依赖与目标": "goal",
+    "需求来源和问题陈述": "goal",
+    "用户意图": "goal",
+    "背景": "goal",
+    "goal": "goal",
+    "task": "goal",
+    "设计": "work_items",
+    "决策": "work_items",
+    "接口": "work_items",
+    "ui": "work_items",
+    "具体工作": "work_items",
+    "工作内容": "work_items",
+    "实施内容": "work_items",
+    "实施步骤": "work_items",
+    "开发实现": "work_items",
+    "本次必须形成的能力": "work_items",
+    "必须交付的运行时能力": "work_items",
+    "修复要求": "work_items",
+    "required fixes": "work_items",
+    "test steps": "work_items",
+    "输入": "inputs",
+    "输入和输出": "inputs",
+    "必读输入": "inputs",
+    "input": "inputs",
+    "inputs": "inputs",
+    "测试": "verification",
+    "验证": "verification",
+    "测试与验证": "verification",
+    "实施与验证": "verification",
+    "集成质量门": "verification",
+    "red/green 与验证": "verification",
+    "verification": "verification",
+    "完成条件": "completion_conditions",
+    "完成口径": "completion_conditions",
+    "完成标准": "completion_conditions",
+    "完成定义": "completion_conditions",
+    "验收": "completion_conditions",
+    "验收标准": "completion_conditions",
+    "acceptance criteria": "completion_conditions",
+    "交付结果": "deliverables",
+    "本轮交付": "deliverables",
+    "交付物": "deliverables",
+    "候选合同": "deliverables",
+    "产物和 gate": "deliverables",
+    "输出": "deliverables",
+    "输出报告": "deliverables",
+    "结果": "deliverables",
+    "output": "deliverables",
+    "required output": "deliverables",
+    "required outputs": "deliverables",
+    "范围": "scope",
+    "允许修改": "scope",
+    "本任务允许修改": "scope",
+    "scope": "scope",
+    "allowed files": "scope",
+    "非范围": "out_of_scope",
+    "非目标": "out_of_scope",
+    "不允许修改": "out_of_scope",
+    "禁止": "out_of_scope",
+    "禁止修改": "out_of_scope",
+    "本任务禁止修改": "out_of_scope",
+    "明确不做": "out_of_scope",
+    "forbidden": "out_of_scope",
+    "constraints": "out_of_scope",
+    "验证命令": "verification",
+}
+_TASK_ID_AT_TITLE_START = re.compile(
+    r"^(?:(?:任务简报|实施任务简报)\s*[：:]\s*)?"
+    r"`?(?P<task_id>[A-Za-z][A-Za-z0-9._-]{1,160})`?(?:\s+|$)"
+)
+_LOCAL_TASK_ID = re.compile(r"^TASK-[A-Z]+-\d+$")
+_CANONICAL_WORK_ITEM_ID = re.compile(r"^[A-Z][A-Z0-9]*(?=[A-Za-z0-9-]*\d)(?:-[A-Za-z0-9]+)+$")
 _REQUIREMENT_SECTION_ID = re.compile(r"^(?:REQ|NFR)-[A-Z0-9][A-Z0-9-]*\d$")
 _REQUIREMENT_FIELD = re.compile(
     r"^\s*[-*]\s*(?P<key>分类|优先级|状态|用户故事|需求规则(?:\s*\d+)?|度量目标|验证方式)"
@@ -107,6 +188,137 @@ def _markdown_metadata(lines: list[str]) -> dict[str, str]:
 def _slug(title: str) -> str:
     normalized = re.sub(r"[^\w\-\u4e00-\u9fff]+", "-", title.strip().lower()).strip("-")
     return normalized or _sha256_json(title)[:16]
+
+
+def _append_task_detail(details: dict[str, Any], key: str, value: Any) -> None:
+    values = value if isinstance(value, list) else [value]
+    normalized = [str(item).strip() for item in values if item is not None and str(item).strip()]
+    if not normalized:
+        return
+    existing = details.get(key)
+    combined = (
+        [] if existing is None else existing if isinstance(existing, list) else [existing]
+    ) + normalized
+    deduplicated = list(dict.fromkeys(str(item) for item in combined))
+    details[key] = deduplicated[0] if len(deduplicated) == 1 else deduplicated
+
+
+def _task_brief_section_key(title: str) -> str | None:
+    normalized = re.sub(
+        r"^\s*\d+(?:\.\d+)*\s*[.)、．]?\s*",
+        "",
+        title.strip().strip("：:"),
+    )
+    normalized = re.sub(r"\s+", " ", normalized).casefold()
+    return _TASK_BRIEF_SECTION_KEYS.get(normalized)
+
+
+def _task_id_from_heading(title: str) -> str | None:
+    match = _TASK_ID_AT_TITLE_START.match(title.strip())
+    if match is None:
+        return None
+    task_id = match.group("task_id")
+    if len(task_id) > 160 or _CANONICAL_WORK_ITEM_ID.fullmatch(task_id) is None:
+        return None
+    return task_id
+
+
+def _task_brief_owner(relative_path: str) -> str | None:
+    path_parts = relative_path.split("/")
+    try:
+        owner = path_parts[path_parts.index("task-briefs") - 1]
+    except ValueError, IndexError:
+        return None
+    return owner or None
+
+
+def _qualified_task_id(task_id: str, owner: str | None) -> str:
+    if _LOCAL_TASK_ID.fullmatch(task_id) is None or owner is None or owner == task_id:
+        return task_id
+    return f"{owner}-{task_id}"
+
+
+def _task_brief_entity_id(task_id: str, relative_path: str) -> str:
+    return _qualified_task_id(task_id, _task_brief_owner(relative_path))
+
+
+def _task_brief_block(lines: list[str], start: int, end: int) -> str | list[str] | None:
+    values: list[str] = []
+    paragraph: list[str] = []
+    in_fence = False
+
+    def flush_paragraph() -> None:
+        if paragraph:
+            values.append(" ".join(paragraph))
+            paragraph.clear()
+
+    for raw_line in lines[start + 1 : end]:
+        stripped = raw_line.strip()
+        if stripped.startswith("```"):
+            flush_paragraph()
+            in_fence = not in_fence
+            continue
+        if not stripped:
+            flush_paragraph()
+            continue
+        if stripped.startswith("<!--") and stripped.endswith("-->"):
+            continue
+        bullet = re.match(r"^\s*[-*+]\s+(.+?)\s*$", raw_line)
+        if bullet:
+            flush_paragraph()
+            values.append(bullet.group(1).strip())
+            continue
+        numbered = re.match(r"^\s*\d+\s*[.)、．]\s+(.+?)\s*$", raw_line)
+        if numbered:
+            flush_paragraph()
+            values.append(numbered.group(1).strip())
+            continue
+        if in_fence:
+            values.append(stripped)
+            continue
+        paragraph.append(stripped)
+    flush_paragraph()
+    if not values:
+        return None
+    return values[0] if len(values) == 1 else values
+
+
+def _task_brief_details(
+    lines: list[str], headings: list[tuple[int, str, str, int, int]]
+) -> dict[str, Any]:
+    details: dict[str, Any] = {}
+    for index, line in enumerate(lines):
+        if _TASK_BRIEF_TITLE_LINE.match(line) is not None:
+            continue
+        match = _TASK_BRIEF_FIELD_LINE.match(line)
+        if match is None:
+            continue
+        key = _task_brief_section_key(match.group("key"))
+        if key is None:
+            continue
+        value: str | list[str] = match.group("value").strip()
+        if not value:
+            value = []
+            for continuation in lines[index + 1 :]:
+                if not continuation.strip():
+                    if value:
+                        break
+                    continue
+                bullet = re.match(r"^\s{2,}[-*+]\s+(.+?)\s*$", continuation)
+                if bullet is None:
+                    break
+                value.append(bullet.group(1).strip())
+        _append_task_detail(
+            details,
+            key,
+            value,
+        )
+    for _, heading_title, _, start, end in headings:
+        key = _task_brief_section_key(heading_title)
+        if key is None:
+            continue
+        _append_task_detail(details, key, _task_brief_block(lines, start, end))
+    return details
 
 
 def _requirement_status(value: str | None) -> str:
@@ -148,18 +360,14 @@ def _append_markdown_requirement(
     for line in block_lines[1:]:
         criterion = _ACCEPTANCE_LINE.match(line)
         if criterion:
-            criteria.append(
-                (criterion.group("id"), criterion.group("statement").strip())
-            )
+            criteria.append((criterion.group("id"), criterion.group("statement").strip()))
             continue
         field = _REQUIREMENT_FIELD.match(line)
         if field:
             fields.setdefault(field.group("key"), []).append(field.group("value").strip())
     for criterion_id, _ in criteria:
         if not criterion_id.startswith(f"{section_id}-AC-"):
-            raise ValueError(
-                f"acceptance criterion {criterion_id} does not belong to {section_id}"
-            )
+            raise ValueError(f"acceptance criterion {criterion_id} does not belong to {section_id}")
 
     status_text = fields.get("状态", [None])[0]
     lifecycle_status = _requirement_status(status_text)
@@ -169,10 +377,7 @@ def _append_markdown_requirement(
     if priority is not None:
         priority = priority.rstrip("。.;；")
     statements = [
-        value
-        for key, values in fields.items()
-        if key.startswith("需求规则")
-        for value in values
+        value for key, values in fields.items() if key.startswith("需求规则") for value in values
     ]
     metric = fields.get("度量目标", [None])[0]
     verification = fields.get("验证方式", [None])[0]
@@ -193,9 +398,7 @@ def _append_markdown_requirement(
         details["verification"] = verification
     details = {key: value for key, value in details.items() if value not in (None, "", [])}
     summary = statements[0] if statements else metric or title
-    entity_kind = (
-        "non_functional_requirement" if section_id.startswith("NFR-") else "requirement"
-    )
+    entity_kind = "non_functional_requirement" if section_id.startswith("NFR-") else "requirement"
     semantic = _sha256_json(
         {
             "id": section_id,
@@ -236,15 +439,11 @@ def _append_markdown_requirement(
             "entity_id": section_id,
             "title": title,
             "summary": summary,
-            "tags": " ".join(
-                value for value in (entity_kind, category or "") if value
-            ),
+            "tags": " ".join(value for value in (entity_kind, category or "") if value),
         }
     )
     for criterion_id, statement in criteria:
-        criterion_semantic = _sha256_json(
-            [criterion_id, section_id, statement, lifecycle_status]
-        )
+        criterion_semantic = _sha256_json([criterion_id, section_id, statement, lifecycle_status])
         contribution["entities"].append(
             {
                 "entity_id": criterion_id,
@@ -337,6 +536,7 @@ class MarkdownExtractor:
                 section_id = explicit_id
             headings.append((level, heading_title, section_id, start, end))
         title = headings[0][1] if headings else source.relative_path.rsplit("/", 1)[-1]
+        is_task_brief = "/task-briefs/" in f"/{source.relative_path}"
         declared_task = (
             next(
                 (
@@ -349,7 +549,7 @@ class MarkdownExtractor:
                 ),
                 None,
             )
-            if "/task-briefs/" in f"/{source.relative_path}"
+            if is_task_brief
             else None
         )
         if declared_task is not None and (
@@ -357,9 +557,42 @@ class MarkdownExtractor:
             or _CANONICAL_WORK_ITEM_ID.fullmatch(declared_task[0]) is None
         ):
             declared_task = None
-        if title.strip() in {"任务简报", "实施任务简报"} and "/task-briefs/" in (
-            f"/{source.relative_path}"
-        ):
+        if declared_task is not None:
+            declared_task = (
+                _task_brief_entity_id(declared_task[0], source.relative_path),
+                declared_task[1],
+            )
+        if is_task_brief and declared_task is None:
+            heading_task_id = _task_id_from_heading(title)
+            task_owner = _task_brief_owner(source.relative_path)
+            if heading_task_id == task_owner:
+                heading_task_id = None
+            file_stem = source.relative_path.rsplit("/", 1)[-1].removesuffix(".md")
+            file_task_id = (
+                file_stem
+                if len(file_stem) <= 160
+                and _CANONICAL_WORK_ITEM_ID.fullmatch(file_stem) is not None
+                else None
+            )
+            fallback_task_id = (
+                _task_brief_entity_id(heading_task_id, source.relative_path)
+                if heading_task_id
+                else _task_brief_entity_id(file_task_id, source.relative_path)
+                if file_task_id
+                else (
+                    f"{task_owner}-{file_stem}"
+                    if task_owner
+                    and len(f"{task_owner}-{file_stem}") <= 160
+                    and _CANONICAL_WORK_ITEM_ID.fullmatch(f"{task_owner}-{file_stem}") is not None
+                    else stable_id(
+                        "workitem",
+                        [source.registry_source_id, source.relative_path],
+                    )
+                )
+            )
+            fallback_title = file_stem if title.strip() in {"任务简报", "实施任务简报"} else title
+            declared_task = (fallback_task_id, fallback_title)
+        if title.strip() in {"任务简报", "实施任务简报"} and is_task_brief:
             if declared_task:
                 title = declared_task[1]
         declared_task_status = next(
@@ -411,6 +644,13 @@ class MarkdownExtractor:
         )
         if declared_task is not None:
             task_id, task_title = declared_task
+            task_details = {
+                "task_id": task_id,
+                "task_title": task_title,
+                "task_status": declared_task_status,
+                "source_document_id": document_id,
+                **_task_brief_details(lines, headings),
+            }
             contribution["entities"].append(
                 {
                     "entity_id": task_id,
@@ -419,15 +659,10 @@ class MarkdownExtractor:
                     "summary": "任务简报已登记，等待或正在执行。",
                     "lifecycle_status": declared_task_status,
                     "semantic_sha256": _sha256_json(
-                        [task_id, task_title, declared_task_status, semantic]
+                        [task_id, task_title, declared_task_status, task_details]
                     ),
                     "definition": True,
-                    "details": {
-                        "task_id": task_id,
-                        "task_title": task_title,
-                        "task_status": declared_task_status,
-                        "source_document_id": document_id,
-                    },
+                    "details": task_details,
                 }
             )
             contribution["search"].append(
@@ -1042,8 +1277,16 @@ class JsonLinesExtractor:
                 occurrence = derived_uid_occurrences.get(semantic, 0) + 1
                 derived_uid_occurrences[semantic] = occurrence
                 event_uid = f"derived:{semantic}:{occurrence}"
-            work_item = event.get("task") or event.get("work_item") or event.get("workitem")
+            parent_work_item = event.get("work_item") or event.get("workitem")
+            task_id = event.get("task") or event.get("task_id")
+            work_item = task_id or parent_work_item
             display_name = str(work_item or event_uid)
+            task_owner = (
+                str(parent_work_item)
+                if task_id and parent_work_item and str(parent_work_item) != display_name
+                else None
+            )
+            qualified_work_item_id = _qualified_task_id(display_name, task_owner)
             safe_summary = _work_item_summary(event)
             safe_details = _business_details(event)
             if work_item:
@@ -1071,7 +1314,8 @@ class JsonLinesExtractor:
                 }
             )
             if work_item:
-                latest_work_items[display_name] = {
+                latest_work_items[qualified_work_item_id] = {
+                    "display_name": display_name,
                     "summary": safe_summary,
                     "status": str(event.get("status") or "unknown"),
                     "semantic_sha256": semantic,
@@ -1099,13 +1343,14 @@ class JsonLinesExtractor:
                     "tags": "work-item ledger event",
                 }
             )
-        for work_item, latest in latest_work_items.items():
+        for entity_id, latest in latest_work_items.items():
+            work_item = str(latest["display_name"])
             legacy_entity_id = stable_id("workitem", [source.source_id, work_item])
             is_canonical = (
-                len(work_item) <= 160
-                and _CANONICAL_WORK_ITEM_ID.fullmatch(work_item) is not None
+                len(entity_id) <= 160 and _CANONICAL_WORK_ITEM_ID.fullmatch(entity_id) is not None
             )
-            entity_id = work_item if is_canonical else legacy_entity_id
+            if not is_canonical:
+                entity_id = legacy_entity_id
             selector = {
                 "kind": "jsonl_event",
                 "source_id": source.source_id,
@@ -1146,8 +1391,7 @@ class JsonLinesExtractor:
                         "alias_entity_id": legacy_entity_id,
                         "canonical_entity_id": entity_id,
                         "reason": (
-                            "jsonl-v5 canonical work-item ID migration from "
-                            "source-scoped identity"
+                            "jsonl-v5 canonical work-item ID migration from source-scoped identity"
                         ),
                     }
                 )

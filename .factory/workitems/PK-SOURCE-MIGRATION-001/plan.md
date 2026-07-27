@@ -45,6 +45,14 @@
 - 缓存：renderer 版本升级使旧页面输入失效；同一新输入第二次生成必须稳定 cache hit。
 - 验证：`pytest tests/test_project_site_renderer.py tests/test_project_knowledge_security.py tests/test_project_knowledge_pm.py`。
 
+## T04：任务详情可读化与需求验收树
+
+- Red：测试要求任务简报的目标、具体工作、范围、交付结果、完成条件和验证方式进入任务实体；Ledger 最新状态与简报说明按稳定任务编号合并；需求页形成产品、业务域、需求和验收标准四层树。
+- Green：在现有 Markdown extractor、`pk_entity.detail_json` 合并逻辑和 renderer 中实现，不新增表、页面类型或第二套事实。
+- UI：任务详情先回答“为什么做、具体做什么、完成后得到什么、怎样确认完成”；需求树使用原生 `details/summary`，支持键盘、窄屏和稳定深链。
+- 缓存：升级 renderer 版本，仅由固定 CLI 刷新当前静态站点。
+- 验证：`pytest tests/test_project_knowledge_extractors.py tests/test_project_knowledge_index.py tests/test_project_site_renderer.py tests/test_project_knowledge_security.py tests/test_project_knowledge_pm.py`。
+
 ## 集成与完成门
 
 - 冷重建 SQLite 并生成静态站点。
@@ -60,7 +68,7 @@
 
 任务端点使用人类可读任务编号作为 canonical `work_item.entity_id`。JSONL ledger 中符合稳定 ID
 格式的 `task/work_item` 字段直接投影为该 ID；task brief 中 ``- 任务：`TASK-ID` 标题``
-也投影同一 ID，ledger 的较高 authority 覆盖当前状态。写入关系声明前必须先校验下表九个
+也投影同一 ID，ledger 的较高 authority 覆盖当前状态。写入关系声明前必须先校验下表十个
 Task ID 均存在；任一端点缺失时失败关闭，不写孤儿边。稳定格式要求大写命名空间、
 连字符分段且至少一个数字；普通自然标签继续 source-scoped。旧 source-scoped WorkItem
 ID 必须登记到 canonical ID 的 alias，旧 ID 查询测试通过后才能完成迁移。
@@ -76,3 +84,4 @@ ID 必须登记到 canonical ID 的 alias，旧 ID 查询测试通过后才能�
 | `PK-SOURCE-MIGRATION-001-T01` | `REQ-PKI-002,004,005,015`；`NFR-PKI-006,010,011` |
 | `PK-SOURCE-MIGRATION-001-T02` | `REQ-PKI-004,005,006,012,015`；`NFR-PKI-005,006,010` |
 | `PK-SOURCE-MIGRATION-001-T03` | `REQ-PKI-006,008,009,016`；`NFR-PKI-003,007,008,009` |
+| `PK-SOURCE-MIGRATION-001-T04` | `REQ-PKI-008` |

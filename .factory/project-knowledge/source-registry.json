@@ -61,10 +61,10 @@
       "roots": [".factory/workitems"],
       "include": ["**/*.jsonl"],
       "exclude": ["**/drafts/*.candidate.jsonl", "**/design-assets/**"],
-      "extractor_id": "jsonl-event-v5",
+      "extractor_id": "jsonl-event-v6",
       "access_class": "project",
       "authority_rank": 100,
-      "stable_id_policy": "event_uid_or_strict_canonical_task_id_or_source_scoped_hash",
+      "stable_id_policy": "event_uid_or_owner_scoped_task_id_or_source_scoped_hash",
       "max_file_bytes": 8388608
     },
     {
@@ -73,10 +73,10 @@
       "roots": [".factory/workitems"],
       "include": ["**/task-briefs/*.md"],
       "exclude": ["**/archive/**", "**/design-assets/**"],
-      "extractor_id": "markdown-v2",
+      "extractor_id": "markdown-v4",
       "access_class": "project",
       "authority_rank": 90,
-      "stable_id_policy": "declared_task_id_and_document_section",
+      "stable_id_policy": "declared_or_owner_scoped_task_id_and_document_section",
       "max_file_bytes": 524288
     },
     {

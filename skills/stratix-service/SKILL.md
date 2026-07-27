@@ -1,139 +1,73 @@
 ---
 name: stratix-service
-description: 使用 Stratix 工具链开发、重构、调试和评审 Stratix 后端服务、API、worker、sync、gateway、插件和管理后台后端接口配套项目。仅在用户明确提到 Stratix、create-stratix、stratix CLI、@stratix/create、@stratix/forge、@stratix/core、@stratix/database、stratix.config.ts、STRATIX_SENSITIVE_CONFIG、withRegisterAutoDI、controller/service/repository、插件或 preset 选择，或当前仓库事实显示使用 Stratix 时必须使用；普通后端、Go 后端、Rust 后端或非 Stratix Node/Fastify 项目不触发。
+description: 使用 Stratix 工具链开发、重构、调试和评审 Stratix 后端服务、API、worker、sync、gateway、插件和管理后台后端接口配套项目。仅在用户明确提到 Stratix、create-stratix、stratix CLI、@stratix/create、@stratix/forge、@stratix/core、@stratix/database、stratix.config.ts、STRATIX_SENSITIVE_CONFIG、STRATIX_ENCRYPTION_KEY、withRegisterAutoDI、controller/service/repository、Kysely、module.yaml、插件或 preset 选择，或当前仓库事实显示使用 Stratix 时必须使用；普通 Node/Fastify、Go、Rust 或非 Stratix 项目不触发。
 ---
 
 # Stratix Service
 
-用于 Stratix 后端开发。先探测版本和 CLI 能力，再选最小 template / preset，最后按业务补最少手写代码。不要把历史版本命令当成永久事实。
+按真实框架源码、生成模板、类型声明和应用后端指南开发 Stratix 项目。不要凭其他框架经验补 Nest 风格模块、配置服务或数据访问层。
 
-## 适用边界
+## 事实源
 
-适用于：
+先读 [source locations](references/source-locations.md)，再按任务读取：
 
-- Stratix API、service、worker、sync、gateway、CLI 应用。
-- Stratix 插件、preset 选择、DI、controller / service / repository。
-- `stratix.config.ts`、`STRATIX_SENSITIVE_CONFIG`、配置加解密和生产发布门禁。
-- Stratix 管理后台的后端接口、权限接口和数据服务。
+- 新建或修改 API、模块、Controller、Service、Repository、Kysely：必须读 [application development](references/application-development.md)。
+- 读取环境、测试模式、`STRATIX_ENCRYPTION_KEY`、加解密：必须读 [environment config](references/environment-config.md)。
+- 创建项目、生成资源、加 preset、诊断或发布：读 [CLI workflow](references/cli-workflow.md)。
+- 插件和 preset 选择：读 [ecosystem map](references/ecosystem-map.md)。
+- 启动、discovery、DI 或插件 token 排错：读 [runtime realities](references/runtime-realities.md)。
+- Stratix `app web-admin`、`admin-page`、`admin-crud` 的前端页面交给 `stratix-admin-web`；本 skill 只负责其后端接口和服务。
 
-不适用于：
+可访问 `/Users/uroborus/NodeProject/wps/obsync-root` 时，先核对目标项目实际版本，再回源对应源码；reference 只是导航和已核实范例。源码、生成模板、导出类型和正式指南不一致时，以目标版本的源码与类型为准，并明确记录差异。
 
-- 非 Stratix 后端项目。
-- 只需要解释 TypeScript、Fastify、数据库或 CI 的通用问题。
-- Stratix `app web-admin`、`admin-page`、`admin-crud` 的前端页面、公共 UI、表格表单和交互开发；交给 `stratix-admin-web`。
-- Shanforge review gate、人工确认或本地提交。
+## 默认流程
 
-## 分级验证
+1. 从 `package.json`、lockfile 和 `node_modules/@stratix/*/package.json` 确认实际版本。
+2. 用项目内 `pnpm exec stratix --help`、`list templates`、`list presets` 确认可用命令；创建器用 `create-stratix`。
+3. 先生成最小骨架，再检查生成文件；不要手写猜测模板。
+4. 新功能先确定业务域。简单项目使用根级三层；业务增长后使用 `src/modules/<domain>/` 收拢同一套三层。
+5. 按 `repository -> service -> controller` 实现；HTTP 只在 Controller，业务编排只在 Service，数据库和 Kysely 只在 Repository。
+6. 配置只在 `src/stratix.config.ts` 总装；敏感业务配置只从函数参数 `sensitiveConfig` 映射。
+7. 运行最小相关测试、`stratix doctor` 和 build；发布时再运行完整发布门。
 
-| 场景 | 最小动作 |
+## 不变量
+
+- `src/stratix.config.ts` 默认导出 `(sensitiveConfig = {}) => StratixConfig`。
+- `STRATIX_SENSITIVE_CONFIG` 由 Core 启动期解密，再作为参数传给配置函数；业务类不自行解密。
+- `STRATIX_ENCRYPTION_KEY` 由 Forge/Core 从进程环境读取；CLI 不接受 `--key`。
+- 测试模式使用 `isTest()`；不要散落比较 `process.env.NODE_ENV`。
+- `module.yaml` 是 Forge、doctor、graph、testing 使用的工程治理 manifest，不是运行时注册或业务配置入口。
+- Controller、Service、Repository 分别使用 `@Controller()`、`@Service()`、`@Repository()`。
+- `@Controller()` 不接收路由前缀；路径写在方法装饰器，统一前缀放 `discovery.routing.prefix`。
+- Repository 继承 `BaseRepository` 时显式注入 `DatabaseConnectionProvider` 并调用 `super({ database })`。
+- `BaseRepository.query()` / `command()` 返回 `Either`；Repository 内解包，不能把 `Either` 泄漏给 Service。
+- Service 不注入数据库 provider、Kysely 或数据库插件。
+- 多表一致性、状态迁移、claim/checkpoint/finalize 才使用 `business-repository`；普通 CRUD 不加。
+- 新项目不使用已移除的 `@stratix/tasks`。
+
+## 最小实现
+
+- 只有 1–3 个简单资源时，不创建模块层或额外 domain abstraction。
+- 当同一业务域文件增多、跨多表或多人协作时，用 `stratix generate module <name>`。
+- 领域规则有真实复用或复杂不变量时，放在模块内无装饰器的纯函数/类型中，由 Service 调用；不让 domain 依赖 Fastify、Stratix 装饰器或 Kysely。
+- 已有生成骨架和框架 API 能完成时，不新增 manager、factory、registry 或包装层。
+- 不简化输入校验、敏感配置、数据一致性、错误处理和发布门。
+
+## 验证
+
+| 场景 | 最小验证 |
 |---|---|
-| 解释 / 方案 | 查版本事实和项目上下文；说明命令以 `--help` 为准。 |
-| 代码评审 | 核对层级、preset、DI、配置安全门和已运行命令。 |
-| 小修 | 复用现有 controller / service / repository；跑相关测试和 `stratix doctor` 或等价诊断。 |
-| 新项目 | 先查 npm dist-tags 和 CLI list，再用最小 template / preset。 |
-| 上线 / 生产化 | 跑完整发布门禁；任一关键项失败只能 `blocked`。 |
+| 解释 / 评审 | 核对实际版本、生成模板和目标 API 导出。 |
+| 局部实现 | 相关测试、`pnpm exec stratix doctor`、`pnpm build`。 |
+| 模块变更 | 再跑 `stratix doctor modules` 和模块测试。 |
+| API 契约 | 再跑目标 inject/contract test 与 OpenAPI 生成。 |
+| 发布 | 测试、build、doctor、manifest、release gate、OpenAPI、真实 start、decrypt 和 runtime injection 全部新鲜通过。 |
 
-## 总原则
+任一必需验证失败，只能报告真实失败或 `blocked`，不得用手写兼容层掩盖框架/模板问题。
 
-- 先查 npm dist-tags，再查项目实际安装版本。
-- 新项目优先 npm latest；已有项目以项目实际安装版本为准。
-- 项目内优先使用 `pnpm exec stratix`，避免旧全局二进制污染。
-- 如果 `create-stratix list` 或 `stratix list` 失败，先用 `--help` 或 npm 包版本确认新命令；不得猜测 template、preset 或插件名。
-- 只选择业务明确需要的插件；不要为了“完整”默认加 `database`、`redis`、`queue`、`ossp` 或 `was-v7`。
-- 能用 `create-stratix` 或 `stratix` 生成的骨架，不手写起步目录。
-- 手写代码只补业务逻辑、字段映射、插件配置、测试和 CLI 未覆盖的部分。
-- 不再推荐旧的单包 `@stratix/cli` 口径；当前工具链分为 `@stratix/create` 和 `@stratix/forge`。
-- `@stratix/tasks` preset 已移除；新项目不要再把 tasks 当作默认插件或执行器底座。
+## 输出
 
-## Ponytail 约束
-
-- 不为“以后可能”新增 preset、插件、配置、manager、helper、factory 或接口。
-- 已有 controller / service / repository / BaseRepository / business-repository / `withRegisterAutoDI(...)` 能覆盖时，照项目现有模式补最小差异。
-- 能靠数据库约束、Stratix 配置校验、Fastify schema 或 TypeScript 类型解决的，不再写一层运行时代码。
-- 有意保留简化实现时，用 `ponytail:` 注释写明上限和升级条件。
-- 不简化安全边界、输入校验、数据一致性、敏感配置、错误处理和生产交付 gate。
-- 不新增中间层，除非当前业务已经有两个以上真实使用者。
-
-## 版本与能力探测
-
-先查：
-
-```bash
-npm view @stratix/create dist-tags --json
-npm view @stratix/forge dist-tags --json
-npm view @stratix/core dist-tags --json
-npm view @stratix/database dist-tags --json
-```
-
-再查项目实际安装版本：
-
-- `package.json`
-- lockfile
-- `node_modules/@stratix/*/package.json`
-- `pnpm exec stratix --help`
-
-不要假设 `create`、`forge`、`core`、`database` 版本号相同。示例命令只是候选，最终以项目内 `--help` 和实际版本为准。
-
-## 执行流程
-
-1. 判断目标类型：API、service、worker、sync、gateway、CLI、插件或管理后台后端接口。
-2. 查看可用 template 和 preset。
-3. 选择最小 preset：只做 HTTP 保持 `core`；落库加 `database`；缓存或锁加 `redis`；队列加 `queue` 且保证 `redis`；对象存储加 `ossp`；WPS / WAS V7 集成加 `was-v7`。
-4. 新建 API 示例优先保持最小测试基线：`create-stratix app api my-api --preset testing --no-install`。
-5. 生成骨架后按 `repository -> service -> controller` 补业务实现；已有层级能承担职责时，不新增中间层。
-6. 通过配置安全门。
-7. 小修跑相关测试和诊断；上线前再跑 production manifest、release gate、`stratix start` 和 runtime injection。
-
-完整 CLI、obsync-root 根命令和历史兼容事实见 [CLI workflow](references/cli-workflow.md)。
-
-## 配置安全门
-
-- 新生成应用的配置默认全部来自 `sensitiveConfig`。
-- 生成 `src/stratix.config.ts` 时，应用配置、插件配置和 provider 凭据默认只读 `sensitiveConfig`。
-- 不得用 `DB_HOST`、`REDIS_HOST`、`WPS_APP_SECRET` 等普通环境变量作为配置回退。
-- 普通 `.env` 只保留 `NODE_ENV`、`STRATIX_SENSITIVE_CONFIG`、`STRATIX_ENCRYPTION_KEY` 和进程启动必需变量。
-- 先校验 JSON，再用显式 `STRATIX_ENCRYPTION_KEY` 加密，并把结果作为进程环境变量注入。
-- 跑一次 decrypt，并跑真实启动或等价 runtime injection。
-- 不能完成加密、解密和注入验证时，结论只能是 blocked；不要声明生成应用可上线。
-
-加解密细节见 [environment config](references/environment-config.md)。
-
-## 生产化归因
-
-生产化或测试本 skill 生成项目时，才跑双项目矩阵：
-
-- skill 生成项目：按本 skill 的配置安全门和生产标准生成、修正并验证。
-- 官方对照项目：只用官方 latest 模板和项目依赖安装，不做 skill 手写修正。
-- 两个项目跑同一命令矩阵，至少覆盖安装、版本检查、`doctor`、测试、build、manifest、release gate、OpenAPI、`stratix start`、decrypt 和 runtime injection。
-- 如果官方 latest 模板也失败，归因为工具链或模板问题；记录版本、命令和 stderr，状态为 `blocked`。
-- 如果只有 skill 生成项目失败，归因为 skill 或生成内容问题，先修复。
-- 如果官方模板默认从 `process.env.PORT` 或普通 `.env` 读取应用配置，生产项目必须改为从 `sensitiveConfig` 读取。
-- 只有 `doctor`、测试、build、manifest、release gate、OpenAPI、`stratix start` 和 runtime injection 全部新鲜通过，才能声明生成应用可上线。
-
-## 编码规则
-
-- 配置主入口是 `src/stratix.config.ts`，默认导出函数：`(sensitiveConfig = {}) => StratixConfig`。
-- Controller 只处理协议、参数和响应；Service 只做业务编排；Repository 承接数据访问。
-- 数据库代码优先继承 `BaseRepository`；Service 不直接注入 `databaseApi` 或数据库插件。
-- 多表一致性、状态机、claim / checkpoint / finalize 优先放进 `business-repository`。
-- `@Controller()` 不接收路由前缀；路由路径写在方法装饰器上。
-- 不把普通 class 随意放进自动发现目录。
-- 插件默认导出保持“具名插件函数 + `withRegisterAutoDI(...)`”；插件函数名会影响 adapter token。
-- `plugins[].name` 用于注册、日志和配置定位，不决定 adapter token。
-
-插件和 preset 决策见 [ecosystem map](references/ecosystem-map.md)，运行时事实见 [runtime realities](references/runtime-realities.md)。
-
-## 输出契约
-
-交付时说明：
-
-- 探测到的 Stratix 包版本、CLI 能力和命令来源。
-- 选择的项目类型、template、preset 和插件，以及未选择项。
-- 修改路径和业务实现范围。
-- 新鲜运行的命令、结果和失败 stderr。
-- 配置安全门、production manifest、release gate、start、decrypt 和 runtime injection 状态。
-
-Shanforge 状态包：
+说明实际版本、回源文件、选择的 template/preset、修改路径、分层链路、执行命令和真实结果。
 
 ```text
 工作结果：
@@ -143,14 +77,10 @@ Shanforge 状态包：
 - outputs:
   - <path>
 - evidence:
-  - <命令记录或报告路径>
+  - <命令或报告>
 - ledger_event: <event id or none>
 - needs:
   - review | verification | user_input | none
 ```
 
-`blocked` 表示无法证明 Stratix 生成物或运行链路安全可用。常见原因包括 CLI 能力探测失败、官方模板同样失败、配置加解密或 runtime injection 失败、release gate/start 未通过、业务必需外部系统信息缺失。blocked 时保留版本、命令和 stderr，不用手写绕过替代验证。
-
-`needs_user_input` 用于必须由用户决定业务边界、外部系统、插件/preset 取舍或上线策略的情况。
-
-项目化执行时，沿用 [工作 Skill 回写契约](../using-shanforge/references/work-skill-return-contract.md)；本 skill 的现有专业输出和失败语义不变。
+项目化执行时沿用 [工作 Skill 回写契约](../using-shanforge/references/work-skill-return-contract.md)。

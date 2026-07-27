@@ -1,5 +1,7 @@
 # Skill Updates Summary
 
+- 当前（2026-07-27）：`STRATIX-SERVICE-GUIDE-001-T01` 已按 `/Users/uroborus/NodeProject/wps/obsync-root` 当前源码重写 `stratix-service`。新增当前 `src/stratix.config.ts` 模板、`STRATIX_ENCRYPTION_KEY` / `isTest()` 公共 API、`.stratix/project.json` / `module.yaml` 边界，以及 Controller → Service → Repository → BaseRepository → Kysely → SQL 完整范例；删除 `applicationAutoDI`、CLI `--key` 和未解包 `Either` 等过期口径。回归 `19 passed`，独立评审 `approved / 98 / C0-I0-M0`。
+
 - 当前（2026-07-22）：`UI-DESIGN-SKILL-001 / TASK-SKILL-001` 已完成 `ui-ux-pro-max` 原位升级，覆盖 Web、小程序、Apple、Android、Windows/Linux、跨平台 UI 与动效；同步上游稳定版 v2.11.0 数据和桌面栈，新增平台、动效、交付与开源来源 references、Codex metadata、9 个专项测试和三组隔离 forward-test。`art-asset-pipeline` 保留资产生产职责；系统 `skill-creator` 作为后续默认创作入口，仓内副本等待依赖迁移后再单独退役。独立 review `approved / 98 / C0-I0-M1`，完成验证全部通过，无新增人工 Gate。
 
 - 当前（2026-07-19）：`TASK-SKILL-002-P001` 已完成剩余 32 个工作 Skill，为每个 Skill 增加项目位置、完成层级、停止原因和授权范围余量四字段，以及“只返回事实、不决定下一 Skill/Gate/发布”的边界；未改专业触发语义或人工 Gate。连同 TASK-SKILL-001 的 6 个流程 owner，顶层 Skill 覆盖为 `38/38`。全仓 `828 passed`，最终独立复验 `approved / 100 / 0-0-0`；任务完成，没有人工 Gate。

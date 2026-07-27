@@ -1,0 +1,21 @@
+# STRATIX-SERVICE-GUIDE-001-T01
+
+- task_type：skill correction
+- 状态：`in_progress`
+- 用户反馈：现有 `stratix-service` 未按 Stratix 使用指南与真实框架代码组织，缺少配置、运行时取值、模块配置及 API 到 Kysely 的完整链路。
+- work_item_id：`STRATIX-SERVICE-GUIDE-001`
+- task_card_id：`STRATIX-SERVICE-GUIDE-001-T01`
+- allowed_paths：
+  - `skills/stratix-service/**`
+  - `tests/test_stratix_service_framework_guide.py`
+  - `tests/test_stratix_service_skill.py`
+  - `.factory/workitems/STRATIX-SERVICE-GUIDE-001/**`
+- forbidden_actions：
+  - 不修改 `/Users/uroborus/NodeProject/wps/obsync-root`
+  - 不修改或提交工作区内其他已有改动
+  - 不 push、不创建 PR、不部署
+- current_gate：`implementation_authorized_by_user_feedback`
+- write_policy：`source_or_test_write`
+- 验证：
+  - 新增测试先红后绿。
+  - 运行 Stratix skill 定向测试、skill validator、diff check。

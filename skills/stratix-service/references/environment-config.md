@@ -1,38 +1,65 @@
-# Stratix Environment And Sensitive Config
+# Stratix 环境与敏感配置
 
-## 普通开发环境
+## 配置链路
 
-所有应用配置先写入 JSON，再加密成 `STRATIX_SENSITIVE_CONFIG`。普通 `.env` 不承载应用配置，只保留进程级变量：
+```text
+sensitive.json
+  -> Forge 使用 STRATIX_ENCRYPTION_KEY 加密
+  -> STRATIX_SENSITIVE_CONFIG
+  -> Core 使用同一 key 解密
+  -> src/stratix.config.ts(sensitiveConfig)
+  -> plugins[].options
+```
+
+业务配置不从 `DB_HOST`、`REDIS_HOST`、`PORT` 等普通环境变量回退。
+
+## 进程级环境变量
+
+普通 `.env` 只保留启动所需进程变量：
 
 ```dotenv
 NODE_ENV=development
-STRATIX_ENCRYPTION_KEY=12345678901234567890123456789012
+STRATIX_ENCRYPTION_KEY=<32-byte-key>
 ```
 
-`loadEnvironment()` 在没有进程级 `STRATIX_SENSITIVE_CONFIG` 时按顺序加载：
+生产环境由部署平台同时注入：
 
-1. `.env`
-2. `.env.<NODE_ENV>`
-3. `.env.<NODE_ENV>.local`
-4. `.env.local`
-
-后加载覆盖先加载。生产环境排除 `.local` 文件。
-
-## 生产环境
-
-生产环境推荐由部署平台注入：
-
-```bash
+```dotenv
 NODE_ENV=production
-STRATIX_ENCRYPTION_KEY="12345678901234567890123456789012"
-STRATIX_SENSITIVE_CONFIG="iv.authTag.encrypted"
+STRATIX_ENCRYPTION_KEY=<32-byte-key>
+STRATIX_SENSITIVE_CONFIG=<ciphertext>
 ```
 
-生产环境不要依赖默认加密 key，也不要依赖 `.env.local`。不要把明文应用配置提交进仓库。
+Core 支持三种 AES-256 key 表示：
+
+- 恰好 32 bytes 的原始文本。
+- 64 位 hex，解码后 32 bytes。
+- 标准 base64，解码后 32 bytes。
+
+其他长度直接失败。生产环境不允许 Core 回退到内置开发 key。
+
+## 项目中读取 key 与测试模式
+
+业务代码通常不读取 key；Forge/Core 已负责加解密。自定义启动器或专用配置工具确实需要时：
+
+```ts
+import {
+  isTest,
+  required
+} from '@stratix/core/environment';
+
+const encryptionKey = required('STRATIX_ENCRYPTION_KEY');
+const testMode = isTest();
+```
+
+- `required('STRATIX_ENCRYPTION_KEY')` 缺值时抛错。
+- `isTest()` 判断 `NODE_ENV === 'test'`。
+- 不记录、返回或注册 `encryptionKey`。
+- 不在业务类里自行解密 `STRATIX_SENSITIVE_CONFIG`。
 
 ## 敏感配置 JSON
 
-建议把敏感配置组织成与 `src/stratix.config.ts` 中读取路径一致的对象：
+结构与 `src/stratix.config.ts` 的读取路径保持一致：
 
 ```json
 {
@@ -44,66 +71,47 @@ STRATIX_SENSITIVE_CONFIG="iv.authTag.encrypted"
     "host": "127.0.0.1",
     "port": 3306,
     "database": "app",
-    "username": "root",
+    "username": "app",
     "password": "secret"
-  },
-  "redis": {
-    "host": "127.0.0.1",
-    "port": 6379,
-    "password": "",
-    "db": 0
   }
 }
 ```
 
-先校验：
+## Forge 命令
+
+Forge 配置 CLI 只从进程环境读取 key，不接受 `--key`。不要通过命令行参数传密钥。
 
 ```bash
-stratix config validate sensitive.local.json --required database --strict
+pnpm exec stratix config validate sensitive.local.json --required server,database --strict
+export STRATIX_ENCRYPTION_KEY="$(pnpm exec stratix config generate-key --length 32 --format base64)"
+pnpm exec stratix config encrypt sensitive.local.json --output .env.sensitive
 ```
 
-## 默认 key 加密与解密
-
-仅限本地临时开发：
-
-```bash
-stratix config encrypt sensitive.local.json --output .env.sensitive
-stratix config decrypt "$STRATIX_SENSITIVE_CONFIG" --output tmp/decrypted.json
-```
-
-缺省时，forge 配置工具会先读取环境变量 `STRATIX_ENCRYPTION_KEY`；如果没有，会回退到内置开发 key。core 运行时在非生产环境也允许默认 key，因此这种方式只适合本地临时验证。
-
-## 显式 key 加密与解密
-
-当前最稳妥的跨 forge/core 用法是使用 32 字节原始字符串：
-
-```bash
-export STRATIX_ENCRYPTION_KEY="12345678901234567890123456789012"
-stratix config encrypt sensitive.prod.json --key "$STRATIX_ENCRYPTION_KEY" --output .env.sensitive
-stratix config decrypt "$STRATIX_SENSITIVE_CONFIG" --key "$STRATIX_ENCRYPTION_KEY" --output tmp/decrypted.json
-```
-
-加密和运行时解密必须使用同一把 key。不要在生产环境使用默认 key。
-
-`stratix config generate-key --length 32 --format hex|base64` 可以生成随机材料，但当前 core 运行时直接把 key 字符串作为字节使用；若使用 hex/base64 字符串，先做一次真实启动或解密验证，确认 forge 和 core 的 key 处理兼容。保守做法仍是使用 32 字节原始字符串。
-
-## 用 .env 文件承载 STRATIX_SENSITIVE_CONFIG
-
-`stratix config encrypt ... --output .env.sensitive` 默认写出：
-
-```dotenv
-STRATIX_SENSITIVE_CONFIG="..."
-```
-
-注意当前 `loadEnvironment()` 会先检查进程环境中的 `STRATIX_SENSITIVE_CONFIG`，找不到才加载 dotenv 文件；它不会在同一次调用中从 `.env.sensitive` 读出变量后再回头解密。
-
-因此如果使用 `.env.sensitive`，需要在启动前预加载：
+解密验证：
 
 ```bash
 set -a
 . ./.env.sensitive
 set +a
-STRATIX_ENCRYPTION_KEY="12345678901234567890123456789012" stratix start --type web --config ./src/stratix.config.ts
+pnpm exec stratix config decrypt "$STRATIX_SENSITIVE_CONFIG" --output tmp/decrypted.json
 ```
 
-或让 CI、systemd、Docker、Kubernetes 直接注入 `STRATIX_SENSITIVE_CONFIG` 和 `STRATIX_ENCRYPTION_KEY`。
+加密、CLI 解密和 Core 运行时必须使用同一个 `STRATIX_ENCRYPTION_KEY`。
+
+## `.env.sensitive` 启动边界
+
+Core 启动时先检查进程环境中的 `STRATIX_SENSITIVE_CONFIG`：
+
+- 已存在：立即解密并把对象传给配置函数。
+- 不存在：加载 dotenv 文件，返回空 `sensitiveConfig`；同一次启动不会再回头解密刚从 dotenv 读到的密文。
+
+因此启动前必须预加载：
+
+```bash
+set -a
+. ./.env.sensitive
+set +a
+pnpm exec stratix start --type web --config ./src/stratix.config.ts
+```
+
+生产环境优先让 CI、systemd、Docker 或 Kubernetes 直接注入两个变量，不提交明文 JSON、key 或解密结果。

@@ -13,17 +13,20 @@ def read_skill_file(path: str) -> str:
 
 def test_skill_is_renamed_and_uses_current_toolchain() -> None:
     content = read_skill_file("SKILL.md")
+    cli = read_skill_file("references/cli-workflow.md")
+    sources = read_skill_file("references/source-locations.md")
     frontmatter = content.split("---", 2)[1]
 
     assert not OLD_SKILL_ROOT.exists()
     assert "name: stratix-service" in frontmatter
     assert "stratix-nodejs-backend" not in content
-    assert "npm view @stratix/create dist-tags --json" in content
-    assert "npm view @stratix/forge dist-tags --json" in content
-    assert "项目实际安装版本" in content
+    assert "npm view @stratix/create dist-tags --json" in cli
+    assert "npm view @stratix/forge dist-tags --json" in cli
+    assert "目标项目实际版本" in content
     assert "create-stratix" in content
-    assert "不再推荐旧的单包 `@stratix/cli`" in content
-    assert "@stratix/cli@1.1.0" not in content
+    assert "不使用旧单包 `@stratix/cli`" in cli
+    assert "@stratix/core@1.1.2" in sources
+    assert "@stratix/forge@1.1.4" in sources
 
 
 def test_cli_workflow_covers_obsync_root_and_end_to_end_development() -> None:
@@ -39,13 +42,9 @@ def test_cli_workflow_covers_obsync_root_and_end_to_end_development() -> None:
         "stratix build-manifest --output .stratix/production-manifest.json",
         "stratix release gate --dry-run --manifest .stratix/production-manifest.json",
         "stratix openapi generate",
-        "2026-07-05 历史兼容注记",
-        "历史失败，不是永久结论",
-        "2026-07-06 latest 复测",
-        "@stratix/create@1.1.1",
-        "@stratix/forge@1.1.3",
-        "stratix.generated.js",
-        "Found sensitive configuration environment variable",
+        "CLI 只从进程环境读取 key",
+        "不接受 `--key`",
+        "发布结论必须来自当前目标版本的新鲜执行",
     ):
         assert phrase in content
 
@@ -74,75 +73,84 @@ def test_sensitive_config_rules_are_explicit() -> None:
     for phrase in (
         "STRATIX_SENSITIVE_CONFIG",
         "STRATIX_ENCRYPTION_KEY",
-        "生产环境不要依赖默认加密 key",
-        "使用 32 字节原始字符串",
-        "它不会在同一次调用中从 `.env.sensitive` 读出变量后再回头解密",
-        "stratix config encrypt sensitive.prod.json --key",
-        "stratix config decrypt \"$STRATIX_SENSITIVE_CONFIG\" --key",
+        "生产环境不允许 Core 回退到内置开发 key",
+        "64 位 hex",
+        "标准 base64",
+        "同一次启动不会再回头解密",
+        "required('STRATIX_ENCRYPTION_KEY')",
+        "isTest()",
     ):
         assert phrase in content
+
+    assert ' --key "$STRATIX_ENCRYPTION_KEY"' not in content
 
 
 def test_generated_apps_must_use_encrypted_sensitive_config() -> None:
     skill = read_skill_file("SKILL.md")
     environment = read_skill_file("references/environment-config.md")
-    scaffold = read_skill_file("references/scaffolds.md")
+    application = read_skill_file("references/application-development.md")
     references = "\n".join(
         path.read_text(encoding="utf-8")
         for path in sorted((SKILL_ROOT / "references").glob("*.md"))
     )
 
     for phrase in (
-        "新生成应用的配置默认全部来自 `sensitiveConfig`",
-        "不得用 `DB_HOST`、`REDIS_HOST`、`WPS_APP_SECRET`",
-        "配置安全门",
-        "不能完成加密、解密和注入验证时，结论只能是 blocked",
+        "敏感业务配置只从函数参数 `sensitiveConfig` 映射",
+        "业务类不自行解密",
+        "CLI 不接受 `--key`",
+        "任一必需验证失败",
     ):
         assert phrase in skill
 
     for phrase in (
-        "所有应用配置先写入 JSON，再加密成 `STRATIX_SENSITIVE_CONFIG`",
-        "普通 `.env` 不承载应用配置",
+        "Forge 使用 STRATIX_ENCRYPTION_KEY 加密",
+        "普通 `.env` 只保留启动所需进程变量",
         "server",
         "database",
-        "redis",
     ):
         assert phrase in environment
 
-    assert "process.env.DB_" not in scaffold
-    assert "process.env.REDIS_" not in scaffold
-    assert "process.env.HOST" not in scaffold
-    assert "process.env.PORT" not in scaffold
-    assert "const appConfig = sensitiveConfig.app" in scaffold
-
-    for forbidden in (
-        "DB_HOST",
-        "DB_PORT",
-        "DB_USERNAME",
-        "REDIS_HOST",
-        "WPS_APP_SECRET",
-        "OSSP_SECRET_KEY",
-        "UPSTREAM_URL",
-        "配置文件可通过 `process.env` 读取",
-    ):
-        assert forbidden not in references
+    assert "sensitiveConfig.database" in application
+    assert "process.env.DB_" not in references
+    assert "process.env.REDIS_" not in references
+    assert "process.env.PORT" not in references
+    assert "process.env.WPS_APP_SECRET" not in references
 
 
 def test_cli_upgrade_guard_requires_live_capability_probe() -> None:
-    content = read_skill_file("SKILL.md")
+    content = "\n".join(
+        (
+            read_skill_file("SKILL.md"),
+            read_skill_file("references/cli-workflow.md"),
+        )
+    )
 
     for phrase in (
-        "如果 `create-stratix list` 或 `stratix list` 失败",
-        "先查 npm dist-tags",
-        "再查项目实际安装版本",
-        "项目内优先使用 `pnpm exec stratix`",
-        "先用 `--help` 或 npm 包版本确认新命令",
-        "不得猜测 template、preset 或插件名",
-        "只选择业务明确需要的插件",
+        "先查目标项目实际版本",
+        "pnpm exec stratix --help",
+        "pnpm exec stratix list templates",
+        "pnpm exec stratix list presets",
+        "不要假设这些包版本相同",
+        "只选择真实需要的 template/preset",
     ):
         assert phrase in content
 
-    assert "stratix config generate-key --length 32 --format hex" not in content
+    assert "stratix config generate-key --length 32 --format base64" in content
+
+
+def test_service_boundary_defers_admin_web_pages_to_admin_web_skill() -> None:
+    content = read_skill_file("SKILL.md")
+
+    for phrase in (
+        "Stratix `app web-admin`、`admin-page`、`admin-crud` 的前端页面",
+        "交给 `stratix-admin-web`",
+        "- work_item: <WORKITEM-ID or none>",
+        "- ledger_event: <event id or none>",
+    ):
+        assert phrase in content
+
+    assert "stratix generate admin-page user" not in content
+    assert "stratix generate admin-crud user" not in content
 
 
 def test_default_api_examples_use_minimal_testing_preset() -> None:
@@ -151,24 +159,20 @@ def test_default_api_examples_use_minimal_testing_preset() -> None:
         for path in ("SKILL.md", "references/cli-workflow.md", "references/scaffolds.md")
     )
 
-    assert "create-stratix app api my-api --preset testing --no-install" in combined
     assert "create-stratix app api demo-api --preset testing --no-install" in combined
     assert "app api demo-api --preset database,testing" not in combined
-    assert "app api my-api --preset database,testing" not in combined
 
 
-def test_production_testing_requires_official_control_project() -> None:
+def test_implementation_requires_source_backed_current_contracts() -> None:
     content = read_skill_file("SKILL.md")
 
     for phrase in (
-        "官方对照项目",
-        "同一命令矩阵",
-        "官方 latest 模板",
-        "工具链或模板问题",
-        "只有 skill 生成项目失败",
-        "process.env.PORT",
-        "sensitiveConfig",
-        "全部新鲜通过",
+        "source locations",
+        "application development",
+        "源码、生成模板、导出类型和正式指南不一致时",
+        "目标版本的源码与类型为准",
+        "repository -> service -> controller",
+        "BaseRepository.query()",
     ):
         assert phrase in content
 
@@ -194,10 +198,10 @@ def test_production_gate_requires_start_and_runtime_injection() -> None:
     content = read_skill_file("SKILL.md")
 
     for phrase in (
-        "stratix start",
+        "真实 start",
         "runtime injection",
         "全部新鲜通过",
-        "才能声明生成应用可上线",
+        "任一必需验证失败",
     ):
         assert phrase in content
 
@@ -206,12 +210,11 @@ def test_skill_applies_ponytail_minimalism_to_service_design() -> None:
     content = read_skill_file("SKILL.md")
 
     for phrase in (
-        "Ponytail 约束",
-        "不为“以后可能”新增 preset、插件、配置、manager、helper、factory 或接口",
-        "已有 controller / service / repository / BaseRepository / business-repository",
-        "能靠数据库约束、Stratix 配置校验、Fastify schema 或 TypeScript 类型解决",
-        "不简化安全边界、输入校验、数据一致性、敏感配置、错误处理和生产交付 gate",
-        "不新增中间层",
+        "最小实现",
+        "只有 1–3 个简单资源时，不创建模块层或额外 domain abstraction",
+        "领域规则有真实复用或复杂不变量时",
+        "不新增 manager、factory、registry 或包装层",
+        "不简化输入校验、敏感配置、数据一致性、错误处理和发布门",
     ):
         assert phrase in content
 
@@ -222,17 +225,11 @@ def test_openai_metadata_points_to_new_skill_name() -> None:
     assert 'display_name: "Stratix Service"' in content
     assert "Use $stratix-service" in content
     assert "$stratix-nodejs-backend" not in content
-    assert "do not use the removed tasks preset" in content
     for phrase in (
-        "npm dist-tags",
-        "project's installed @stratix/create",
-        "--help",
-        "list templates",
-        "list presets",
-        "STRATIX_SENSITIVE_CONFIG",
-        "fresh doctor, test, build, manifest, release gate, openapi, start, "
-        "decrypt, and runtime injection",
-        "runtime injection cannot be verified",
-        "blocked",
+        "installed framework sources",
+        "config",
+        "module",
+        "three-layer",
+        "Kysely",
     ):
         assert phrase in content

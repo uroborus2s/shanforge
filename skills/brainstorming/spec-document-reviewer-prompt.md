@@ -4,7 +4,7 @@
 
 **目的：**确认头脑风暴产物完整、一致，可进入需求、设计或计划阶段。
 
-**派发时机：**brief、设计输入或正式文档已写入 shanforge 路径后，例如 `.factory/workitems/<WORKITEM-ID>/brief.md`、`docs/04-project-development/02-discovery/brainstorm-record.md` 或相关设计文档。
+**派发时机：**brief、设计输入或正式文档已写入 shanforge 路径后，例如 `.factory/workitems/<WORKITEM-ID>/brief.md` 或当前正式设计文档。
 
 ```text
 Subagent（通用）：

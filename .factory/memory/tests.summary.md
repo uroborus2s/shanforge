@@ -1,9 +1,27 @@
 # 测试摘要
 
-- 当前阶段：`SKILL-CLEANUP-001 + GO-BACKEND-SKILL-001 CLOSED`
-- 当前验证结论：Go 模板 `tidy / gofmt / vet / test / race` 通过；精确 index 快照
-  任务相关 `13 passed, 3 deselected`，Ruff、Skill 集合、digest、JSONL 和 diff check 通过。
+- 当前阶段：`ENTERPRISE-AI-DELIVERY-001 / EAD-TASK-002`
+- 当前验证结论：T02 6 类模型、6 类 Agent、12 个审计字段、45 条封闭转移、
+  4 个状态负例、5 个治理负例、Ruff、work item/review ledger、memory scope 和
+  diff check 通过；Iteration 4 独立复审 `approved / 98 / C0-I0-M1`。
 
+- 2026-07-27：T02 最终验证通过：validator、4+5 负例、golden digest、Ruff、
+  work item/review ledger、收口契约、current-state 边界和 diff check 均通过。
+- 2026-07-27：T02 Iteration 3 整改验证通过：唯一 `data` canonical payload 与
+  `schema_version` 已固化，golden digest 为 `sha256:da62145f…afdcd8`；
+  work item ledger 15 行、review ledger 6 个 T02 事件可解析。
+- 2026-07-27：T02 Iteration 2 整改验证通过：
+  `state_negative_cases=4 governance_negative_cases=5`，Ruff 通过；
+  work item ledger 13 行，review ledger 4 个 T02 事件可解析。
+- 2026-07-27：T02 Iteration 1 整改验证通过：
+  `models=6 agents=6 audit_fields=10 transitions=45 negative_cases=4`；
+  work item ledger 11 行、review ledger 2 个 T02 事件、5 个 memory 授权文件通过。
+- 2026-07-27：T02 静态契约验证通过：`models=5 agents=6 common_fields=6
+  baseline_na=3`，产物 `5/5` 存在，ledger 9 行可解析；整体黑盒、UI、API 和
+  发布回归因本任务只定义文档契约而为 N/A。
+- 2026-07-27：EAD 评审收口验证通过。Ledger 最新状态为
+  `pending_human_confirmation`，Gate 决策对象、原因、三类选项和下一动作完整；
+  本地 commit 因具体产品路径尚未人工批准而未创建。
 - 2026-07-27：Skill 联合收口验证通过。独立评审 `approved / 96 / C0-I0-M1`；
   Go 既有复审 `approved / 98 / C0-I0-M0`。Index 完整目标的 3 个失败均由 HEAD
   既存 runtime-skill 目录与其他工作项 digest 漂移解释，本任务白名单外暂存为 0。

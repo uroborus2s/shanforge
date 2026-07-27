@@ -17,7 +17,7 @@
 
 ## Work Breakdown
 
-### EAD-TASK-001 能力评估与差距分析
+### EAD-TASK-001 能力评估与差距分析（completed）
 
 输入：
 
@@ -30,7 +30,7 @@
 - 试点可行性结论。
 - 后续产品化 backlog。
 
-### EAD-TASK-002 企业交付数据模型与 Agent 输出契约
+### EAD-TASK-002 企业交付数据模型与 Agent 输出契约（approved）
 
 输出：
 

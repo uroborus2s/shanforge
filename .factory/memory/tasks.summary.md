@@ -1,10 +1,29 @@
 # 任务摘要
 
-- 当前阶段：`SKILL-CLEANUP-001 + GO-BACKEND-SKILL-001 / CLOSED`
-- 当前焦点：Go 开发 Skill 与仓内 Skill 清理已提交并关闭；下一顺位为 `ENTERPRISE-AI-DELIVERY-001`。
+- 当前阶段：`ENTERPRISE-AI-DELIVERY-001 / EAD-TASK-002`
+- 当前焦点：EAD-TASK-002 独立复审和最终验证通过，待精确本地提交。
 
 > 历史读取规则：以下所有带日期条目都是记录发生时的历史快照。条目中的“当前”“下一步”只表示当时状态，不得覆盖本文件顶部的当前焦点和当前动作。
 
+- 2026-07-27：T02 Iteration 4 独立复审 `approved / 98 / C0-I0-M1`；
+  陈旧字段计数 Minor 已修正，最终验证通过，当前
+  `approved_ready_for_local_commit`，WorkItem 保持开放。
+- 2026-07-27：T02 Iteration 3 复审为 `changes_requested / 89 / C0-I1-M0`；
+  已统一公共信封 `schema_version`、唯一 `data` 对象与 validator 前像，并冻结
+  golden digest，当前再次 `ready_for_review`。
+- 2026-07-27：T02 Iteration 2 复审为 `changes_requested / 87 / C0-I1-M1`；
+  已固定 RFC 8785 digest 前像和 mismatch 拒绝，并补 actor、AI reviewer、
+  revision、digest、redaction 5 个治理负例，当前再次 `ready_for_review`。
+- 2026-07-27：T02 首轮独立评审 `changes_requested / 68 / C0-I4-M1`；
+  已补齐稳定 actor 与版本审计、6 类模型、45 条封闭状态转移、4 个非法转移负例、
+  独立验收记录和 memory 精确 hunk 策略，当前 `ready_for_review`。
+- 2026-07-27：用户批准 EAD 最小路径，T01 已由本地提交 `314983e` 收口。
+  T02 已定义 5 类数据模型、6 类 Agent 契约、统一人审与失败边界，当前
+  `ready_for_review`；完整 Web、数据库、API 和客户系统接入未启动。
+- 2026-07-27：`EAD-TASK-001` 独立评审 `approved / 95 / C0-I0-M1`，
+  Minor 已修正；13 文件候选精确暂存但未提交。真实 Gate 要求用户确认
+  “咨询实施包 + 半自动 Agent + 人工脱敏导入 + 2 个需求/P0-P1 缺陷”最小路径，
+  WorkItem 保持开放，T02–T05 未启动。
 - 2026-07-27：`SKILL-CLEANUP-001` 与 `GO-BACKEND-SKILL-001` 已由本地提交
   `89982b3` 完成：Go Skill 更名为 `go-developer` 并补齐规范和可运行模板，
   仓内 `skill-creator` 及专属工具/测试退役。独立评审 `96/98`，两个 WorkItem

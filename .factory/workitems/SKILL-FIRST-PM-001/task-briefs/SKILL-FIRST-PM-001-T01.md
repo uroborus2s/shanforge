@@ -3,7 +3,7 @@
 - 类型：实现
 - 层级：system
 - 优先级：P0
-- 状态：verified_ready_for_commit
+- 状态：closed
 - 目标：以最小 skill-local 脚本替代 Shanforge 源码运行时，并在 ITA Club 完成真实进度查询。
 - 验证：先写脚本行为测试并观察失败，再实现、运行 ITA Club 快照、删除 runtime、执行保留测试和引用扫描。
 - 禁止：修改 ITA Club 业务代码；提交范围外脏改动；远端 Git 动作。

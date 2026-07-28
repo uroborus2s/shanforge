@@ -1,14 +1,14 @@
 # 任务摘要
 
-- 当前阶段：`SKILL-FIRST-PM-001 / SKILL-FIRST-PM-001-T01`
-- 当前焦点：旧 `PM-DASHBOARD-004` runtime 路线已被 skill-first 边界取代；新快照脚本的业务可读性、Shanforge / ITA Club 真实快照和四组浏览器验收已完成，独立复审通过，等待收口提交。
+- 当前阶段：`ENTERPRISE-AI-DELIVERY-001 / EAD-TASK-003`
+- 当前焦点：T03 已批准待客户岗位确认；候选先本地提交。
 
 > 历史读取规则：以下所有带日期条目都是记录发生时的历史快照。条目中的“当前”“下一步”只表示当时状态，不得覆盖本文件顶部的当前焦点和当前动作。
 
 - 2026-07-29：`SKILL-FIRST-PM-001-T01` 以 skill-local 标准库脚本替代旧 runtime 看板；
   Shanforge / ITA Club 第二次生成均缓存命中，四组浏览器验收通过，定向 `3 passed`，
   全仓 `212 passed / 7 failed`，7 项均为范围外既有漂移。首轮和复审 findings 已关闭，
-  独立复审 `approved / C0-I0-M0`。
+  独立复审 `approved / C0-I0-M0`；本地提交 `ac67036`、`4f5ed56`，状态 `closed`。
 - 2026-07-27：旁路工作项 `STRATIX-SERVICE-GUIDE-001-T01` 已把 Stratix 源码调查与业务开发规范分离：删除运行时 `source-locations.md`，所有业务项目直接遵循 skill 内统一规范；回归 `19 passed`，独立复审 `approved / 100 / C0-I0-M0`，进入精确范围本地提交，不改变顶部主项目 Gate。
 - 2026-07-27：T03 已定义 6 个岗位、14 个 RACI 活动和 6 类门禁；
   首轮评审 `84 / C0-I1-M1` 的两项 Finding 已关闭，Iteration 2 独立复审

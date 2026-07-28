@@ -1,7 +1,7 @@
 # SKILL-FIRST-PM-001：Skill-first PM 快照与 runtime 清理
 
 - 阶段：`IMPLEMENTATION`
-- 状态：`verified_ready_for_commit`
+- 状态：`closed`
 - 用户目标：让 `using-shanforge` 自带 PM 快照能力，先完成 ITA Club 进度查询，再删除 Shanforge `src/` 平台代码，避免外部项目依赖源码仓。
 
 ## 范围
@@ -51,3 +51,4 @@
 - ITA Club 已由 `using-shanforge/scripts/project_snapshot.py` 生成并命中缓存。
 - Shanforge `src/` 已删除，旧 `PM-DASHBOARD-004` runtime 实现已终止。
 - 首轮、两次复审及 project-memory 增量复审 finding 已全部关闭；最终验证完成。
+- 主实现提交 `ac67036`，看板验收收口提交 `4f5ed56`；未执行远端动作。

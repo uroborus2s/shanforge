@@ -4,7 +4,7 @@
 ## 工作项
 
 - 工作项：`REQUIREMENT-TASK-TRACEABILITY-001`
-- 状态：`verified_ready_for_local_commit`
+- 状态：`closed`
 - 来源：用户于 2026-07-28 批准任务分层和需求分析条件化方案
 - 分析模式：`embedded`
 - 分析定位：`brief.md#需求分析`

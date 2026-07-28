@@ -120,7 +120,7 @@
 - 计划评审：`pending`
 - 任务评审：`approved`
 - 验证：`passed`
-- 本地提交：`pending`
+- 本地提交：`184a701`
 - 记忆同步：`not_required_same_turn_terminal_workitem`
 
 ## 计划自审

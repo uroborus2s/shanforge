@@ -1,6 +1,6 @@
 # 架构摘要
 
-- 更新时间：2026-07-28
+- 更新时间：2026-07-29
 - 当前架构：`skill-first`
 - 正式 owner：`docs/05-design/system-architecture.md` `v4.0.0`
 

@@ -295,3 +295,7 @@
 - 2026-07-23：TASK-IMPLEMENT-003 最终候选定向 `87 passed`，extractor + renderer `19 passed`，文档/路由 `15 passed`；Ruff、40 文件 format、mypy `0/279`、diff/ignore 检查通过。Chromium 四主视口与代码详情桌面/手机 `1 passed`、8 张截图；axe 7 页 `0 violation`。全仓 `1322 passed / 3 failed`，失败仅属于范围外 `ui-ux-pro-max` / `writing-plans` 既有改动。
 - 2026-07-23：`PROJECT-ARTIFACTS-001` T03/T04 联合回归 `89 passed`，Renderer 回归 `21 passed`；三条固定资产 CLI 均返回 `valid=true`，桌面和 390px 移动端静态页面无横向溢出、控制台错误为 0。最终干净候选验证见本工作项 completion evidence。
 - 2026-07-27：`TASK-WORKFLOW-SEMANTICS-001` 新鲜关闭验证为 `50 passed`，同范围 Ruff、JSONL 和限定 diff check 通过。
+- 2026-07-29：`SKILL-FIRST-PM-001-T01` 快照行为测试 `3 passed`；Ruff、
+  format、Mypy、依赖锁、边界扫描和 diff check 通过。Shanforge / ITA Club
+  390×844、1440×900 共 4/4 浏览器验收通过，无横向溢出或控制台错误，键盘跳转与
+  折叠区通过。全仓 `212 passed / 7 failed`，失败属于已登记的范围外事实或测试漂移。

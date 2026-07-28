@@ -444,14 +444,8 @@ MCP 负责操作 Penpot，不替代产品决策、UX 任务流、UI 视觉质量
 
 ### 35.3 固定校验
 
-运行：
-
-```bash
-PYTHONPATH=src .venv/bin/python -m settings.composition.project_knowledge design validate --json
-```
-
-校验器检查 schema、稳定 ID、中文标题和用途、页面/组件状态、仓内路径、真实文件存在性
-及 Penpot 等待连接语义。`ready` 或 `deprecated` 状态没有真实 `.penpot` 时必须失败。
+Shanforge 不再提供仓内 design validator。目标项目通过自身设计资产测试检查 schema、
+稳定 ID、中文标题和用途、页面/组件状态、仓内路径及真实文件存在性。
 
 ## 正式版本历史（仅已发布）
 

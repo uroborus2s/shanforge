@@ -144,14 +144,8 @@ R002 的权威运行结果位于 `.factory/workitems/FLOW-CONTRACT-001/evidence/
 
 ### 8.5 固定命令与只读站点
 
-稳定案例使用：
-
-```bash
-PYTHONPATH=src .venv/bin/python -m settings.composition.project_knowledge test-cases validate --json
-```
-
-当前首批 catalog 有四个 API 合同案例。SQLite 的 `pk_test` 只保存
-`framework=catalog`、案例类型和 `test_status=definition:<status>`，运行证据为空。
+稳定案例由目标项目自身的合同测试验证。Shanforge 不再提供仓内 test-case validator，
+也不维护 SQLite 测试投影。
 质量页和文档详情必须将其显示为测试定义，只有明确传入且通过校验的当前报告才能显示
 运行结果。
 

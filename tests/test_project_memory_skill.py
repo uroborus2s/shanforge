@@ -92,8 +92,7 @@ def test_session_start_uses_a_conditional_read_chain_and_stops_when_sufficient()
         ):
             assert phrase in content
     assert (
-        "按最小集合读取 `.factory/memory/runtime-brief.md` 和 "
-        "`.factory/memory/current-state.md`"
+        "按最小集合读取 `.factory/memory/runtime-brief.md` 和 `.factory/memory/current-state.md`"
     ) not in skill
     assert "二选一" in skill
     assert "二选一" in checklist
@@ -102,9 +101,9 @@ def test_session_start_uses_a_conditional_read_chain_and_stops_when_sufficient()
 def test_current_state_is_a_bounded_current_projection() -> None:
     state_path = REPO_ROOT / ".factory" / "memory" / "current-state.md"
     state = state_path.read_text(encoding="utf-8")
-    tasks_summary = (
-        REPO_ROOT / ".factory" / "memory" / "tasks.summary.md"
-    ).read_text(encoding="utf-8")
+    tasks_summary = (REPO_ROOT / ".factory" / "memory" / "tasks.summary.md").read_text(
+        encoding="utf-8"
+    )
 
     assert len(state.encode("utf-8")) <= 16 * 1024
     assert len(state.splitlines()) <= 80
@@ -169,9 +168,7 @@ def test_memory_sync_downgrades_inactive_tasks_without_deleting_audit_facts() ->
         "## 活跃任务",
     )
     assert "FLOW-TASK-012" not in active
-    assert '"task":"FLOW-TASK-012"' in (work_item / "ledger.jsonl").read_text(
-        encoding="utf-8"
-    )
+    assert '"task":"FLOW-TASK-012"' in (work_item / "ledger.jsonl").read_text(encoding="utf-8")
     for path in (
         work_item / "evidence/FLOW-TASK-012-review-fix-verification.md",
         work_item / "reviews/FLOW-TASK-012-independent-rereview-iteration-3.md",
@@ -210,18 +207,15 @@ def test_project_memory_declares_fact_source_priority_and_summary_limits() -> No
         "事实源优先级",
         "正式文档和 work item ledger 高于 memory summary",
         "summary 不复制完整正文",
-        "SQLite、HTML 和 cache 都是可重建投影",
-        (
-            "不得把 `.factory/index/project-knowledge.sqlite3` 或 "
-            "`.factory/cache/site/current/index.html` 作为正式事实源"
-        ),
+        "HTML 和 cache 都是可重建投影",
+        "不得把 `.factory/cache/site/current/index.html` 作为正式事实源",
     ):
         assert phrase in content
 
     for phrase in (
         "summary 不复制完整正文",
         "summary 与正式文档冲突时，以正式文档和 ledger 为准",
-        "SQLite、HTML 和 cache 都是非事实投影",
+        "HTML 和 cache 都是非事实投影",
     ):
         assert phrase in relevance_gate
         assert phrase in update_checklist
@@ -229,7 +223,7 @@ def test_project_memory_declares_fact_source_priority_and_summary_limits() -> No
     for phrase in (
         "事实源优先级",
         "正式文档和 work item ledger 高于 memory summary",
-        "SQLite、HTML 和 cache 是可重建投影",
+        "HTML 和 cache 是可重建投影",
         "不作为事实源",
     ):
         assert phrase in doc_map

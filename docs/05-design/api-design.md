@@ -1211,14 +1211,10 @@ HTTP 请求响应的可执行机器合同统一保存在 `contracts/openapi/open
 | `API-HTTP-PROJECT-STATUS` | `GET /projects/{project_id}/status` | 只读查询同一快照下的项目状态 |
 
 每个 operation 必须有中文摘要和详细说明、`operationId`、参数/请求/响应/字段说明、
-成功与错误响应、示例、Owner、需求和测试追踪。固定校验命令是：
+成功与错误响应、示例、Owner、需求和测试追踪。Shanforge 不再提供仓内 API
+validator；目标项目使用自身合同测试验证这些字段。
 
-```bash
-PYTHONPATH=src .venv/bin/python -m settings.composition.project_knowledge api validate --json
-```
-
-校验时方法和路径集合必须与 `build_runtime_routes()` 完全一致；多一条或少一条都失败。
-索引把每个 operation 投影为 `api_operation`，使用 YAML path 定位，不保存行号。
+校验时方法和路径集合必须与目标项目真实 runtime routes 完全一致；多一条或少一条都失败。
 OpenAPI 中的需求引用形成 `SATISFIES` 强关系；引用目标没有稳定实体时，SQLite 原子
 发布失败，不能留下悬空链接。
 

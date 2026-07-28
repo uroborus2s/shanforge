@@ -1,28 +1,21 @@
 [project]
 name = "shanforge"
 version = "0.2.0.dev0"
-description = "Abstract agent platform workspace for business-oriented Agent Apps and workflows."
+description = "Skill-first software factory rules and reusable agent workflows."
 readme = "README.md"
 requires-python = ">=3.14"
-dependencies = [
-  "PyYAML>=6.0.2",
-  "shanforge-di",
-]
+dependencies = []
 
 [dependency-groups]
 dev = [
-  "jsonschema>=4.23.0",
   "mypy>=1.10.0",
+  "PyYAML>=6.0.2",
   "pytest>=8.0.0",
   "ruff>=0.6.0",
-  "types-pyyaml>=6.0.12.20260518",
 ]
 
 [tool.uv]
 package = false
-
-[tool.uv.sources]
-shanforge-di = { path = "../shanforge-di", editable = true }
 
 [tool.ruff]
 line-length = 100
@@ -37,6 +30,6 @@ addopts = "-ra"
 
 [tool.mypy]
 python_version = "3.14"
-files = ["src"]
+files = ["skills"]
 warn_unused_configs = true
 pretty = true

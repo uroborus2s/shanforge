@@ -15,7 +15,7 @@
 
 - `docs/`：项目正式文档、需求、设计、用户指南与追踪矩阵
 - `skills/`：可被 AI 直接调用的技能与参考资料
-- `scripts/`：少量仓库辅助入口，不承载软件工厂流程主控
+- `scripts/`：仓库级同步入口，不承载软件工厂流程主控
 - `config/`：默认配置与项目约束
 - `agents/`：协作角色说明
 - `workflows/`：专项流程或辅助资料
@@ -53,3 +53,6 @@ uv run python scripts/sync-codex-skills
 ## 说明
 
 当前版本以 `skill-first` 为主，重点支持本地协作与流程约束；独立 API 平台化能力保留为后续演进方向。
+
+可重复的确定性辅助能力随所属 skill 放在 `skills/<name>/scripts/`。目标项目不需要
+安装或调用 Shanforge 源码、Python 包或独立 CLI。

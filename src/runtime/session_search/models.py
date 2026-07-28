@@ -1,6 +1,0 @@
-from __future__ import annotations
-
-from domain.session.archive_models import SessionArchiveHit, SessionTranscriptSlice
-from domain.session.assembly_models import SessionAssemblyManifest
-
-SessionAssemblyExplanation = SessionAssemblyManifest

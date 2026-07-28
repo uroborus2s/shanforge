@@ -107,7 +107,7 @@ description: 项目状态查询、任务延续、会话恢复、上下文压缩�
 - `docs/` 承载人类可审计正式事实。
 - `.factory/workitems/<ID>/ledger.jsonl`、`evidence/`、`reviews/` 和 `reports/` 承载执行事实。
 - `.factory/memory/*.summary.md` 只写 ID、状态、当前 gate、关键约束和索引；summary 不复制完整正文。
-- SQLite、HTML 和 cache 都是可重建投影；不得把 `.factory/index/project-knowledge.sqlite3` 或 `.factory/cache/site/current/index.html` 作为正式事实源。
+- HTML 和 cache 都是可重建投影；不得把 `.factory/cache/site/current/index.html` 作为正式事实源。
 - summary、索引或站点视图与正式文档、ledger 冲突时，以正式文档和 ledger 为准，并重建派生物。
 
 ## 写入边界

@@ -221,16 +221,15 @@ description: 项目状态查询、任务延续、项目事实修改、阶段切�
 当用户要求查看项目状态、PM 看板、项目管理页面或当前进度时：
 
 1. 读取 `references/pm-dashboard-rendering.md`。
-2. AI 只识别用户要看的项目、范围和授权画像；不得临时遍历 `docs/`、work item ledger、代码或 memory 后自行计算“实时状态”。
-3. 在仓库根目录执行一次固定命令：`PYTHONPATH=src uv run python -m settings.composition.project_knowledge project snapshot --html --json`。需要脱敏视图时增加 `--profile shared-restricted`；只有用户明确要求冷重建或索引诊断时才使用 `--rebuild` 或 `--check`。
-4. 命令负责检查当前索引和页面输入指纹。输入未变化时直接返回最后有效入口；发生变化时才刷新 SQLite 投影并原子发布新的静态站点。
-5. 入口固定为 `.factory/cache/site/current/index.html`。站点只读；列表和详情都是独立页面，详情必须有返回按钮，不使用 drawer、modal 或侧边详情栏。
-6. 需要定向解释单个需求、设计、任务、代码或证据时，按需调用 `project find/show/trace/context`；不得回退到整库散读。
-7. 会话返回 HTML 路径、`cache_hit`、代次和诊断。AI 可以基于 receipt 做独立解释，但不计算或覆盖固定代码给出的完成率、状态、风险、权限和上线事实，也不拼装或改写 HTML。
-8. SQLite、HTML 和 cache 都是可删除重建的本地投影，不提交 Git，不作为后续事实写入入口。索引损坏、定位不唯一、权限不明或来源失败时按合同失败关闭。
+2. 从当前 skill 目录运行 `scripts/project_snapshot.py --project-root <目标项目根目录>`；不得调用 Shanforge 仓库的 `src/`、虚拟环境或绝对路径。
+3. 只需在 receipt 中返回项目相对路径时增加 `--relative-paths`；该选项不代表内容脱敏。
+4. 返回 `.factory/cache/site/current/index.html`、`cache_hit` 和 `generation_id`；输入未变化时直接复用。
+5. 页面只展示 `.factory/project.json`、当前会话卡以及 work item brief、当前 task brief
+   和 ledger 的登记事实。工作项统计不等于产品完成率。
+6. 失败时报告脚本 receipt，不临时拼装 HTML，也不把缓存当正式事实。
 
 不新增单独的 `project-management` skill。
-PM 状态页是流程总控的按需输出，不改变工作 skill 的职责。
+PM 状态页是本 skill 的自带只读输出，不改变工作 skill 的职责。
 
 ## 黑盒流程评估
 

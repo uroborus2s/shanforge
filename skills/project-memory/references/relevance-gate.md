@@ -7,7 +7,7 @@
 - 正式文档和 work item ledger 高于 memory summary。
 - summary 不复制完整正文；只保留 ID、状态、当前 gate、关键约束和索引。
 - summary 与正式文档冲突时，以正式文档和 ledger 为准。
-- SQLite、HTML 和 cache 都是非事实投影；`.factory/cache/site/current/index.html` 只能作为可重建展示视图。
+- HTML 和 cache 都是非事实投影；`.factory/cache/site/current/index.html` 只能作为可重建展示视图。
 
 ## 允许读取
 

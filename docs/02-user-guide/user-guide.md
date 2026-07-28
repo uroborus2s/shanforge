@@ -5,8 +5,8 @@
 | 项目 | 内容 |
 |---|---|
 | 文档 ID | `DOC-USER-GUIDE-001` |
-| 正式版本 | `v1.0.0` |
-| 来源候选 | `TASK-DESIGN-001-R019` |
+| 正式版本 | `v1.1.0` |
+| 来源候选 | `SKILL-FIRST-PM-001` |
 | 发布事务 | `DESIGN-RELEASE-TX-R019-G001` |
 | 负责人 | `HUMAN_PRODUCT_ANALYST` |
 | 修改 / 审核 / 批准 | `uroborus` / `uroborus` / `uroborus` |
@@ -49,6 +49,9 @@ uv run python scripts/sync-codex-skills
 ```
 
 这只是同步工具，不是项目流程入口。
+
+skill 自带的确定性脚本会随整个 skill 目录一起同步。目标项目不需要复制或调用
+Shanforge 仓库源码。
 
 ## 3. 第一轮会话怎么说
 
@@ -101,4 +104,5 @@ AI 应该先走 `using-shanforge`，必要时用 `project-memory` 恢复上下�
 
 | 版本 | 日期 | 变更 | 修改人 | 审核 | 批准 |
 |---|---|---|---|---|---|
+| `v1.1.0` | 2026-07-28 | 明确 skill 自带脚本并取消目标项目源码依赖 | `uroborus` | `uroborus` | `uroborus` |
 | `v1.0.0` | 2026-07-18 | 基于 `TASK-DESIGN-001-R019` 正式落档 | `uroborus` | `uroborus` | `uroborus` |

@@ -12,8 +12,8 @@
 
 ## 架构底线
 
-- 依赖链：`access -> application -> domain -> runtime -> settings`；`src/` 顶层只允许这 5 个目录。
-- 职责：`access` 入站，`application` 编排，`domain` 业务规则，`runtime` 通用能力，`settings` 实现与装配。
-- 接口由调用下层的一方定义；`settings` 只实现上层 port。跨层装配只在 `src/settings/composition/`。
-- 仓内不重建 DI 内核；resolver / loader / registry / factory / manifest 交给 `shanforge-di`。
-- 分层、目录或接口 owner 变化时，同步设计文档、测试和 `.factory/memory/`；事实冲突先修事实源。
+- Shanforge 是 `skill-first` 工程协作资产，不提供仓内 `src/` 平台运行时。
+- 可重复、确定性的辅助能力放在所属 skill 的 `scripts/`，优先只用标准库。
+- 目标项目只保存自己的代码、正式文档和 `.factory/` 事实；不得依赖 Shanforge 源码路径、虚拟环境或本机绝对路径。
+- `scripts/` 只放仓库级同步工具，不承载软件工厂流程主控。
+- skill、目录或执行入口变化时，同步用户指南、测试和 `.factory/memory/`；事实冲突先修事实源。

@@ -1,6 +1,6 @@
 # Agent 会话卡
 
-- 生成时间：2026-07-27 17:58 +0800
+- 生成时间：2026-07-29 00:25 +0800
 - 项目：`shanforge`
 - 当前阶段：`ENTERPRISE-AI-DELIVERY-001 / EAD-TASK-003`
 - 当前状态：`approved_pending_customer_confirmation`
@@ -15,6 +15,16 @@
 - Validator 回读 T02 的 45 条转移，并覆盖 5 个权限负例和 5 组职责分离负例。
 - 通用 RACI 不绑定真实人员，状态保持 `pending_customer_confirmation`。
 - WorkItem 保持开放；依赖真实角色映射的 T04 执行未启动。
+
+## 最近完成的并行事实
+
+- `SKILL-FIRST-PM-001` 已把 PM 快照迁入 `using-shanforge` 自带脚本，ITA Club
+  最终快照 generation 为
+  `86a2c1f9a27a88303c115491150042aa8c31503bdb710361114f13cc3bca4951`，
+  第二次运行 `cache_hit=true`。
+- Shanforge `src/` 平台 runtime 及专属测试已删除；独立复审与 project-memory 增量复审
+  均为 `approved / C0-I0-M0`。
+- 该并行工作项不改变 EAD 当前 Gate 或唯一下一动作。
 
 ## 已读取上下文
 

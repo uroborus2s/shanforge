@@ -69,6 +69,16 @@ description: "需求工程技能。用于把想法、work item brief、已批准
 
 ## 必写分析
 
+需求分析载体：
+
+- 分析内容始终必做；每次项目化需求工程都声明
+  `analysis_mode = embedded | standalone` 和可回读的 `analysis_locator`。
+- `embedded`：默认把依赖、优先级、可行性、风险和设计/测试影响写入 PRD
+  的“需求分析”章节或已批准需求包，并把章节路径写入 `analysis_locator`。
+- `standalone`：跨域、高风险、依赖复杂或需要独立评审时，生成
+  `requirements-analysis.md`，并把文件路径写入 `analysis_locator`。
+- Gate 校验分析内容和定位，不按固定文件名判断需求分析是否完成。
+
 需求版本规则：
 
 - 新增需求默认从 `0.1.0` 草稿开始。
@@ -105,13 +115,14 @@ baseline 影响分析：
 1. 确认需求来源、场景类型和 work item id。
 2. 区分事实、假设和待确认问题。
 3. 写用户故事、REQ、AC、NFR、非目标和风险。
-4. 写需求版本规则、baseline 影响分析、领域模块映射和 baseline 变更建议。
-5. 用模板中的检查项确认需求可测试。
-6. 标记未确认项；不清楚时输出 `needs_user_input`。
-7. 按 PRD 模板或 work item brief 路径保存产物。
-8. 同步 `.factory/memory/prd.summary.md` 和 `.factory/memory/tasks.summary.md`，只写已观察到的事实。
-9. 向 `.factory/workitems/<WORKITEM-ID>/ledger.jsonl` 写入需求事件。
-10. 输出状态包，只写 `needs`，不决定下一步 skill。
+4. 选择 `analysis_mode`，写 `analysis_locator`，完成需求分析。
+5. 写需求版本规则、baseline 影响分析、领域模块映射和 baseline 变更建议。
+6. 用模板中的检查项确认需求可测试。
+7. 标记未确认项；不清楚时输出 `needs_user_input`。
+8. 按 PRD 模板或 work item brief 路径保存产物。
+9. 同步 `.factory/memory/prd.summary.md` 和 `.factory/memory/tasks.summary.md`，只写已观察到的事实。
+10. 向 `.factory/workitems/<WORKITEM-ID>/ledger.jsonl` 写入需求事件。
+11. 输出状态包，只写 `needs`，不决定下一步 skill。
 
 ## 状态边界
 

@@ -5,6 +5,10 @@
 - 工作项：
 - 任务：
 - 状态：`draft | ready_for_review | approved | changes_requested`
+- 任务层级：`project | requirement | cross_cutting | system`
+- 关联目标：
+  - `<稳定 ID；按任务层级声明一个或多个目标>`
+- 强关系：`IMPLEMENTS | DEPENDS_ON | N/A`
 - 上游计划：
 - 流水账：
 

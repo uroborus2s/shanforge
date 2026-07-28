@@ -114,6 +114,22 @@ description: 仅在已批准的 spec、需求、设计或 work item brief 需要
 - 内部 checklist 至少覆盖：读文件、运行命令、写失败测试、运行确认失败、最小实现、运行确认通过、记录 evidence、请求 review。
 - 提交不是每个小步骤的硬要求；本 skill 只在计划中说明“是否形成可提交工作单元”，不决定提交 skill。
 
+## 任务层级与关联
+
+每张正式任务卡都声明 `task_scope`，且只允许：
+`project | requirement | cross_cutting | system`。`task_scope` 是业务层级，
+不得复用 `task_kind` 表达 `task_scope`。
+
+- `requirement` 至少强关联一个 `REQ-*` 或 `NFR-*`，使用从任务到需求的强
+  `IMPLEMENTS` 关系。
+- `cross_cutting` 强关联一个或多个 `REQ-*` / `NFR-*`，允许一项任务横跨多个需求。
+- `project` 关联项目基线、项目章程或设计项，不强制关联单个需求；使用强
+  `IMPLEMENTS` 或 `DEPENDS_ON` 关系。
+- `system` 对产品进度贡献为零，只用于治理、同步、审计等系统工作。
+
+关联沿用现有关系图，不在 task brief、SQLite 或 PM 层另建平行关联表。计划自审和
+plan review 必须拒绝缺少层级、缺少该层级所需关联或把 `system` 计入产品进度的任务。
+
 ## 禁止占位符
 
 计划里不得出现这些交付：

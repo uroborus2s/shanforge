@@ -33,6 +33,18 @@
 - 关联原需求：
 - bug 复现与根因：
 
+## 需求分析
+
+- analysis_mode: embedded
+- analysis_locator: `prd.md#需求分析`
+- 需求优先级与依赖：
+- 可行性与关键约束：
+- 风险与未决问题：
+- 对设计与测试的影响：
+
+跨域、高风险、依赖复杂或需要独立评审时，把 `analysis_mode` 改为
+`standalone`，并将 `analysis_locator` 指向独立 `requirements-analysis.md`。
+
 ## 目标
 
 用 2-4 句说明要解决的问题、目标用户和业务价值。

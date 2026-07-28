@@ -55,7 +55,7 @@ docs/
 │   ├── 03-requirements/
 │   │   ├── index.md
 │   │   ├── prd.md
-│   │   ├── requirements-analysis.md
+│   │   ├── requirements-analysis.md  # 条件：analysis_mode=standalone
 │   │   ├── requirements-verification.md
 │   │   ├── changelog.md
 │   │   ├── nfr-catalog.md

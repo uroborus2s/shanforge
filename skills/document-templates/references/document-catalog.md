@@ -91,7 +91,7 @@
 | 文档 | 默认性 | 主要作用 |
 |---|---|---|
 | `prd.md` | 必备 | 正式功能需求与业务目标 |
-| `requirements-analysis.md` | 必备 | 依赖、优先级、可行性与风险分析 |
+| `requirements-analysis.md` | 条件 | `analysis_mode=standalone` 时承载依赖、优先级、可行性与风险分析；否则嵌入 PRD |
 | `requirements-verification.md` | 必备 | 校验 PRD、分析、字段与追踪覆盖 |
 | `changelog.md` | 条件 | 记录需求级变更历史 |
 | `nfr-catalog.md` | 条件 | 固化非功能要求 |
@@ -176,7 +176,7 @@
 - `01-getting-started/*`
 - `02-user-guide/index.md`
 - `02-user-guide/user-guide.md`
-- `04-project-development` 内的项目章程、输入、PRD、需求分析、需求校验、技术选型、架构、模块边界、API 设计、实施计划、测试计划、发布说明、部署说明、运维手册、需求追踪矩阵
+- `04-project-development` 内的项目章程、输入、PRD、需求分析内容、需求校验、技术选型、架构、模块边界、API 设计、实施计划、测试计划、发布说明、部署说明、运维手册、需求追踪矩阵
 
 ### 公开 API / 集成型项目
 

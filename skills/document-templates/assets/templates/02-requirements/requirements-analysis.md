@@ -7,6 +7,8 @@
 **上游输入：** 头脑风暴记录 | PRD | 现状分析  
 **下游输出：** 架构设计 | 实施计划 | 测试策略  
 **关联 ID：** `REQ-xxx`, `NFR-xxx`, `RISK-xxx`, `CR-xxx`  
+- analysis_mode: standalone
+- analysis_locator: `requirements-analysis.md`
 **最后更新：** YYYY-MM-DD  
 
 ## 1. 分析目标

@@ -138,6 +138,12 @@ _TASK_BRIEF_SECTION_KEYS = {
     "本任务允许修改": "scope",
     "scope": "scope",
     "allowed files": "scope",
+    "任务层级": "task_scope",
+    "task scope": "task_scope",
+    "task_scope": "task_scope",
+    "关联目标": "traceability_targets",
+    "traceability targets": "traceability_targets",
+    "traceability_targets": "traceability_targets",
     "非范围": "out_of_scope",
     "非目标": "out_of_scope",
     "不允许修改": "out_of_scope",
@@ -155,6 +161,7 @@ _TASK_ID_AT_TITLE_START = re.compile(
 )
 _LOCAL_TASK_ID = re.compile(r"^TASK-[A-Z]+-\d+$")
 _CANONICAL_WORK_ITEM_ID = re.compile(r"^[A-Z][A-Z0-9]*(?=[A-Za-z0-9-]*\d)(?:-[A-Za-z0-9]+)+$")
+_TASK_SCOPES = frozenset({"project", "requirement", "cross_cutting", "system"})
 _REQUIREMENT_SECTION_ID = re.compile(r"^(?:REQ|NFR)-[A-Z0-9][A-Z0-9-]*\d$")
 _REQUIREMENT_FIELD = re.compile(
     r"^\s*[-*]\s*(?P<key>分类|优先级|状态|用户故事|需求规则(?:\s*\d+)?|度量目标|验证方式)"
@@ -318,6 +325,16 @@ def _task_brief_details(
         if key is None:
             continue
         _append_task_detail(details, key, _task_brief_block(lines, start, end))
+    raw_scope = details.get("task_scope")
+    if raw_scope is not None:
+        normalized_scope = _metadata_value(str(raw_scope)).casefold()
+        if normalized_scope not in _TASK_SCOPES:
+            raise ValueError(f"unsupported task_scope: {normalized_scope}")
+        details["task_scope"] = normalized_scope
+    raw_targets = details.get("traceability_targets")
+    if raw_targets is not None:
+        targets = raw_targets if isinstance(raw_targets, list) else [raw_targets]
+        details["traceability_targets"] = [_metadata_value(str(value)) for value in targets]
     return details
 
 

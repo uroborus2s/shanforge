@@ -48,7 +48,9 @@ description: "创建、审查、整理和升级软件项目正式文档体系。
 5. 根 `docs/index.md` 作为唯一导航与权限事实源。
 6. 子目录 `index.md` 只写正文概览、边界和推荐阅读顺序。
 7. 只创建下一阶段真的会被使用的文档，不批量制造空壳页。
-8. 修改后运行 `uvx --from docs-stratego docs-stratego source validate --repo-path .`；无法运行时写清替代核查和风险。
+8. 需求分析内容必备，独立文件条件生成：读取 `analysis_mode` 和
+   `analysis_locator`；只有 `standalone` 才创建 `requirements-analysis.md`。
+9. 修改后运行 `uvx --from docs-stratego docs-stratego source validate --repo-path .`；无法运行时写清替代核查和风险。
 
 ## 正式文档治理规则
 

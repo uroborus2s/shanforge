@@ -104,8 +104,13 @@
 至少准备：
 
 - `04-project-development/03-requirements/prd.md`
-- `04-project-development/03-requirements/requirements-analysis.md`
 - `04-project-development/03-requirements/requirements-verification.md`
+- 需求包中的 `analysis_mode = embedded | standalone`
+- 能回读分析内容的 `analysis_locator`
+
+`embedded` 时分析内容位于 PRD 或已批准需求包；`standalone` 时才要求
+`04-project-development/03-requirements/requirements-analysis.md`。Gate 校验内容和定位，
+不再无条件要求 `requirements-analysis.md`。
 
 建议同时准备：
 
@@ -115,6 +120,7 @@
 通过标准：
 
 - 需求优先级明确
+- 分析内容覆盖依赖、可行性、风险以及对设计和测试的影响
 - 非功能要求可被设计与测试引用
 - 变更入口清晰
 

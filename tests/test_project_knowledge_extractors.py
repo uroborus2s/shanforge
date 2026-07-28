@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from pathlib import Path
 
+import pytest
+
 from domain.project_knowledge.models import AccessClass, SourceDefinition, stable_id
 from runtime.project_knowledge.extractors import (
     JsonExtractor,
@@ -422,6 +424,42 @@ def test_markdown_task_brief_projects_human_readable_execution_fields() -> None:
         "completion_conditions": "用户无需理解内部编号即可说明任务目的和验收结果。",
         "verification": "`pytest tests/test_project_site_renderer.py`",
     }
+
+
+def test_markdown_task_brief_projects_declared_task_scope_and_targets() -> None:
+    contribution = MarkdownExtractor().extract(
+        source(
+            "markdown",
+            ".factory/workitems/DEMO-001/task-briefs/DEMO-001-T06.md",
+        ),
+        """# DEMO-001-T06 横切需求实现
+
+## 工作项
+
+- 任务：`DEMO-001-T06`
+- 任务层级：`cross_cutting`
+- 关联目标：
+  - `REQ-001`
+  - `NFR-001`
+""".encode(),
+    )
+
+    work_item = next(
+        item for item in contribution["entities"] if item["entity_kind"] == "work_item"
+    )
+    assert work_item["details"]["task_scope"] == "cross_cutting"
+    assert work_item["details"]["traceability_targets"] == ["REQ-001", "NFR-001"]
+
+
+def test_markdown_task_brief_rejects_unknown_task_scope() -> None:
+    with pytest.raises(ValueError, match="unsupported task_scope: feature"):
+        MarkdownExtractor().extract(
+            source(
+                "markdown",
+                ".factory/workitems/DEMO-001/task-briefs/DEMO-001-T07.md",
+            ),
+            b"# DEMO-001-T07\n\n- Task scope: `feature`\n",
+        )
 
 
 def test_markdown_task_brief_supports_english_and_numbered_semantic_sections() -> None:

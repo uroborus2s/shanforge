@@ -26,6 +26,40 @@ def test_controller_exposes_project_position_before_internal_routing() -> None:
         assert phrase in controller
 
 
+def test_controller_uses_three_part_human_response_without_stopping_internal_work() -> None:
+    controller = read("skills/using-shanforge/SKILL.md")
+
+    ordered_sections = (
+        "1. **第一部分：直接回应**",
+        "2. **第二部分：处理结果**",
+        "3. **第三部分：需要用户回复**",
+    )
+    positions = [controller.index(section) for section in ordered_sections]
+    assert positions == sorted(positions)
+
+    for phrase in (
+        "三段式人类响应合同",
+        "`direct_answer`、`lightweight_analysis` 和项目化回复",
+        "项目位置快照只作为第二部分",
+        "“无需回复”表示不存在真实人工 Gate",
+        "不得因为输出“无需回复”而停止",
+        "必须继续既有授权范围内的执行",
+        "不得结束当前 turn",
+    ):
+        assert phrase in controller
+
+    final_response_boundary = next(
+        line for line in controller.splitlines() if "才可以发送结束当前 turn 的最终回复" in line
+    )
+    for phrase in (
+        "当前授权范围已经到达终态",
+        "存在真实人工 Gate",
+        "存在无法内部解决的 blocker",
+        "继续需要新的权限",
+    ):
+        assert phrase in final_response_boundary
+
+
 def test_controller_distinguishes_internal_actions_from_true_human_gates() -> None:
     controller = read("skills/using-shanforge/SKILL.md")
 

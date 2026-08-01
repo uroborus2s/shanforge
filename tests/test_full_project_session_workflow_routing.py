@@ -311,11 +311,12 @@ def test_formal_contract_preserves_v1_2_tables_after_lean_delivery_update() -> N
         "3d5f4cbabda86312da0603db5662175453d12dd5966c788301b0c79c2cb4992f"
     )
     assert "批准前不得修改正式文档或同步 runtime Skill" in candidate
-    assert "| 正式版本 | `v1.3.0` |" in formal
-    assert "| 来源候选 | `2026-08-01 用户轻量交付决策` |" in formal
+    assert "| 正式版本 | `v1.3.1` |" in formal
+    assert "| 来源候选 | `2026-08-01 用户风险分级补充决策` |" in formal
     assert "| 发布事务 | `N/A（直接策略变更）` |" in formal
     assert "| `v1.2.0` | 发布完整项目会话归因" in formal
     assert "| `v1.3.0` | 开发期轻门禁" in formal
+    assert "| `v1.3.1` | 明确低、中、高风险任务" in formal
     assert formal.count("## 完整软件项目会话归因模型") == 1
     assert formal.count("## 工作流合同") == 1
     assert "| 当前版本 | `0.2.0` |" not in formal
@@ -341,6 +342,22 @@ def test_formal_contract_preserves_v1_2_tables_after_lean_delivery_update() -> N
     ):
         assert phrase in candidate
         assert phrase in formal
+
+
+def test_formal_contract_and_router_define_deterministic_risk_levels() -> None:
+    formal = read(FORMAL_CONTRACT_PATH)
+    router = read("skills/using-shanforge/SKILL.md")
+
+    for content in (formal, router):
+        for phrase in (
+            "高风险优先、低风险全量满足、其余中风险",
+            "禁止按代码行数、文件数或预计工时分级",
+            "任一条件命中即为高风险",
+            "全部条件满足才是低风险",
+            "未命中高风险且未满足全部低风险条件",
+            "信息不足时不得判为低风险",
+        ):
+            assert phrase in content
 
 
 def test_runtime_skills_expose_the_minimum_route_and_result_contract() -> None:

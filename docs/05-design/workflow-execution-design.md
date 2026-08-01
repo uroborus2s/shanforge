@@ -5,11 +5,11 @@
 | 项目 | 内容 |
 |---|---|
 | 文档 ID | `PROC-TASK-EXECUTION-001` |
-| 正式版本 | `v1.2.0` |
-| 来源候选 | `FLOW-TASK-015-C001` |
-| 发布事务 | `FLOW-TASK-015-RELEASE-TX-001` |
+| 正式版本 | `v1.3.0` |
+| 来源候选 | `2026-08-01 用户轻量交付决策` |
+| 发布事务 | `N/A（直接策略变更）` |
 | 负责人 | `HUMAN_PROJECT_OWNER` |
-| 修改 / 审核 / 批准 | `AI_EXECUTOR` / `/root/project_knowledge_review` / `uroborus` |
+| 修改 / 审核 / 批准 | `AI_EXECUTOR` / `集中质量门` / `uroborus` |
 | 状态 | 已批准并生效 |
 | 上游 | `PRD`、`正式设计`、`Catalog` |
 | 下游 | `所有 WorkItem、会话和执行器` |
@@ -22,7 +22,7 @@
 
 ## 正式内容
 
-**最后更新：** 2026-07-27
+**最后更新：** 2026-08-01
 
 ## 1. 目标
 
@@ -287,34 +287,46 @@ UI 设计或实现必须覆盖：
 
 ## 开发任务要求
 
+`writing-plans` 只生成最小计划和一个批次质量任务；`executing-plans` 与
+`subagent-driven-development` 连续完成授权开发任务，`tdd-workflow` 负责必要的最小行为检查。
+
 - 执行前必须确认 task brief 已授权。
 - 不跳过 dependencies，不提前进入后续任务。
 - 不修改允许范围外文件。
 - 先写最小失败检查；已有测试能覆盖时先运行并记录失败或基线。
 - 写最小实现，只改根因或目标路径。
-- 完成后必须有 verification evidence、implementer report、review input package 和 ledger event。
-- 作者只能推进到 `ready_for_review`，不得自批 `approved`。
+- 开发期只要求代码规范、必要的定向单元测试和适用的静态检查；不得为每个接口或普通任务生成
+  verification evidence、implementer report、review input package 或独立评审文件。
+- 低、中风险任务实现并通过定向检查后继续同一授权批次；需要追踪时只追加一条紧凑 ledger checkpoint。
+- 认证授权、支付、删除、数据迁移、公共 API、跨服务契约、数据一致性和不可逆变更属于高风险，
+  可以在批次结束前单独进入设计或代码评审。
+- 全部开发任务或已批准里程碑完成后，统一生成一次实现摘要、验证证据和 review input package，
+  作者只能把该批次推进到 `ready_for_review`，不得自批 `approved`。
 
 ## 测试任务要求
 
 - 新功能优先 TDD。
 - Bug 修复必须先有复现、直接原因、根源原因和修复方案确认。
 - 低风险跑定向单测或静态检查；中风险补集成或契约验证；高风险补目标 E2E 或关键人工验收。
-- 完成声明前必须运行新鲜验证命令，读取完整输出和 exit code。
-- 证据必须写清失败数、错误数、跳过数、未运行项、偏离原因和残余风险。
+- 单个开发任务不强制固定覆盖率、逐函数测试、全量回归或落盘测试报告。
+- 批次质量门统一执行代码审查、API 契约测试、服务测试和集成测试；按风险增加 E2E、安全或性能测试。
+- 批次完成声明前必须运行新鲜验证命令，读取完整输出和 exit code；最终证据写清失败数、
+  错误数、跳过数、未运行项、偏离原因和残余风险。
+- 长周期项目允许按里程碑集中收口，禁止退化为逐任务重复质量门。
 
 ## 落盘规则
 
-正式事实写入 `docs/` 登记路径；项目化执行事实写入 `.factory/workitems/<WORKITEM-ID>/`：
+正式事实写入 `docs/` 登记路径。开发期默认只保存源码、必要测试和稳定合同；
+`.factory/workitems/<WORKITEM-ID>/` 只在批次收口、真实阻塞或人工 Gate 时保存最小执行事实：
 
 ```text
 .factory/workitems/<WORKITEM-ID>/
   brief.md
   plan.md
   task-briefs/
-  evidence/
-  reports/
-  reviews/
+  evidence/   # 批次级
+  reports/    # 批次级
+  reviews/    # 批次级或高风险专项
   ledger.jsonl
 ```
 
@@ -324,11 +336,16 @@ UI 设计或实现必须覆盖：
 
 - Review 不能替代 verification。
 - Verification 不能替代 human confirmation。
+- 低、中风险开发任务不逐项独立评审；批次或里程碑完成后做一次集中代码评审。
+- 高风险设计或实现可以即时评审；设计无重大架构、公共契约、安全或不可逆风险时，自检后直接开发。
+- 整改直接修改 diff 并重跑受影响测试；只有 Critical、Important 或高风险路径变化才复审受影响范围，
+  不生成逐轮 triage、response 和 rereview 文件。
 - Reviewer `approved` 只完成 Review Gate；仅正式发布、风险接受、产品或设计取舍及明确治理条款要求时，
   才进入 `pending_human_confirmation`。
 - 有 Critical 必须 `changes_requested`。
 - 有 Important 默认 `changes_requested`，除非用户明确接受风险。
-- 缺 evidence、implementer report、review input package 或 ledger event 时，不得声明完成。
+- 在批次或里程碑最终收口时，缺 evidence、implementer report、review input package 或 ledger event 时，
+  不得声明批次完成；作者只能推进到 `ready_for_review`。
 
 ---
 
@@ -1427,8 +1444,9 @@ R019 作者只能把 T01–T06 产物标记为 `ready_for_review`。完整 profi
 
 ## 正式版本历史（仅已发布）
 
-| 版本 | 日期 | 变更 | 修改人 | 审核 | 批准 |
+| 版本 | 修改内容 | 日期 | 修改人 | 审核 | 批准 |
 |---|---|---|---|---|---|
-| `v1.0.0` | 2026-07-18 | 基于 `TASK-DESIGN-001-R019` 正式落档 | `uroborus` | `uroborus` | `uroborus` |
-| `v1.1.0` | 2026-07-22 | 增补非阻塞状态同步、durable queue、fencing、重试与 Git 权限边界 | `uroborus` | `uroborus` | `uroborus` |
-| `v1.2.0` | 2026-07-27 | 发布完整项目会话归因、13 个工作流、写入授权、节点转换及状态包契约 | `AI_EXECUTOR` | `/root/project_knowledge_review` | `uroborus` |
+| `v1.0.0` | 基于 `TASK-DESIGN-001-R019` 正式落档 | 2026-07-18 | `uroborus` | `uroborus` | `uroborus` |
+| `v1.1.0` | 增补非阻塞状态同步、durable queue、fencing、重试与 Git 权限边界 | 2026-07-22 | `uroborus` | `uroborus` | `uroborus` |
+| `v1.2.0` | 发布完整项目会话归因、13 个工作流、写入授权、节点转换及状态包契约 | 2026-07-27 | `AI_EXECUTOR` | `/root/project_knowledge_review` | `uroborus` |
+| `v1.3.0` | 开发期轻门禁、风险分级评审和批次集中质量收口 | 2026-08-01 | `AI_EXECUTOR` | `集中质量门` | `uroborus` |

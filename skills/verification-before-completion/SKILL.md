@@ -33,15 +33,16 @@ description: 准备声明完成、修复、通过、可提交、可开 PR 或进
 
 ## 输出
 
-- evidence：`.factory/workitems/<WORKITEM-ID>/evidence/`
-- verification report：`.factory/workitems/<WORKITEM-ID>/reports/`
+- 低、中风险任务：当前状态包中的新鲜命令、exit code 和结果摘要，不强制落盘文件。
+- 批次 / 里程碑 / 项目或高风险专项：`.factory/workitems/<WORKITEM-ID>/evidence/` 和必要的
+  `.factory/workitems/<WORKITEM-ID>/reports/`。
 - ledger：`.factory/workitems/<WORKITEM-ID>/ledger.jsonl`
 
 ## 含义保留清单
 
 - 证据先于声明。
 - 不能用旧结果、推测、信心或子 agent 报告代替验证。
-- 每个完成声明都必须先识别能证明声明的命令。
+- 每个完成声明都必须先识别能证明声明的命令；只有批次、里程碑、项目或高风险声明需要持久化 evidence。
 - 必须运行完整命令。
 - 必须读取完整输出。
 - 必须检查 exit code。
@@ -59,7 +60,8 @@ description: 准备声明完成、修复、通过、可提交、可开 PR 或进
 6. 统计失败数量、错误数量、跳过数量和未运行项。
 7. 对照 [completion-claim-checklist.md](references/completion-claim-checklist.md) 判断能否声明成功。
 8. 对 Red-Green 场景按 [red-green-verification-template.md](references/red-green-verification-template.md) 记录。
-9. 按 [completion-evidence-template.md](references/completion-evidence-template.md) 写 evidence。
+9. 低、中风险任务把命令、exit code 和结果写入状态包；批次、里程碑、项目或高风险专项才按
+   [completion-evidence-template.md](references/completion-evidence-template.md) 写一份 evidence。
 10. 判断完成层级，明确当前声明只覆盖 task、stage 还是 project，并列出 `scope_remaining`。
 11. 更新 ledger，输出 `status`、`project_position`、`completion_level`、`stop_reason` 与 `needs`。
 
@@ -75,8 +77,9 @@ description: 准备声明完成、修复、通过、可提交、可开 PR 或进
 | API | schema、状态码、鉴权和兼容性 | `TEST-API-*` |
 | 发布回归 | 影响正式交付、公共契约或发布门 | `TEST-REL-*` |
 
-- 每个正式测试必须建立 `需求 -> 任务 -> 测试 -> 证据` 追踪，使用稳定 `TEST-*` ID；一次运行日志只作为 evidence，不产生新的测试定义。
-- 改动不涉及某一层级时写 `N/A` 并说明不适用原因；不得省略层级后把“未运行”误报成“通过”。
+- 批次、发布或长期维护的正式测试建立 `需求 -> 任务 -> 测试 -> 证据` 追踪并使用稳定 `TEST-*` ID；
+  普通任务的定向单测不为追踪而新增测试定义或证据文件。
+- 只列按风险适用的测试层级；不得为了模板补 `N/A`，也不得把未运行误报成通过。
 - 整体黑盒、UI、API 或发布回归需要启动进程时，evidence 必须记录启动命令、端口、健康检查和关闭方式。
 - 静态 HTML、进程内 API 或纯 schema 检查没有独立服务时，对端口和关闭方式写 `N/A`，同时写明静态文件路径或进程内测试入口。
 - 环境字段缺失时只能输出 `needs: verification_plan`，不能开始声称项目级验证完成。
@@ -97,12 +100,12 @@ description: 准备声明完成、修复、通过、可提交、可开 PR 或进
 - 输出能直接证明声明。
 - exit code 与失败数量支持结论。
 - 未运行项、偏离原因和风险已写明。
-- evidence 文件已落盘。
+- 批次、里程碑、项目或高风险声明的 evidence 文件已落盘；普通任务已有可回读命令结果。
 
 ## 关闭 gate
 
 - 关闭前必须检查新鲜命令、exit code、输出和 evidence。
-- 无 evidence 不能关闭。
+- 无批次级 evidence 不能关闭批次、阶段或项目；普通任务 checkpoint 不触发关闭。
 - review 不能替代 verification。
 - verification 不能替代 human confirmation。
 

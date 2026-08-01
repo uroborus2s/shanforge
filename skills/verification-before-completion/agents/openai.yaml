@@ -1,4 +1,4 @@
 interface:
   display_name: "完成前验证"
   short_description: "在完成声明前运行新鲜验证证据，读取输出和 exit code，再报告真实状态。"
-  default_prompt: "使用 $verification-before-completion：为当前 work item 找到能证明完成声明的验证命令，运行完整命令，读取完整输出、exit code 和失败数量，把新鲜验证证据写入 evidence、report 和 ledger，再输出真实状态。"
+  default_prompt: "使用 $verification-before-completion：运行能证明声明的完整命令并读取输出、exit code 和失败数量。普通任务只回写命令摘要；批次、里程碑、项目或高风险声明才落盘一份 evidence 和必要 report。"

@@ -34,7 +34,7 @@ def test_verification_blocks_closure_without_fresh_command_output_and_evidence()
 
     for phrase in (
         "关闭前必须检查新鲜命令、exit code、输出和 evidence",
-        "无 evidence 不能关闭",
+        "无批次级 evidence 不能关闭批次、阶段或项目",
         "review 不能替代 verification",
         "verification 不能替代 human confirmation",
     ):

@@ -242,7 +242,7 @@ def test_completion_output_persistence_contract_is_explicit() -> None:
         "当前会话可见性协议",
         "`direct_answer` / `lightweight_analysis`",
         "默认不落盘、不写 ledger、不写 memory",
-        "写 work item ledger、必要 evidence/report",
+        "开发期只写必要 checkpoint；批次收口写一套 ledger、evidence/report",
         "当前会话必须能看见收口状态",
         "子 agent 或自循环完成后不得只静默写文件",
         "任务开始",

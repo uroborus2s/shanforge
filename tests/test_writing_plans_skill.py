@@ -35,8 +35,9 @@ def test_writing_plans_skill_localizes_superpowers_semantics() -> None:
         "禁止占位符",
         "计划自审",
         "plan review",
+        "批次质量任务",
         "本 skill 不写下一步 skill",
-        "只写 plan、task brief、review handoff 和状态回写",
+        "只写 plan、task brief、适用的 review handoff 和状态回写",
         "needs:",
     ):
         assert phrase in skill
@@ -66,8 +67,8 @@ def test_writing_plans_excludes_simple_code_and_unit_test_changes() -> None:
         assert phrase in skill
 
     assert "简单任务不触发" in metadata
-    assert "局部代码修改加对应单测" in metadata
-    assert "用户明确要求正式计划" in metadata
+    assert "批次质量任务" in metadata
+    assert "用户明确要求时才进入独立 plan review" in metadata
 
 
 def test_writing_plans_references_define_plan_and_task_templates() -> None:
@@ -75,7 +76,7 @@ def test_writing_plans_references_define_plan_and_task_templates() -> None:
         "skills/writing-plans/references/workitem-plan-template.md": (
             "# <功能名称> 实施计划",
             "给执行者",
-            "交还 `using-shanforge` 流程总控判断下一步",
+            "批次末统一进入质量门",
             "目标：",
             "架构：",
             "技术栈：",
@@ -88,8 +89,9 @@ def test_writing_plans_references_define_plan_and_task_templates() -> None:
             "步骤 2：运行测试并确认失败",
             "运行命令",
             "期望输出",
-            "步骤 5：证据和记忆同步",
+            "步骤 5：记录紧凑 checkpoint",
             ".factory/memory/",
+            "批次质量任务",
             "## 计划自审",
         ),
         "skills/writing-plans/references/task-brief-template.md": (
@@ -101,12 +103,12 @@ def test_writing_plans_references_define_plan_and_task_templates() -> None:
             "相关规格 / 需求 / 设计",
             "允许修改",
             "禁止修改",
-            "写红灯测试",
+            "最小失败检查",
             "验证命令",
-            "输出报告",
-            "验证证据：",
-            "实现报告：",
-            "评审输入简报：",
+            "## 输出",
+            "测试结果：",
+            "修改文件：",
+            "低、中风险任务完成后继续批次",
         ),
         "skills/writing-plans/references/plan-review-template.md": (
             "# 计划评审",
@@ -165,7 +167,7 @@ def test_writing_plans_references_define_plan_and_task_templates() -> None:
         assert phrase not in all_references
 
 
-def test_writing_plan_templates_require_design_test_and_review_slices() -> None:
+def test_writing_plan_templates_use_minimal_tasks_and_one_batch_quality_gate() -> None:
     skill = read("skills/writing-plans/SKILL.md")
     workitem_plan = read("skills/writing-plans/references/workitem-plan-template.md")
     task_brief = read("skills/writing-plans/references/task-brief-template.md")
@@ -173,21 +175,31 @@ def test_writing_plan_templates_require_design_test_and_review_slices() -> None:
     assert "计划只能生成候选执行输入，不执行代码" in skill
 
     for phrase in (
-        "设计方案",
-        "接口设计",
-        "UI 或 `N/A`",
-        "UI 写 `N/A` 时必须写原因",
-        "测试设计",
-        "开发",
-        "单测",
-        "review",
-        "集成测试",
-        "缺测试设计则失败",
-        "UI 写 `N/A` 但无原因则失败",
-        "发现占位语则失败",
+        "最小任务切片",
+        "目标和验收结果",
+        "必要的定向测试或静态检查",
+        "批次质量任务",
+        "API 契约测试、服务测试和集成测试",
+        "不生成逐任务 evidence、report 或 review input",
     ):
         assert phrase in workitem_plan
+
+    for phrase in (
+        "写最小实现",
+        "运行必要的定向单元测试或静态检查",
+        "低、中风险任务完成后继续批次",
+        "只有高风险专项或批次质量候选",
+    ):
         assert phrase in task_brief
+
+    for stale in (
+        "每个任务必须包含设计方案",
+        "UI 写 `N/A` 时必须写原因",
+        "验证证据：`.factory/workitems/<WORKITEM-ID>/evidence/task-N.md`",
+        "评审输入简报：`.factory/workitems/<WORKITEM-ID>/reviews/task-N-brief.md`",
+    ):
+        assert stale not in workitem_plan
+        assert stale not in task_brief
 
 
 def test_writing_plans_openai_metadata_is_chinese() -> None:
@@ -195,5 +207,6 @@ def test_writing_plans_openai_metadata_is_chinese() -> None:
     metadata = metadata_path.read_text(encoding="utf-8")
 
     assert 'display_name: "编写实施计划"' in metadata
-    assert "work item plan" in metadata
+    assert "最小计划" in metadata
     assert "任务 brief" in metadata
+    assert "批次质量门" in metadata

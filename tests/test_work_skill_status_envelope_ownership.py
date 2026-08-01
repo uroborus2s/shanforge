@@ -47,7 +47,7 @@ PROFESSIONAL_PREFIX_SHA256 = {
     "tdd-workflow": "889c73ca45da361f5275311e5897010acbb39be9c53ccff60d4e508064b817c6",
     "ui-ux-pro-max": "c1251201eed9cd7e6ce251c788722c257f4cbaf735b76173c719f01b2fdc82ef",
     "webapp-testing": "c8fc74e1e19ca0f0e8e38197a9afe95cd782c21ef5554b42ced3ff8b1bf58d89",
-    "writing-plans": "bfe002df65f4c717052f26388964f8c08b24cb410c03af823a901f5437b4aa4f",
+    "writing-plans": "450a29f2137dfa2ca6e7ef373193e5b70c09253c0d5e140d1a52b9f0309b230e",
     "xlsx": "109bf2bd5b00710a152d6638d0cb815c12b66afb854acec78bef52f3df6a0ca9",
 }
 
@@ -117,7 +117,7 @@ def test_local_status_and_needs_are_forwarded_without_normalization() -> None:
             "human_confirmation | more_information | more_diagnostics | architecture_decision",
         ),
         "writing-plans": (
-            "status: ready_for_review | not_applicable | blocked | needs_user_input",
+            "status: plan_ready | ready_for_review | not_applicable | blocked | needs_user_input",
             "plan_review | human_confirmation | none",
         ),
     }

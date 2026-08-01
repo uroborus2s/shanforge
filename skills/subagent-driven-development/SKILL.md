@@ -1,11 +1,11 @@
 ---
 name: subagent-driven-development
-description: 有已批准的 Shanforge work item plan，且任务相对独立、适合用独立子 agent 或独立执行任务逐项或同层并行实现时使用；按 task brief、ledger、evidence、Spec Review 和 Quality Review 连续推进。
+description: 有已批准的 Shanforge work item plan，且任务相对独立、适合用独立子 agent 或同层并行实现时使用；按 task brief 连续开发，并在批次或里程碑末集中验证和评审。
 ---
 
 # 子代理驱动开发
 
-本 skill 用于执行已批准计划。它只负责执行任务、生成 evidence、写 report 和回写状态。
+本 skill 用于执行已批准计划。它只负责隔离实现、必要定向检查和批次状态回写。
 
 ## v1.2.0 运行时路由合同
 
@@ -27,9 +27,9 @@ description: 有已批准的 Shanforge work item plan，且任务相对独立、
 
 - 为每个任务提供完整 task brief。
 - 让实现者只拿必要上下文，不继承控制器的整段历史。
-- 每个任务执行后生成 review 所需输入包。
+- 低、中风险任务执行后直接汇总最小结果并继续批次。
 - 对同一依赖层中满足并行条件的任务卡，逐张创建独立子任务并行执行，完成后由主控汇总。
-- 只有 evidence、report 和状态回写齐全，才把任务推进到 `ready_for_review`。
+- 只有批次最终 evidence、实现摘要和状态回写齐全，才把批次推进到 `ready_for_review`。
 - 在一次已授权输入包范围内连续执行，不在每个任务之间问“是否继续”。
 
 ## 输入
@@ -46,7 +46,7 @@ description: 有已批准的 Shanforge work item plan，且任务相对独立、
 主控必须先把用户批准范围固化为授权执行包：目标、任务集合、依赖层、允许文件、共享契约、允许动作、禁止动作、验证命令、同范围整改边界和真实人工 Gate。
 
 - 批次内任务按依赖层连续推进；不要逐项请求继续。
-- 普通 task checkpoint 不是人工 Gate。子任务返回、evidence、report 和 review input 只是内部状态，不应变成用户确认请求。
+- 普通 task checkpoint 不是人工 Gate，也不是质量 Gate。子任务返回最小结果后继续，不生成逐任务 evidence、report 或 review input。
 - 授权范围不得扩大。子 agent 和主控都不能从“继续执行”推导新文件、新系统或新外部动作权限。
 - 只有需要人类产品决策、超出允许文件范围、需要风险接受，或将执行未授权的破坏性或外部动作时，才停止并升级。
 
@@ -55,8 +55,9 @@ description: 有已批准的 Shanforge work item plan，且任务相对独立、
 - 执行前必须确认 task brief 已授权；不跳过 dependencies，不提前进入后续依赖层。
 - 只有同一依赖层中 dependencies 已完成、无文件冲突、无未确认 Gate、共享契约已定的任务卡，才允许并行派发。
 - 每张可并行任务卡创建一个独立子任务并行执行；不满足并行条件时按依赖顺序执行。
-- 缺设计方案、接口设计、UI 或 N/A 原因、测试设计时，不得开始执行；状态回写 `blocked`，并说明缺口。
-- 缺 verification evidence、evidence、implementer report、review checkpoint 或 ledger 事件时，不得把任务推进到 `ready_for_review`。
+- 缺目标、验收结果、依赖、允许文件或必要验证命令时不得开始执行；不强制无关设计章节或 `N/A` 占位。
+- 单个低、中风险任务不要求 verification evidence、implementer report 或 review checkpoint。
+- 批次 / 里程碑缺最终验证证据、实现摘要、review input 或 ledger event 时，不得推进到 `ready_for_review`。
 - 发现 task brief 允许文件范围不足、测试命令缺失、验收口径缺失或计划与代码事实冲突时，停止并回写 `blocked` 或 `needs_user_input`。
 - 完成状态只能回写为：`ready_for_review`、`blocked` 或 `needs_user_input`。
 
@@ -68,12 +69,12 @@ description: 有已批准的 Shanforge work item plan，且任务相对独立、
 
 ## 含义保留清单
 
-- 每个任务使用新的隔离执行者。
+- 每个相互独立且值得隔离的任务使用独立执行者；简单同层任务可以由同一执行者连续完成。
 - 控制器构造上下文，执行者不继承整段会话历史。
 - 不要让子 agent 自己读完整 plan；控制器提供完整 task brief 和必要文件。
 - 实现者状态只能是 `DONE`、`DONE_WITH_CONCERNS`、`NEEDS_CONTEXT`、`BLOCKED`。
-- 实现者只能进入 `ready_for_review`，不得自批 `approved`。
-- review 顺序由流程总控和评审 skill 决定；本 skill 只准备评审输入。
+- 实现者不得自批 `approved`；只有批次或高风险专项候选进入 `ready_for_review`。
+- review 顺序由流程总控和评审 skill 决定；本 skill 只准备集中评审输入。
 - reviewer 发现问题后，由流程总控决定是否重新进入本 skill 修复。
 - 同一依赖层中满足条件的任务卡可以并行；每张任务卡一个独立子任务，完成后主控汇总。
 - 存在文件冲突、未确认 Gate、未定共享契约或未完成 dependencies 时，不并行。
@@ -92,10 +93,10 @@ description: 有已批准的 Shanforge work item plan，且任务相对独立、
 8. 如果实现者返回 `NEEDS_CONTEXT`，补充最小上下文后重新派发。
 9. 如果实现者返回 `BLOCKED`，按 [status-handling-checklist.md](references/status-handling-checklist.md) 判断是补上下文、拆任务、换更强模型还是向用户升级。
 10. 如果实现者返回 `DONE_WITH_CONCERNS`，先读 concerns；若涉及正确性或范围，先处理再 review。
-11. 实现者完成后，生成 evidence 和 implementer report；并行批次完成后由主控汇总状态、产物、风险和未决问题。
-12. 生成 review input package，必须包含 task brief、diff 摘要、evidence、implementer report、风险和未决问题。
-13. 写入 `.factory/workitems/<WORKITEM-ID>/ledger.jsonl`，状态只能是 `ready_for_review`、`blocked` 或 `needs_user_input`。
-14. 更新 `.factory/memory/tasks.summary.md`、`tests.summary.md` 和必要 summary。
+11. 实现者只返回实现内容、测试结果、文件和 concerns；低、中风险任务不落盘独立过程材料。
+12. 并行批次或里程碑完成后，由主控生成一套实现摘要、最终 evidence 和 review input package。
+13. 仅在批次质量候选完成时写 `ready_for_review`；其他终态是 `blocked` 或 `needs_user_input`。
+14. 只在批次状态变化或跨会话恢复需要时更新 `.factory/memory/`。
 15. 输出状态回写包，交还 `using-shanforge` 判断下一步。
 16. 如果输入包已经明确授权一批待执行任务，且当前任务没有 `blocked` 或 `needs_user_input`，继续执行同一批次下一个任务；不要逐项请求继续。
 17. 如果下一任务超出输入包范围、触碰新文件范围、需要新决策，或当前任务状态不是 `ready_for_review`，停止并交还 `using-shanforge` 重新路由。
@@ -104,7 +105,7 @@ description: 有已批准的 Shanforge work item plan，且任务相对独立、
 
 - 本 skill 不判断前置环节是否完成；输入包必须由 `using-shanforge` 或当前会话提供。
 - 本 skill 不决定完成后交给谁；只写状态、产物、证据和 `needs`。
-- 本 skill 不执行独立 review；只准备评审输入。
+- 本 skill 不执行独立 review；只准备集中评审输入。
 - 本 skill 不执行完成声明；只说明是否有足够 evidence。
 - 本 skill 不执行提交；只说明是否产生了可提交改动。
 - 如发现需要计划重写、额外验证、人工确认或提交，只在状态包写入 `needs`，不直接调用其他 skill。
@@ -130,8 +131,8 @@ description: 有已批准的 Shanforge work item plan，且任务相对独立、
 
 ## 禁止
 
-- 禁止跳过 Spec Review 或 Quality Review。
-- 禁止 Quality Review 早于 Spec Review。
+- 禁止跳过批次最终代码审查和适用的 API、服务、集成测试。
+- 高风险专项 review 必须在对应风险扩散前完成。
 - 禁止把准备好的 review input package 写成 review 已通过。
 - 禁止接受“差不多符合 spec”作为 `ready_for_review` 之外的状态。
 - 禁止让实现者自评替代独立 review。
@@ -141,11 +142,11 @@ description: 有已批准的 Shanforge work item plan，且任务相对独立、
 
 ## 输出
 
-每个任务至少产生：
+每个低、中风险任务只返回内存中的最小状态；批次或里程碑只产生一套：
 
-- `.factory/workitems/<WORKITEM-ID>/evidence/task-N.md`
-- `.factory/workitems/<WORKITEM-ID>/reports/task-N.md`
-- `.factory/workitems/<WORKITEM-ID>/reviews/task-N-review-input.md`
+- `.factory/workitems/<WORKITEM-ID>/evidence/<batch>.md`
+- `.factory/workitems/<WORKITEM-ID>/reports/<batch>.md`
+- `.factory/workitems/<WORKITEM-ID>/reviews/<batch>-review-input.md`
 - `.factory/workitems/<WORKITEM-ID>/ledger.jsonl`
 
 状态包格式：
@@ -170,4 +171,7 @@ description: 有已批准的 Shanforge work item plan，且任务相对独立、
 
 ## 完成状态
 
-本 skill 的单任务完成条件是：实现报告存在，验证证据存在，review input package 存在，ledger 和 memory 已同步，状态已回写为 `ready_for_review`。质量结论由流程总控根据独立评审和验证证据判断；只有 `human_confirmation_required: true` 且有完整 `gate_reason` 时，人工确认才参与任务批准或收口。普通授权任务不得额外制造人工 Gate。
+本 skill 的批次完成条件是：全部授权任务已有真实实现和必要定向检查，一套实现摘要、验证证据、
+review input 和 ledger event 已生成，状态回写为 `ready_for_review`。质量结论由流程总控根据集中评审和
+最终验证判断；只有 `human_confirmation_required: true` 且有完整 `gate_reason` 时人工确认才参与收口，
+普通授权任务不得额外制造人工 Gate，也不得制造逐任务评审。

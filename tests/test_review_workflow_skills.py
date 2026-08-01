@@ -19,7 +19,7 @@ def test_requesting_code_review_skill_is_shanforge_localized() -> None:
     assert ".factory/workitems/<WORKITEM-ID>/ledger.jsonl" in skill
     assert ".factory/memory/review-ledger.jsonl" in skill
     assert "Spec Review" in skill
-    assert "Quality Review" in skill
+    assert "集中 review 同时覆盖 Spec Review（需求符合度）和 Quality Review（代码质量）" in skill
     assert "Critical" in skill
     assert "Important" in skill
     assert "pending_human_confirmation" in skill
@@ -35,7 +35,7 @@ def test_requesting_code_review_skill_is_shanforge_localized() -> None:
         in skill
     )
     assert "- ledger_event: <review ledger event id or none>" in skill
-    assert "`blocked` 用于缺 task brief" in skill
+    assert "`blocked` 用于批次缺批准目标、diff、最终 verification evidence" in skill
     assert "`needs_user_input` 用于 review 类型" in skill
     assert "与其他 skill 的关系" not in skill
     assert "subagent-driven-development" not in skill
@@ -163,10 +163,8 @@ def test_review_workflow_openai_metadata_is_chinese() -> None:
     receiving_metadata = read("skills/receiving-code-review/agents/openai.yaml")
 
     assert 'display_name: "请求代码评审"' in requesting_metadata
-    assert "task review" in requesting_metadata
-    assert "PR review" in requesting_metadata
-    assert "仅真实独立 review 输出 review_score" in requesting_metadata
-    assert "同线程只输出 author_self_check_score" in requesting_metadata
+    assert "批次、里程碑、PR 或高风险专项" in requesting_metadata
+    assert "低中风险任务不逐项独立评审" in requesting_metadata
 
     assert 'display_name: "处理代码评审反馈"' in receiving_metadata
     assert "review feedback" in receiving_metadata

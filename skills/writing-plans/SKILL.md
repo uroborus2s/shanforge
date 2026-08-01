@@ -1,6 +1,6 @@
 ---
 name: writing-plans
-description: 仅在已批准的 spec、需求、设计或 work item brief 需要拆成多个可验收交付物、跨模块协调或明确正式计划时使用；输出 Shanforge work item plan、task brief、验证策略和 review gate。局部代码修改加对应单测即可完成的简单任务不触发。
+description: 仅在已批准的 spec、需求、设计或 work item brief 需要拆成多个可验收交付物、跨模块协调或明确正式计划时使用；输出最小 Shanforge work item plan、task brief 和批次质量门。局部代码修改加对应单测即可完成的简单任务不触发。
 ---
 
 # 编写实施计划
@@ -58,9 +58,8 @@ description: 仅在已批准的 spec、需求、设计或 work item brief 需要
 
 - 主计划：`.factory/workitems/<WORKITEM-ID>/plan.md`
 - 子任务：`.factory/workitems/<WORKITEM-ID>/task-briefs/`
-- 证据目录：`.factory/workitems/<WORKITEM-ID>/evidence/`
-- 实现报告：`.factory/workitems/<WORKITEM-ID>/reports/`
-- 评审输出：`.factory/workitems/<WORKITEM-ID>/reviews/`
+- 批次证据、实现摘要和评审输出：仅在批次 / 里程碑收口时写入
+  `.factory/workitems/<WORKITEM-ID>/{evidence,reports,reviews}/`
 - 任务 ledger：`.factory/workitems/<WORKITEM-ID>/ledger.jsonl`
 
 如果用户明确指定其他路径，先说明偏离原因，再按用户路径写入。
@@ -74,12 +73,13 @@ description: 仅在已批准的 spec、需求、设计或 work item brief 需要
 - 每个文件只有一个清晰职责。
 - 一个任务卡对应一个可验收交付物，不对应单个 2-5 分钟动作。
 - 一个任务必须能独立产生可测试结果。
-- 每个任务包含 Red 和 Green 步骤。
-- 读文件、运行命令、写失败测试和记录 evidence 是任务内部 checklist。
-- 每个任务必须包含设计方案、接口设计、UI 或 `N/A`、测试设计、开发、单测、review 和集成测试。
+- 每个任务只写目标、依赖、精确路径、最小实现、验收结果和必要的定向测试。
+- Red / Green 只在新增行为、Bug 或有回归风险时要求；已有测试足以覆盖时直接复用。
+- 设计方案、接口设计和 UI 只在任务实际涉及时写，不生成 `N/A` 占位。
+- review、服务测试、API 测试和集成测试默认放在批次质量任务，不复制到每张任务卡。
 - 每个代码步骤写精确文件路径、实际内容、真实命令和期望输出。
 - 计划必须禁止占位符。
-- 计划完成后做计划自审，再请求 plan review。
+- 计划完成后做一次计划自审；只有高风险、公共契约、跨服务、不可逆变更或用户明确要求时才请求独立 plan review。
 - 执行阶段由流程总控判断；本 skill 不写下一步 skill。
 
 ## 默认流程
@@ -92,16 +92,15 @@ description: 仅在已批准的 spec、需求、设计或 work item brief 需要
 6. 先锁定文件结构：列出 create、modify、test、docs、memory 文件。
 7. 对每个文件说明职责、owner、所属层、接口边界和禁止耦合。
 8. 把计划拆成任务卡；每张任务卡必须交付一个可验收交付物，并能独立验证。
-9. 每张任务卡写内部 checklist：读文件、运行命令、Red、Green、记录 evidence、review 和 memory sync。
-10. 每个任务写设计方案、接口设计、UI 或 `N/A`、测试设计、开发、单测、review 和集成测试。
-11. UI 写 `N/A` 时必须写原因；缺测试设计则失败，UI 写 `N/A` 但无原因则失败，发现占位语则失败。
-12. 每步写真实命令和期望输出；代码步骤必须写实际代码或明确补丁形状。
-13. 写测试策略：定向测试、邻近回归、全量回归和不运行项。
-14. 写文档同步和 `.factory/memory/` 同步要求。
-15. 写 review gate：implementer 只能到 `ready_for_review`，通过必须来自独立 review。
-16. 按 [workitem-plan-template.md](references/workitem-plan-template.md) 保存计划。
-17. 按 [task-brief-template.md](references/task-brief-template.md) 生成任务 brief。
-18. 按 [plan-review-template.md](references/plan-review-template.md) 做自审和 review handoff。
+9. 每张任务卡只写最小执行 checklist：读取必要文件、实现、定向检查和紧凑状态回写。
+10. 为全部开发任务增加一个批次质量任务，覆盖集中代码审查、API 契约测试、服务测试和集成测试；
+    按风险增加 E2E、安全或性能测试。
+11. 每步写真实命令和期望输出；代码步骤必须写实际补丁形状，禁止占位语。
+12. 写文档同步要求；memory 只在需要跨会话恢复或批次状态变化时同步。
+13. 标记风险：低、中风险任务连续开发；高风险任务可提前设置专项 review gate。
+14. 按 [workitem-plan-template.md](references/workitem-plan-template.md) 保存计划。
+15. 按 [task-brief-template.md](references/task-brief-template.md) 生成最小任务 brief。
+16. 做一次计划自审；仅在高风险或用户明确要求时按 [plan-review-template.md](references/plan-review-template.md) 生成 review handoff。
 
 ## 任务粒度
 
@@ -109,9 +108,9 @@ description: 仅在已批准的 spec、需求、设计或 work item brief 需要
 - 步骤粒度留在 task 内部 checklist。
 - 读文件、运行命令、写失败测试、记录 evidence 不是任务卡。
 - 一张任务卡只交付一个可验收交付物。
-- 任务卡必须能独立验证、独立评审，并有清晰完成证据。
+- 任务卡必须能独立实现并做定向检查；质量结论在批次或里程碑集中产生。
 - 2-5 分钟动作只作为任务内部 checklist，不单独拆成任务卡。
-- 内部 checklist 至少覆盖：读文件、运行命令、写失败测试、运行确认失败、最小实现、运行确认通过、记录 evidence、请求 review。
+- 内部 checklist 至少覆盖：读必要文件、最小实现、必要测试或静态检查、真实结果。
 - 提交不是每个小步骤的硬要求；本 skill 只在计划中说明“是否形成可提交工作单元”，不决定提交 skill。
 
 ## 任务层级与关联
@@ -148,29 +147,30 @@ plan review 必须拒绝缺少层级、缺少该层级所需关联或把 `system
 2. Placeholder scan：是否存在占位符、泛化步骤或未定义对象。
 3. Type consistency：后续任务使用的函数、类型、字段是否与前序定义一致。
 4. Buildability：工程师按计划执行时是否会卡在缺文件、缺命令、缺上下文。
-5. Shanforge gate：是否包含 evidence、review、PR、memory sync 和 ledger 更新。
+5. Quality convergence：是否有一个批次质量任务，并按风险覆盖 review、API、服务、集成和必要专项测试。
 
 发现问题时先修计划，再请求 review。不要把有缺口的计划交给执行者。
 
 ## Plan Review
 
-计划完成后必须生成 review 请求。review 输入至少包含：
+计划默认只做一次作者自审。出现高风险、公共契约、跨服务、数据迁移、不可逆变更，或用户明确要求时，
+才生成独立 review 请求。输入只包含：
 
 - work item plan。
 - 原始 spec、需求、设计或 brief。
 - 文件结构清单。
 - 测试策略。
-- `.factory/memory/` 同步要求。
+- 风险与集中质量策略。
 
 review 输出写入 `.factory/workitems/<WORKITEM-ID>/reviews/plan-review.md`。
 
 ## 流程边界
 
 - 本 skill 不判断前置环节是否完成；输入包必须由 `using-shanforge` 或当前会话提供。
-- 本 skill 不决定计划通过后交给谁；只写 plan、task brief、review handoff 和状态回写。
+- 本 skill 不决定计划通过后交给谁；只写 plan、task brief、适用的 review handoff 和状态回写。
 - 本 skill 不执行代码、不执行 review、不执行提交。
 - 简单任务误触发时必须以 `not_applicable` 退出，不得为了满足流程形式生成空计划或治理产物。
-- 如发现输入未批准、需要拆 work item、需要人工决策或计划需要 review，只在状态包写入 `needs`，不直接调用其他 skill。
+- 如发现输入未批准、需要拆 work item、需要人工决策或高风险计划需要 review，只在状态包写入 `needs`，不直接调用其他 skill。
 
 状态包格式：
 
@@ -178,7 +178,7 @@ review 输出写入 `.factory/workitems/<WORKITEM-ID>/reviews/plan-review.md`。
 工作结果：
 - work_item: <ID>
 - skill: writing-plans
-- status: ready_for_review | not_applicable | blocked | needs_user_input
+- status: plan_ready | ready_for_review | not_applicable | blocked | needs_user_input
 - outputs:
   - .factory/workitems/<WORKITEM-ID>/plan.md
   - .factory/workitems/<WORKITEM-ID>/task-briefs/
@@ -193,6 +193,7 @@ review 输出写入 `.factory/workitems/<WORKITEM-ID>/reviews/plan-review.md`。
 
 ## 完成状态
 
-本 skill 只把计划推进到 `ready_for_review`。`approved` 必须来自 plan review。代码实现、任务评审、提交和 PR 闭环由流程总控另行判断。
+低、中风险计划自审后输出 `plan_ready`。高风险或用户明确要求独立评审时输出 `ready_for_review`；
+`approved` 仍必须来自真实 plan review。代码实现、批次质量评审、提交和 PR 闭环由流程总控另行判断。
 
 项目化执行时，沿用 [工作 Skill 回写契约](../using-shanforge/references/work-skill-return-contract.md)；本 skill 的现有专业输出和失败语义不变。

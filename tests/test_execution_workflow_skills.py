@@ -19,8 +19,8 @@ def test_subagent_driven_development_skill_is_shanforge_localized() -> None:
     assert ".factory/workitems/<WORKITEM-ID>/task-briefs/" in skill
     assert ".factory/workitems/<WORKITEM-ID>/ledger.jsonl" in skill
     assert "不要让子 agent 自己读完整 plan" in skill
-    assert "本 skill 只准备评审输入" in skill
-    assert "实现者只能进入 `ready_for_review`" in skill
+    assert "本 skill 只准备集中评审输入" in skill
+    assert "实现者不得自批 `approved`" in skill
     assert "DONE_WITH_CONCERNS" in skill
     assert "NEEDS_CONTEXT" in skill
     assert "BLOCKED" in skill
@@ -50,9 +50,10 @@ def test_subagent_driven_development_skill_is_shanforge_localized() -> None:
 def test_execution_skills_block_when_task_gate_inputs_are_missing() -> None:
     expected_phrases = (
         "任务 gate",
-        "缺设计方案、接口设计、UI 或 N/A 原因、测试设计时，不得开始执行",
-        "缺 verification evidence、evidence、implementer report、review checkpoint "
-        "或 ledger 事件时，不得把任务推进到 `ready_for_review`",
+        "缺目标、验收结果、依赖、允许文件或必要验证命令时不得开始执行",
+        "单个低、中风险任务不要求 verification evidence、implementer report 或 review checkpoint",
+        "批次 / 里程碑缺最终验证证据、实现摘要、review input 或 ledger event 时",
+        "不得推进到 `ready_for_review`",
         "完成状态只能回写为：`ready_for_review`、`blocked` 或 `needs_user_input`",
     )
 
@@ -88,8 +89,8 @@ def test_subagent_references_define_handoff_and_review_templates() -> None:
             "DONE_WITH_CONCERNS",
             "BLOCKED",
             "NEEDS_CONTEXT",
-            "evidence",
-            "implementer report",
+            "不要生成逐任务 evidence、report 或 review input",
+            "可继续当前批次",
         ),
         "skills/subagent-driven-development/references/spec-review-template.md": (
             "Spec Review",
@@ -112,7 +113,7 @@ def test_subagent_references_define_handoff_and_review_templates() -> None:
             "DONE_WITH_CONCERNS",
             "NEEDS_CONTEXT",
             "BLOCKED",
-            "review input package",
+            "不生成逐任务 review input",
             "needs: review",
         ),
     }
@@ -179,8 +180,8 @@ def test_executing_plans_skill_is_inline_fallback() -> None:
     assert ".factory/workitems/<WORKITEM-ID>/ledger.jsonl" in skill
     assert "先批判性 review plan" in skill
     assert "逐步执行" in skill
-    assert "每个任务后写 evidence" in skill
-    assert "review checkpoint" in skill
+    assert "不生成独立 evidence、report 或 review input" in skill
+    assert "集中质量 Checkpoint" in skill
     assert "工作结果：" in skill
     assert "needs:" in skill
     assert "本 skill 不决定完成后交给谁" in skill
@@ -226,11 +227,9 @@ def test_execution_workflow_openai_metadata_is_chinese() -> None:
     executing_metadata = read("skills/executing-plans/agents/openai.yaml")
 
     assert 'display_name: "子代理驱动开发"' in subagent_metadata
-    assert "work item plan" in subagent_metadata
-    assert "状态回写" in subagent_metadata
-    assert "不决定下一步 skill" in subagent_metadata
+    assert "批次末集中验证和评审" in subagent_metadata
+    assert "不要逐任务落盘过程材料" in subagent_metadata
 
     assert 'display_name: "执行实施计划"' in executing_metadata
-    assert "written implementation plan" in executing_metadata
-    assert "状态回写" in executing_metadata
-    assert "不决定下一步 skill" in executing_metadata
+    assert "批次末集中验证和评审" in executing_metadata
+    assert "不要逐任务写 evidence、report 或 review input" in executing_metadata

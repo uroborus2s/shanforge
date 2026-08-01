@@ -4,18 +4,16 @@
 
 ## DONE
 
-- 确认 evidence 和 implementer report 存在。
-- 生成 review input package。
-- ledger 写 `ready_for_review`。
-- 状态包写 `needs: review`。
+- 确认实现内容、真实测试结果和文件清单存在。
+- 低、中风险任务继续当前批次，不生成逐任务 review input。
+- 高风险专项或批次末才写 `ready_for_review` 和 `needs: review`。
 
 ## DONE_WITH_CONCERNS
 
 - 先读 concerns。
 - 如果 concern 涉及正确性、范围、测试或架构，先处理。
-- 如果只是非阻塞观察，记录到 review input package。
-- ledger 写 `ready_for_review`。
-- 状态包写 `needs: review`。
+- 如果只是非阻塞观察，保留在批次汇总中并继续。
+- 只有高风险 concern 才提前生成专项 review input。
 
 ## NEEDS_CONTEXT
 
@@ -39,9 +37,7 @@
 ## 已有 review feedback
 
 - 本 skill 不接收 reviewer 结论来推进状态。
-- 若输入包中已经包含 review feedback，只能按反馈修复实现或补 evidence。
-- 修复后重新生成 review input package。
-- ledger 重新写 `ready_for_review`。
-- 状态包写 `needs: review`。
+- 若输入包中已经包含 review feedback，只能按反馈修复实现并重跑受影响测试。
+- 只有 Critical、Important 或高风险路径变化才更新集中 review input 并复审受影响范围。
 
-本 skill 不批准任务，只把修复后的状态重新写成 `ready_for_review`。
+本 skill 不批准任务；普通整改继续批次，高风险或批次候选才重新写成 `ready_for_review`。

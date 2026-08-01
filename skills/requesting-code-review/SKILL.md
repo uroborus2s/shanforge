@@ -1,6 +1,6 @@
 ---
 name: requesting-code-review
-description: 完成任务、阶段性实现、PR 前或需要独立裁判时使用；组织 Shanforge 任务级 review、PR review、独立 review task、评分表和人工确认门。
+description: 批次或里程碑开发完成、PR 前、高风险专项或需要独立裁判时使用；组织 Shanforge 集中代码 review、必要任务级 review、PR review 和人工确认门。普通低中风险任务不逐项触发。
 ---
 
 # 请求代码评审
@@ -18,17 +18,15 @@ description: 完成任务、阶段性实现、PR 前或需要独立裁判时使�
 
 ## 触发
 
-- 单个 task 实现完成，准备进入任务级 review。
-- 实现流程到达 review checkpoint。
-- 主要功能完成，准备做整体质量 review。
+- 全部授权开发任务或已批准里程碑完成，准备做集中质量 review。
+- 高风险设计或实现到达专项 review checkpoint。
 - PR 前需要确认是否 ready to merge。
-- 实现者返回 `ready_for_review`。
+- 用户明确要求任务级 review。
 
 ## 输入
 
-- task brief：`.factory/workitems/<WORKITEM-ID>/task-briefs/`
-- implementer report：`.factory/workitems/<WORKITEM-ID>/reports/`
-- verification evidence：`.factory/workitems/<WORKITEM-ID>/evidence/`
+- 已批准目标、计划或适用的 task brief。
+- 批次实现摘要和最终 verification evidence；高风险专项可只提供受影响范围摘要。
 - diff package：`git diff`、暂存 diff、文件清单或 PR diff
 - work item ledger：`.factory/workitems/<WORKITEM-ID>/ledger.jsonl`
 - review ledger：`.factory/memory/review-ledger.jsonl`
@@ -43,9 +41,10 @@ description: 完成任务、阶段性实现、PR 前或需要独立裁判时使�
 
 ## 含义保留清单
 
-- Review 要早做、常做，防止问题扩散。
+- 普通低、中风险任务不逐项 review；高风险问题尽早 review，其他问题在批次末集中处理。
 - reviewer 只拿精心组织的输入包，不继承实现者会话历史。
-- 任务级 review 至少包含 Spec Review 和 Quality Review。
+- 集中 review 同时覆盖 Spec Review（需求符合度）和 Quality Review（代码质量）；高风险任务级 review
+  只覆盖受影响范围。
 - Critical 必须修。
 - Important 必须在继续前处理或明确登记为用户接受风险。
 - Minor 可以登记到后续。
@@ -57,23 +56,25 @@ description: 完成任务、阶段性实现、PR 前或需要独立裁判时使�
 
 ## 默认流程
 
-1. 确认 review 类型：任务级 review、PR review、真实独立 review task 或整体质量 review。
-2. 收集输入包；缺 task brief、report、evidence 或 diff 时先停止。
-3. 任务级 review 使用 [task-review-template.md](references/task-review-template.md)。
+1. 确认 review 类型：批次 / 里程碑 review、高风险任务级 review、PR review 或真实独立 review task。
+2. 收集最小输入：批准目标、diff、最终验证摘要、风险和未决问题；不要求逐任务 report 或 evidence。
+3. 批次或高风险任务级 review 使用 [task-review-template.md](references/task-review-template.md)。
 4. PR review 使用 [pr-review-template.md](references/pr-review-template.md)。
 5. 真实隔离 review 使用 [independent-review-task-template.md](references/independent-review-task-template.md)。
 6. 按 [review-score-rubric.md](references/review-score-rubric.md) 打分。
 7. 发现 Critical 或 Important 时，结论写 `changes_requested`。
 8. 无阻塞问题且有真实独立 reviewer 证据时，结论才可以写 `approved`。
-9. 写入 review 文件和 `.factory/memory/review-ledger.jsonl`。
-10. reviewer 返回 `changes_requested` 时，先判断是否能在原目标、允许文件和风险边界内进入同范围整改循环；能修复就继续，不为每轮整改请求人工确认。
+9. 每个批次只写一份最终 review 和一条 review ledger event。
+10. reviewer 返回 `changes_requested` 时直接在原 diff 上整改并重跑受影响测试；只有 Critical、Important
+    或高风险路径变化才复审受影响范围，不生成逐轮 triage、response 和 rereview 文件。
 11. loop 结束时写明 `human_confirmation_required: true | false` 和 `gate_reason`。只有真实人工 Gate 才写 `pending_human_confirmation`；普通任务 review 通过则返回流程总控继续既有授权范围内的验证、后续任务或收口。
 
 ## 只读评审与同范围整改
 
 - 只读独立评审是已授权任务的内部质量动作。任务已授权且 reviewer 只读取任务输入包时，无需为只读派发单独请求人工授权。
 - review 派发不扩大原授权范围，也不得授权 reviewer 修改代码、正式文档、ledger、Git 或外部系统。
-- `changes_requested` 中的技术 Finding 可以在原目标、允许文件和风险边界内修复时，自动进入同范围整改循环并交同一 reviewer 复审。
+- `changes_requested` 中的技术 Finding 可以在原目标、允许文件和风险边界内修复时，自动进入同范围整改循环；
+  只有阻断级或高风险变化需要复审。
 - Finding 需要产品取舍、风险接受、新文件或新系统范围、忽略 Critical/Important，或破坏性或外部动作时，才设置 `human_confirmation_required: true`。
 - reviewer `approved` 只代表独立质量结论，不能冒充 `human_approved`；但也不自动制造人工确认 Gate。
 
@@ -107,7 +108,7 @@ description: 完成任务、阶段性实现、PR 前或需要独立裁判时使�
 
 ## 禁止
 
-- 禁止跳过 review，因为“改动很小”。
+- 禁止为普通低、中风险任务强制逐项独立 review。
 - 禁止 reviewer 直接相信 implementer report。
 - 禁止 reviewer 不读 diff 就给结论。
 - 禁止 Critical 或 Important 未处理就继续下一阶段。
@@ -119,7 +120,9 @@ description: 完成任务、阶段性实现、PR 前或需要独立裁判时使�
 
 ## 完成状态
 
-本 skill 的完成状态是 review 文件和 ledger 事件已写入，并输出标准状态包。没有独立评审证据时，`status` 只能是 `self_check_passed`，`next_gate_status` 必须是 `needs_independent_review`。是否继续内部流程或进入真实人工 Gate，由授权范围和流程总控决定。
+本 skill 的完成状态是批次或高风险专项 review 文件和 ledger 事件已写入，并输出标准状态包。
+需要独立评审但没有独立证据时，`status` 只能是 `self_check_passed`，`next_gate_status` 必须是
+`needs_independent_review`。普通低、中风险任务不会单独进入本 skill。
 
 ```text
 工作结果：
@@ -137,6 +140,7 @@ description: 完成任务、阶段性实现、PR 前或需要独立裁判时使�
   - feedback_fix | independent_review | human_confirmation | user_input | none
 ```
 
-`blocked` 用于缺 task brief、implementer report、verification evidence、diff package、reviewer 独立性证据或 ledger 写入能力，导致不能给出可信 review 结论的情况。
+`blocked` 用于批次缺批准目标、diff、最终 verification evidence、reviewer 独立性证据或 ledger 写入能力，
+导致不能给出可信 review 结论的情况。
 
 `needs_user_input` 用于 review 类型、N/A 风险接受、review 范围或外部 reviewer 身份必须由用户确认的情况。已授权任务内的独立只读 reviewer 派发不属于该状态。

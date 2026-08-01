@@ -1,6 +1,6 @@
 # <功能名称> 实施计划
 
-> **给执行者：** 计划评审通过后，把状态交还 `using-shanforge` 流程总控判断下一步。步骤使用复选框语法 (`- [ ]`) 便于追踪。
+> **给执行者：** 自检通过后连续完成开发任务，在批次末统一进入质量门。步骤使用复选框语法 (`- [ ]`) 便于追踪。
 
 **目标：** <用一句话说明本计划要交付什么>
 
@@ -10,7 +10,7 @@
 
 **工作项：** `<WORKITEM-ID>`
 
-**状态：** `ready_for_review`
+**状态：** `plan_ready | ready_for_review`
 
 ---
 
@@ -53,18 +53,13 @@
 
 ### 任务 N：<组件名称>
 
-**任务切片：**
+**最小任务切片：**
 
-- 设计方案：
-- 接口设计：
-- UI 或 `N/A`：
-- UI 写 `N/A` 时必须写原因：
-- 测试设计：
-- 开发：
-- 单测：
-- review：
-- 集成测试：
-- 失败断言：缺测试设计则失败；UI 写 `N/A` 但无原因则失败；发现占位语则失败。
+- 目标和验收结果：
+- 依赖：
+- 实现：
+- 必要的定向测试或静态检查：
+- 风险：`low | medium | high`
 
 **文件：**
 
@@ -117,26 +112,27 @@ pytest tests/exact/path/to/test.py::test_specific_behavior -v
 通过
 ```
 
-- [ ] **步骤 5：证据和记忆同步**
+- [ ] **步骤 5：记录紧凑 checkpoint**
 
-- 写入验证证据：`.factory/workitems/<WORKITEM-ID>/evidence/task-N.md`。
-- 写入实现报告：`.factory/workitems/<WORKITEM-ID>/reports/task-N.md`。
-- 更新任务流水账：`.factory/workitems/<WORKITEM-ID>/ledger.jsonl`。
-- 更新相关 `.factory/memory/` 摘要。
+- 只记录实现内容、真实测试结果、文件和 concerns。
+- 需要跨会话恢复时追加一条 `.factory/workitems/<WORKITEM-ID>/ledger.jsonl` checkpoint。
+- 继续同一授权批次，不生成逐任务 evidence、report 或 review input。
 
-- [ ] **步骤 6：评审门**
+### 批次质量任务：<批次或里程碑>
 
-- 生成任务评审输入包。
-- 实现者状态只能进入 `ready_for_review`。
-- 评审状态只能由独立评审者写成 `approved` 或 `changes_requested`。
+- [ ] 汇总全部任务 diff 和实现摘要。
+- [ ] 运行 API 契约测试、服务测试和集成测试。
+- [ ] 按风险增加 E2E、安全或性能测试。
+- [ ] 生成一套 evidence、review input 和 ledger event。
+- [ ] 批次进入 `ready_for_review`；评审状态只能由独立评审者写成 `approved` 或 `changes_requested`。
 
 ## 测试策略
 
 - 红灯：
 - 绿灯：
 - 定向回归：
-- 邻近回归：
-- 全量回归：
+- 批次 API / 服务 / 集成：
+- 风险专项：
 - 未运行项：
 - 未运行原因：
 
@@ -146,13 +142,13 @@ pytest tests/exact/path/to/test.py::test_specific_behavior -v
 - `.factory/memory/`：
 - 工作项流水账：
 
-## 评审门
+## 集中质量门
 
 用以下门禁判断计划是否可进入执行候选。
 
-- 计划评审：`pending`
-- 任务评审：`pending`
-- 验证：`pending`
+- 计划独立评审：`N/A | pending`（仅高风险或用户明确要求）
+- 批次代码评审：`pending`
+- 批次验证：`pending`
 - 拉取请求 / 提交：`pending`
 - 记忆同步：`pending`
 
@@ -161,8 +157,6 @@ pytest tests/exact/path/to/test.py::test_specific_behavior -v
 - 规格覆盖：
 - 占位符扫描：
 - 发现占位语则失败：
-- 缺测试设计则失败：
-- UI 写 `N/A` 但无原因则失败：
 - 类型一致性：
 - 可构建性：
-- Shanforge 门禁：
+- 批次质量门：

@@ -1,4 +1,4 @@
 interface:
   display_name: "编写实施计划"
-  short_description: "为复杂任务生成 work item plan 和任务 brief；简单任务不触发。"
-  default_prompt: "使用 $writing-plans：先判断任务复杂度；局部代码修改加对应单测即可完成时返回 not_applicable，不生成计划。只有复杂、多交付物任务或用户明确要求正式计划时，才生成 .factory/workitems/<WORKITEM-ID>/plan.md 和 task-briefs。"
+  short_description: "为复杂任务生成最小计划、任务 brief 和批次质量门；简单任务不触发。"
+  default_prompt: "使用 $writing-plans：简单修改返回 not_applicable；复杂任务只生成最小 plan 和 task-briefs，并设置一个批次质量任务。低中风险计划自审后直接执行，高风险或用户明确要求时才进入独立 plan review。"

@@ -293,7 +293,7 @@ def test_candidate_declares_per_workflow_nodes_transitions_and_human_gate_rules(
     assert identity["合法主路径"].endswith("identity_readback -> reroute`")
 
 
-def test_formal_contract_publishes_the_frozen_candidate_in_place() -> None:
+def test_formal_contract_preserves_v1_2_tables_after_lean_delivery_update() -> None:
     candidate = read(CANDIDATE_PATH)
     formal = read(FORMAL_CONTRACT_PATH)
 
@@ -311,9 +311,11 @@ def test_formal_contract_publishes_the_frozen_candidate_in_place() -> None:
         "3d5f4cbabda86312da0603db5662175453d12dd5966c788301b0c79c2cb4992f"
     )
     assert "批准前不得修改正式文档或同步 runtime Skill" in candidate
-    assert "| 正式版本 | `v1.2.0` |" in formal
-    assert "| 来源候选 | `FLOW-TASK-015-C001` |" in formal
-    assert "| 发布事务 | `FLOW-TASK-015-RELEASE-TX-001` |" in formal
+    assert "| 正式版本 | `v1.3.0` |" in formal
+    assert "| 来源候选 | `2026-08-01 用户轻量交付决策` |" in formal
+    assert "| 发布事务 | `N/A（直接策略变更）` |" in formal
+    assert "| `v1.2.0` | 发布完整项目会话归因" in formal
+    assert "| `v1.3.0` | 开发期轻门禁" in formal
     assert formal.count("## 完整软件项目会话归因模型") == 1
     assert formal.count("## 工作流合同") == 1
     assert "| 当前版本 | `0.2.0` |" not in formal

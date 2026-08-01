@@ -37,9 +37,8 @@
 1. 按完整 task brief 实现。
 2. 按 TDD 写 Red，再写 Green。
 3. 运行指定验证命令。
-4. 写 evidence 到 `.factory/workitems/<WORKITEM-ID>/evidence/task-N.md`。
-5. 写 implementer report 到 `.factory/workitems/<WORKITEM-ID>/reports/task-N.md`。
-6. 自检，但不要批准自己的任务。
+4. 返回实现内容、真实测试结果、文件和 concerns。
+5. 自检，但不要批准自己的任务；不要生成逐任务 evidence、report 或 review input。
 
 ## Report Format
 
@@ -47,17 +46,15 @@
 - Implemented：
 - Tests：
 - Files changed：
-- evidence：
-- implementer report：
 - Self-review：
 - Concerns：
 ```
 
 ## 状态含义
 
-- `DONE`：实现、验证和报告已完成，可进入 review。
+- `DONE`：实现和必要定向检查已完成，可继续当前批次。
 - `DONE_WITH_CONCERNS`：完成了，但对正确性、范围、可维护性或测试有疑问。
 - `NEEDS_CONTEXT`：缺少信息，不能安全实现。
 - `BLOCKED`：当前任务无法完成，需要控制器改变上下文、拆任务、改计划或升级给用户。
 
-实现者不能写 `approved`。实现者最多进入 `ready_for_review`。
+实现者不能写 `approved`。只有高风险专项或批次质量候选进入 `ready_for_review`。

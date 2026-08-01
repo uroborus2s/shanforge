@@ -104,6 +104,20 @@ description: 项目状态查询、任务延续、项目事实修改、阶段切�
 
 若实现中发现跨模块影响、公共契约变化、迁移需求、多个独立交付物或无法用定向测试收口，再升级到正式计划流程；不得仅因文件数量超过一个就升级。
 
+## 开发期轻门禁与集中质量收口
+
+- 开发期默认目标是保持代码规范、完成必要的定向单元测试和适用静态检查；不为每个接口或普通任务
+  生成 evidence、implementer report、review input、独立评审或复审文件。
+- 已授权批次中的低、中风险任务通过定向检查后直接继续下一任务。需要跨会话恢复时只写紧凑 ledger checkpoint，
+  不把 checkpoint 升格为质量 Gate。
+- 认证授权、支付、删除、数据迁移、公共 API、跨服务契约、数据一致性和不可逆变更属于高风险，
+  可以在批次结束前触发专项设计评审、代码评审或目标集成测试。
+- 全部开发任务或已批准里程碑完成后，统一进入一次集中质量门：代码审查、API 契约测试、服务测试、
+  集成测试，并按风险增加 E2E、安全或性能测试。
+- 同一批次只保存一套实现摘要、验证证据、review input 和最终 review。整改直接修改 diff 并重跑受影响测试；
+  只有 Critical、Important 或高风险路径变化才复审受影响范围。
+- 长周期项目可以按里程碑收口，但禁止退化为逐任务重复评审。用户明确要求逐任务评审时才覆盖本默认策略。
+
 ## 默认流程
 
 1. 按“简单任务快速通道”先根据当前消息判定处理模式。
@@ -115,7 +129,9 @@ description: 项目状态查询、任务延续、项目事实修改、阶段切�
 7. 先确定用户可见的唯一下一动作，再从路由表选择唯一下一步 skill；简单代码变更不得因为没有 plan 而路由到 `writing-plans`。
 8. 输出输入包：读取文件、允许修改范围、禁止动作和期望状态回写。
 9. 工作 skill 完成后，只接收状态回写，不让工作 skill 自己决定下一步。
-10. 输出“完成”、进入提交或关闭 work item 前，必须重读当前 work item ledger 最新事件和 review ledger。若状态是 `ready_for_review`、`changes_requested`、`needs_independent_review` 或 `self_check_passed`，且仍属于既有授权范围，继续路由内部动作；只有真实 blocker 或有效 `pending_human_confirmation` 才停止并报告 Gate。
+10. 低、中风险任务 checkpoint 继续授权批次，不进入独立评审。只有批次 / 里程碑完成、高风险专项检查，
+    或用户明确要求时才把 `ready_for_review` 路由到 review；`changes_requested` 在同范围内直接整改。
+    输出“完成”、进入提交或关闭 work item 前，必须重读当前 work item ledger 最新事件和最终 review ledger。
 
 ## 项目位置快照
 
@@ -163,7 +179,7 @@ description: 项目状态查询、任务延续、项目事实修改、阶段切�
 
 - reviewer `approved` 不自动等于 `pending_human_confirmation`。
 - reviewer `changes_requested` 且 Finding 可在原目标、允许文件和风险边界内修复时，自动进入同范围整改和复审循环。
-- 计划评审、任务评审、定向测试、全量验证、报告和记忆同步本身不要求新增人工批准。
+- 适用的计划评审、批次评审、定向测试、最终验证、报告和记忆同步本身不要求新增人工批准。
 - 内部连续执行不推导新权限，不得扩大用户已授权的目标、文件、系统或外部影响范围。
 
 ### 真实人工 Gate
@@ -280,13 +296,13 @@ baseline work item 规则：
 | 需要 UI / UX 方案 | `ui-ux-pro-max` | 任务涉及界面、交互、视觉资产 | `design_ready` |
 | 需要美术方向或开发资源包 | `art-asset-pipeline` | 任务涉及 UI 美术图、游戏素材、资源清单、确认图或资源包 | `ready_for_review` |
 | 需求明确的简单代码变更 | `tdd-workflow` | 局部代码修改加对应单测即可完成，不含契约、架构、迁移、安全或外部风险，且用户未明确要求正式计划 | `passed`、`partial`、`failed` 或 `blocked` |
-| 已批准 brief / spec，但无 plan | `writing-plans` | 存在多个可验收交付物、跨模块协调、跨会话追踪，或用户明确要求正式计划 | `plan_ready_for_review` 或 `not_applicable` |
+| 已批准 brief / spec，但无 plan | `writing-plans` | 存在多个可验收交付物、跨模块协调、跨会话追踪，或用户明确要求正式计划 | `plan_ready`、`ready_for_review` 或 `not_applicable` |
 | plan 已批准，任务独立 | `subagent-driven-development` | 可拆成隔离任务执行 | `ready_for_review`、`blocked` 或 `needs_user_input` |
 | plan 已批准，当前会话 inline 执行 | `executing-plans` | 不使用子 agent 或任务强耦合 | `ready_for_review`、`blocked` 或 `needs_user_input` |
 | 发现 Bug 或验证失败 | `systematic-debugging` | 需要复现和根因调查 | `root_cause_found`、`needs_user_input` 或 `blocked` |
 | Bug 根因已人工确认 | `requirements-engineering` / `writing-plans` | 需要把根因转成修复方案或一个 / 多个修复任务 | `requirements_ready`、`plan_ready_for_review` 或 `needs_user_input` |
 | Bug 根因和修复方案均已人工确认 | `tdd-workflow` / `ai-regression-testing` | 进入修复实现和回归验证 | `passed`、`partial`、`failed` 或 `blocked` |
-| 实现已 `ready_for_review` | `requesting-code-review` | 需要独立评审 | `approved` 或 `changes_requested` |
+| 批次 / 里程碑实现已 `ready_for_review` | `requesting-code-review` | 全部授权开发任务完成，或高风险专项需要独立评审 | `approved` 或 `changes_requested` |
 | review 要求修改 | `receiving-code-review` | 存在明确 review feedback | `ready_for_review` 或 `blocked` |
 | 缺完成证据 | `verification-before-completion` | 需要新鲜验证证据 | `verification_passed` 或 `verification_failed` |
 | reviewer 已 approved，且既有授权批次仍有内部动作 | 按当前缺口选择验证、执行或收口 owner | 不存在真实人工 Gate；自动继续，不停在 review checkpoint | `in_progress` 或任务完成态 |
@@ -343,10 +359,10 @@ baseline work item 规则：
 | 场景 | 当前会话响应 | 持久化 |
 |---|---|---|
 | `direct_answer` / `lightweight_analysis` | 返回答案或分析结论 | 默认不落盘、不写 ledger、不写 memory |
-| `project_workitem` / `tracked_task` | 返回状态包、产物路径、验证结果、阻塞 gate 和 `next_required_action` | 写 work item ledger、必要 evidence/report；必要时同步 memory |
+| `project_workitem` / `tracked_task` | 返回状态包、产物路径、验证结果、阻塞 gate 和 `next_required_action` | 开发期只写必要 checkpoint；批次收口写一套 ledger、evidence/report，必要时同步 memory |
 | 正式需求、设计、API、UI、用户指南或开发者指南变化 | 返回改动摘要和文档路径 | 写 `docs/` 登记路径，并更新版本历史、导航或 `doc-map.md` |
 | 工具动作、命令执行、派发子 agent、自循环中间步骤 | 返回观察结果或状态 | 只写 event、evidence/report；不写正式文档 |
-| review、verification、人工确认、提交前检查 | 返回 gate、缺口和下一动作 | 写 ledger、review/evidence；必要时 memory sync |
+| 批次 review、最终 verification、人工确认、提交前检查 | 返回 gate、缺口和下一动作 | 写一套 ledger、review/evidence；必要时 memory sync |
 | PM 看板 | 返回固定 CLI receipt、最后有效 HTML 入口和事实源说明 | 写 `.factory/index/` 与 `.factory/cache/site/current/` 可重建投影；不写项目事实、不提交 Git |
 
 当前会话必须能看见收口状态；子 agent 或自循环完成后不得只静默写文件。子流程只返回状态包，是否写正式文档、ledger、evidence/report 或 memory 由本 skill 判断。

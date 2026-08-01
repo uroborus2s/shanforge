@@ -4,7 +4,8 @@
 
 - 工作项：
 - 任务：
-- 状态：`draft | ready_for_review | approved | changes_requested`
+- 状态：`draft | active | ready_for_review | approved | changes_requested`
+- 优先级：`P0 | P1 | P2`
 - 任务层级：`project | requirement | cross_cutting | system`
 - 关联目标：
   - `<稳定 ID；按任务层级声明一个或多个目标>`
@@ -35,26 +36,17 @@
 
 ## 实施步骤
 
-1. 设计方案。
-2. 接口设计。
-3. UI 或 `N/A`。
-4. UI 写 `N/A` 时必须写原因。
-5. 测试设计。
-6. 写红灯测试。
-7. 运行并确认失败。
-8. 开发。
-9. 单测。
-10. 集成测试。
-11. review。
-12. 写验证证据。
-13. 写实现报告。
-14. 更新流水账和记忆摘要。
+1. 读取必要文件并确认依赖。
+2. 新增行为或 Bug 先写最小失败检查；已有测试足以覆盖时直接复用。
+3. 写最小实现。
+4. 运行必要的定向单元测试或静态检查。
+5. 返回实现内容、真实测试结果、文件和 concerns。
+6. 继续授权批次；只在跨会话恢复需要时写紧凑 checkpoint。
 
 ## 失败断言
 
-- 缺测试设计则失败。
-- UI 写 `N/A` 但无原因则失败。
 - 发现占位语则失败。
+- 未运行必要定向检查却声称完成则失败。
 
 ## 验证命令
 
@@ -68,13 +60,15 @@
 <期望输出>
 ```
 
-## 输出报告
+## 输出
 
-- 验证证据：`.factory/workitems/<WORKITEM-ID>/evidence/task-N.md`
-- 实现报告：`.factory/workitems/<WORKITEM-ID>/reports/task-N.md`
-- 评审输入简报：`.factory/workitems/<WORKITEM-ID>/reviews/task-N-brief.md`
-- 流水账事件：`.factory/workitems/<WORKITEM-ID>/ledger.jsonl`
+- 实现内容：
+- 测试结果：
+- 修改文件：
+- concerns：
+- 可选 checkpoint：`.factory/workitems/<WORKITEM-ID>/ledger.jsonl`
 
 ## 完成口径
 
-实现者只能写 `ready_for_review`。`approved` 必须来自独立评审。
+低、中风险任务完成后继续批次，不单独进入 review。只有高风险专项或批次质量候选可以写
+`ready_for_review`；`approved` 必须来自适用的独立评审。

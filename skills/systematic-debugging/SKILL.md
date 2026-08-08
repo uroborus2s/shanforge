@@ -5,7 +5,7 @@ description: 遇到 bug、测试失败、构建失败、性能异常或任何意
 
 # 系统化调试
 
-本 skill 用于处理技术问题。目标是完成 Investigation Task：稳定复现、诊断证据、直接原因和根源原因。根因报告获人工确认前，不进入修复；根因确认后也只能进入修复方案 / 修复任务确认 Gate，不能直接改实现。
+本 skill 用于处理技术问题。目标是稳定复现，取得诊断证据，定位直接原因、根源原因和事实 owner，并按风险决定是否需要人工 Gate。
 
 ## 触发
 
@@ -25,18 +25,18 @@ description: 遇到 bug、测试失败、构建失败、性能异常或任何意
 
 ## 输出
 
-- 根因调查：`.factory/workitems/<WORKITEM-ID>/evidence/`
-- 调试报告：`.factory/workitems/<WORKITEM-ID>/reports/`
-- ledger：`.factory/workitems/<WORKITEM-ID>/ledger.jsonl`
+- 低、中风险默认在当前任务状态包中保存紧凑调查结论，不单独生成报告。
+- 高风险、真实阻塞或需要跨会话恢复时，才写 `.factory/workitems/<WORKITEM-ID>/evidence/` 或 `reports/`。
+- 项目化任务按流程总控要求追加最小 ledger 事件。
 
 ## 含义保留清单
 
 - 修复前必须先完成根因调查。
 - Investigation Task 只做复现、诊断、直接原因和根源原因。
 - Investigation Task 完成时只能输出 `root_cause_found`、`blocked` 或 `needs_user_input`。
-- `root_cause_found` 表示根因报告已形成，下一步是人工确认，不是修复。
-- 根因报告获人工确认前不得进入修复。
-- 根因报告获人工确认后，必须先形成修复方案或修复任务并再次等待人工确认。
+- `root_cause_found` 表示根因、事实 owner、影响范围和风险已形成。
+- 低、中风险不新增人工 Gate，直接交给 owner Skill 修复受影响范围。
+- 高风险依次等待根因确认和最小修复方案确认，两个 Gate 通过后才修复。
 - 不能复现时先要求更多信息，不改行为。
 - 禁止先猜修复。
 - 禁止在不理解问题时堆补丁。
@@ -58,7 +58,7 @@ description: 遇到 bug、测试失败、构建失败、性能异常或任何意
 3. 检查最近 diff、依赖、配置和环境变化。
 4. 多组件系统按边界记录输入、输出、配置和状态。
 5. 深层错误按 [data-flow-tracing-guide.md](references/data-flow-tracing-guide.md) 反向追踪。
-6. 按 [root-cause-investigation-template.md](references/root-cause-investigation-template.md) 记录直接原因和根源原因。
+6. 记录直接原因、根源原因、影响范围和 `fault_owner = requirement | design | implementation | test | configuration | environment | production`。
 
 ### Phase 2：模式分析
 
@@ -74,14 +74,14 @@ description: 遇到 bug、测试失败、构建失败、性能异常或任何意
 3. 一次只改变一个变量。
 4. 假设失败就回到 Phase 1，不叠加补丁。
 
-### Phase 4：确认 Gate / 根因确认 Gate
+### Phase 4：风险分级与交接
 
-1. 输出根因报告，明确复现结果、直接原因、根源原因和证据。
-2. 若根因成立，状态写为 `root_cause_found`，needs 写为 `human_confirmation`。
+1. 输出调查结论，明确复现结果、直接原因、根源原因、事实 owner、影响范围和证据。
+2. 若根因成立，状态写为 `root_cause_found`。
 3. 若不能复现，状态写为 `needs_user_input`，列出缺少的信息。
 4. 若证据不足，状态写为 `blocked`，只补诊断需求。
-5. 人工确认根因报告前，不写测试、不改实现、不进入修复。
-6. 根因确认后，只输出修复方案或一个 / 多个修复任务；修复方案确认 Gate 通过前仍不得改实现。
+5. 低、中风险写 `needs: owner_fix`，交给事实 owner 直接修复，并只复测失败案例、根因案例和受影响调用方 / 契约。
+6. 高风险写 `needs: human_confirmation`；根因确认后只形成最小修复方案，第二次确认前不得改实现。
 
 ## 禁止
 
@@ -91,7 +91,7 @@ description: 遇到 bug、测试失败、构建失败、性能异常或任何意
 - 禁止用宽松解析、默认成功、空结果或静默忽略掩盖问题。
 - 禁止只修报错点，不追踪坏数据来源。
 - 禁止在 3 次失败后继续补第四个补丁。
-- 禁止在根因报告获人工确认前进入修复。
+- 禁止跳过风险分级；高风险根因和修复方案未获确认前不得进入修复。
 
 ## 状态包
 
@@ -101,12 +101,15 @@ description: 遇到 bug、测试失败、构建失败、性能异常或任何意
 - skill: systematic-debugging
 - status: root_cause_found | blocked | needs_user_input
 - outputs:
-  - <report path>
+  - <report path or inline summary>
 - evidence:
-  - <reproduction and diagnosis path>
+  - <reproduction and diagnosis path or command receipt>
+- fault_owner: requirement | design | implementation | test | configuration | environment | production
+- risk: low | medium | high
+- impacted_tests: <failed case, root-cause case, affected callers/contracts>
 - ledger_event: <event id>
 - needs:
-  - human_confirmation | more_information | more_diagnostics | architecture_decision
+  - owner_fix | human_confirmation | more_information | more_diagnostics | architecture_decision
 ```
 
 项目化执行时，沿用 [工作 Skill 回写契约](../using-shanforge/references/work-skill-return-contract.md)；本 skill 的现有专业输出和失败语义不变。

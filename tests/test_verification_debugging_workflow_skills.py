@@ -83,21 +83,27 @@ def test_systematic_debugging_skill_requires_root_cause_before_fix() -> None:
 
     assert "name: systematic-debugging" in skill
     assert "修复前必须先完成根因调查" in skill
+    assert "Investigation Task 只做复现、诊断、直接原因和根源原因" in skill
+    assert "`root_cause_found` 表示根因、事实 owner、影响范围和风险已形成" in skill
+    assert "低、中风险不新增人工 Gate" in skill
+    assert "高风险依次等待根因确认和最小修复方案确认" in skill
+    assert "不能复现时停止并要求更多信息，不修行为" in skill
     assert "禁止先猜修复" in skill
     assert "Phase 1：根因调查" in skill
     assert "Phase 2：模式分析" in skill
     assert "Phase 3：假设与最小验证" in skill
-    assert "Phase 4：根因修复" in skill
+    assert "Phase 4：风险分级与交接" in skill
+    assert "- status: root_cause_found | blocked | needs_user_input" in skill
     assert "3 次修复失败" in skill
     assert "质疑架构" in skill
-    assert "防御式校验" in skill
-    assert "条件等待" in skill
     assert ".factory/workitems/<WORKITEM-ID>/evidence/" in skill
-    assert ".factory/workitems/<WORKITEM-ID>/reports/" in skill
+    assert "低、中风险默认在当前任务状态包中保存紧凑调查结论" in skill
+    assert "高风险、真实阻塞或需要跨会话恢复时" in skill
     assert "与其他 skill 的关系" not in skill
     assert "verification-before-completion" not in skill
     assert "requesting-code-review" not in skill
     assert "docs/superpowers" not in skill
+    assert "Phase 4：根因修复" not in skill
 
 
 def test_systematic_debugging_references_define_investigation_package() -> None:
@@ -148,6 +154,9 @@ def test_tdd_workflow_links_debugging_and_verification_gate_without_routing() ->
     reference = read("skills/tdd-workflow/references/tdd-debugging-verification-gate.md")
 
     assert "references/tdd-debugging-verification-gate.md" in skill
+    assert "低、中风险不新增人工 Gate" in skill
+    assert "高风险必须先通过根因确认和修复方案确认 Gate" in skill
+    assert "单次缺陷修复不默认运行全仓测试" in skill
     assert "先看测试失败，再写实现" in reference
     assert "修 Bug 时先写根因记录" in reference
     assert "完成声明前必须有新鲜验证证据" in reference
@@ -159,9 +168,7 @@ def test_tdd_workflow_links_debugging_and_verification_gate_without_routing() ->
 
 
 def test_verification_debugging_openai_metadata_is_chinese() -> None:
-    verification_metadata = read(
-        "skills/verification-before-completion/agents/openai.yaml"
-    )
+    verification_metadata = read("skills/verification-before-completion/agents/openai.yaml")
     debugging_metadata = read("skills/systematic-debugging/agents/openai.yaml")
 
     assert 'display_name: "完成前验证"' in verification_metadata

@@ -30,7 +30,7 @@
 | Composition / Integration | access → application → domain → runtime → settings | 五层装配、三入口、端口 owner 和无越层 |
 | Security / Policy | permission、approval、writeset、eligibility | 越权、侧信道、旧资格和未授权动作拒绝 |
 | Performance | 10,000 task / 100,000 event | 1000 行、8 MiB、3000 ms 上限与无额外全库扫描 |
-| Skill consumer | 顶层 `skills/*/SKILL.md` | 38/38 结构和项目状态交接合同 |
+| Skill consumer | 顶层 `skills/*/SKILL.md` | 全部结构和项目状态交接合同 |
 
 ## 3. R002 稳定验证入口
 
@@ -74,7 +74,7 @@
 1. 正式输入、候选 manifest、计划、验证和 Review Decision 的 SHA-256 绑定一致。
 2. pytest failed/skipped/not_run 均为 0；不能用旧结果替代本轮新鲜验证。
 3. Ruff、format、mypy 和依赖锁检查全部通过。
-4. 38 个顶层 Skill 全部通过 quick validation；`src/runtime/skills` 与 `src/settings/skills` 保持不存在。
+4. 顶层 Skill 全部通过 quick validation；`src/runtime/skills` 与 `src/settings/skills` 保持不存在。
 5. fixed H、七种 disposition、exact-context permission、五字段 CAS、durable dispatch、provenance 和 10k/100k 性能攻击全部通过。
 6. Critical/Important Finding 为 0；Review 不替代 verification，人类验收不替代正式发布授权。
 7. Git、远端和部署结果必须由各自动作回执证明；没有回执时一律写“未执行”。
@@ -148,6 +148,20 @@ R002 的权威运行结果位于 `.factory/workitems/FLOW-CONTRACT-001/evidence/
 也不维护 SQLite 测试投影。
 质量页和文档详情必须将其显示为测试定义，只有明确传入且通过校验的当前报告才能显示
 运行结果。
+
+## 9. 轻量测试闭环（2026-08-08 已批准生效）
+
+本节覆盖第 4、7、8 节中与本节冲突的候选字段和逐次全仓要求；无需为普通开发任务生成完整治理材料。
+
+- 设计阶段完成测试范围、层级、角色权限矩阵、接口案例、环境 / 数据、自动化入口、进入 / 退出条件和报告结构；
+  脚本实现与运行结果分别在开发、测试阶段完成。
+- 案例目录只保留稳定 ID、目标 / 追踪、角色或认证态、输入 fixture 引用、预期断言引用、层级和自动化入口。
+  接口 body 与预期状态码、schema、业务码、副作用和幂等结果由测试脚本断言，不复制大段 JSON。
+- 单次运行结果只保留案例 ID、状态、缺陷 ID 和证据引用；最终报告只保留精确候选、环境别名、结果汇总、
+  失败 / 阻塞 / 跳过、缺陷历史、残余风险和证据引用。
+- 报告不得记录完整测试服务地址、IP、端口、账号、密码、令牌、DSN、个人信息或原始敏感日志；只使用环境和账号别名。
+- 首个发布候选运行完整必需发布测试并集中登记缺陷；每个修复只复测原失败案例、根因案例和受影响调用方 / 契约；
+  阻断缺陷全部关闭后冻结最终候选，再运行一次完整必需发布测试。V4 或项目明确规定时才运行字面全仓测试。
 
 ## 正式版本历史（仅已发布）
 

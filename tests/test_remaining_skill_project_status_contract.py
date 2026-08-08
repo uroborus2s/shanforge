@@ -35,6 +35,7 @@ WORK_SKILLS = {
     "pdf",
     "python-uv-project",
     "receiving-code-review",
+    "release-deployment",
     "requirements-engineering",
     "shadcn",
     "stratix-admin-web",
@@ -62,8 +63,8 @@ def read_skill(name: str) -> str:
 def test_remaining_skill_scope_is_exactly_the_non_owner_top_level_set() -> None:
     actual = {path.parent.name for path in (REPO_ROOT / "skills").glob("*/SKILL.md")}
 
-    assert len(actual) == 37
-    assert len(WORK_SKILLS) == 31
+    assert len(actual) == 38
+    assert len(WORK_SKILLS) == 32
     assert actual == OWNER_SKILLS | WORK_SKILLS
     assert not OWNER_SKILLS & WORK_SKILLS
 

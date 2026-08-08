@@ -13,7 +13,7 @@ description: 项目状态查询、任务延续、项目事实修改、阶段切�
 
 # Shanforge 流程总控
 
-## v1.2.0 运行时路由合同
+## v1.3.0 运行时路由合同
 
 先把当前消息归为唯一 `behavior_id`，再选唯一 `workflow_id`：
 
@@ -30,6 +30,8 @@ description: 项目状态查询、任务延续、项目事实修改、阶段切�
 | `SB-REVIEW` | `review-workflow` | `state_or_gate_write` |
 | `SB-VERIFY` | `verification-workflow` | `state_or_gate_write` |
 | `SB-COMMIT` | `commit-workflow` | `state_or_gate_write` |
+| `SB-REMOTE` | `remote-pr-workflow` | `state_or_gate_write` |
+| `SB-RELEASE` | `release-workflow` | `state_or_gate_write` |
 | `SB-STATUS` | `status-memory-workflow` | `no_project_write` |
 | `SB-RESUME` | `status-memory-workflow` | `state_or_gate_write` |
 
@@ -276,6 +278,25 @@ PM 状态页是本 skill 的自带只读输出，不改变工作 skill 的职责
 4. 缺本地提交、远端目标、远端工具权限或可审计 evidence 时，只能输出 `remote_handoff_blocked` 或 `remote_failed`。
 5. 不得把本地 commit、计划、口头说明或 dry-run 写成已 push、PR 已创建或已 merge。
 
+## 变更归因与下游失效
+
+发现新事实时先判定唯一 owner，再决定回流点：
+
+- 业务目标、范围或验收标准变化：回 `requirements-engineering`。
+- 业务目标未变但架构、接口或技术方案错误：回对应设计 Skill。
+- 实现偏离已批准设计：进入 `systematic-debugging` / `tdd-workflow`，不改需求或设计。
+- 测试预期、夹具或脚本错误：只修测试并重新验证受影响范围。
+- 配置、环境或生产事件：先调查根因，再按上述 owner 回流。
+
+上游事实改变后，仅把受影响下游标为 `stale`；修订并验证后为 `revalidated`，被新事实替代为 `superseded`，
+未受影响内容保持 `active`。不得因一处变化默认重走全部阶段或运行全仓测试。
+
+## 发布与生产闭环
+
+候选已冻结、最终必需发布测试通过且生产动作已显式授权时，路由到 `release-deployment`。该 Skill 只复用项目已有
+部署、健康检查、冒烟、观察和回滚入口，输出 `released`、`rolled_back` 或 `blocked` 及最小发布回执。
+缺精确候选、最终测试报告、环境别名、入口或生产授权时不得执行。
+
 ## 场景路由与 baseline gate
 
 `using-shanforge` 是四类场景、baseline work item、gate 和关闭规则的唯一流程 owner。
@@ -285,7 +306,7 @@ PM 状态页是本 skill 的自带只读输出，不改变工作 skill 的职责
 | 新项目 | `new_project` | 用户提出新项目、产品或系统从零开始 | 先创建 Project baseline 输入包；缺 baseline work item 时不得进入普通实现任务 |
 | 增加需求 | `add_requirement` | 用户提出新增功能或能力 | 路由到 `requirements-engineering`，必须检查 baseline 影响 |
 | 变更需求 | `change_requirement` | 用户要求修改已有需求、验收标准或范围 | 必须定位原 Requirement，并要求版本历史 |
-| 修复 bug | `fix_bug` | 用户报告失败、异常、回归或测试失败 | 先路由到 `systematic-debugging` 做根因调查；根因报告人工确认后，再输出修复方案 / 修复任务并等待人工确认；两个 Gate 都通过后才进入修复 |
+| 修复 bug | `fix_bug` | 用户报告失败、异常、回归或测试失败 | 先路由到 `systematic-debugging` 复现、归因和分级；低、中风险直接进入受影响修复，高风险才依次确认根因和修复方案 |
 
 baseline work item 规则：
 
@@ -308,11 +329,13 @@ baseline work item 规则：
 | plan 已批准，任务独立 | `subagent-driven-development` | 可拆成隔离任务执行 | `ready_for_review`、`blocked` 或 `needs_user_input` |
 | plan 已批准，当前会话 inline 执行 | `executing-plans` | 不使用子 agent 或任务强耦合 | `ready_for_review`、`blocked` 或 `needs_user_input` |
 | 发现 Bug 或验证失败 | `systematic-debugging` | 需要复现和根因调查 | `root_cause_found`、`needs_user_input` 或 `blocked` |
-| Bug 根因已人工确认 | `requirements-engineering` / `writing-plans` | 需要把根因转成修复方案或一个 / 多个修复任务 | `requirements_ready`、`plan_ready_for_review` 或 `needs_user_input` |
-| Bug 根因和修复方案均已人工确认 | `tdd-workflow` / `ai-regression-testing` | 进入修复实现和回归验证 | `passed`、`partial`、`failed` 或 `blocked` |
+| 低、中风险 Bug 根因已定位 | 按 `fault_owner` 路由需求 / 设计 / 实现 / 测试 Skill | 无安全、数据、契约或生产高风险，只修受影响范围 | 对应 Skill 既有完成态 |
+| 高风险 Bug 根因已定位 | 无工作 skill | 等待根因人工确认；确认后形成最小修复方案并等待第二次确认 | `pending_human_confirmation` |
+| 高风险 Bug 根因和修复方案均已确认 | `tdd-workflow` / `ai-regression-testing` | 进入修复实现和目标回归验证 | `passed`、`partial`、`failed` 或 `blocked` |
 | 批次 / 里程碑实现已 `ready_for_review` | `requesting-code-review` | 全部授权开发任务完成，或高风险专项需要独立评审 | `approved` 或 `changes_requested` |
 | review 要求修改 | `receiving-code-review` | 存在明确 review feedback | `ready_for_review` 或 `blocked` |
 | 缺完成证据 | `verification-before-completion` | 需要新鲜验证证据 | `verification_passed` 或 `verification_failed` |
+| 最终候选和测试报告已就绪 | `release-deployment` | 环境、已有部署 / 回滚入口齐备；生产动作已有显式授权 | `released`、`rolled_back` 或 `blocked` |
 | reviewer 已 approved，且既有授权批次仍有内部动作 | 按当前缺口选择验证、执行或收口 owner | 不存在真实人工 Gate；自动继续，不停在 review checkpoint | `in_progress` 或任务完成态 |
 | reviewer 已 approved，且下一步需要真实人工决策 | 无工作 skill | 必须给出完整决策包 | `pending_human_confirmation` |
 | 人工已确认且有可提交改动 | `gitcommitzh` | review / evidence / memory sync 已齐备，当前任务产生文件改动，且用户未明确要求暂不提交 | `commit_done` |

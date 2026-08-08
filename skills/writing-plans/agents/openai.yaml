@@ -1,4 +1,4 @@
 interface:
   display_name: "编写实施计划"
   short_description: "为复杂任务生成最小计划、任务 brief 和批次质量门；简单任务不触发。"
-  default_prompt: "使用 $writing-plans：简单修改返回 not_applicable；复杂任务只生成最小 plan 和 task-briefs，并设置一个批次质量任务。低中风险计划自审后直接执行，高风险或用户明确要求时才进入独立 plan review。"
+  default_prompt: "使用 $writing-plans：简单修改返回 not_applicable；复杂任务确认开发与测试设计齐备，只生成最小 plan、task-briefs、一个批次质量任务，以及生产在范围内时的一个发布任务；高风险或用户明确要求时才进入独立 plan review。"

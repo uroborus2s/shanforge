@@ -1,5 +1,9 @@
 # Skill Updates Summary
 
+- 当前（2026-08-08）：开发流程收敛为设计、开发、测试、发布、生产观察五段；Bug 按事实 owner 和风险回流，
+  低、中风险取消双人工确认并只做目标复测，最终候选才运行完整必需发布测试。新增 `release-deployment`，只复用
+  项目已有部署 / 回滚入口并要求生产显式授权；测试报告改为脱敏聚合摘要。
+
 - 当前（2026-07-27）：`STRATIX-SERVICE-GUIDE-001-T01` 已将 Stratix 框架实现提炼为统一业务开发规范。skill 保留 `src/stratix.config.ts`、`STRATIX_ENCRYPTION_KEY` / `isTest()`、module 边界及 Controller → Service → Repository → BaseRepository → Kysely → SQL 完整范例；删除运行时 `source-locations.md`，业务项目不读取框架源码。回归 `19 passed`，独立复审 `approved / 100 / C0-I0-M0`。
 
 - 当前（2026-07-22）：`UI-DESIGN-SKILL-001 / TASK-SKILL-001` 已完成 `ui-ux-pro-max` 原位升级，覆盖 Web、小程序、Apple、Android、Windows/Linux、跨平台 UI 与动效；同步上游稳定版 v2.11.0 数据和桌面栈，新增平台、动效、交付与开源来源 references、Codex metadata、9 个专项测试和三组隔离 forward-test。`art-asset-pipeline` 保留资产生产职责；系统 `skill-creator` 作为后续默认创作入口，仓内副本等待依赖迁移后再单独退役。独立 review `approved / 98 / C0-I0-M1`，完成验证全部通过，无新增人工 Gate。

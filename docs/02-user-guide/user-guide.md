@@ -5,9 +5,9 @@
 | 项目 | 内容 |
 |---|---|
 | 文档 ID | `DOC-USER-GUIDE-001` |
-| 正式版本 | `v1.1.0` |
-| 来源候选 | `SKILL-FIRST-PM-001` |
-| 发布事务 | `DESIGN-RELEASE-TX-R019-G001` |
+| 正式版本 | `v1.2.0` |
+| 来源候选 | `2026-08-08 用户阶段门控与闭环优化决策` |
+| 发布事务 | `N/A（直接策略变更）` |
 | 负责人 | `HUMAN_PRODUCT_ANALYST` |
 | 修改 / 审核 / 批准 | `uroborus` / `uroborus` / `uroborus` |
 | 状态 | 已批准并生效 |
@@ -32,7 +32,7 @@
 
 1. 用自然语言说明项目路径、当前状态、目标和禁止事项。
 2. 让 `using-shanforge` 判断当前流程位置。
-3. 让对应 skill 完成需求、设计、计划、实现、评审、验证或提交。
+3. 让对应 skill 完成需求、设计、计划、实现、评审、验证、提交或发布。
 
 ## 2. 使用前准备
 
@@ -78,10 +78,12 @@ AI 应该先走 `using-shanforge`，必要时用 `project-memory` 恢复上下�
 | 需要文档体系或技术文档 | 使用 `document-templates` |
 | 已有需求，需要计划 | 使用 `writing-plans` |
 | 已有计划，需要执行 | 使用 `subagent-driven-development` 或 `executing-plans` |
+| 出现 Bug 或测试失败 | 使用 `systematic-debugging` 复现、归因和分级；只有高风险等待双确认 |
 | 需要评审 | 使用 `requesting-code-review` |
 | 需要处理评审意见 | 使用 `receiving-code-review` |
 | 准备声明完成 | 使用 `verification-before-completion` |
 | 用户明确要求提交 | 使用 `gitcommitzh` |
+| 最终候选测试通过并准备部署 | 使用 `release-deployment`，生产动作必须显式授权 |
 
 ## 5. 完成标准
 
@@ -104,5 +106,6 @@ AI 应该先走 `using-shanforge`，必要时用 `project-memory` 恢复上下�
 
 | 版本 | 日期 | 变更 | 修改人 | 审核 | 批准 |
 |---|---|---|---|---|---|
+| `v1.2.0` | 2026-08-08 | 增加 Bug 风险分流、最终候选测试和发布部署入口 | `AI_EXECUTOR` | `集中质量门` | `uroborus` |
 | `v1.1.0` | 2026-07-28 | 明确 skill 自带脚本并取消目标项目源码依赖 | `uroborus` | `uroborus` | `uroborus` |
 | `v1.0.0` | 2026-07-18 | 基于 `TASK-DESIGN-001-R019` 正式落档 | `uroborus` | `uroborus` | `uroborus` |

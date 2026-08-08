@@ -91,18 +91,18 @@ def test_task_card_granularity_parallelism_and_bug_confirmation_gates() -> None:
         assert phrase in subagent
 
     for phrase in (
-        "根因确认 Gate",
-        "根因报告获人工确认前不得进入修复",
-        "不能复现时先要求更多信息",
         "root_cause_found",
-        "修复方案或修复任务",
+        "fault_owner",
+        "低、中风险不新增人工 Gate",
+        "高风险依次等待根因确认",
+        "不能复现时先要求更多信息",
     ):
         assert phrase in debugging
 
     for phrase in (
-        "只在根因已确认后执行修复",
-        "修复方案确认 Gate",
-        "根因报告未获人工确认，或修复方案确认 Gate 未通过时，禁止进入 `GREEN` 实现",
+        "低、中风险不新增人工 Gate",
+        "高风险必须先通过根因确认和修复方案确认 Gate",
+        "单次缺陷修复不默认运行全仓测试",
     ):
         assert phrase in tdd
 
@@ -123,9 +123,7 @@ def test_flow_controller_routes_simple_code_changes_without_formal_plan() -> Non
         assert phrase in controller
 
     simple_route = next(
-        line
-        for line in controller.splitlines()
-        if line.startswith("| 需求明确的简单代码变更 |")
+        line for line in controller.splitlines() if line.startswith("| 需求明确的简单代码变更 |")
     )
     assert "用户未明确要求正式计划" in simple_route
 
@@ -180,7 +178,7 @@ def test_black_box_eval_covers_task_card_creation_boundaries() -> None:
         assert phrase in reference
 
 
-def test_bug_fix_routes_through_root_cause_and_repair_plan_gates() -> None:
+def test_bug_fix_routes_by_owner_and_only_high_risk_uses_two_gates() -> None:
     controller = read("skills/using-shanforge/SKILL.md")
     reference = read("skills/using-shanforge/references/black-box-flow-eval.md")
 
@@ -188,19 +186,19 @@ def test_bug_fix_routes_through_root_cause_and_repair_plan_gates() -> None:
         "发现 Bug 或验证失败",
         "`systematic-debugging`",
         "`root_cause_found`",
-        "Bug 根因已人工确认",
-        "修复方案或一个 / 多个修复任务",
-        "Bug 根因和修复方案均已人工确认",
+        "低、中风险 Bug 根因已定位",
+        "高风险 Bug 根因已定位",
+        "高风险 Bug 根因和修复方案均已确认",
         "`tdd-workflow`",
     ):
         assert phrase in controller
 
     for phrase in (
         "FLOW-S4-fix-bug-root-cause",
-        "双确认 Gate",
-        "根因确认 Gate",
-        "修复方案确认 Gate",
-        "两个 Gate 都通过后",
-        "两个 Gate 前未进入修复",
+        "归因和风险 Gate",
+        "低、中风险不新增人工 Gate",
+        "只有高风险才依次设置根因确认和修复方案确认 Gate",
+        "未为低、中风险制造人工确认 Gate",
+        "不默认全仓测试",
     ):
         assert phrase in reference

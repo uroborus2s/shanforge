@@ -31,6 +31,11 @@ EXPECTED_BEHAVIORS = {
     "SB-DEPRECATE": "废弃",
 }
 
+CURRENT_BEHAVIORS = EXPECTED_BEHAVIORS | {
+    "SB-REMOTE": "远端交付",
+    "SB-RELEASE": "发布部署",
+}
+
 EXPECTED_WORKFLOWS = {
     "tracking-identity-workflow",
     "direct-answer-workflow",
@@ -47,12 +52,18 @@ EXPECTED_WORKFLOWS = {
     "status-memory-workflow",
 }
 
+CURRENT_WORKFLOWS = EXPECTED_WORKFLOWS | {
+    "remote-pr-workflow",
+    "release-workflow",
+}
+
 RUNTIME_SKILLS = {
     "skills/using-shanforge/SKILL.md": {
         "tracking-identity-workflow",
         "direct-answer-workflow",
         "change-control-workflow",
         "design-workflow",
+        "remote-pr-workflow",
     },
     "skills/project-memory/SKILL.md": {"status-memory-workflow"},
     "skills/requirements-engineering/SKILL.md": {"requirements-workflow"},
@@ -65,6 +76,7 @@ RUNTIME_SKILLS = {
         "testing-workflow",
         "verification-workflow",
     },
+    "skills/release-deployment/SKILL.md": {"release-workflow"},
 }
 
 RUNTIME_POLICIES = {
@@ -92,6 +104,7 @@ RUNTIME_POLICIES = {
         "source_or_test_write",
         "state_or_gate_write",
     },
+    "skills/release-deployment/SKILL.md": {"state_or_gate_write"},
 }
 
 
@@ -213,11 +226,7 @@ def test_candidate_defines_fail_closed_write_authorization() -> None:
         if action == "no_project_write":
             return not writes
         if action == "create_tracking_identity":
-            return (
-                writes == ("WorkItem", "TaskCard", "首条 ledger")
-                and ledger
-                and evidence
-            )
+            return writes == ("WorkItem", "TaskCard", "首条 ledger") and ledger and evidence
         return (
             bool(work_item_id)
             and bool(task_card_id)
@@ -251,27 +260,23 @@ def test_candidate_defines_fail_closed_write_authorization() -> None:
     )
 
     workflows = markdown_table(candidate, "## 工作流合同")
-    reachable_policies = {policy.strip() for row in workflows for policy in re.findall(
-        r"(?:no_project_write|create_tracking_identity|project_fact_write|"
-        r"source_or_test_write|state_or_gate_write)",
-        row["写策略"],
-    )}
-    assert reachable_policies == set(by_action)
-    identity = next(
-        row
+    reachable_policies = {
+        policy.strip()
         for row in workflows
-        if row["工作流 ID"] == "`tracking-identity-workflow`"
-    )
+        for policy in re.findall(
+            r"(?:no_project_write|create_tracking_identity|project_fact_write|"
+            r"source_or_test_write|state_or_gate_write)",
+            row["写策略"],
+        )
+    }
+    assert reachable_policies == set(by_action)
+    identity = next(row for row in workflows if row["工作流 ID"] == "`tracking-identity-workflow`")
     assert identity["写策略"] == "`create_tracking_identity`"
     assert "proposed_work_item_id" in identity["输入 Schema"]
     assert "proposed_task_card_id" in identity["输入 Schema"]
 
-    status_memory = next(
-        row for row in workflows if row["工作流 ID"] == "`status-memory-workflow`"
-    )
-    assert "SB-RESUME 时必须含 work_item_id 和 task_card_id" in (
-        status_memory["输入 Schema"]
-    )
+    status_memory = next(row for row in workflows if row["工作流 ID"] == "`status-memory-workflow`")
+    assert "SB-RESUME 时必须含 work_item_id 和 task_card_id" in (status_memory["输入 Schema"])
 
 
 def test_candidate_declares_per_workflow_nodes_transitions_and_human_gate_rules() -> None:
@@ -293,7 +298,7 @@ def test_candidate_declares_per_workflow_nodes_transitions_and_human_gate_rules(
     assert identity["合法主路径"].endswith("identity_readback -> reroute`")
 
 
-def test_formal_contract_preserves_v1_2_tables_after_lean_delivery_update() -> None:
+def test_formal_contract_preserves_v1_2_baseline_and_adds_delivery_workflows() -> None:
     candidate = read(CANDIDATE_PATH)
     formal = read(FORMAL_CONTRACT_PATH)
 
@@ -304,33 +309,35 @@ def test_formal_contract_preserves_v1_2_tables_after_lean_delivery_update() -> N
     assert "- 正式基线版本：`v1.1.0`" in candidate
     match = re.search(r"- 正式基线 SHA-256：`([0-9a-f]{64})`", candidate)
     assert match
-    assert match.group(1) == (
-        "5769beb3478d528a0b0888328381173aa799e1e137925fc393bd98d97d3eb687"
-    )
+    assert match.group(1) == ("5769beb3478d528a0b0888328381173aa799e1e137925fc393bd98d97d3eb687")
     assert hashlib.sha256((REPO_ROOT / CANDIDATE_PATH).read_bytes()).hexdigest() == (
         "3d5f4cbabda86312da0603db5662175453d12dd5966c788301b0c79c2cb4992f"
     )
     assert "批准前不得修改正式文档或同步 runtime Skill" in candidate
-    assert "| 正式版本 | `v1.3.1` |" in formal
-    assert "| 来源候选 | `2026-08-01 用户风险分级补充决策` |" in formal
+    assert "| 正式版本 | `v1.4.0` |" in formal
+    assert "| 来源候选 | `2026-08-08 用户阶段门控与闭环优化决策` |" in formal
     assert "| 发布事务 | `N/A（直接策略变更）` |" in formal
     assert "| `v1.2.0` | 发布完整项目会话归因" in formal
     assert "| `v1.3.0` | 开发期轻门禁" in formal
     assert "| `v1.3.1` | 明确低、中、高风险任务" in formal
+    assert "| `v1.4.0` | 增加设计至生产阶段门" in formal
     assert formal.count("## 完整软件项目会话归因模型") == 1
     assert formal.count("## 工作流合同") == 1
     assert "| 当前版本 | `0.2.0` |" not in formal
-    for heading in (
-        "## 会话行为合同",
-        "## 工作流合同",
-        "## 写入授权矩阵",
-        "## 工作流节点与转换",
-    ):
-        assert markdown_table(formal, heading) == markdown_table(candidate, heading)
+    formal_behaviors = {
+        row["行为 ID"].strip("`") for row in markdown_table(formal, "## 会话行为合同")
+    }
+    formal_workflows = {
+        row["工作流 ID"].strip("`") for row in markdown_table(formal, "## 工作流合同")
+    }
+    assert formal_behaviors == set(CURRENT_BEHAVIORS)
+    assert formal_workflows == CURRENT_WORKFLOWS
+    assert set(EXPECTED_BEHAVIORS) < formal_behaviors
+    assert EXPECTED_WORKFLOWS < formal_workflows
+    assert markdown_table(formal, "## 写入授权矩阵") == markdown_table(candidate, "## 写入授权矩阵")
     for obsolete_rule in (
         "Reviewer `approved` 后仍必须进入人工确认门",
-        "`ReviewDecision=approved` 只能把 WorkflowRun 推到 "
-        "`pending_human_confirmation`",
+        "`ReviewDecision=approved` 只能把 WorkflowRun 推到 `pending_human_confirmation`",
     ):
         assert obsolete_rule not in formal
     for phrase in (
@@ -363,8 +370,9 @@ def test_formal_contract_and_router_define_deterministic_risk_levels() -> None:
 def test_runtime_skills_expose_the_minimum_route_and_result_contract() -> None:
     for path, workflows in RUNTIME_SKILLS.items():
         skill = read(path)
-        assert "v1.2.0 运行时路由合同" in skill, path
-        runtime_contract = markdown_section(skill, "## v1.2.0 运行时路由合同")
+        heading_match = re.search(r"^## v[0-9.]+ 运行时路由合同$", skill, re.MULTILINE)
+        assert heading_match, path
+        runtime_contract = markdown_section(skill, heading_match.group())
         for workflow in workflows:
             assert workflow in runtime_contract, (path, workflow)
         for policy in RUNTIME_POLICIES[path]:
@@ -385,7 +393,7 @@ def test_runtime_skills_expose_the_minimum_route_and_result_contract() -> None:
             assert field in runtime_contract, (path, field)
 
     router = read("skills/using-shanforge/SKILL.md")
-    for behavior_id in EXPECTED_BEHAVIORS:
+    for behavior_id in CURRENT_BEHAVIORS:
         assert behavior_id in router
     for phrase in (
         "route_kind: tracking_identity_intake",
@@ -395,21 +403,21 @@ def test_runtime_skills_expose_the_minimum_route_and_result_contract() -> None:
         "重新路由原始行为",
     ):
         assert phrase in router
-    candidate_routes = {
+    formal_routes = {
         row["行为 ID"].strip("`"): (
             row["默认工作流"].strip("`"),
             row["默认写策略"].strip("`"),
         )
-        for row in markdown_table(read(CANDIDATE_PATH), "## 会话行为合同")
+        for row in markdown_table(read(FORMAL_CONTRACT_PATH), "## 会话行为合同")
     }
     runtime_routes = {}
-    for row in markdown_table(router, "## v1.2.0 运行时路由合同"):
+    for row in markdown_table(router, "## v1.3.0 运行时路由合同"):
         for behavior_id in re.findall(r"SB-[A-Z]+", row["behavior_id"]):
             runtime_routes[behavior_id] = (
                 row["workflow_id"].strip("`"),
                 row["write_policy"].strip("`"),
             )
-    assert runtime_routes == candidate_routes
+    assert runtime_routes == formal_routes
 
 
 def test_flow_task_015_is_registered_as_closed_after_local_commit() -> None:
@@ -418,11 +426,7 @@ def test_flow_task_015_is_registered_as_closed_after_local_commit() -> None:
     ledger = read(".factory/workitems/FLOW-CONTRACT-001/ledger.jsonl")
     current_state = read(".factory/memory/current-state.md")
     tests_summary = read(".factory/memory/tests.summary.md")
-    events = [
-        json.loads(line)
-        for line in ledger.splitlines()
-        if '"task":"FLOW-TASK-015"' in line
-    ]
+    events = [json.loads(line) for line in ledger.splitlines() if '"task":"FLOW-TASK-015"' in line]
     latest_status = events[-1]["status"]
 
     assert "完整软件项目会话行为与工作流归因契约" in task
@@ -438,3 +442,38 @@ def test_flow_task_015_is_registered_as_closed_after_local_commit() -> None:
     assert "- 活跃任务数：0" in current_state
     assert "- 当前无活动任务。" in current_state
     assert "- 当前 Gate：`none`" in current_state
+
+
+def test_delivery_stage_gate_bug_loop_and_release_receipt_are_closed() -> None:
+    formal = read(FORMAL_CONTRACT_PATH)
+    router = read("skills/using-shanforge/SKILL.md")
+    debugging = read("skills/systematic-debugging/SKILL.md")
+    tdd = read("skills/tdd-workflow/SKILL.md")
+    api = read("skills/api-design/SKILL.md")
+    verification = read("skills/verification-before-completion/SKILL.md")
+    test_plan = read("docs/06-delivery/test-plan.md")
+    report_template = read("skills/document-templates/assets/templates/05-quality/test-report.md")
+    release = read("skills/release-deployment/SKILL.md")
+
+    for phrase in (
+        "设计 -> 开发 -> 测试 -> 发布 -> 生产观察",
+        "stale",
+        "revalidated",
+        "superseded",
+    ):
+        assert phrase in formal
+    for phrase in (
+        "业务目标、范围或验收标准变化",
+        "测试预期、夹具或脚本错误",
+        "release-deployment",
+    ):
+        assert phrase in router
+    for phrase in ("fault_owner", "低、中风险不新增人工 Gate", "高风险依次等待"):
+        assert phrase in debugging
+    assert "单次缺陷修复不默认运行全仓测试" in tdd
+    assert "参数 / body fixture" in api
+    assert "最终候选，再运行一次完整必需发布测试" in verification
+    assert "轻量测试闭环（2026-08-08 已批准生效）" in test_plan
+    assert "不得记录完整内部 URL、IP、端口、凭证、令牌、DSN" in report_template
+    for phrase in ("显式人工授权", "released | rolled_back | blocked", "不发明脚本"):
+        assert phrase in release

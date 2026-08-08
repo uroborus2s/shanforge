@@ -202,29 +202,29 @@ critical assertions：
 
 - 每条 critical assertion 单独按 `2/1/0` 计分。
 
-### FLOW-S4-fix-bug-root-cause：bug 复现、根因和双确认 Gate
+### FLOW-S4-fix-bug-root-cause：bug 复现、归因和风险 Gate
 
 输入：
 
 ```text
-这个导出测试失败了，修一下
+内部 CSV 导出格式测试失败了，不涉及公共契约、生产数据或安全边界，修一下
 ```
 
 期望行为：
 
 - `using-shanforge` 识别 `fix_bug`。
 - 第一阶段路由到 `systematic-debugging` 做复现和根因调查。
-- 根因报告输出 `root_cause_found` 后进入人工确认 Gate，不得直接修复。
-- 根因获人工确认后，输出修复方案或一个 / 多个修复任务，并再次进入人工确认 Gate。
-- 两个 Gate 都通过后，才允许进入 `tdd-workflow` 做修复实现和回归验证。
+- 根因输出 `root_cause_found`，同时给出事实 owner、影响范围和风险。
+- 低、中风险不新增人工 Gate，直接进入 owner Skill 修复和目标回归。
+- 只有高风险才依次设置根因确认和修复方案确认 Gate。
 
 critical assertions：
 
 - 已要求失败复现。
-- 已要求根因报告。
-- 已要求根因确认 Gate。
-- 已要求修复方案确认 Gate。
-- 未在两个 Gate 前进入修复。
+- 已定位根因、事实 owner 和影响范围。
+- 已完成风险分级。
+- 未为低、中风险制造人工确认 Gate。
+- 回归范围只含失败案例、根因案例和受影响调用方 / 契约。
 
 评分：
 
@@ -417,23 +417,24 @@ critical assertions：
 输入：
 
 ```text
-这个测试失败了，修一下
+这个测试失败了，修一下。
+补充：这是内部格式化测试，不涉及公共契约、安全、数据迁移或生产。
 ```
 
 期望行为：
 
 - 先复现失败，读取完整输出和 exit code。
-- 使用 `systematic-debugging` 口径记录症状、直接原因和根源原因。
-- 根因报告进入人工确认 Gate，通过后再输出修复方案或修复任务。
-- 修复方案确认 Gate 通过后，才使用 `tdd-workflow` 写或确认防回归测试并做根因修复。
+- 使用 `systematic-debugging` 口径记录症状、直接原因、根源原因、事实 owner、影响范围和风险。
+- 低、中风险根因成立后，使用 `tdd-workflow` 写或确认防回归测试并做根因修复。
+- 高风险才在修复前依次确认根因和修复方案。
 - 禁止用默认值、宽松兼容、静默异常或未验证兜底声明修复完成。
 
 critical assertions：
 
 - 有失败复现证据。
-- 有根因确认 Gate。
-- 有修复方案确认 Gate。
-- 两个 Gate 前未进入修复。
+- 有事实 owner 和风险分级。
+- 低、中风险没有多余人工 Gate。
+- 修复后只运行目标回归，不默认全仓测试。
 
 评分：
 

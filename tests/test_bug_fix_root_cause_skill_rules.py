@@ -15,6 +15,8 @@ def test_tdd_workflow_requires_root_cause_before_bug_fix() -> None:
     for phrase in (
         "Bug 根因先于修复",
         "直接原因与根源原因",
+        "低、中风险不新增人工 Gate；高风险必须先通过根因确认和修复方案确认 Gate",
+        "高风险根因未获人工确认，或修复方案确认 Gate 未通过时，禁止进入 `GREEN` 实现",
         "禁止把 `try/except`、默认值、空结果、重试、忽略异常、宽松解析或“兼容一下”当作主要修复",
         "不得提交行为修复",
     ):

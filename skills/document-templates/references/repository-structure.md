@@ -232,6 +232,7 @@ traceability   -> 04-project-development/10-traceability
 - 系统架构：`assets/templates/03-solution/system-architecture.md` -> `docs/04-project-development/04-design/system-architecture.md`
 - API 设计：`assets/templates/03-solution/api-design.md` -> `docs/04-project-development/04-design/api-design.md`
 - 测试计划：`assets/templates/05-quality/test-plan.md` -> `docs/04-project-development/06-testing-verification/test-plan.md`
+- 测试报告：`assets/templates/05-quality/test-report.md` -> `docs/04-project-development/06-testing-verification/test-report.md`
 - 发布说明：`assets/templates/06-release/release-notes.md` -> `docs/04-project-development/07-release-delivery/release-notes.md`
 - 运维手册：`assets/templates/07-operations/operations-runbook.md` -> `docs/04-project-development/08-operations-maintenance/operations-runbook.md`
 - 需求追踪矩阵：`assets/templates/traceability/requirements-matrix.md` -> `docs/04-project-development/10-traceability/requirements-matrix.md`

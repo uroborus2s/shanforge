@@ -1,0 +1,4 @@
+interface:
+  display_name: "发布与部署"
+  short_description: "核对候选和授权，执行已有部署入口并闭合发布验证与回滚。"
+  default_prompt: "使用 $release-deployment 核对最终候选和发布授权，执行项目已有部署入口，并记录健康检查、冒烟、观察和回滚结果。"

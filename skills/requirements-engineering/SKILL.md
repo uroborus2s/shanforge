@@ -65,7 +65,8 @@ description: "需求工程技能。用于把想法、work item brief、已批准
 - `new_project`：先形成 Project baseline 输入包，再写第一批需求；没有 baseline 时不得直接拆实现任务。
 - `add_requirement`：写 Requirement 输入包，并做 baseline 影响分析。
 - `change_requirement`：定位原 Requirement，按需求版本规则追加版本历史，再做影响分析。
-- `fix_bug`：作为 bug 需求管理；bug 需求必须先有复现和根因，再写修复需求和回归验收。
+- `fix_bug`：先由调试结果判定事实 owner。只有业务目标、范围或验收标准错误才变更 Requirement；设计错误回设计，
+  实现错误回代码，测试预期错误回测试。不得把每个 Bug 自动升级成需求变更。
 
 ## 必写分析
 

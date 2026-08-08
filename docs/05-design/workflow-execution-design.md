@@ -5,8 +5,8 @@
 | 项目 | 内容 |
 |---|---|
 | 文档 ID | `PROC-TASK-EXECUTION-001` |
-| 正式版本 | `v1.3.1` |
-| 来源候选 | `2026-08-01 用户风险分级补充决策` |
+| 正式版本 | `v1.4.0` |
+| 来源候选 | `2026-08-08 用户阶段门控与闭环优化决策` |
 | 发布事务 | `N/A（直接策略变更）` |
 | 负责人 | `HUMAN_PROJECT_OWNER` |
 | 修改 / 审核 / 批准 | `AI_EXECUTOR` / `集中质量门` / `uroborus` |
@@ -22,7 +22,7 @@
 
 ## 正式内容
 
-**最后更新：** 2026-08-01
+**最后更新：** 2026-08-08
 
 ## 1. 目标
 
@@ -84,7 +84,9 @@
 | `SB-TEST` | 测试 | 设计或执行单测、集成、黑盒、UI、API 或发布测试 | `testing-workflow` | `verification-before-completion` | `source_or_test_write` |
 | `SB-REVIEW` | Review | 发起独立评审或处理评审意见 | `review-workflow` | `requesting-code-review` | `state_or_gate_write` |
 | `SB-VERIFY` | 验证 | 对完成声明、修复或发布候选执行新鲜验证 | `verification-workflow` | `verification-before-completion` | `state_or_gate_write` |
-| `SB-COMMIT` | 提交 | 本地提交、push、PR、merge 或发布请求 | `commit-workflow` | `gitcommitzh` | `state_or_gate_write` |
+| `SB-COMMIT` | 提交 | 本地提交请求 | `commit-workflow` | `gitcommitzh` | `state_or_gate_write` |
+| `SB-REMOTE` | 远端交付 | push、创建或更新 PR、merge 请求 | `remote-pr-workflow` | `using-shanforge` | `state_or_gate_write` |
+| `SB-RELEASE` | 发布部署 | 部署、发布、回滚或生产观察请求 | `release-workflow` | `release-deployment` | `state_or_gate_write` |
 | `SB-STATUS` | 状态查看 | 查看项目位置、任务状态、阻塞或进度 | `status-memory-workflow` | `project-memory` | `no_project_write` |
 | `SB-RESUME` | 恢复 | 恢复中断或压缩后的当前任务上下文 | `status-memory-workflow` | `project-memory` | `state_or_gate_write` |
 | `SB-PAUSE` | 暂停 | 暂停活动任务并记录恢复条件 | `change-control-workflow` | `using-shanforge` | `state_or_gate_write` |
@@ -105,7 +107,9 @@
 | `testing-workflow` | `source_or_test_write` | 60 | `behavior=SB-TEST` | `work_item_id, task_card_id, test_scope, requirement_refs, environment_ref` | 写测试、运行测试、记录环境与结果 | 无需求追踪测试、伪造通过、遗漏清理 | `status, test_ids, results, evidence, ledger_event, gate, next_required_action` | `test_execution_recorded` | 测试 ID、命令、exit code、结果与环境 receipt | `test_scope_authorized` | `test_passed or test_failed` |
 | `review-workflow` | `state_or_gate_write` | 100 | `behavior=SB-REVIEW or gate=needs_independent_review` | `work_item_id, task_card_id, review_input_ref, reviewer_identity` | 独立只读 Review、finding triage、同范围整改回流 | 作者自批、Reviewer 修改实现、忽略 Important | `status, review_ref, findings, evidence, ledger_event, gate, next_required_action` | `independent_review_recorded` | reviewer 独立性、分数、finding 与命令 receipt | `review_package_complete` | `approved or changes_requested` |
 | `verification-workflow` | `state_or_gate_write` | 95 | `behavior=SB-VERIFY or gate=needs_verification` | `work_item_id, task_card_id, claim, commands, evidence_target` | 运行新鲜完整命令、记录失败与未运行项 | 用旧输出宣称完成、以 Review 代替验证 | `status, command_results, evidence, ledger_event, gate, next_required_action` | `verification_recorded` | 命令、exit code、失败数、输出摘要 | `verification_scope_known` | `verification_passed or verification_failed` |
-| `commit-workflow` | `state_or_gate_write` | 110 | `behavior=SB-COMMIT` | `work_item_id, task_card_id, explicit_authorization, review_ref, verification_ref, scope` | 精确暂存、本地提交、受权远端动作 | 混入无关改动、以提交代替 Review、推断远端授权 | `status, commit_ref, evidence, ledger_event, gate, next_required_action` | `commit_or_handoff_recorded` | staged diff、commit receipt 或阻塞原因 | `review_and_verification_passed` | `commit_done or remote_handoff_blocked` |
+| `commit-workflow` | `state_or_gate_write` | 110 | `behavior=SB-COMMIT` | `work_item_id, task_card_id, explicit_authorization, review_ref, verification_ref, scope` | 精确暂存、本地提交 | 混入无关改动、以提交代替 Review、执行远端或发布动作 | `status, commit_ref, evidence, ledger_event, gate, next_required_action` | `commit_recorded` | staged diff 与 commit receipt | `review_and_verification_passed` | `commit_done or blocked` |
+| `remote-pr-workflow` | `state_or_gate_write` | 110 | `behavior=SB-REMOTE` | `work_item_id, task_card_id, local_commit_ref, remote_target, explicit_authorization` | 按远端 handoff 契约执行 push、PR 或 merge | 推断远端授权、把本地提交写成远端成功 | `status, remote_ref, evidence, ledger_event, gate, next_required_action` | `remote_handoff_recorded` | 远端工具 receipt 或阻塞原因 | `local_commit_available` | `remote_done or remote_handoff_blocked` |
+| `release-workflow` | `state_or_gate_write` | 115 | `behavior=SB-RELEASE` | `work_item_id, task_card_id, candidate_ref, final_test_report_ref, environment_alias, explicit_authorization` | 核对候选、执行项目已有部署入口、健康检查、冒烟、观察、必要时回滚 | 发明部署脚本、记录凭证、无生产授权执行、用本地结果冒充发布成功 | `status, release_ref, evidence, ledger_event, gate, next_required_action` | `release_recorded` | 候选、授权、部署、检查、观察或回滚 receipt | `release_candidate_verified` | `released or rolled_back or blocked` |
 | `status-memory-workflow` | `SB-STATUS=no_project_write; SB-RESUME=state_or_gate_write` | 40 | `behavior in SB-STATUS,SB-RESUME` | `project_id, requested_scope, current_task_ref; SB-RESUME 时必须含 work_item_id 和 task_card_id` | 条件读取、会话卡、索引摘要、必要 memory sync | 散读 docs、把正文复制进 memory、凭 summary 改权威状态 | `status, session_card, sources_read, evidence, ledger_event, gate, next_required_action` | `session_restored` 或 N/A: 纯只读状态查看 | N/A: 纯只读查看；恢复写入时必须有 readback receipt | `none` | `session_ready or blocked` |
 
 同一消息如果同时含“修 Bug 并提交”，先按最高安全前置依赖进入 `debugging-workflow`；只有根因、修复、Review 和
@@ -142,7 +146,9 @@ Verification 的 ledger Gate 依次满足后，后续新节点才可进入 `comm
 | `testing-workflow` | `intake,routed,scoped,testing,stopped` | `intake -> routed -> scoped -> testing -> stopped` | `test_passed,test_failed,blocked` | 测试执行本身不新增人工 Gate |
 | `review-workflow` | `intake,routed,reviewing,stopped` | `intake -> routed -> reviewing -> stopped` | `approved,changes_requested,blocked` | 普通任务 Review 不自动进入人工 Gate；仅正式发布或风险接受按项目规则进入 |
 | `verification-workflow` | `intake,routed,verifying,stopped` | `intake -> routed -> verifying -> stopped` | `verification_passed,verification_failed,blocked` | Verification 不能替代已登记的人工 Gate，也不自动创建人工 Gate |
-| `commit-workflow` | `intake,routed,prechecking,committing,stopped` | `intake -> routed -> prechecking -> committing -> stopped` | `commit_done,remote_handoff_blocked,blocked` | 远端、发布或未包含在当前授权中的动作必须显式人工授权 |
+| `commit-workflow` | `intake,routed,prechecking,committing,stopped` | `intake -> routed -> prechecking -> committing -> stopped` | `commit_done,blocked` | 只执行已授权本地提交 |
+| `remote-pr-workflow` | `intake,routed,prechecking,executing,stopped` | `intake -> routed -> prechecking -> executing -> stopped` | `remote_done,remote_handoff_blocked,blocked` | 远端写入必须显式授权并保留工具 receipt |
+| `release-workflow` | `intake,routed,prechecking,deploying,observing,stopped` | `intake -> routed -> prechecking -> deploying -> observing -> stopped` | `released,rolled_back,blocked` | 生产部署必须核对精确候选和最终测试报告，并取得显式人工授权 |
 | `status-memory-workflow` | `intake,routed,restoring,stopped` | `intake -> routed -> restoring -> stopped` | `session_ready,blocked` | 只读查看和正常恢复不需要人工 Gate |
 
 任意节点都可在缺事实时转 `needs_user_input`，在契约、权限、工具或事实冲突时转 `blocked`。只有表中列出的主路径和
@@ -313,13 +319,31 @@ UI 设计或实现必须覆盖：
 ## 测试任务要求
 
 - 新功能优先 TDD。
-- Bug 修复必须先有复现、直接原因、根源原因和修复方案确认。
+- 完整设计阶段同时完成开发设计和测试设计：验收标准、测试层级、角色权限矩阵、接口案例、环境与数据、
+  自动化入口、进入 / 退出条件和测试报告结构；脚本实现与运行结果在开发、测试阶段完成。
+- Bug 修复必须先有复现、直接原因、根源原因、影响范围和风险分级。低、中风险确认根因后直接修复；
+  高风险才设置“根因确认”和“修复方案确认”两个人工 Gate。
 - 低风险跑定向单测或静态检查；中风险补集成或契约验证；高风险补目标 E2E 或关键人工验收。
 - 单个开发任务不强制固定覆盖率、逐函数测试、全量回归或落盘测试报告。
 - 批次质量门统一执行代码审查、API 契约测试、服务测试和集成测试；按风险增加 E2E、安全或性能测试。
+- 首个发布候选执行完整必需发布测试并登记缺陷；每个修复只复测原失败案例、根因案例和受影响调用方 / 契约；
+  阻断缺陷全部关闭后冻结最终候选，再执行一次完整必需发布测试。V4 或项目明确规定时才运行字面意义的全仓测试。
 - 批次完成声明前必须运行新鲜验证命令，读取完整输出和 exit code；最终证据写清失败数、
   错误数、跳过数、未运行项、偏离原因和残余风险。
 - 长周期项目允许按里程碑集中收口，禁止退化为逐任务重复质量门。
+
+## 阶段门、变更回流与发布闭环
+
+完整交付主线是 `设计 -> 开发 -> 测试 -> 发布 -> 生产观察`；每个阶段内部可迭代，阶段出口只保留一次集中质量门。
+
+- 先判定错误归属：业务目标或验收标准变化回需求；业务目标未变而技术方案错误回设计；实现偏离回代码；
+  测试预期错误只改测试；配置、环境或生产事件先调查，再按根因归属回流。
+- 上游事实变化时，受影响下游标记为 `stale`，不得静默覆盖历史；重新验证后转 `revalidated`，被新事实替代则转
+  `superseded`，未受影响内容保持 `active`。只重新执行影响范围，不默认重走全部阶段。
+- 测试案例目录、执行结果和聚合测试报告分离。最终报告只保留候选标识、环境别名、汇总、失败 / 阻塞 / 跳过、
+  缺陷历史、残余风险和证据引用；不得写完整内部地址、IP、端口、凭证、令牌、DSN、个人信息或原始敏感日志。
+- 发布只能消费精确候选和最终测试报告，复用项目已有部署与回滚入口。生产动作必须显式人工授权；部署后依次执行
+  健康检查、关键冒烟和观察，结果只允许 `released`、`rolled_back` 或 `blocked`，并保存最小发布回执。
 
 ## 落盘规则
 
@@ -1458,3 +1482,4 @@ R019 作者只能把 T01–T06 产物标记为 `ready_for_review`。完整 profi
 | `v1.2.0` | 发布完整项目会话归因、13 个工作流、写入授权、节点转换及状态包契约 | 2026-07-27 | `AI_EXECUTOR` | `/root/project_knowledge_review` | `uroborus` |
 | `v1.3.0` | 开发期轻门禁、风险分级评审和批次集中质量收口 | 2026-08-01 | `AI_EXECUTOR` | `集中质量门` | `uroborus` |
 | `v1.3.1` | 明确低、中、高风险任务的确定性判定条件和信息不足时的升级规则 | 2026-08-01 | `AI_EXECUTOR` | `集中质量门` | `uroborus` |
+| `v1.4.0` | 增加设计至生产阶段门、变更归因、候选修复复测、最终发布回归和部署闭环 | 2026-08-08 | `AI_EXECUTOR` | `集中质量门` | `uroborus` |

@@ -17,7 +17,7 @@
 
 ## 提交前必须确认
 
-- 先重读当前 work item ledger 最新事件和 review ledger；若仍有 `next_required_action` 或阻塞状态，不得提交或宣称 work item 完成。
+- 先重读当前 work item ledger 最新事件和 review ledger。`next_required_action` 为 `none` / `无` 时表示无后续动作；以 `create_exact_local_commit`、`create_local_commit` 或 `commit_current_scope` 开头时表示已进入提交转换，提交动作不是未解决动作。仅其他非空动作或阻塞状态会停止提交或完成声明。
 - work item ledger 能说明当前状态。
 - review package 存在，且阻塞级 review feedback 已处理。
 - 真实独立 review 的 `reviewer_type / reviewer_id / reviewer_independence_evidence` 已记录。

@@ -27,7 +27,7 @@
 | `DATA-*` | 数据实体、表、迁移项 |
 | `UI-*` | 页面、交互、用户旅程项 |
 | `TASK-*` | 实施任务 |
-| `TC-*` | 测试用例 |
+| `TEST-*` | 测试用例 |
 | `CR-*` | 变更请求 |
 | `BUG-*` | 缺陷 |
 | `REL-*` | 发布项 |
@@ -63,7 +63,7 @@
 
 - `REQ/NFR -> ARCH/MOD/API/DATA/UI`
 - `REQ/NFR -> TASK`
-- `REQ/NFR -> TC`
+- `REQ/NFR -> TEST`
 - `REQ/NFR -> REL`
 - `MOD/API -> OPS`
 

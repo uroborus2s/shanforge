@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import shutil
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
@@ -39,7 +40,7 @@ def test_brainstorming_skill_is_chinese_and_shanforge_state_driven() -> None:
         "skill: brainstorming",
         "ledger_event:",
         "`needs` 只是状态回写，不是 skill 路由决策",
-        "`skills/brainstorming/visual-companion.md`",
+        "[可视化伴侣](visual-companion.md)",
     ):
         assert phrase in content
 
@@ -50,6 +51,20 @@ def test_brainstorming_skill_is_chinese_and_shanforge_state_driven() -> None:
         "唯一只能调用",
     ):
         assert phrase not in content
+
+
+def test_visual_companion_link_survives_skill_install_from_another_cwd(
+    tmp_path: Path, monkeypatch
+) -> None:
+    installed = tmp_path / "installed" / "brainstorming"
+    shutil.copytree(SKILL_ROOT, installed)
+    target_project = tmp_path / "project"
+    target_project.mkdir()
+    monkeypatch.chdir(target_project)
+
+    content = (installed / "SKILL.md").read_text(encoding="utf-8")
+    assert "[可视化伴侣](visual-companion.md)" in content
+    assert (installed / "visual-companion.md").is_file()
 
 
 def test_brainstorming_openai_metadata_uses_work_item_routing() -> None:

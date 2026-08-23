@@ -478,7 +478,7 @@ memory 只写恢复所需摘要：ID、状态、gate、`next_required_action`、
 
 进入 `gitcommitzh` 前必须确认：
 
-- 已重读当前 work item ledger 最新事件和 review ledger；若仍有 `next_required_action` 或阻塞状态，不得进入提交或宣称任务完成。
+- 已重读当前 work item ledger 最新事件和 review ledger。`next_required_action` 为 `none` / `无` 时表示无后续动作；以 `create_exact_local_commit`、`create_local_commit` 或 `commit_current_scope` 开头时表示已进入提交转换，提交动作不是未解决动作。仅其他非空动作或阻塞状态会阻止进入提交或完成声明。
 - work item ledger、review ledger、verification evidence 和 memory sync 已齐备。
 - 当前任务范围清楚，提交只覆盖当前任务范围。
 - 若 review 只到 `pending_human_confirmation`，必须有用户 `human_approved`。

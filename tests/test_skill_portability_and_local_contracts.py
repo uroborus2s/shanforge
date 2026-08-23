@@ -60,6 +60,10 @@ def test_bundled_visual_resources_are_neutral_and_honest_about_network_use() -> 
 
 
 def test_skill_resource_commands_resolve_from_the_skill_directory() -> None:
+    brainstorming_skill = read_skill("brainstorming")
+    assert "[可视化伴侣](visual-companion.md)" in brainstorming_skill
+    assert "skills/brainstorming/visual-companion.md" not in brainstorming_skill
+
     brainstorming = (
         REPO_ROOT / "skills" / "brainstorming" / "visual-companion.md"
     ).read_text(encoding="utf-8")
@@ -87,6 +91,12 @@ def test_skill_resource_commands_resolve_from_the_skill_directory() -> None:
         assert "skills/document-templates/scripts" not in template
         assert "<skill-dir>/scripts/validate_test_documents.py" in template
 
+    validator = "<skill-dir>/scripts/validate_test_documents.py"
+    for name in ("document-templates", "verification-before-completion"):
+        skill = read_skill(name)
+        assert validator in skill
+        assert "运行 `scripts/validate_test_documents.py`" not in skill
+
 
 def test_document_templates_keep_project_specific_profiles_conditional() -> None:
     references = REPO_ROOT / "skills" / "document-templates" / "references"
@@ -108,6 +118,8 @@ def test_document_templates_keep_project_specific_profiles_conditional() -> None
 def test_linked_component_workflow_and_codex_tool_map_exist() -> None:
     shadcn = read_skill("shadcn")
     assert "## Updating Components" in shadcn
+    assert "npx shadcn@latest add <component> --diff" in shadcn
+    assert "`shadcn diff <component>`" not in shadcn
 
     tool_map = (
         REPO_ROOT / "skills" / "using-shanforge" / "references" / "codex-tools.md"
@@ -154,6 +166,27 @@ def test_review_feedback_permissions_distinguish_triage_from_remediation() -> No
     receiving = read_skill("receiving-code-review")
     assert "`state_or_gate_write` 时只" in receiving
     assert "`source_or_test_write` 时才" in receiving
+    assert "implementation | review | verification | user_input | none" in receiving
+
+
+def test_document_templates_use_one_test_id_family_and_valid_source_links() -> None:
+    skill_root = REPO_ROOT / "skills" / "document-templates"
+    gates = (skill_root / "references" / "traceability-and-gates.md").read_text(
+        encoding="utf-8"
+    )
+    matrix = (
+        skill_root / "assets" / "templates" / "traceability" / "requirements-matrix.md"
+    ).read_text(encoding="utf-8")
+    assert "`TEST-*` | 测试用例" in gates
+    assert "REQ/NFR -> TEST" in gates
+    assert "`TC-*`" not in gates
+    assert "`TEST-001`" in matrix
+    assert "`TC-001`" not in matrix
+
+    index = skill_root / "assets" / "templates" / "02-user-guide" / "index.md"
+    content = index.read_text(encoding="utf-8")
+    assert "[使用指南](../08-handover/user-guide.md)" in content
+    assert (index.parent / "../08-handover/user-guide.md").resolve().is_file()
 
 
 def test_review_approval_only_creates_a_real_human_gate_conditionally() -> None:

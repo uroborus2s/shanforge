@@ -1,14 +1,14 @@
 # 当前状态
 
 - 当前模式：`codex_desktop`
-- 当前阶段：`SKILL-FULL-OPTIMIZATION-001 / CLOSED`
-- 活跃任务数：0
+- 当前阶段：`SKILL-FULL-OPTIMIZATION-001 / SKILL-FULL-OPTIMIZATION-001-T06`
+- 活跃任务数：1
 - 阻塞项数：0
-- 当前 Gate：`none`
+- 当前 Gate：`local_commit_then_remote_push`
 
 ## 活跃任务
 
-- 当前无活动任务。
+- `SKILL-FULL-OPTIMIZATION-001-T06`：追加复评整改已批准，等待提交和推送。
 
 ## 阻塞项
 
@@ -22,11 +22,11 @@
 - 基线 C0 / I8 / M10 已关闭；首轮独立评分 `89.1 / C0-I23-M0` 的 15 个合并 Important 已整改。
 - 整改候选完整 pytest `262 passed / 4 subtests passed`，Ruff、38/38 validator、JSON/JSONL 与 Git hygiene 通过。
 - 同 reviewer 终审为 `approved / 95.0 / C0-I0-M0`，I-01–I-15 关闭 15/15，无真实人工 Gate。
-- 实现提交 `9f7e251` 已完成；工作项已关闭。
+- 实现提交 `9f7e251` 后的追加复评整改为 `approved / 93.7 / C0-I0-M2`；完整 pytest `269 passed / 4 subtests passed`，Ruff 与 38/38 validator 通过。
 
 ## 唯一下一动作
 
-- `none`
+- `commit_current_scope_then_push_origin_v2`
 
 ## 历史回源
 

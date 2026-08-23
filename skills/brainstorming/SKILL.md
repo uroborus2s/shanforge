@@ -156,9 +156,7 @@ description: "创造性工作进入需求、设计、计划或实现前使用；
 
 > 接下来这部分可能看图更清楚。我可以边聊边在浏览器标签页里做界面稿、图表和对比。它会把临时文件保存到当前 work item 的 design-assets 目录，也可能消耗较多上下文额度。要我打开吗？
 
-这条消息必须单独发送。用户同意后，继续前先读：
-
-`skills/brainstorming/visual-companion.md`
+这条消息必须单独发送。用户同意后，继续前先读 [可视化伴侣](visual-companion.md)。
 
 ## 状态回写包
 

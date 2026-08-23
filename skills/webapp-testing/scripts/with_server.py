@@ -45,7 +45,13 @@ def stop_process(process):
         if os.name == "posix":
             os.killpg(os.getpgid(process.pid), signal.SIGTERM)
         else:
-            process.terminate()
+            result = subprocess.run(
+                ["taskkill", "/PID", str(process.pid), "/T", "/F"],
+                capture_output=True,
+                check=False,
+            )
+            if result.returncode != 0:
+                process.terminate()
         process.wait(timeout=5)
     except subprocess.TimeoutExpired:
         if os.name == "posix":

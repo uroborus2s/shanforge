@@ -80,6 +80,23 @@ def test_flow_controller_routes_commit_only_after_confirmation_and_sync() -> Non
     assert "work item、review、evidence 和 memory sync 记录" in codex_tools
 
 
+def test_ready_for_commit_actions_do_not_self_block_the_commit_gate() -> None:
+    documents = (
+        read("skills/gitcommitzh/SKILL.md"),
+        read("skills/gitcommitzh/references/pr-closure-checklist.md"),
+        read("skills/using-shanforge/SKILL.md"),
+    )
+    for document in documents:
+        assert "`none` / `无`" in document
+        for allowed_prefix in (
+            "create_exact_local_commit",
+            "create_local_commit",
+            "commit_current_scope",
+        ):
+            assert allowed_prefix in document
+        assert "提交动作不是未解决动作" in document
+
+
 def test_remote_pr_handoff_contract_defines_minimum_remote_closure() -> None:
     skill = read("skills/using-shanforge/SKILL.md")
     contract = read("skills/using-shanforge/references/remote-pr-handoff.md")

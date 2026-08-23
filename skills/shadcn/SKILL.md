@@ -38,7 +38,7 @@ description: shadcn/ui 项目与组件工作流技能。用于含 components.jso
 
 ## Updating Components
 
-1. 先运行 `shadcn diff <component>` 或对应 CLI 预览，读取上游差异与本地文件。
+1. 先运行 `npx shadcn@latest add <component> --diff` 或项目包管理器的等价命令，读取上游差异与本地文件。
 2. 未定制的组件可直接更新；有本地改动时只合并所需上游差异，保留项目 alias、token、图标库和行为。
 3. 更新后读取落盘文件，并运行项目现有的 typecheck、lint、test 或最小渲染检查。
 4. 预览不完整、来源不明或命令会覆盖无法恢复的改动时停止，要求用户确认覆盖策略。

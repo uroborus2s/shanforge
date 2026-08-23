@@ -52,7 +52,7 @@ gitcommitzh 不负责创建、推送或合并 PR；它只做当前分支本地 c
 
 最小检查：
 
-- 先重读当前 work item ledger 最新事件和 review ledger；若仍有 `next_required_action` 或阻塞状态，停止提交。
+- 先重读当前 work item ledger 最新事件和 review ledger。`next_required_action` 为 `none` / `无` 时表示无后续动作；以 `create_exact_local_commit`、`create_local_commit` 或 `commit_current_scope` 开头时表示已进入提交转换，提交动作不是未解决动作。仅其他非空动作或阻塞状态会停止提交。
 - work item ledger 已能说明当前任务状态、review 结论、verification evidence 和 memory sync。
 - `.factory/memory/review-ledger.jsonl` 中的真实独立 review 记录已与 work item ledger 对齐。
 - 若 ledger 或 review 显示 `pending_human_confirmation`，必须看到用户明确 `human_approved` 或同轮明确要求继续提交。

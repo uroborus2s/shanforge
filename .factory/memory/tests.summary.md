@@ -1,7 +1,7 @@
 # 测试摘要
 
-- 当前阶段：`SKILL-FULL-OPTIMIZATION-001 / completed`
-- 当前验证结论：实现提交 `9f7e251` 对应候选完整 pytest `262 passed / 4 subtests passed`，Ruff、38/38 validator、179 个 JSON、44 个 JSONL 与 `git diff --check` 通过。P0 脚本行为守卫 `6 passed`，受影响回归 `70 passed`，旧契约迁移复测 `65 passed`；同 reviewer 新鲜复验一致。
+- 当前阶段：`SKILL-FULL-OPTIMIZATION-001 / ready_for_commit_and_push`
+- 当前验证结论：追加整改定向回归 `34 passed`，完整 pytest `269 passed / 4 subtests passed`，Ruff、38/38 validator 与 `git diff --check` 通过；同 reviewer 新鲜复验一致。
 
 - 2026-08-23：T02/T03/T04 定向验证分别为 `35 passed / 4 subtests`、`44 passed`、`26 passed`；T05 隔离完整候选 `245 passed / 4 subtests passed`，详见 `.factory/workitems/SKILL-FULL-OPTIMIZATION-001/evidence/verification.md`。
 

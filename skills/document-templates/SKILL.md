@@ -68,6 +68,8 @@ description: "创建、审查、整理和升级软件项目正式文档体系。
 
 不要一次性加载全部 references。
 
+以下 `<skill-dir>` 表示当前 `document-templates/SKILL.md` 所在目录；执行前替换为该目录的实际绝对路径。
+
 - 完整目录、根索引职责和模块边界：读 [repository structure](references/repository-structure.md)。
 - 判断不同项目应该补哪些文档：读 [document catalog](references/document-catalog.md)。
 - 稳定 ID、阶段关口、旧目录映射和迁移流程：读 [traceability and gates](references/traceability-and-gates.md)。
@@ -77,7 +79,7 @@ description: "创建、审查、整理和升级软件项目正式文档体系。
 - 需要测试或发布材料时，复用 `assets/templates/05-quality/test-plan.md`、
   `assets/templates/05-quality/test-cases.md`、`assets/templates/05-quality/test-report.md`、
   `assets/templates/06-release/release-checklist.md` 和 `assets/templates/07-operations/deployment-guide.md`；案例目录、运行结果和聚合报告分开保存。
-- 案例目录或 WorkItem 测试报告定稿时，运行 `scripts/validate_test_documents.py`；它用标准库检查案例入口和报告聚合，不新增平行案例注册表。
+- 案例目录或 WorkItem 测试报告定稿时，运行 `uv run python <skill-dir>/scripts/validate_test_documents.py`；它用标准库检查案例入口和报告聚合，不新增平行案例注册表。
 - 普通开发任务的结果进入当前 WorkItem evidence，不创建长期正式测试报告；阶段验收、发布候选或用户明确要求时，才用 `test-report.md` 生成当前 WorkItem 的人类可读报告。
 
 ## 新项目回退布局

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import importlib.util
 import json
+import os
 import shlex
 import socket
 import subprocess
@@ -153,6 +154,36 @@ def test_with_server_drains_logs_and_stops_the_process_tree(tmp_path: Path) -> N
         assert check.connect_ex(("127.0.0.1", port)) != 0
 
 
+def test_with_server_uses_native_windows_tree_termination(monkeypatch) -> None:
+    module = load_script(
+        "with_server_windows_test",
+        REPO_ROOT / "skills/webapp-testing/scripts/with_server.py",
+    )
+    commands: list[list[str]] = []
+
+    class FakeProcess:
+        pid = 4321
+
+        @staticmethod
+        def poll():
+            return None
+
+        @staticmethod
+        def wait(timeout=None):
+            return 0
+
+    monkeypatch.setattr(module, "os", types.SimpleNamespace(name="nt"))
+    monkeypatch.setattr(
+        module.subprocess,
+        "run",
+        lambda command, **_kwargs: commands.append(command)
+        or subprocess.CompletedProcess(command, 0),
+    )
+
+    module.stop_process(FakeProcess())
+    assert commands == [["taskkill", "/PID", "4321", "/T", "/F"]]
+
+
 def test_xlsx_validator_accepts_xlsx_and_rejects_broken_package(
     tmp_path: Path,
 ) -> None:
@@ -195,3 +226,63 @@ def test_xlsx_recalc_uses_isolated_profile_and_fails_on_timeout(
     assert "timed out" in result["error"]
     assert len(captured_profile) == 1
     assert captured_profile[0].parent != Path.home()
+
+
+def test_xlsx_recalc_cli_returns_nonzero_for_missing_file(tmp_path: Path) -> None:
+    script = REPO_ROOT / "skills/xlsx/scripts/recalc.py"
+    result = subprocess.run(
+        [sys.executable, str(script), str(tmp_path / "missing.xlsx")],
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 1
+    assert "error" in json.loads(result.stdout)
+
+
+def test_xlsx_recalc_cli_returns_nonzero_when_soffice_is_unavailable(
+    tmp_path: Path,
+) -> None:
+    script = REPO_ROOT / "skills/xlsx/scripts/recalc.py"
+    workbook = tmp_path / "book.xlsx"
+    workbook.write_bytes(b"xlsx")
+    empty_path = tmp_path / "empty-path"
+    empty_path.mkdir()
+    env = os.environ.copy()
+    env["PATH"] = str(empty_path)
+    result = subprocess.run(
+        [sys.executable, str(script), str(workbook)],
+        capture_output=True,
+        text=True,
+        env=env,
+    )
+    assert result.returncode == 1
+    assert "error" in json.loads(result.stdout)
+
+
+def test_xlsx_recalc_cli_returns_nonzero_on_timeout(tmp_path: Path) -> None:
+    script = REPO_ROOT / "skills/xlsx/scripts/recalc.py"
+    workbook = tmp_path / "book.xlsx"
+    workbook.write_bytes(b"xlsx")
+    probe = f"""
+import importlib.util
+import subprocess
+import sys
+from pathlib import Path
+
+script = Path({str(script)!r})
+sys.path.insert(0, str(script.parent))
+spec = importlib.util.spec_from_file_location("xlsx_recalc_timeout_cli", script)
+module = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(module)
+module.setup_libreoffice_macro = lambda _profile: True
+module.subprocess.run = lambda *_args, **_kwargs: (_ for _ in ()).throw(
+    subprocess.TimeoutExpired("soffice", 1)
+)
+sys.argv = [str(script), {str(workbook)!r}, "1"]
+module.main()
+"""
+    result = subprocess.run(
+        [sys.executable, "-c", probe], capture_output=True, text=True
+    )
+    assert result.returncode == 1
+    assert "timed out" in json.loads(result.stdout)["error"]

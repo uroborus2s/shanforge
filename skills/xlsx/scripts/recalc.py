@@ -171,6 +171,8 @@ def main():
 
     result = recalc(filename, timeout)
     print(json.dumps(result, indent=2))
+    if "error" in result:
+        sys.exit(1)
 
 
 if __name__ == "__main__":

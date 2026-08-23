@@ -1,9 +1,11 @@
 # 任务摘要
 
-- 当前阶段：`SKILL-FULL-OPTIMIZATION-001 / completed`
-- 当前焦点：38 项审计、24 项优化、14 项保留、独立终审、全量验证和本地提交均已闭环。
+- 当前阶段：`SKILL-FULL-OPTIMIZATION-001 / ready_for_commit_and_push`
+- 当前焦点：追加复评整改已通过独立终审和全量验证，等待提交当前范围并推送 `origin/v2`。
 
 > 历史读取规则：以下所有带日期条目都是记录发生时的历史快照。条目中的“当前”“下一步”只表示当时状态，不得覆盖本文件顶部的当前焦点和当前动作。
+
+- 2026-08-23：追加 38/38 独立复评提出 8 个 Important；整改后同 reviewer 批准为 `93.7 / C0-I0-M2`。完整 pytest `269 passed / 4 subtests passed`，Ruff、38/38 validator 通过；用户已授权提交全部当前代码并推送 `origin/v2`。
 
 - 2026-08-23：`SKILL-FULL-OPTIMIZATION-001` 实现提交为 `9f7e251`；38/38 独立终审 `approved / 95.0 / C0-I0-M0`，最终 pytest `262 passed / 4 subtests passed`，工作项关闭。
 

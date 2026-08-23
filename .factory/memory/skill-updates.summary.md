@@ -1,5 +1,7 @@
 # Skill Updates Summary
 
+- 当前（2026-08-23）：追加 38/38 复评发现的 8 个 Important 已关闭，统一可移植路径、结果枚举、shadcn 命令、测试 ID、提交转换、Windows 主路径树终止与 XLSX 非零失败。终审 `approved / 93.7 / C0-I0-M2`，完整 pytest `269 passed / 4 subtests`，等待提交并推送 `origin/v2`。
+
 - 当前（2026-08-23）：`SKILL-FULL-OPTIMIZATION-001` 已逐项审计 38 个 Skill；首轮 `89.1 / C0-I23-M0` 的 15 个合并 Important 全部整改。最终有证据优化 24 个、保留 14 个；同 reviewer 终审 38/38 为 `approved / 95.0 / C0-I0-M0`，完整 pytest `262 passed / 4 subtests`，Ruff 与 38/38 validator 通过，实现提交 `9f7e251`，工作项关闭。
 
 - 当前（2026-08-23）：`SKILL-COMPLETENESS-P0-001` 已按顺序修正同步发现、正式文档回源和美术候选跨会话生命周期；能力清单改为文件系统动态发现，整文件 SHA 守卫改为结构与专业锚点不变量。三项 review Important 已关闭，同 reviewer 独立终审 `approved / 100 / C0-I0-M0`；实现提交 `fd908b4`、状态同步 `e9f9d97` 的当前 HEAD 干净克隆 `242 passed / 4 subtests passed`，工作项关闭。

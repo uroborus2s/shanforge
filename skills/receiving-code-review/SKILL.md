@@ -109,7 +109,7 @@ triage 路由在反馈已核实分类、response 已写入、ledger 和 memory �
   - <verification evidence path or command summary>
 - ledger_event: <work item ledger event id or none>
 - needs:
-  - review | verification | user_input | none
+  - implementation | review | verification | user_input | none
 ```
 
 `blocked` 用于 feedback 来源缺失、无法复现关键问题、允许文件范围不足、验证命令持续失败或 memory sync 无法完成的情况。

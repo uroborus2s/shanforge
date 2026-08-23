@@ -46,3 +46,14 @@ ledger 最新 T02；计划路由约束移入共享项目合同区，保持专业
   JSON/JSONL、diff check 与三类 mutation probe。
 - 结论：`approved / 98 / C0-I0-M0`；原唯一 Important 已关闭。
 - 下一 Gate：精确本地提交及提交后干净克隆复验。
+
+## 路由提交后干净克隆复验
+
+- 时间：2026-08-23T11:14:50+08:00
+- 提交：`c9f02cb`
+- 克隆：`git clone --no-local /Users/uroborus/AiProject/shanforge /tmp/shanforge-model-routing-001-final.PDHAO4/shanforge`，exit 0。
+- 克隆 HEAD：`c9f02cb`；`git status --porcelain=v1` 无输出。
+- 完整 pytest：exit 0，`233 passed, 4 subtests passed`。
+- 根 Ruff：exit 0，`All checks passed!`。
+- `.factory` JSON/JSONL：exit 0，`factory JSON/JSONL valid`。
+- `git diff --check`：exit 0，无输出。

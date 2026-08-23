@@ -1,7 +1,7 @@
 # 任务摘要
 
-- 当前阶段：`MODEL-ROUTING-001 / MODEL-ROUTING-001-T03`
-- 当前焦点：T01 基线与干净克隆全绿，T02 路由合同已完成，进入集中质量门。
+- 当前阶段：`MODEL-ROUTING-001 / completed`
+- 当前焦点：事实源、干净基线和 Sol/Terra/Luna 路由均已闭环。
 
 > 历史读取规则：以下所有带日期条目都是记录发生时的历史快照。条目中的“当前”“下一步”只表示当时状态，不得覆盖本文件顶部的当前焦点和当前动作。
 
@@ -11,6 +11,9 @@
 
 - 2026-08-23：T03 首轮 review 的唯一 Important 已用表格驱动语义测试关闭；复审为
   `approved / 98 / C0-I0-M0`，全量 `233 passed / 4 subtests passed`。当前进入精确本地提交和最终干净克隆复验。
+
+- 2026-08-23：路由提交 `c9f02cb` 的 `--no-local` 干净克隆为 `233 passed / 4 subtests passed`，
+  Ruff、JSON/JSONL、Git clean 与 diff check 全部通过；`MODEL-ROUTING-001` 已关闭。
 
 - 2026-08-23：T01 独立复审最终 `approved / 97 / C0-I0-M0`，本地基线提交
   `9245946`。从该提交新建干净克隆后，完整 pytest `228 passed / 4 subtests passed`，

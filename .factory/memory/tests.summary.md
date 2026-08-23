@@ -1,9 +1,11 @@
 # 测试摘要
 
-- 当前阶段：`MODEL-ROUTING-001 / MODEL-ROUTING-001-T03`
+- 当前阶段：`MODEL-ROUTING-001 / completed`
 - 当前验证结论：独立 review 的唯一 Important 已通过语义决策表 Red `1 failed`、Green
   相邻 `22 passed` 整改；完整 pytest `233 passed / 4 subtests passed`，根 Ruff、JSON/JSONL
   与 `git diff --check` 通过；独立复审 `approved / 98 / C0-I0-M0`。
+- 路由提交 `c9f02cb` 的干净克隆再次得到 `233 passed / 4 subtests passed`，Ruff、
+  JSON/JSONL、Git clean 与 diff check 通过。
 
 - 2026-07-30：并行任务 `PM-DASHBOARD-005-T01` 第七轮路线 Green
   `2 passed / 4 subtests`，聚焦快照 `10 passed / 4 subtests`，Ruff check/format

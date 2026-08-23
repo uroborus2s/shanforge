@@ -4,9 +4,9 @@
 - 项目：`shanforge`
 - 当前工作项：`MODEL-ROUTING-001`
 - 当前任务：`MODEL-ROUTING-001-T03`
-- 当前状态：`approved_ready_for_local_commit`
-- 当前焦点：模型路由集中质量门、独立评审与本地提交
-- 下一动作：`create_exact_local_commit_then_clean_clone_verify`
+- 当前状态：`completed`
+- 当前焦点：MODEL-ROUTING-001 已完成
+- 下一动作：`none`
 
 ## 当前事实
 
@@ -18,8 +18,8 @@
 
 ## 当前 Gate
 
-- `T03_exact_local_commit_and_clean_clone_verification`
-- 独立复审 `approved / 98 / C0-I0-M0`；当前进入精确本地提交和提交后干净克隆复验。
+- `closed`
+- 路由提交 `c9f02cb` 的干净克隆全绿；工作项已关闭。
 
 ## 后续授权范围
 

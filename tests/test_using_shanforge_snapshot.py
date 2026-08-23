@@ -195,7 +195,7 @@ class ProjectSnapshotTest(unittest.TestCase):
         self.assertEqual(latest["task_card_id"], "MODEL-ROUTING-001-T03")
         self.assertIn(latest["next_required_action"], session)
         self.assertIn(latest["work_item_id"], session)
-        self.assertIn("模型路由集中质量门", session)
+        self.assertIn("MODEL-ROUTING-001 已完成", session)
         self.assertNotIn("客户确认六角色映射", session)
 
     def test_skill_first_boundary_has_no_repository_runtime(self) -> None:

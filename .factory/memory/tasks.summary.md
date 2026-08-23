@@ -1,7 +1,7 @@
 # 任务摘要
 
-- 当前阶段：`SKILL-COMPLETENESS-P0-001 / commit_ready`
-- 当前焦点：五项 P0 和三项 review 缺口均已关闭，独立终审 `approved / 100 / C0-I0-M0`，等待最终验证与精确本地提交。
+- 当前阶段：`SKILL-COMPLETENESS-P0-001 / postcommit_clean_clone_verification`
+- 当前焦点：五项 P0 已提交为 `fd908b4`；会话卡/ledger 状态合同已同步，等待当前 HEAD 干净克隆复验。
 
 > 历史读取规则：以下所有带日期条目都是记录发生时的历史快照。条目中的“当前”“下一步”只表示当时状态，不得覆盖本文件顶部的当前焦点和当前动作。
 

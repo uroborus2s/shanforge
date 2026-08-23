@@ -51,3 +51,11 @@
 - 完整 pytest：`242 passed, 4 subtests passed in 1.00s`，exit code `0`。
 - Ruff、四个 Skill validator、脚本编译、全量 JSON/JSONL 和 `git diff --check`：exit code `0`。
 - failed / error / skipped / not_run：`0 / 0 / 0 / 0`。
+
+## 首次提交后克隆诊断
+
+- 实现提交：`fd908b4`。
+- 干净克隆完整测试：`1 failed, 241 passed, 4 subtests passed`。
+- 唯一失败：会话卡下一动作仍是 `fresh_full_verification_then_exact_local_commit`，最新 ledger 已推进为 `create_exact_local_commit`。
+- 根因：提交前最后追加 ledger 验证事件后只运行了 JSON/diff check，未重新执行读取会话卡/ledger 的项目快照契约。
+- 修复：追加真实实现提交事件，并让会话卡、current-state 与 ledger 统一指向 `verify_clean_clone`；未改动 P0 实现。

@@ -6,7 +6,7 @@
 **主要读者：** QA | 开发 | 产品 | 管理者  
 **上游输入：** PRD | NFR | 接口契约 | 实施方案  
 **下游输出：** 测试用例 | 测试报告 | 发布结论  
-**关联 ID：** `TC-xxx`, `REQ-xxx`, `NFR-xxx`, `UAT-xxx`  
+**关联 ID：** `TEST-xxx`, `REQ-xxx`, `NFR-xxx`, `UAT-xxx`<br>
 **最后更新：** YYYY-MM-DD  
 
 ## 1. 测试目标
@@ -49,10 +49,13 @@
 ## 6. 接口案例目录
 
 请求 body 和预期断言由脚本 / fixture 保存；目录只引用，不复制大段 JSON。
+通用案例使用 `test-cases.md`，定义状态与运行结果分开保存。
 
 | 案例 ID | method/path | 角色 | 参数/body fixture | 预期状态/schema/业务码 | 副作用/幂等 | 自动化入口 |
 |---|---|---|---|---|---|---|
 | `TEST-API-001` |  |  |  |  |  |  |
+
+案例运行结果使用 `passed / failed / error / blocked / skipped / not_run / cancelled`；批次验证结论使用 `passed / partial / failed / blocked`。
 
 ## 7. 候选与缺陷循环
 

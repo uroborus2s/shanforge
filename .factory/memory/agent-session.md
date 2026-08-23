@@ -1,34 +1,33 @@
 # Agent 会话卡
 
-- 生成时间：2026-08-23 10:16 +0800
+- 生成时间：2026-08-23 21:08 +0800
 - 项目：`shanforge`
-- 当前工作项：`MODEL-ROUTING-001`
-- 当前任务：`MODEL-ROUTING-001-T03`
-- 当前状态：`completed`
-- 当前焦点：MODEL-ROUTING-001 已完成
-- 下一动作：`none`
+- 当前工作项：`TEST-GOVERNANCE-001`
+- 当前任务：`TEST-GOVERNANCE-001-T03`
+- 当前状态：`review_approved`
+- 当前焦点：清理旧平台测试引用并统一案例、状态和报告合同
+- 下一动作：`create_exact_local_commit_then_clean_clone_verify`
 
 ## 当前事实
 
-- 用户要求的顺序不可交换：先事实统一、工作区清理和干净克隆全绿，再实现模型路由。
-- 正式架构已确定 Shanforge 是 skill-first 资产，不是 Agent 平台运行时；仓库没有 `src/`。
-- 当前工作区历史过程资产已做可恢复备份并按正式留存规则裁剪。
-- 清理前完整测试为 `220 passed / 8 failed / 4 subtests`；仅跟踪文件模拟克隆为 `205 passed / 16 failed / 4 subtests`。
-- 额外 8 个克隆失败来自未跟踪但被合同测试引用的最小事实资产，已识别并保留。
+- Shanforge 是 skill-first 工程协作资产，旧 `src/` 平台和对应测试不属于当前产品。
+- 正式测试计划和一个案例目录仍引用已删除的旧平台测试；现有治理测试没有检查入口存在性。
+- 工作项建立前基线为 `233 passed / 4 subtests passed`，说明陈旧引用当前不会触发失败。
+- 本工作项只修测试治理合同、模板和守卫，不恢复平台运行时或新增依赖。
 
 ## 当前 Gate
 
-- `closed`
-- 路由提交 `c9f02cb` 的干净克隆全绿；工作项已关闭。
+- `T03_exact_commit_and_clean_clone`
+- 同一 reviewer 复审 `approved / 98 / C0-I0-M0`；隔离候选完整全绿，无人工 Gate。
 
 ## 后续授权范围
 
-- T01 通过后，Sol 作为唯一设计、分级和路由控制者；Terra/Luna 只执行路由包。
-- 不新增模型服务、数据库、依赖或 `src/` 运行时。
+- Sol 负责设计、分级和控制；T01/T02/T03 由 Terra 按任务简报执行。
+- 允许同范围测试、文档、Skill、WorkItem、memory、独立只读评审和本地提交。
 - 不执行 push、PR、merge 或部署。
 
 ## 恢复入口
 
-- `.factory/workitems/MODEL-ROUTING-001/brief.md`
-- `.factory/workitems/MODEL-ROUTING-001/plan.md`
-- `.factory/workitems/MODEL-ROUTING-001/ledger.jsonl`
+- `.factory/workitems/TEST-GOVERNANCE-001/brief.md`
+- `.factory/workitems/TEST-GOVERNANCE-001/plan.md`
+- `.factory/workitems/TEST-GOVERNANCE-001/ledger.jsonl`

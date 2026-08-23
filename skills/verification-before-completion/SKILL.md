@@ -67,6 +67,9 @@ description: 准备声明完成、修复、通过、可提交、可开 PR 或进
 
 ## 项目级测试治理
 
+- 案例运行结果：`passed | failed | error | blocked | skipped | not_run | cancelled`。
+- 批次验证结论：`passed | partial | failed | blocked`。`partial` 只表示批次仍有未运行项或验证缺口，不是单个案例结果。
+
 验证计划必须按变更影响选择测试层级，不能只列当前最容易运行的测试：
 
 | 层级 | 适用场景 | 稳定编号 |

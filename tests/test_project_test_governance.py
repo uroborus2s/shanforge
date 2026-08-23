@@ -114,7 +114,7 @@ def test_candidate_does_not_claim_formal_release_or_human_approval() -> None:
     }
 
     assert controls["正式版本"] == "v3.1.0"
-    assert "FLOW-TASK-013" in controls["当前修订"]
+    assert "TEST-GOVERNANCE-001" in controls["当前修订"]
     assert controls["当前修订"].endswith("候选，未发布")
     assert controls["候选审核 / 批准"] == "未执行 / 未执行"
     published_history = section(plan, "## 正式版本历史（仅已发布）")
@@ -222,3 +222,77 @@ def test_task_inputs_and_scope_resolve_to_current_paths() -> None:
 def test_formal_test_plan_has_no_ambiguous_placeholder() -> None:
     plan = read("docs/06-delivery/test-plan.md")
     assert "待补充" not in plan
+
+
+def test_formal_test_references_resolve_to_current_test_files() -> None:
+    sources = [REPO_ROOT / "docs/06-delivery/test-plan.md"]
+    sources.extend(
+        sorted((REPO_ROOT / "tests/specifications").glob("*.testcases.yaml"))
+    )
+    referenced = {
+        match
+        for source in sources
+        for match in re.findall(
+            r"tests/test_[a-z0-9_]+\.py", source.read_text(encoding="utf-8")
+        )
+    }
+    missing = sorted(path for path in referenced if not (REPO_ROOT / path).is_file())
+
+    assert missing == []
+
+
+def test_reusable_case_and_report_templates_define_complete_human_outputs() -> None:
+    skill = read("skills/document-templates/SKILL.md")
+    cases_path = (
+        REPO_ROOT
+        / "skills/document-templates/assets/templates/05-quality/test-cases.md"
+    )
+    assert cases_path.is_file()
+    cases = cases_path.read_text(encoding="utf-8")
+    report = read("skills/document-templates/assets/templates/05-quality/test-report.md")
+
+    assert "assets/templates/05-quality/test-cases.md" in skill
+    for phrase in (
+        "案例 ID",
+        "需求 / 验收标准",
+        "风险等级",
+        "前置条件",
+        "测试数据 / fixture",
+        "操作步骤",
+        "预期结果",
+        "自动化入口",
+        "证据要求",
+    ):
+        assert phrase in cases
+    for phrase in (
+        "报告 ID",
+        "上游测试计划",
+        "准入条件",
+        "准出条件",
+        "错误",
+        "取消",
+        "未运行 / 跳过原因",
+        "环境健康与清理",
+        "需求覆盖",
+        "GO | NO-GO",
+        "评审与批准",
+        "版本历史",
+    ):
+        assert phrase in report
+
+
+def test_case_results_and_batch_verdicts_have_distinct_status_contracts() -> None:
+    verification = read("skills/verification-before-completion/SKILL.md")
+    environment = read(
+        "skills/document-templates/references/test-environment-template.md"
+    )
+
+    assert (
+        "案例运行结果：`passed | failed | error | blocked | skipped | not_run | "
+        "cancelled`" in verification
+    )
+    assert "批次验证结论：`passed | partial | failed | blocked`" in verification
+    assert (
+        "passed / failed / error / blocked / skipped / not_run / cancelled"
+        in environment
+    )

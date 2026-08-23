@@ -29,7 +29,7 @@ PROFESSIONAL_PREFIX_SHA256 = {
     "browser-control": "363c9fb1d83714576a4d9f788c6cb19b620b49c236a2c31bdc95b824eaba2cdc",
     "crawler4j-model-project": "3e0fff07dd04b25c67e492bc5cd444db230ada45f1ed8290ba7b0780e77ec8d3",
     "doc-coauthoring": "be0834078b4081e84e006dfba245d472bab2e07fac7782cef5c59c432253e223",
-    "document-templates": "eaac5684658326d2fcc5d4acb6fa9e93056128af821ba73670e211075563aad7",
+    "document-templates": "0a1b1a36466106da20b42079864b8dd780200e29310191b8aab1ee87222317b3",
     "docx": "4c0902897179193845cd2e3e2772047bdf17ed4fa5d6f33dd58919a1626220e8",
     "frontend-patterns": "577d8a43d0f5783ff88ef30f51639db5b8c88bf64855a9902b0ba09c257aa727",
     "gitcommitzh": "f8ddcf2b910ff6a3e37118cf660ad4eb7098473943a51e0ed35f61d7a85e8751",

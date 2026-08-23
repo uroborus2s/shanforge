@@ -72,8 +72,10 @@ description: "创建、审查、整理和升级软件项目正式文档体系。
 - 创建正式文档：读 [formal document template](references/formal-document-template.md)。
 - 已批准需求转轻量技术设计：读 [technical design template](references/technical-design-template.md)。
 - 需要定义测试启动、端口、健康检查、关闭和追踪关系：读 [test environment template](references/test-environment-template.md)。
-- 需要测试或发布材料时，复用 `assets/templates/05-quality/test-plan.md`、`test-report.md`、
-  `06-release/release-checklist.md` 和 `07-operations/deployment-guide.md`；案例目录、运行结果和聚合报告分开保存。
+- 需要测试或发布材料时，复用 `assets/templates/05-quality/test-plan.md`、
+  `assets/templates/05-quality/test-cases.md`、`assets/templates/05-quality/test-report.md`、
+  `assets/templates/06-release/release-checklist.md` 和 `assets/templates/07-operations/deployment-guide.md`；案例目录、运行结果和聚合报告分开保存。
+- 普通开发任务的结果进入当前 WorkItem evidence，不创建长期正式测试报告；阶段验收、发布候选或用户明确要求时，才用 `test-report.md` 生成当前 WorkItem 的人类可读报告。
 
 ## 组织规则
 

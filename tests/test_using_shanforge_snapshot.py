@@ -189,13 +189,26 @@ class ProjectSnapshotTest(unittest.TestCase):
 
     def test_shanforge_session_card_matches_current_mainline_ledger(self) -> None:
         session = (ROOT / ".factory" / "memory" / "agent-session.md").read_text(encoding="utf-8")
-        ledger = ROOT / ".factory" / "workitems" / "MODEL-ROUTING-001" / "ledger.jsonl"
+        fields = {
+            label: next(
+                line.split("`", 2)[1]
+                for line in session.splitlines()
+                if line.startswith(f"- {label}：`")
+            )
+            for label in ("当前工作项", "当前任务", "下一动作")
+        }
+        ledger = (
+            ROOT
+            / ".factory"
+            / "workitems"
+            / fields["当前工作项"]
+            / "ledger.jsonl"
+        )
         latest = json.loads(ledger.read_text(encoding="utf-8").splitlines()[-1])
 
-        self.assertEqual(latest["task_card_id"], "MODEL-ROUTING-001-T03")
-        self.assertIn(latest["next_required_action"], session)
-        self.assertIn(latest["work_item_id"], session)
-        self.assertIn("MODEL-ROUTING-001 已完成", session)
+        self.assertEqual(latest["task_card_id"], fields["当前任务"])
+        self.assertEqual(latest["next_required_action"], fields["下一动作"])
+        self.assertEqual(latest["work_item_id"], fields["当前工作项"])
         self.assertNotIn("客户确认六角色映射", session)
 
     def test_skill_first_boundary_has_no_repository_runtime(self) -> None:

@@ -128,7 +128,7 @@
 | `test-cases.md` | 条件 | 需求到验证步骤的映射 |
 | `test-data.md` | 条件 | 说明测试数据和准备方式 |
 | `defect-log.md` | 条件 | 跟踪缺陷状态和优先级 |
-| `test-report.md` | 必备 | 汇总通过情况、遗留问题和风险 |
+| `test-report.md` | 条件 | 阶段验收、发布候选或用户明确要求时汇总结果、遗留问题和风险；普通任务只保留 WorkItem evidence |
 | `uat-report.md` | 条件 | 业务验收结果 |
 
 ### `07-release-delivery`

@@ -466,3 +466,5 @@
 - 2026-07-27：`PM-DASHBOARD-003-T01` 已按人工批准完成一行 `minmax(0, 1fr)` CSS 根因修复；独立评审 `approved / 98 / C0-I0-M0`，桌面与 390px 移动端关闭验证通过，任务终态为 `closed`。父工作项仍是原型人工视觉评审状态，不代表生产 renderer、发布或部署获批。
 - 2026-07-28：`STRATIX-SERVICE-GUIDE-001-T01` 已处理 I003：移除专业 Skill 的项目治理尾注并写明实际版本基线；四组定向契约测试 `28 passed`，独立复审 `approved / 100 / C0-I0-M0`，进入最终验证和精确本地提交。
 - 2026-07-28：`PM-DASHBOARD-004-T02` 经同一 reviewer 复审 `approved / 100 / C0-I0-M0`，`T02-I1` 关闭，最终定向回归 `33 passed`。当前进入 T03，有效任务清理、确定性排序和业务首页实现中；T04-T05 尚未实施。
+- 2026-08-23：`TEST-GOVERNANCE-001` 已完成旧平台测试引用、案例/报告模板和状态合同整改；首轮独立评审 `changes_requested / 80 / C0-I2-M1`，现已用精确暂存 hunk 隔离并行工作项并完成整改，隔离候选 `236 passed + 4 subtests`、Ruff、Skill validator 和 JSON/JSONL 全绿，等待同一 reviewer 复审。
+- 2026-08-23：`TEST-GOVERNANCE-001` 同一 reviewer 复审 `approved / 98 / C0-I0-M0`，I1/I2/M1 全部关闭，无人工 Gate；下一动作是精确本地提交和提交后干净克隆验证。

@@ -25,7 +25,7 @@
 
 | TEST-* | 名称 | 需求 ID | 任务 ID | 层级 | 命令 / 入口 | 证据 | 结果 |
 |---|---|---|---|---|---|---|---|
-| `<TEST-ID>` | `<人类可读名称>` | `<REQ-ID>` | `<TASK-ID>` | `<单元 / 黑盒 / UI / API / 发布回归>` | `<命令或 URL>` | `<evidence path>` | `<passed / failed / skipped / not_run>` |
+| `<TEST-ID>` | `<人类可读名称>` | `<REQ-ID>` | `<TASK-ID>` | `<单元 / 黑盒 / UI / API / 发布回归>` | `<命令或 URL>` | `<evidence path>` | `<passed / failed / error / blocked / skipped / not_run / cancelled>` |
 
 ## 3. 发布回归
 
@@ -38,5 +38,5 @@
 
 - 启动命令、端口、健康检查和关闭方式均有明确值或带原因的 `N/A`。
 - 每个测试可从需求追到任务、测试定义和本轮 evidence。
-- failed、skipped、not_run 与未覆盖风险均显式记录。
+- failed、error、blocked、skipped、not_run、cancelled 与未覆盖风险均显式记录。
 - 测试结束已关闭进程并清理临时产物。

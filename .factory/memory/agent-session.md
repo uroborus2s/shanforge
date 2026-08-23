@@ -1,12 +1,12 @@
 # Agent 会话卡
 
-- 生成时间：2026-08-23 22:04 +0800
+- 生成时间：2026-08-23 22:05 +0800
 - 项目：`shanforge`
 - 当前工作项：`SKILL-COMPLETENESS-P0-001`
 - 当前任务：`SKILL-COMPLETENESS-P0-001-T01`
-- 当前状态：`implementation_committed_pending_clean_clone`
-- 当前焦点：按顺序关闭 Skill 完整性五项 P0 缺口
-- 下一动作：`verify_clean_clone`
+- 当前状态：`completed`
+- 当前焦点：SKILL-COMPLETENESS-P0-001 已完成
+- 下一动作：`none`
 
 ## 当前事实
 
@@ -19,11 +19,12 @@
 - memory 已补录首次复审和随后 `98 / changes_requested / C0-I1` 的状态历史；提交前完整回归为 `242 passed / 4 subtests passed`。
 - 同 reviewer 独立终审为 `approved / 100 / C0-I0-M0`。
 - 实现提交为 `fd908b4`；首次干净克隆捕获会话卡与最新 ledger 下一动作不一致，已按同一状态合同同步。
+- 状态同步提交为 `e9f9d97`；其干净克隆为 `242 passed / 4 subtests passed`，所有静态门和 Git clean 通过。
 
 ## 当前 Gate
 
-- `postcommit_clean_clone_verification`
-- 独立终审：`approved / 100 / C0-I0-M0`；实现已提交，下一步重跑干净克隆验证。
+- `closed`
+- 独立终审、实现提交、状态同步和干净克隆验证均已闭环。
 
 ## 后续授权范围
 

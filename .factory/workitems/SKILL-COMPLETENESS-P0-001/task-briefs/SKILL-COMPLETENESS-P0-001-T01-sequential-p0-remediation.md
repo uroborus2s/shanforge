@@ -4,7 +4,7 @@
 
 - 工作项：`SKILL-COMPLETENESS-P0-001`
 - 任务：`SKILL-COMPLETENESS-P0-001-T01`
-- 状态：`review_approved_ready_for_commit`
+- 状态：`completed`
 - 优先级：`P0`
 - 任务层级：`cross_cutting`
 - 上游计划：`.factory/workitems/SKILL-COMPLETENESS-P0-001/plan.md`

@@ -20,4 +20,4 @@
 
 ## 状态
 
-`review_approved_ready_for_commit`
+`completed`

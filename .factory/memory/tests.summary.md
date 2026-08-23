@@ -1,7 +1,7 @@
 # 测试摘要
 
-- 当前阶段：`SKILL-COMPLETENESS-P0-001 / postcommit_clean_clone_verification`
-- 当前验证结论：提交前完整 pytest `242 passed / 4 subtests passed`，Ruff、四个 Skill validator、脚本编译、JSON 与 `git diff --check` 通过。实现提交 `fd908b4` 的首次干净克隆仅在会话卡/ledger 下一动作一致性断言失败；状态合同已同步，等待重验。
+- 当前阶段：`SKILL-COMPLETENESS-P0-001 / completed`
+- 当前验证结论：实现提交 `fd908b4` 后以 `e9f9d97` 同步状态合同；当前 HEAD 干净克隆完整 pytest `242 passed / 4 subtests passed`，Ruff、四个 Skill validator、脚本编译、JSON/JSONL、`git diff --check` 与 Git clean 全部通过。
 
 - 2026-07-30：并行任务 `PM-DASHBOARD-005-T01` 第七轮路线 Green
   `2 passed / 4 subtests`，聚焦快照 `10 passed / 4 subtests`，Ruff check/format

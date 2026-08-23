@@ -59,3 +59,11 @@
 - 唯一失败：会话卡下一动作仍是 `fresh_full_verification_then_exact_local_commit`，最新 ledger 已推进为 `create_exact_local_commit`。
 - 根因：提交前最后追加 ledger 验证事件后只运行了 JSON/diff check，未重新执行读取会话卡/ledger 的项目快照契约。
 - 修复：追加真实实现提交事件，并让会话卡、current-state 与 ledger 统一指向 `verify_clean_clone`；未改动 P0 实现。
+
+## 干净克隆终验
+
+- 验证提交：`e9f9d97`（包含实现提交 `fd908b4` 与状态合同同步）。
+- 路径：`/private/tmp/shanforge-p0-verify2.QwMKfl/repo`。
+- 完整 pytest：`242 passed, 4 subtests passed in 1.18s`，exit code `0`。
+- Ruff、四个 Skill validator、脚本编译、全量 JSON/JSONL、`git diff --check` 与 Git clean：exit code `0`。
+- 结论：`passed`。

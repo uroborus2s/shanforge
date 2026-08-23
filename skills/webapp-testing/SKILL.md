@@ -17,15 +17,17 @@ description: 使用 Playwright 或项目已有测试栈验证本地 Web 应用�
 |---|---|
 | 项目已有测试栈 | 优先用仓内现有 Playwright/Vitest/Cypress/npm 脚本；不要强行新写 Python 脚本。 |
 | 静态 HTML | 读取 HTML 识别选择器，必要时用 `file://` 跑最小 Playwright 检查。 |
-| 动态本地应用，服务器未运行 | 先执行 `python scripts/with_server.py --help`，再用它包住 dev server 和测试脚本。 |
+| 动态本地应用，服务器未运行 | 先执行 `python <skill-dir>/scripts/with_server.py --help`，再用它包住 dev server 和测试脚本。 |
 | 动态本地应用，服务器已运行 | 导航、等待稳定、截图/DOM 勘查，再写最小断言。 |
 | 调试失败页面 | 捕获 screenshot、HTML、console logs、network error 摘要；先定位失败点再改代码。 |
 
 辅助脚本作为黑盒使用，先看帮助，不先读源码：
 
+以下 `<skill-dir>` 表示当前 `SKILL.md` 所在目录；执行前替换为该目录的实际绝对路径，不假设目标项目包含本 Skill 的 `scripts/`。
+
 ```bash
-python scripts/with_server.py --help
-python scripts/with_server.py --server "npm run dev" --port 5173 -- python your_automation.py
+python <skill-dir>/scripts/with_server.py --help
+python <skill-dir>/scripts/with_server.py --server "npm run dev" --port 5173 -- python your_automation.py
 ```
 
 ## 最小 Playwright 模式
@@ -88,14 +90,14 @@ with sync_playwright() as p:
 工作结果：
 - work_item: <WORKITEM-ID>
 - skill: webapp-testing
-- status: ready_for_review | blocked | needs_user_input
+- status: ready_for_review | partial | blocked | needs_user_input
 - outputs:
   - <script/screenshot/log path>
 - evidence:
   - <command/url/assertion summary>
 - ledger_event: <event id or none>
 - needs:
-  - review | verification | user_input | none
+  - review | verification | test_environment_contract | user_input | none
 ```
 
 项目化执行时，沿用 [工作 Skill 回写契约](../using-shanforge/references/work-skill-return-contract.md)；本 skill 的现有专业输出和失败语义不变。

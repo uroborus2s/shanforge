@@ -61,10 +61,12 @@
 
 ## 自动有效性校验
 
+`<skill-dir>` 表示 `document-templates` skill 的实际安装目录。
+
 案例目录定稿前运行：
 
 ```bash
-uv run python skills/document-templates/scripts/validate_test_documents.py \
+uv run python <skill-dir>/scripts/validate_test_documents.py \
   --repo-root . \
   --catalog <项目测试案例目录路径>
 ```

@@ -13,7 +13,7 @@ description: 批次或里程碑开发完成、PR 前、高风险专项或需要�
 - 写 review 或 Gate 前，route 必须有已存在且非空的 `work_item_id`、`task_card_id`，以及精确
   `allowed_paths`、`forbidden_actions`、`current_gate`、`write_policy`。
 - Reviewer 只读实现输入；只追加 review、ledger 和 evidence，不改实现。
-- 返回 `status`、`outputs`、`evidence`、`ledger_event`、`gate`、`next_required_action`；`approved` 不等于
+- 返回 `status`、`outputs`、`evidence`、`ledger_event`、`gate` 和本地 `needs`；`approved` 不等于
   Verification 或人工批准。
 
 ## 触发

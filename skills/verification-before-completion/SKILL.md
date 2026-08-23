@@ -13,8 +13,8 @@ description: 准备声明完成、修复、通过、可提交、可开 PR 或进
   `verification-workflow`，`write_policy: state_or_gate_write`。
 - 写测试、验证状态或 evidence 前，route 必须有已存在且非空的 `work_item_id`、`task_card_id`，以及精确
   `allowed_paths`、`forbidden_actions`、`current_gate`、`write_policy`。
-- 返回 `status`、`outputs`、`evidence`、`ledger_event`、`gate`、`next_required_action`；只接受新鲜命令、
-  exit code 和当前输出，Verification 不替代 Review 或人工批准。
+- 返回 `status`、`outputs`、`evidence`、`ledger_event`、`gate` 和本地 `needs`；只接受新鲜命令、
+  exit code 和当前输出，Verification 不替代 Review、项目状态判断或人工批准。
 
 ## 触发
 
@@ -29,7 +29,7 @@ description: 准备声明完成、修复、通过、可提交、可开 PR 或进
 - 需要验证的声明。
 - 相关 plan、task brief、review、diff 或 bug report。
 - 可证明该声明的命令、检查清单或人工验收项。
-- 当前 `project_position`、声明的完成层级和授权范围内剩余工作。
+- 由总控给出的待验证声明、范围和适用验收条件。
 
 ## 输出
 
@@ -62,8 +62,8 @@ description: 准备声明完成、修复、通过、可提交、可开 PR 或进
 8. 对 Red-Green 场景按 [red-green-verification-template.md](references/red-green-verification-template.md) 记录。
 9. 低、中风险任务把命令、exit code 和结果写入状态包；批次、里程碑、项目或高风险专项才按
    [completion-evidence-template.md](references/completion-evidence-template.md) 写一份 evidence。
-10. 判断完成层级，明确当前声明只覆盖 task、stage 还是 project，并列出 `scope_remaining`。
-11. 更新 ledger，输出 `status`、`project_position`、`completion_level`、`stop_reason` 与 `needs`。
+10. 明确本次证据实际覆盖的声明和未验证项，不把局部通过外推为项目完成。
+11. 更新 ledger，输出验证 `status`、证据与本地 `needs`，交还 `using-shanforge` 生成项目状态。
 
 ## 项目级测试治理
 
@@ -92,15 +92,11 @@ description: 准备声明完成、修复、通过、可提交、可开 PR 或进
   不复制请求 body、预期断言或完整日志，不记录完整内部 URL、IP、端口、凭证、令牌、DSN 或个人信息。
 - 变更包含人类可读案例目录或 WorkItem 测试报告时，必须运行项目登记的文档校验入口；使用 `document-templates` 默认资产时运行其 `scripts/validate_test_documents.py`，验证自动化节点、七态计数、批次结论和 GO/NO-GO 一致性。
 
-## 完成层级
+## 声明范围核对
 
-- `completion_level: task | stage | project` 必须与实际证据范围一致。
-- 任务完成不等于项目完成。任务验证通过时，还要说明所属阶段和项目是否仍有剩余工作。
-- 阶段完成必须有该阶段全部任务、review、verification 和 Gate 状态证据。
-- 项目完成必须证明所有项目步骤和正式交付要求均已满足，不能从单个 task 的 `passed` 推导。
-- `scope_remaining` 列出当前授权范围内尚未完成的动作；若为空，写 `none`。
-- `project_position` 写项目第几步、总步数、阶段和当前任务。
-- `stop_reason` 只能是 `none`、真实 blocker 或真实人工 Gate，不能把普通 review/verification checkpoint 写成停止原因。
+- 任务验证通过不等于阶段或项目完成；只报告证据直接覆盖的声明和未验证项。
+- 阶段或项目级声明必须收到对应全部任务、review、verification 和 Gate 事实后再验证，不能从单个 task 的 `passed` 推导。
+- 项目位置、完成层级、停止原因和剩余工作由 `using-shanforge` 结合 ledger 统一生成，本 skill 不在结果包中重复维护。
 
 ## 通过标准
 
@@ -140,10 +136,6 @@ description: 准备声明完成、修复、通过、可提交、可开 PR 或进
 - work_item: <ID>
 - skill: verification-before-completion
 - status: passed | partial | failed | blocked
-- project_position: <step / total / stage / task>
-- completion_level: task | stage | project
-- stop_reason: <none | blocker | human_gate>
-- scope_remaining: <remaining work | none>
 - outputs:
   - <evidence path>
 - evidence:

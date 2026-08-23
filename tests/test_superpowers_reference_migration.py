@@ -22,8 +22,8 @@ def test_existing_skills_have_migrated_reference_templates() -> None:
             "分层和接口边界",
             "影响文件",
             "测试策略",
-            ".factory/memory/",
-            "不得引入新的中心脚本主控",
+            "项目状态或记忆（适用时）",
+            "不得绕过当前项目已经声明的 owner",
         ),
         "skills/tdd-workflow/references/root-cause-checklist.md": (
             "Bug 症状",

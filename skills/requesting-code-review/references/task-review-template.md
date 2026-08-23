@@ -43,7 +43,7 @@
 - reviewer_id:
 - reviewer_independence_evidence:
 - review_status: approved | changes_requested | self_check_passed
-- next_gate_status: pending_human_confirmation | needs_independent_review | changes_requested
+- next_gate_status: return_to_orchestrator | pending_human_confirmation | needs_independent_review | changes_requested
 - author_self_check_score: <0-100 or n/a>
 - review_score: <0-100 or n/a>
 
@@ -64,10 +64,11 @@
 
 ## Gate
 
-pending_human_confirmation | needs_independent_review | changes_requested
+return_to_orchestrator | pending_human_confirmation | needs_independent_review | changes_requested
 ```
 
 `approved` 只表示 reviewer 通过。它不等于人工确认。
+默认 gate 是 `return_to_orchestrator`；只有输入包已存在真实人工 Gate 时才写 `pending_human_confirmation`。
 
 ## 独立性门
 

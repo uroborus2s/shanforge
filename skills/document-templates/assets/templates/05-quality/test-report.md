@@ -91,10 +91,12 @@
 
 ## 12. 自动聚合校验
 
+`<skill-dir>` 表示 `document-templates` skill 的实际安装目录。
+
 里程碑、发布候选或用户明确要求的 WorkItem 报告定稿前运行：
 
 ```bash
-uv run python skills/document-templates/scripts/validate_test_documents.py \
+uv run python <skill-dir>/scripts/validate_test_documents.py \
   --report <当前 WorkItem 测试报告路径>
 ```
 

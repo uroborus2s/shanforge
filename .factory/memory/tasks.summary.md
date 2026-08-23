@@ -1,9 +1,17 @@
 # 任务摘要
 
-- 当前阶段：`SKILL-COMPLETENESS-P0-001 / completed`
-- 当前焦点：五项 P0、独立终审、实现提交、状态同步和干净克隆验证均已闭环。
+- 当前阶段：`SKILL-FULL-OPTIMIZATION-001 / T06`
+- 当前焦点：38/38 独立复评 `approved / 95.0 / C0-I0-M0`，等待当前任务范围本地提交。
 
 > 历史读取规则：以下所有带日期条目都是记录发生时的历史快照。条目中的“当前”“下一步”只表示当时状态，不得覆盖本文件顶部的当前焦点和当前动作。
+
+- 2026-08-23：`SKILL-FULL-OPTIMIZATION-001-T06` 同 reviewer 复评全部 38 项，结论 `approved / 95.0 / C0-I0-M0`，I-01–I-15 关闭 15/15；无真实人工 Gate，进入精确本地提交。
+
+- 2026-08-23：`SKILL-FULL-OPTIMIZATION-001-T06` 已按 P0 顺序关闭 I-01 至 I-15；最终有证据优化 24 个 Skill、保留 14 个。整改候选完整 pytest `262 passed / 4 subtests passed`，Ruff、38/38 validator 与 JSON/JSONL 通过，状态为 `ready_for_same_reviewer_rereview`。
+
+- 2026-08-23：`SKILL-FULL-OPTIMIZATION-001-T06` 首轮独立 review 覆盖 38/38，整体 `89.1 / C0-I23-M0`，按 Skill 归属的 23 个 Important 合并为 15 个可执行 finding；状态为 `changes_requested`，进入错误成功/配置污染、资源可移植性、状态 owner 三批 P0 整改。
+
+- 2026-08-23：`SKILL-FULL-OPTIMIZATION-001` 动态审计 38 个 Skill，优化 13 个、保留 25 个；基线 C0 / I8 / M10 已由 implementer 关闭。精确隔离候选完整 pytest `245 passed / 4 subtests passed`，Ruff 和 38/38 validator 通过；当前进入 38 份独立 scorecard Gate。合并工作区的 1 个失败属于并发 `TEST-GOVERNANCE-CLOSURE-001`，本任务未代改。
 
 - 2026-08-23：`SKILL-COMPLETENESS-P0-001` 按顺序完成 Skill 发现、正式文档回源、美术候选生命周期、动态能力目录和最小不变量守卫；首轮 review `87 / C0-I2-M2`，三项 Important 已关闭，追加历史补齐；同 reviewer 独立终审 `approved / 100 / C0-I0-M0`，完整回归 `242 passed / 4 subtests passed`，等待精确本地提交。
 - 2026-08-23：实现提交 `fd908b4`，状态合同同步提交 `e9f9d97`；当前 HEAD 干净克隆 `242 passed / 4 subtests passed`，Ruff、四个 Skill validator、脚本编译、JSON/JSONL、diff 与 Git clean 全部通过，工作项关闭。

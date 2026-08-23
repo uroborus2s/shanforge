@@ -61,15 +61,17 @@ description: 全平台 UI/UX 与动效设计、实现约束和质量评审。用
 
 项目没有可复用设计系统时，先运行：
 
+以下 `<skill-dir>` 表示当前 `SKILL.md` 所在目录；执行前替换为该目录的实际绝对路径，不假设目标项目包含本 Skill 的 `scripts/`。
+
 ```bash
-python3 skills/ui-ux-pro-max/scripts/search.py "<产品 行业 语气 密度>" --design-system -p "<项目名>"
+python3 <skill-dir>/scripts/search.py "<产品 行业 语气 密度>" --design-system -p "<项目名>"
 ```
 
 已有系统或只做局部评审时，不重新生成整套视觉语言。按需查询：
 
 ```bash
-python3 skills/ui-ux-pro-max/scripts/search.py "<关键词>" --domain <product|style|color|typography|chart|ux|landing|icons|gsap>
-python3 skills/ui-ux-pro-max/scripts/search.py "<关键词>" --stack <react|nextjs|vue|swiftui|jetpack-compose|flutter|react-native|javafx|wpf|winui|avalonia|uno|uwp>
+python3 <skill-dir>/scripts/search.py "<关键词>" --domain <product|style|color|typography|chart|ux|landing|icons|gsap>
+python3 <skill-dir>/scripts/search.py "<关键词>" --stack <react|nextjs|vue|swiftui|jetpack-compose|flutter|react-native|javafx|wpf|winui|avalonia|uno|uwp>
 ```
 
 检索结果只是候选输入。根据品牌、平台规范、可访问性、内容和实现成本筛选；不要把命中项原样拼成方案。

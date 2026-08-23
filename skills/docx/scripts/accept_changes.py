@@ -7,6 +7,7 @@ import argparse
 import logging
 import shutil
 import subprocess
+import zipfile
 from pathlib import Path
 
 from office.soffice import get_soffice_env
@@ -18,7 +19,8 @@ MACRO_DIR = f"{LIBREOFFICE_PROFILE}/user/basic/Standard"
 
 ACCEPT_CHANGES_MACRO = """<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE script:module PUBLIC "-//OpenOffice.org//DTD OfficeDocument 1.0//EN" "module.dtd">
-<script:module xmlns:script="http://openoffice.org/2000/script" script:name="Module1" script:language="StarBasic">
+<script:module xmlns:script="http://openoffice.org/2000/script"
+ script:name="Module1" script:language="StarBasic">
     Sub AcceptAllTrackedChanges()
         Dim document As Object
         Dim dispatcher As Object
@@ -74,13 +76,19 @@ def accept_changes(
             env=get_soffice_env(),
         )
     except subprocess.TimeoutExpired:
-        return (
-            None,
-            f"Successfully accepted all tracked changes: {input_file} -> {output_file}",
-        )
+        return None, "Error: LibreOffice timed out before accepting tracked changes"
 
     if result.returncode != 0:
         return None, f"Error: LibreOffice failed: {result.stderr}"
+
+    if not zipfile.is_zipfile(output_path):
+        return None, "Error: LibreOffice did not produce a valid DOCX file"
+    with zipfile.ZipFile(output_path) as archive:
+        document_xml = archive.read("word/document.xml")
+    if any(
+        marker in document_xml for marker in (b"<w:ins", b"<w:del", b"<w:moveFrom", b"<w:moveTo")
+    ):
+        return None, "Error: tracked changes remain in the output DOCX"
 
     return (
         None,
@@ -119,13 +127,9 @@ def _setup_libreoffice_macro() -> bool:
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(
-        description="Accept all tracked changes in a DOCX file"
-    )
+    parser = argparse.ArgumentParser(description="Accept all tracked changes in a DOCX file")
     parser.add_argument("input_file", help="Input DOCX file with tracked changes")
-    parser.add_argument(
-        "output_file", help="Output DOCX file (clean, no tracked changes)"
-    )
+    parser.add_argument("output_file", help="Output DOCX file (clean, no tracked changes)")
     args = parser.parse_args()
 
     _, message = accept_changes(args.input_file, args.output_file)

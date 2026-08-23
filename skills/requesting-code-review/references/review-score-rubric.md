@@ -27,7 +27,7 @@
 
 ## 结论
 
-- `90-100`：有真实独立 reviewer 证据时可以 `approved`，但仍需人工确认。
+- `90-100`：有真实独立 reviewer 证据时可以 `approved`，默认返回流程总控；只有真实人工 Gate 才等待人工确认。
 - `70-89`：通常 `changes_requested`，除非所有扣分都是非阻塞 Minor。
 - `<70`：必须 `changes_requested`。
 - 同线程作者自检无论分数多高，都只能写 `self_check_passed` 或 `needs_independent_review`。
@@ -49,7 +49,7 @@ reviewer_independence_evidence: <why this reviewer is independent>
 author_self_check_score: <0-100 or n/a>
 review_score: <0-100 or n/a>
 review_status: approved | changes_requested | self_check_passed
-next_gate_status: pending_human_confirmation | needs_independent_review | changes_requested
+next_gate_status: return_to_orchestrator | pending_human_confirmation | needs_independent_review | changes_requested
 
 评分：
 - 需求符合度：<N> / 30
@@ -60,3 +60,4 @@ next_gate_status: pending_human_confirmation | needs_independent_review | change
 ```
 
 `author_self_check_score` 只能用于作者自检参考。它不能进入 `review_score`，也不能作为 `pending_human_confirmation` 的依据。
+真实独立 reviewer 的 `approved` 默认使用 `return_to_orchestrator`；只有输入包已声明真实人工 Gate 并提供原因时，才使用 `pending_human_confirmation`。

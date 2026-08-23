@@ -24,7 +24,7 @@ license: 完整条款请参阅 LICENSE.txt
 ## 工作方式
 
 1. 先明确交付物：自包含 HTML、独立 JS、概念说明，或三者组合。
-2. 生成交互式作品前必须读取 `templates/viewer.html`；需要算法结构参考时读取 `templates/generator_template.js`。
+2. 生成交互式作品前必须读取 `templates/viewer.html`；模板默认联网加载 p5.js，离线或自包含交付必须把 p5.js 内联或随包提供。需要算法结构参考时读取 `templates/generator_template.js`。
 3. 使用种子控制 `randomSeed` 与 `noiseSeed`，相同种子必须产出相同画面。
 4. 参数数量保持少而有效；优先控制密度、尺度、运动、颜色、噪声、迭代次数。
 5. 颜色和运动服务主题，不堆随机特效；性能不足时减少粒子数或缓存计算。
@@ -33,7 +33,7 @@ license: 完整条款请参阅 LICENSE.txt
 
 非 Shanforge work item 的轻量交付至少回写：
 
-- `status`: `done` 或 `blocked`
+- `status`: `done`、`blocked` 或 `needs_user_input`
 - `outputs`: 生成的 `.html`、`.js`、`.md` 文件路径和默认 seed
 - `evidence`: 已读取模板、实现文件、截图/运行记录、关键参数说明
 - `verification`: 浏览器 smoke check、控制台错误、seed 复现、导出功能或性能观察；未运行要说明原因

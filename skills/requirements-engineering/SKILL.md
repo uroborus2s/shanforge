@@ -12,7 +12,7 @@ description: "需求工程技能。用于把想法、work item brief、已批准
 - `SB-CLARIFY`、`SB-REQUIREMENT` 进入 `requirements-workflow`，`write_policy: project_fact_write`。
 - 写入前，route 必须有已存在且非空的 `work_item_id`、`task_card_id`，以及精确 `allowed_paths`、
   `forbidden_actions`、`current_gate`、`write_policy`；只写 allowlist 内需求事实，并追加 ledger 和 evidence。
-- 返回 `status`、`outputs`、`evidence`、`ledger_event`、`gate`、`next_required_action`；缺身份、批准输入
+- 返回 `status`、`outputs`、`evidence`、`ledger_event`、`gate` 和本地 `needs`；缺身份、批准输入
   或事实冲突时返回 `blocked` 或 `needs_user_input`。
 
 ## 触发

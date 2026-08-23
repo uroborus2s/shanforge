@@ -5,6 +5,8 @@ description: 读取、分析、修改、格式化、生成或验证 Excel / `.xl
 
 # Excel / XLSX 处理
 
+以下 `<skill-dir>` 表示当前 `SKILL.md` 所在目录；执行前替换为该目录的实际绝对路径，不假设目标项目包含本 Skill 的 `scripts/`。
+
 ## 任务分支
 
 | 分支 | 动作 |
@@ -14,7 +16,7 @@ description: 读取、分析、修改、格式化、生成或验证 Excel / `.xl
 | 修改现有工作簿 | 用 `openpyxl`，尽量保留格式、公式、合并单元格和多 sheet 结构。 |
 | 创建新工作簿 | 用 `pandas` 或 `openpyxl` 写新文件；需要样式、列宽、冻结窗格或公式时用 `openpyxl`。 |
 | CSV 编码 | 中文 CSV 先识别或尝试 `utf-8`、`gbk`、`gb18030`；不要静默丢字符。 |
-| 验证 / 重算 | 读取输出文件，核对 sheet、列、行数、关键公式和值；需要时运行 `python scripts/recalc.py` 或 `python scripts/office/validate.py output.xlsx`。 |
+| 验证 / 重算 | 读取输出文件，核对 sheet、列、行数、关键公式和值；需要时运行 `python <skill-dir>/scripts/recalc.py` 或 `python <skill-dir>/scripts/office/validate.py output.xlsx`。 |
 
 ## 安全写入
 
@@ -74,7 +76,7 @@ wb.save("input_modified.xlsx")
 工作结果：
 - work_item: <WORKITEM-ID>
 - skill: xlsx
-- status: ready_for_review | blocked | needs_user_input
+- status: ready_for_review | partial | blocked | needs_user_input
 - outputs:
   - <output.xlsx/csv>
 - evidence:

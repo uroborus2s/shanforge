@@ -1,38 +1,36 @@
 # Agent 会话卡
 
-- 生成时间：2026-08-23 22:05 +0800
+- 生成时间：2026-08-23 23:32 +0800
 - 项目：`shanforge`
-- 当前工作项：`SKILL-COMPLETENESS-P0-001`
-- 当前任务：`SKILL-COMPLETENESS-P0-001-T01`
-- 当前状态：`completed`
-- 当前焦点：SKILL-COMPLETENESS-P0-001 已完成
+- 当前工作项：`SKILL-FULL-OPTIMIZATION-001`
+- 当前任务：`SKILL-FULL-OPTIMIZATION-001-T06`
+- 当前状态：`ready_for_commit`
+- 当前焦点：38/38 独立复评通过，当前 WorkItem 进入精确本地提交
 - 下一动作：`none`
 
 ## 当前事实
 
-- Shanforge 是 skill-first 工程协作资产，旧 `src/` 平台和对应测试不属于当前产品。
-- Skill 同步以含 `SKILL.md` 的一级目录为发现源，当前真实仓为 38 个。
-- 正式文档优先按目标项目 `doc-map.md` 的 owner 映射回源；四模块只作新项目回退。
-- 美术候选图跨会话保存在 `candidates/`，最终包排除候选和可再生临时目录。
-- 能力目录由文件系统动态派生，不增加运行时、注册表或依赖。
-- 首轮独立 review 的两项 Important 已修复；同 reviewer 首次复审为 `97 / C0-I0`。
-- memory 已补录首次复审和随后 `98 / changes_requested / C0-I1` 的状态历史；提交前完整回归为 `242 passed / 4 subtests passed`。
-- 同 reviewer 独立终审为 `approved / 100 / C0-I0-M0`。
-- 实现提交为 `fd908b4`；首次干净克隆捕获会话卡与最新 ledger 下一动作不一致，已按同一状态合同同步。
-- 状态同步提交为 `e9f9d97`；其干净克隆为 `242 passed / 4 subtests passed`，所有静态门和 Git clean 通过。
+- 当前真实 Skill 清单由 `skills/*/SKILL.md` 动态发现，共 38 个。
+- T01 基线发现 C0 / I8 / M10，涉及 13 个 Skill；其余 25 个为 `no_change_required`。
+- 首轮与 review 整改合计有证据优化 24 个 Skill，其余 14 个为 `no_change_required`。
+- 精确隔离候选完整 pytest `245 passed / 4 subtests passed`，Ruff 与 38/38 validator 通过。
+- P0 整改候选完整 pytest `262 passed / 4 subtests passed`，Ruff、38/38 validator、JSON/JSONL 和 diff check 通过。
+- T06 首轮独立评分覆盖 38/38，整体 `89.1 / C0-I23-M0`，合并为 15 个 Important finding。
+- 同 reviewer 复评 38/38 为 `approved / 95.0 / C0-I0-M0`，I-01–I-15 关闭 15/15。
 
 ## 当前 Gate
 
-- `closed`
-- 独立终审、实现提交、状态同步和干净克隆验证均已闭环。
+- `local_commit`
+- review、verification 和 memory 已闭环，无真实人工 Gate；只允许当前任务范围本地提交。
 
 ## 后续授权范围
 
-- 允许同范围脚本、Skill、正式文档、配置、测试、WorkItem、memory、独立只读复审和本地提交。
-- 不执行 push、PR、merge 或部署。
+- 允许当前 WorkItem、24 个有证据优化 Skill、10 个对应测试、必要 memory、独立只读 review 和本地精确提交。
+- 不执行 push、PR、merge、发布或部署；不修改 `TEST-GOVERNANCE-CLOSURE-001` 范围。
 
 ## 恢复入口
 
-- `.factory/workitems/SKILL-COMPLETENESS-P0-001/brief.md`
-- `.factory/workitems/SKILL-COMPLETENESS-P0-001/plan.md`
-- `.factory/workitems/SKILL-COMPLETENESS-P0-001/ledger.jsonl`
+- `.factory/workitems/SKILL-FULL-OPTIMIZATION-001/brief.md`
+- `.factory/workitems/SKILL-FULL-OPTIMIZATION-001/plan.md`
+- `.factory/workitems/SKILL-FULL-OPTIMIZATION-001/ledger.jsonl`
+- `.factory/workitems/SKILL-FULL-OPTIMIZATION-001/reviews/independent-review-task.md`

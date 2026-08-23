@@ -75,7 +75,7 @@ description: 去除或审查文本中的 AI 写作痕迹，使文本更自然、
 工作结果：
 - work_item: <WORKITEM-ID>
 - skill: humanizer
-- status: ready_for_review | blocked | needs_user_input
+- status: ready_for_review | partial | blocked | needs_user_input
 - outputs:
   - <rewritten text or output file>
 - evidence:

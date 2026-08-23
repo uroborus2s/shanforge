@@ -1,11 +1,13 @@
 **重要：你必须按顺序完成这些步骤。不要直接跳到编写代码。**
 
+下文的 `<skill-dir>` 表示本 skill 所在目录；脚本路径不依赖当前工作目录。
+
 如果您需要填写 PDF 表单，首先检查 PDF 是否具有可填充的表单字段。在当前文件所在的目录下运行此脚本：
- `python scripts/check_fillable_fields <file.pdf>`，根据结果转到“可填充字段”或“不可填充字段”并遵循相应的说明。
+ `python <skill-dir>/scripts/check_fillable_fields.py <file.pdf>`，根据结果转到“可填充字段”或“不可填充字段”并遵循相应的说明。
 
 # 可填充字段
 如果 PDF 具有可填充的表单字段：
-- 在当前文件所在的目录下运行此脚本：`python scripts/extract_form_field_info.py <input.pdf> <field_info.json>`。它将创建一个包含字段列表的 JSON 文件，格式如下：
+- 运行此脚本：`python <skill-dir>/scripts/extract_form_field_info.py <input.pdf> <field_info.json>`。它将创建一个包含字段列表的 JSON 文件，格式如下：
 ```
 [
   {
@@ -51,7 +53,7 @@
 ]
 ```
 - 使用此脚本将 PDF 转换为 PNG（每页一张图像）：
-`python scripts/convert_pdf_to_images.py <file.pdf> <output_directory>`
+`python <skill-dir>/scripts/convert_pdf_to_images.py <file.pdf> <output_directory>`
 然后分析图像以确定每个表单字段的用途（确保将 PDF 坐标系的边界框转换为图像坐标）。
 - 创建一个 `field_values.json` 文件，格式如下，包含要为每个字段输入的值：
 ```
@@ -72,7 +74,7 @@
 ]
 ```
 - 运行 `fill_fillable_fields.py` 脚本以创建填写后的 PDF：
-`python scripts/fill_fillable_fields.py <input pdf> <field_values.json> <output pdf>`
+`python <skill-dir>/scripts/fill_fillable_fields.py <input pdf> <field_values.json> <output pdf>`
 此脚本将验证您提供的字段 ID 和值是否有效；如果打印错误消息，请修正相应的字段并重试。
 
 # 不可填充字段
@@ -81,7 +83,7 @@
 ## 第 1 步：优先尝试结构提取
 
 运行此脚本以提取文本标签、线条和复选框及其精确的 PDF 坐标：
-`python scripts/extract_form_structure.py <input.pdf> form_structure.json`
+`python <skill-dir>/scripts/extract_form_structure.py <input.pdf> form_structure.json`
 
 这将创建一个包含以下内容的 JSON 文件：
 - **labels**: 每个带有精确坐标的文本元素（PDF 点数单位下的 x0, top, x1, bottom）
@@ -141,7 +143,7 @@
 
 ### A.4：验证边界框
 在填写之前，检查边界框是否有误：
-`python scripts/check_bounding_boxes.py fields.json`
+`python <skill-dir>/scripts/check_bounding_boxes.py fields.json`
 
 ---
 
@@ -150,7 +152,7 @@
 当 PDF 是基于扫描/图像的且结构提取未发现可用的文本标签时使用此方法。
 
 ### B.1：将 PDF 转换为图像
-`python scripts/convert_pdf_to_images.py <input.pdf> <images_dir/>`
+`python <skill-dir>/scripts/convert_pdf_to_images.py <input.pdf> <images_dir/>`
 
 ### B.2：初步字段识别
 检查每页图像以识别表单部分并获取字段位置的**粗略估计**。
@@ -202,11 +204,11 @@ magick <page_image> -crop <width>x<height>+<x>+<y> +repage <crop_output.png>
 
 ## 第 2 步：填写前验证
 **务必在填写前验证边界框：**
-`python scripts/check_bounding_boxes.py fields.json`
+`python <skill-dir>/scripts/check_bounding_boxes.py fields.json`
 
 ## 第 3 步：填写表单
 填写脚本会自动检测坐标系并处理转换：
-`python scripts/fill_pdf_form_with_annotations.py <input.pdf> fields.json <output.pdf>`
+`python <skill-dir>/scripts/fill_pdf_form_with_annotations.py <input.pdf> fields.json <output.pdf>`
 
 ## 第 4 步：验证输出
 将填写后的 PDF 转换为图像并验证文本位置。

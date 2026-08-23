@@ -46,7 +46,7 @@ git diff <Base>..<Head>
 - reviewer_id:
 - reviewer_independence_evidence:
 - review_status: approved | changes_requested | self_check_passed
-- next_gate_status: pending_human_confirmation | needs_independent_review | changes_requested
+- next_gate_status: return_to_orchestrator | pending_human_confirmation | needs_independent_review | changes_requested
 - author_self_check_score: <0-100 or n/a>
 - review_score: <0-100 or n/a>
 
@@ -75,3 +75,4 @@ Reasoning: <1-2 sentences>
 - `same_thread` 只能输出 `self_check_passed`。
 - `same_thread` 只能写 `author_self_check_score`，不得写 `review_score`。
 - 缺 `reviewer_type`、`reviewer_id` 或 `reviewer_independence_evidence` 时，`next_gate_status` 必须写 `needs_independent_review`。
+- 真实独立 reviewer 的 `approved` 默认写 `return_to_orchestrator`；仅真实人工 Gate 写 `pending_human_confirmation`。

@@ -12,8 +12,8 @@ description: 有 written implementation plan 但不使用子 agent，或需要�
 - `SB-EXECUTE` 进入 `execution-workflow`，`write_policy: source_or_test_write`。
 - 写入前，route 必须有已存在且非空的 `work_item_id`、`task_card_id`，以及精确 `allowed_paths`、
   `forbidden_actions`、`current_gate`、`write_policy`；只改 allowlist 内源码、Skill、测试和任务证据。
-- 返回 `status`、`outputs`、`evidence`、`ledger_event`、`gate`、`next_required_action`；实现最多推进到
-  `ready_for_review`，不得把 Green 写成 Review、Verification 或人工批准。
+- 返回 `status`、`outputs`、`evidence`、`ledger_event`、`gate` 和本地 `needs`；实现最多推进到
+  `ready_for_review`，不得把 Green 写成 Review、Verification、项目状态或人工批准。
 
 ## 触发
 
@@ -61,7 +61,7 @@ description: 有 written implementation plan 但不使用子 agent，或需要�
 10. 高风险任务按授权包执行专项验证或 review checkpoint。
 11. 若授权执行包仍有无阻塞任务，继续执行，不向用户逐项请求确认。
 12. 全部任务或里程碑完成后，生成一套实现摘要、最终验证证据、review input 和 ledger event。
-13. 批次完成、出现真实 blocker 或需要人类决策时，写入状态回写包，说明 outputs、evidence、ledger event、`project_position`、`stop_reason` 和 `needs`。
+13. 批次完成、出现真实 blocker 或需要人类决策时，写入本职结果包，说明 outputs、evidence、ledger event 和 `needs`。
 14. 仅在批次质量候选完成时写 `ready_for_review`；其他终态是 `blocked` 或 `needs_user_input`。
 15. 只在批次状态变化或跨会话恢复需要时更新 `.factory/memory/`。
 16. 所有任务完成后，交还 `using-shanforge` 判断集中验证、评审、人工确认、提交或 PR 闭环。
@@ -138,10 +138,6 @@ STOP 后写清楚 blocker、已尝试动作、下一步需要什么。禁止猜�
 - work_item: <ID>
 - skill: executing-plans
 - status: ready_for_review | blocked | needs_user_input
-- project_position: <step / total / stage / task>
-- completion_level: none | task | stage | project
-- stop_reason: <none | blocker | human_gate>
-- scope_remaining: <授权执行包内剩余任务>
 - outputs:
   - <path>
 - evidence:

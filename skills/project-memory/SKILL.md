@@ -14,8 +14,8 @@ description: 项目状态查询、任务延续、会话恢复、上下文压缩�
 - `SB-RESUME` 写入前，route 必须有已存在且非空的 `work_item_id`、`task_card_id`，以及精确
   `allowed_paths`、`forbidden_actions`、`current_gate`、`write_policy`；memory summary 不能单独证明身份。
 - 只读状态查看不写 ledger；恢复写入必须有 readback evidence 和 ledger event。
-- 返回 `status`、`outputs`、`evidence`、`ledger_event`、`gate`、`next_required_action`；缺事实或身份时
-  返回 `blocked`，不猜测。
+- 返回 `status`、`outputs`、`evidence`、`ledger_event` 和 `gate`；缺事实或身份时返回 `blocked`，不猜测。
+  项目级下一动作由 `using-shanforge` 生成，本 skill 只恢复或同步既有事实。
 
 ## 触发
 
@@ -114,7 +114,7 @@ description: 项目状态查询、任务延续、会话恢复、上下文压缩�
 
 - `direct_answer` 和 `lightweight_analysis` 不进入本 skill，不得写任何仓内文件、memory、ledger 或 summary；用户要求持久化时必须先升级为项目化流程。
 - `project_workitem` 和 `tracked_task` 发生状态变化、gate 切换、上下文压缩恢复、关闭前验证或提交前检查时，才同步 memory。
-- memory 只写 work item / task ID、状态、当前 gate、`next_required_action`、关键约束、禁止动作和 outputs / evidence / review / report 路径索引。
+- memory 只写 work item / task ID、状态、当前 gate、关键约束、禁止动作、总控已生成的项目状态信封，以及 outputs / evidence / review / report 路径索引；不得自行推导项目级下一动作。
 - 正式需求、设计、API、UI、用户指南或开发者指南的稳定事实写入 `docs/`；memory 只保留索引和摘要。
 - 命令全文、临时推理、当前会话答复、子 agent 完整输出和正式文档正文不得写入 memory。
 - 子 agent 或自循环完成后，先把状态包交回主流程；是否写 memory 由 `using-shanforge` 根据状态和 gate 判断。

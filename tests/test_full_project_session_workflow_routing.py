@@ -389,9 +389,12 @@ def test_runtime_skills_expose_the_minimum_route_and_result_contract() -> None:
             "evidence",
             "ledger_event",
             "gate",
-            "next_required_action",
         ):
             assert field in runtime_contract, (path, field)
+        if path == "skills/using-shanforge/SKILL.md":
+            assert "next_required_action" in runtime_contract
+        else:
+            assert "next_required_action" not in runtime_contract, path
 
     router = read("skills/using-shanforge/SKILL.md")
     for behavior_id in CURRENT_BEHAVIORS:

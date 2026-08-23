@@ -9,11 +9,12 @@ description: 收到 review feedback、PR 评论、任务评审意见或外部 re
 
 ## v1.2.0 运行时路由合同
 
-- review feedback 仍属于 `SB-REVIEW` / `review-workflow`，`write_policy: state_or_gate_write`；需要修改实现时，
-  由主控重新路由到有 `source_or_test_write` 权限的执行节点。
-- 本 skill 写 triage 或状态前，route 必须有已存在且非空的 `work_item_id`、`task_card_id`，以及精确
+- review feedback triage 属于 `SB-REVIEW` / `review-workflow`。`state_or_gate_write` 时只核实、分类并写
+  triage/response；发现需要修改实现时，返回本地 `needs: implementation`，由主控重新路由。
+- 只有收到明确整改 TaskCard，且 `write_policy` 为 `source_or_test_write` 时才修改 allowlist 内源码或测试并运行验证。
+- 本 skill 写 triage、状态或整改前，route 必须有已存在且非空的 `work_item_id`、`task_card_id`，以及精确
   `allowed_paths`、`forbidden_actions`、`current_gate`、`write_policy`。
-- 返回 `status`、`outputs`、`evidence`、`ledger_event`、`gate`、`next_required_action`；不得用接收反馈
+- 返回 `status`、`outputs`、`evidence`、`ledger_event`、`gate` 和本地 `needs`；不得用接收反馈
   直接覆盖 reviewer Decision 或自批 `approved`。
 
 ## 触发
@@ -41,10 +42,10 @@ description: 收到 review feedback、PR 评论、任务评审意见或外部 re
 5. 核实反馈是否符合当前代码、测试、架构和用户决策。
 6. 判断 severity：Critical、Important、Minor。
 7. 先处理阻塞项，再处理简单项，再处理复杂项。
-8. 每次只改一个反馈项或一组强相关反馈。
-9. 每项修复后运行对应验证。
+8. `state_or_gate_write` 路由只写 triage、技术判断和待整改项，不修改源码或测试。
+9. `source_or_test_write` 整改路由每次只改一个反馈项或一组强相关反馈，并在每项修复后运行对应验证。
 10. 按 [review-response-template.md](references/review-response-template.md) 写 response。
-11. 写入 `.factory/workitems/<WORKITEM-ID>/reports/` 和 `.factory/workitems/<WORKITEM-ID>/reviews/`。
+11. triage/response 写入 `.factory/workitems/<WORKITEM-ID>/reviews/`；仅整改路由写修复报告和验证证据。
 12. 更新 `.factory/workitems/<WORKITEM-ID>/ledger.jsonl`。
 13. 执行 memory sync，更新 `.factory/memory/review-ledger.jsonl`、`.factory/memory/tasks.summary.md` 和必要 summary。
 
@@ -94,7 +95,7 @@ description: 收到 review feedback、PR 评论、任务评审意见或外部 re
 
 ## 完成状态
 
-只有反馈已分类、修复已验证、response 已写入、ledger 和 memory 已同步，才能输出完成状态与剩余 `needs`。
+triage 路由在反馈已核实分类、response 已写入、ledger 和 memory 已同步后完成，并用 `needs: implementation` 交回需要整改的条目；整改路由还必须完成修复验证和修复报告。两类路由都不得自行覆盖原 reviewer Decision。
 
 ```text
 工作结果：

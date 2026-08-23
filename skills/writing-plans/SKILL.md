@@ -13,7 +13,7 @@ description: 仅在已批准的 spec、需求、设计或 work item brief 需要
 - `SB-PLAN` 进入 `planning-workflow`，`write_policy: project_fact_write`。
 - 写入前，route 必须有已存在且非空的 `work_item_id`、`task_card_id`，以及精确 `allowed_paths`、
   `forbidden_actions`、`current_gate`、`write_policy`；只写 allowlist 内 plan、TaskCard 和计划证据。
-- 返回 `status`、`outputs`、`evidence`、`ledger_event`、`gate`、`next_required_action`；本 skill 不执行计划，
+- 返回 `status`、`outputs`、`evidence`、`ledger_event`、`gate` 和本地 `needs`；本 skill 不执行计划，
   不自批 Review。
 
 ## 触发

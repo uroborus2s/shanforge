@@ -1,7 +1,9 @@
 # 测试摘要
 
-- 当前阶段：`SKILL-COMPLETENESS-P0-001 / completed`
-- 当前验证结论：实现提交 `fd908b4` 后以 `e9f9d97` 同步状态合同；当前 HEAD 干净克隆完整 pytest `242 passed / 4 subtests passed`，Ruff、四个 Skill validator、脚本编译、JSON/JSONL、`git diff --check` 与 Git clean 全部通过。
+- 当前阶段：`SKILL-FULL-OPTIMIZATION-001 / T06`
+- 当前验证结论：T06 最终候选完整 pytest `262 passed / 4 subtests passed`，Ruff、38/38 validator、179 个 JSON、44 个 JSONL 与 `git diff --check` 通过。P0 脚本行为守卫 `6 passed`，受影响回归 `70 passed`，旧契约迁移复测 `65 passed`；同 reviewer 新鲜复验一致。
+
+- 2026-08-23：T02/T03/T04 定向验证分别为 `35 passed / 4 subtests`、`44 passed`、`26 passed`；T05 隔离完整候选 `245 passed / 4 subtests passed`，详见 `.factory/workitems/SKILL-FULL-OPTIMIZATION-001/evidence/verification.md`。
 
 - 2026-07-30：并行任务 `PM-DASHBOARD-005-T01` 第七轮路线 Green
   `2 passed / 4 subtests`，聚焦快照 `10 passed / 4 subtests`，Ruff check/format

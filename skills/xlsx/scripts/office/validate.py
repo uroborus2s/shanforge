@@ -16,10 +16,31 @@ Auto-repair fixes:
 import argparse
 import sys
 import tempfile
+import xml.etree.ElementTree as ET
 import zipfile
 from pathlib import Path
 
-from validators import DOCXSchemaValidator, PPTXSchemaValidator, RedliningValidator
+
+def validate_xlsx(unpacked_dir: Path) -> bool:
+    required = (
+        unpacked_dir / "[Content_Types].xml",
+        unpacked_dir / "_rels/.rels",
+        unpacked_dir / "xl/workbook.xml",
+    )
+    missing = [str(path.relative_to(unpacked_dir)) for path in required if not path.is_file()]
+    if not list((unpacked_dir / "xl/worksheets").glob("*.xml")):
+        missing.append("xl/worksheets/*.xml")
+    if missing:
+        print(f"Error: XLSX package is missing: {', '.join(missing)}")
+        return False
+
+    try:
+        for path in (*unpacked_dir.rglob("*.xml"), *unpacked_dir.rglob("*.rels")):
+            ET.parse(path)
+    except ET.ParseError as error:
+        print(f"Error: Invalid XLSX XML: {error}")
+        return False
+    return True
 
 
 def main():
@@ -32,7 +53,10 @@ def main():
         "--original",
         required=False,
         default=None,
-        help="Path to original file (.docx/.pptx/.xlsx). If omitted, all XSD errors are reported and redlining validation is skipped.",
+        help=(
+            "Path to original file (.docx/.pptx/.xlsx). If omitted, all XSD "
+            "errors are reported and redlining validation is skipped."
+        ),
     )
     parser.add_argument(
         "-v",
@@ -65,7 +89,8 @@ def main():
 
     file_extension = (original_file or path).suffix.lower()
     assert file_extension in [".docx", ".pptx", ".xlsx"], (
-        f"Error: Cannot determine file type from {path}. Use --original or provide a .docx/.pptx/.xlsx file."
+        f"Error: Cannot determine file type from {path}. Use --original or provide "
+        "a .docx/.pptx/.xlsx file."
     )
 
     if path.is_file() and path.suffix.lower() in [".docx", ".pptx", ".xlsx"]:
@@ -79,17 +104,28 @@ def main():
 
     match file_extension:
         case ".docx":
+            from validators import DOCXSchemaValidator, RedliningValidator
+
             validators = [
                 DOCXSchemaValidator(unpacked_dir, original_file, verbose=args.verbose),
             ]
             if original_file:
                 validators.append(
-                    RedliningValidator(unpacked_dir, original_file, verbose=args.verbose, author=args.author)  
+                    RedliningValidator(
+                        unpacked_dir, original_file, verbose=args.verbose, author=args.author
+                    )
                 )
         case ".pptx":
+            from validators import PPTXSchemaValidator
+
             validators = [
                 PPTXSchemaValidator(unpacked_dir, original_file, verbose=args.verbose),
             ]
+        case ".xlsx":
+            success = validate_xlsx(unpacked_dir)
+            if success:
+                print("All validations PASSED!")
+            sys.exit(0 if success else 1)
         case _:
             print(f"Error: Validation not supported for file type {file_extension}")
             sys.exit(1)

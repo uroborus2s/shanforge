@@ -10,16 +10,18 @@ license: 版权所有。完整条款请参阅 LICENSE.txt
 
 先按用户目标选分支，再选择工具。
 
+以下 `<skill-dir>` 表示当前 `SKILL.md` 所在目录；执行前替换为该目录的实际绝对路径，不假设目标项目包含本 Skill 的 `scripts/`。
+
 | 分支 | 动作 |
 |---|---|
 | 读取文本 | 先试 `pdftotext` 或 `pdfplumber`；需要保留版面时用 `pdftotext -layout`。 |
 | 提取表格 | 用 `pdfplumber` 读取页和表格；导出表格时写 `.xlsx` 或 `.csv` 新文件。 |
 | 合并 / 拆分 / 旋转 | 用 `pypdf` 或 `qpdf`，保持原 PDF 不动，输出新文件。 |
 | 创建 PDF | 用 `reportlab` 生成；版式敏感时渲染页面图片检查。 |
-| 表单填写 | 先读 `forms.md`，优先使用 `scripts/check_fillable_fields.py`、`scripts/extract_form_field_info.py` 和对应填表脚本。 |
+| 表单填写 | 先读 `forms.md`，优先使用 `<skill-dir>/scripts/check_fillable_fields.py`、`<skill-dir>/scripts/extract_form_field_info.py` 和对应填表脚本。 |
 | OCR / 扫描件 | 先确认普通文本不可提取，再使用 OCR；记录 OCR 置信风险，不把 OCR 当原文。 |
 | 加密 / 解密 | 只在用户授权且拥有密码时执行；失败时不绕过权限。 |
-| 验证 / 渲染 | 用 `qpdf --check`、页面渲染或 `scripts/create_validation_image.py` 做结构和视觉检查。 |
+| 验证 / 渲染 | 用 `qpdf --check`、页面渲染或 `<skill-dir>/scripts/create_validation_image.py` 做结构和视觉检查。 |
 
 常用工具名保留：`pypdf`、`pdfplumber`、`reportlab`、`pdftotext`、`pdftoppm`、`pdfimages`、`qpdf`、`pytesseract`、`pdf2image`。
 
@@ -45,11 +47,11 @@ pdfimages -j input.pdf output_prefix
 表单任务先从这里开始：
 
 ```bash
-python scripts/check_fillable_fields.py input.pdf
-python scripts/extract_form_field_info.py input.pdf field_info.json
-python scripts/fill_fillable_fields.py input.pdf field_values.json output.pdf
-python scripts/convert_pdf_to_images.py input.pdf images/
-python scripts/fill_pdf_form_with_annotations.py input.pdf fields.json output.pdf
+python <skill-dir>/scripts/check_fillable_fields.py input.pdf
+python <skill-dir>/scripts/extract_form_field_info.py input.pdf field_info.json
+python <skill-dir>/scripts/fill_fillable_fields.py input.pdf field_values.json output.pdf
+python <skill-dir>/scripts/convert_pdf_to_images.py input.pdf images/
+python <skill-dir>/scripts/fill_pdf_form_with_annotations.py input.pdf fields.json output.pdf
 ```
 
 ## 输出清单
@@ -84,7 +86,7 @@ python scripts/fill_pdf_form_with_annotations.py input.pdf fields.json output.pd
 工作结果：
 - work_item: <WORKITEM-ID>
 - skill: pdf
-- status: ready_for_review | blocked | needs_user_input
+- status: ready_for_review | partial | blocked | needs_user_input
 - outputs:
   - <output.pdf/txt/xlsx/csv/images>
 - evidence:

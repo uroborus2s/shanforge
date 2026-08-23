@@ -1,13 +1,15 @@
-## 子代理需要多代理支持
+## 子代理工具映射
 
-在 Codex 配置 `~/.codex/config.toml` 中加入：
+只在当前会话已暴露协作工具且任务符合 `subagent-driven-development` 边界时使用子代理，不修改用户全局 Codex 配置。当前工具职责：
 
-```toml
-[features]
-multi_agent = true
-```
+- `spawn_agent`：创建有明确边界的子任务。
+- `send_message`：向运行中或空闲代理发送补充信息，不触发新一轮。
+- `followup_task`：给现有代理追加任务，并在空闲时触发新一轮。
+- `wait_agent`：等待代理进展或最终结果。
+- `list_agents`：查看当前代理状态。
+- `interrupt_agent`：需要停止正在执行的代理时中断其当前轮次。
 
-这会启用 `spawn_agent`、`wait_agent`、`close_agent`，供 `dispatching-parallel-agents`、`subagent-driven-development` 等 skill 使用。使用 `subagent-driven-development` 时，implementer / reviewer 子代理完成后必须关闭。
+已完成的代理无需额外关闭；是否允许创建子代理始终以当前会话暴露的工具、用户授权和适用 skill 约束为准。
 
 ## 环境检测
 

@@ -93,9 +93,15 @@ def test_execution_skills_continue_only_inside_authorized_envelope() -> None:
             "需要人类产品决策",
             "超出允许文件范围",
             "破坏性或外部动作",
-            "stop_reason",
         ):
             assert phrase in skill, f"{path} missing {phrase}"
+        for project_field in (
+            "project_position",
+            "completion_level",
+            "stop_reason",
+            "scope_remaining",
+        ):
+            assert project_field not in skill, f"{path} still owns {project_field}"
 
     subagent = read("skills/subagent-driven-development/SKILL.md")
     assert "只有 `human_confirmation_required: true` 且有完整 `gate_reason` 时" in subagent
@@ -136,18 +142,25 @@ def test_memory_recovery_prefers_current_header_over_historical_gates() -> None:
         assert phrase in memory
 
 
-def test_completion_evidence_declares_scope_level_and_remaining_work() -> None:
+def test_completion_evidence_reports_claim_scope_without_owning_project_state() -> None:
     verification = read("skills/verification-before-completion/SKILL.md")
+    controller = read("skills/using-shanforge/SKILL.md")
 
     for phrase in (
-        "完成层级",
-        "completion_level: task | stage | project",
-        "任务完成不等于项目完成",
-        "scope_remaining",
-        "project_position",
-        "stop_reason",
+        "声明范围核对",
+        "任务验证通过不等于阶段或项目完成",
+        "只报告证据直接覆盖的声明和未验证项",
+        "项目位置、完成层级、停止原因和剩余工作由 `using-shanforge`",
     ):
         assert phrase in verification
+    for project_field in (
+        "project_position",
+        "completion_level",
+        "stop_reason",
+        "scope_remaining",
+    ):
+        assert project_field not in verification
+        assert project_field in controller
 
 
 def test_runtime_skill_management_is_not_reintroduced() -> None:

@@ -29,8 +29,7 @@ def test_work_skills_keep_professional_content_before_the_shared_contract() -> N
         assert "description:" in frontmatter, name
         assert len(headings) >= 3, name
         assert len(list_items) >= 5, name
-        expected_links = 0 if name == "stratix-service" else 1
-        assert skill.count(PROJECT_CONTRACT_LINK) == expected_links, name
+        assert skill.count(PROJECT_CONTRACT_LINK) == 1, name
 
     modified_skill_anchors = {
         "art-asset-pipeline": ("## 工作流程", "manifest.json"),

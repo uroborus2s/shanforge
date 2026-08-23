@@ -18,7 +18,7 @@ description: 发布、部署、回滚和生产观察工作流。用于已有精�
 | `SB-RELEASE` | `release-workflow` | `state_or_gate_write` |
 
 路由输入必须包含 `work_item_id`、`task_card_id`、精确 `allowed_paths`、`forbidden_actions`、`current_gate` 和
-`write_policy`。结果只回写 `status`、`outputs`、`evidence`、`ledger_event`、`gate` 和 `next_required_action`。
+`write_policy`。结果只回写 `status`、`outputs`、`evidence`、`ledger_event`、`gate` 和本地 `needs`；项目级下一动作交还 `using-shanforge` 决定。
 
 ## 进入条件
 
@@ -64,5 +64,7 @@ evidence: <paths or refs>
 - 健康、冒烟和观察均满足项目阈值：`released`。
 
 Skill 完成时只返回回执，不决定下一步 Skill，不自动 push、merge、提交或再次发布。
+
+发布回执是本 skill 的专业输出；项目化执行所需的任务身份、`needs` 和 ledger 事件由共享回写契约补齐，不复制进回执。
 
 项目化执行时，沿用 [工作 Skill 回写契约](../using-shanforge/references/work-skill-return-contract.md)；本 skill 的现有专业输出和失败语义不变。

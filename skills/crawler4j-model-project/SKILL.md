@@ -141,9 +141,9 @@ description: 使用 crawler4j `0.4.0` 的 `core-native-v2` 模块协议创建、
 
 ## 按需加载资料
 
-- `references/cli-workflow.md`
-- `references/module-structure.md`
-- `references/core-integration.md`
+- [cli-workflow](references/cli-workflow.md)
+- [module-structure](references/module-structure.md)
+- [core-integration](references/core-integration.md)
 
 ## 状态回写与失败语义
 

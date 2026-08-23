@@ -87,9 +87,7 @@ def test_work_skills_do_not_duplicate_project_status_envelope() -> None:
 def test_work_skills_do_not_duplicate_the_shared_return_contract() -> None:
     for name in sorted(WORK_SKILLS):
         skill = read_skill(name)
-        assert skill.count(PROJECT_CONTRACT_LINK) <= 1, name
-
-    assert PROJECT_CONTRACT_LINK not in read_skill("stratix-service")
+        assert skill.count(PROJECT_CONTRACT_LINK) == 1, name
 
 
 def test_runtime_skill_management_stays_removed() -> None:

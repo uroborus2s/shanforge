@@ -32,7 +32,7 @@ description: 文档协同创作技能。用于和用户共同起草、改写、�
 
 非 Shanforge work item 的轻量交付至少回写：
 
-- `status`: `done` 或 `blocked`
+- `status`: `done`、`blocked` 或 `needs_user_input`
 - `outputs`: 文档路径、章节草稿、修订摘要或评审意见
 - `evidence`: 输入文件、用户确认、引用来源、关键决策和检查记录
 - `verification`: 通读结果、结构检查、事实/链接检查、模板符合性；未运行要说明原因

@@ -10,24 +10,26 @@ license: 版权所有。完整条款请参阅 LICENSE.txt
 
 先判断用户要的是哪一种结果，不要从工具清单开始。
 
+以下 `<skill-dir>` 表示当前 `SKILL.md` 所在目录；执行前替换为该目录的实际绝对路径，不假设目标项目包含本 Skill 的 `scripts/`。
+
 | 分支 | 动作 |
 |---|---|
-| 读取 / 提取 | 先用 `pandoc --track-changes=all document.docx -o output.md` 或 `python scripts/office/unpack.py document.docx unpacked/` 读取内容；需要版式证据时再转 PDF/图片。 |
+| 读取 / 提取 | 先用 `pandoc --track-changes=all document.docx -o output.md` 或 `python <skill-dir>/scripts/office/unpack.py document.docx unpacked/` 读取内容；需要版式证据时再转 PDF/图片。 |
 | 创建新文档 | 使用仓内已有 `docx` 依赖或现有生成脚本；没有依赖时先报告缺口，不建议临时安装新依赖。 |
-| 编辑现有文档 | 先解包，编辑 `unpacked/word/` 的 XML，再用 `python scripts/office/pack.py unpacked/ output.docx --original document.docx` 打包。 |
+| 编辑现有文档 | 先解包，编辑 `unpacked/word/` 的 XML，再用 `python <skill-dir>/scripts/office/pack.py unpacked/ output.docx --original document.docx` 打包。 |
 | 修订 / 批注 | 保留 Word 修订结构；作者字段使用用户指定名称，未指定时用中性项目名或当前执行者名称，不写特定助手品牌。 |
-| 验证 / 视觉检查 | 运行 `python scripts/office/validate.py output.docx`；版式敏感时用 `python scripts/office/soffice.py --headless --convert-to pdf output.docx` 再渲染抽查页面。 |
+| 验证 / 视觉检查 | 运行 `python <skill-dir>/scripts/office/validate.py output.docx`；版式敏感时用 `python <skill-dir>/scripts/office/soffice.py --headless --convert-to pdf output.docx` 再渲染抽查页面。 |
 
 旧版 `.doc` 先转换：
 
 ```bash
-python scripts/office/soffice.py --headless --convert-to docx document.doc
+python <skill-dir>/scripts/office/soffice.py --headless --convert-to docx document.doc
 ```
 
 接受全部修订生成干净副本：
 
 ```bash
-python scripts/accept_changes.py input.docx output.docx
+python <skill-dir>/scripts/accept_changes.py input.docx output.docx
 ```
 
 ## 安全写入
@@ -63,13 +65,13 @@ python scripts/accept_changes.py input.docx output.docx
 最小验证：
 
 ```bash
-python scripts/office/validate.py output.docx
+python <skill-dir>/scripts/office/validate.py output.docx
 ```
 
 版式敏感文档还要执行：
 
 ```bash
-python scripts/office/soffice.py --headless --convert-to pdf output.docx
+python <skill-dir>/scripts/office/soffice.py --headless --convert-to pdf output.docx
 pdftoppm -jpeg -r 150 output.pdf page
 ```
 
@@ -88,7 +90,7 @@ pdftoppm -jpeg -r 150 output.pdf page
 工作结果：
 - work_item: <WORKITEM-ID>
 - skill: docx
-- status: ready_for_review | blocked | needs_user_input
+- status: ready_for_review | partial | blocked | needs_user_input
 - outputs:
   - <output.docx>
 - evidence:

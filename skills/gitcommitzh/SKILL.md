@@ -14,14 +14,14 @@ description: 审查 Git 工作区、暂存区和 diff，按当前任务范围生
 - 用户要求总结当前 Git 改动、写中文提交说明或中文 commit message。
 - 用户要求“总结后提交”“帮我 commit”“先看 diff 再提交”。
 - 用户直接输入 `/gitcommitzh`。
-- Shanforge work item 已满足 review / verification evidence / human_approved / memory sync，且用户未要求暂不提交。
+- Shanforge work item 已满足 review、verification evidence、memory sync；只有真实待确认人工 Gate 存在时，才要求 `human_approved`，且用户未要求暂不提交。
 
 不适用于：
 
 - 用户要 push、建 PR、merge、同步远端或发布。
 - 用户要创建、切换、删除分支。
 - 用户要 `commit --amend`、`rebase`、`squash`、强推或其他历史改写。
-- 当前任务仍缺 review、verification、human confirmation 或 memory sync 事实。
+- 当前任务仍缺 review、verification、memory sync，或存在尚未满足的真实人工确认 Gate。
 
 gitcommitzh 不负责创建、推送或合并 PR；它只做当前分支本地 commit。远端动作交给对应 Git / GitHub 工作流。
 
@@ -48,7 +48,7 @@ gitcommitzh 不负责创建、推送或合并 PR；它只做当前分支本地 c
 ## PR 闭环与提交前置检查
 
 当提交属于 Shanforge work item 时，提交前必须核对 [PR 闭环与提交检查清单](references/pr-closure-checklist.md)。
-提交前必须先核对 work item、review、verification evidence、memory sync 和用户确认状态。
+提交前必须先核对 work item、review、verification evidence、memory sync；存在真实人工确认 Gate 时再核对用户确认状态。
 
 最小检查：
 
@@ -185,7 +185,7 @@ Shanforge 状态包：
 
 - 提交范围无法和当前任务对应。
 - 暂存区含范围外内容。
-- work item、review、verification evidence、memory sync 或 `human_approved` 缺失。
+- work item、review、verification evidence、memory sync 缺失，或真实人工 Gate 所需的 `human_approved` 缺失。
 - 用户直接限制与自动提交触发冲突。
 - hook、权限、冲突或 Git 命令失败。
 

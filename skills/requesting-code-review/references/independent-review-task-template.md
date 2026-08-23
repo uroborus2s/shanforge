@@ -32,7 +32,7 @@
 5. 先写 reviewer 独立性元数据。
 6. 按 rubric 给出 review score。
 7. 输出 approved、changes_requested、needs_independent_review 或 self_check_passed。
-8. 如果 approved，下一状态仍是 pending_human_confirmation。
+8. 如果 approved，默认写 return_to_orchestrator；只有输入包已声明真实人工 Gate 且写明原因时，才写 pending_human_confirmation。
 ```
 
 ## Output
@@ -49,7 +49,7 @@ reviewer 不能把任务标记为 `done`。
 - reviewer_id:
 - reviewer_independence_evidence:
 - review_status: approved | changes_requested | self_check_passed
-- next_gate_status: pending_human_confirmation | needs_independent_review | changes_requested
+- next_gate_status: return_to_orchestrator | pending_human_confirmation | needs_independent_review | changes_requested
 - author_self_check_score: <0-100 or n/a>
 - review_score: <0-100 or n/a>
 
@@ -70,7 +70,7 @@ reviewer 不能把任务标记为 `done`。
 
 ## Gate
 
-pending_human_confirmation | needs_independent_review | changes_requested
+return_to_orchestrator | pending_human_confirmation | needs_independent_review | changes_requested
 ```
 
 ## 独立性门
@@ -80,3 +80,4 @@ pending_human_confirmation | needs_independent_review | changes_requested
 - 没有 `reviewer_type`、`reviewer_id` 和 `reviewer_independence_evidence` 时，`next_gate_status` 必须写 `needs_independent_review`。
 - `needs_independent_review` 不是 review 通过结论。
 - 没有 reviewer 独立性证据时，不得写 `approved` 或 `pending_human_confirmation`。
+- `approved` 默认返回 `return_to_orchestrator`；只有明确的产品决策、风险接受、范围扩大、破坏性/外部动作或治理 Gate 才进入人工确认。

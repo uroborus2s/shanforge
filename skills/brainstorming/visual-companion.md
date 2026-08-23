@@ -37,12 +37,14 @@
 
 默认写 **HTML 片段**。如果文件以 `<!DOCTYPE` 或 `<html` 开头，服务器按完整文档展示，并只注入 helper script。否则服务器会自动包上 frame 模板，加入标题栏、主题样式、连接状态和交互脚本。
 
+下文的 `<skill-dir>` 表示本 skill 所在目录；不要假设当前工作目录是 Shanforge 仓库根目录。
+
 ## 启动会话
 
 用户同意使用可视化伴侣后启动。
 
 ```bash
-skills/brainstorming/scripts/start-server.sh \
+<skill-dir>/scripts/start-server.sh \
   --project-dir /path/to/project \
   --workitem-id WORKITEM-ID \
   --open
@@ -97,7 +99,7 @@ Codex 环境会回收脱离的后台进程。脚本检测到 `CODEX_CI` 时会�
 如果浏览器无法访问返回 URL，通常是远程或容器网络问题。可以绑定非 loopback host：
 
 ```bash
-skills/brainstorming/scripts/start-server.sh \
+<skill-dir>/scripts/start-server.sh \
   --project-dir /path/to/project \
   --workitem-id WORKITEM-ID \
   --host 0.0.0.0 \
@@ -284,12 +286,12 @@ skills/brainstorming/scripts/start-server.sh \
 ## 清理
 
 ```bash
-skills/brainstorming/scripts/stop-server.sh "$SESSION_DIR"
+<skill-dir>/scripts/stop-server.sh "$SESSION_DIR"
 ```
 
 `/tmp` 会话会被删除。`.factory/workitems/<WORKITEM-ID>/design-assets/brainstorm/` 下的会话会保留，用于后续审阅和 evidence 回看。
 
 ## 参考
 
-- Frame 模板：`skills/brainstorming/scripts/frame-template.html`
-- 浏览器 helper：`skills/brainstorming/scripts/helper.js`
+- Frame 模板：`<skill-dir>/scripts/frame-template.html`
+- 浏览器 helper：`<skill-dir>/scripts/helper.js`

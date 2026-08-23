@@ -12,8 +12,8 @@ description: 有已批准的 Shanforge work item plan，且任务相对独立、
 - `SB-EXECUTE` 进入 `execution-workflow`，`write_policy: source_or_test_write`；子 agent 不重新选择工作流。
 - 每个派发 route 必须有已存在且非空的 `work_item_id`、`task_card_id`，以及精确 `allowed_paths`、
   `forbidden_actions`、`current_gate`、`write_policy`；只允许该 TaskCard 的隔离写集。
-- 子 agent 返回 `status`、`outputs`、`evidence`、`ledger_event`、`gate`、`next_required_action`；主控汇总
-  并决定后续节点，子 agent 不自批 Review 或扩大范围。
+- 子 agent 返回 `status`、`outputs`、`evidence`、`ledger_event`、`gate` 和本地 `needs`；主控汇总
+  执行事实，项目级后续动作由 `using-shanforge` 决定，子 agent 不自批 Review 或扩大范围。
 
 ## 触发
 
@@ -173,10 +173,6 @@ Terra/Luna 只消费已授权路由包；`execution_authorized` 不为 `true` �
 - work_item: <ID>
 - skill: subagent-driven-development
 - status: ready_for_review | blocked | needs_user_input
-- project_position: <step / total / stage / task>
-- completion_level: none | task | stage | project
-- stop_reason: <none | blocker | human_gate>
-- scope_remaining: <授权执行包内剩余任务>
 - outputs:
   - <path>
 - evidence:

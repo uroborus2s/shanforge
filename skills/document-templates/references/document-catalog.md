@@ -83,7 +83,7 @@
 
 | 文档 | 默认性 | 主要作用 |
 |---|---|---|
-| `hermes-agent-source-analysis-report.md` | 必备 | 固化 Hermes Agent 调研事实和可借鉴设计 |
+| `source-analysis-report.md` | 条件 | 固化外部方案、遗留系统或竞品调研事实与可借鉴设计 |
 | work item brief | 条件 | 保留问题空间、方案比较和用户批准的决策过程 |
 
 ### `03-requirements`
@@ -104,13 +104,13 @@
 |---|---|---|
 | `technical-selection.md` | 必备 | 固化技术栈、工程规则和必装模块 |
 | `system-architecture.md` | 必备 | 描述系统上下文、分层和关键组件 |
-| `agent-platform-architecture.md` | 必备 | 描述平台核心能力和业务装配面 |
-| `layered-domain-interface-catalog.md` | 必备 | 明确层、领域、接口 owner 和下游依赖 |
+| `component-architecture.md` | 条件 | 描述复杂系统的核心组件和装配面 |
+| `interface-ownership-catalog.md` | 条件 | 明确接口 owner 和下游依赖 |
 | `module-boundaries.md` | 必备 | 明确职责、数据所有权和耦合边界 |
-| `infrastructure-layer-design.md` | 必备 | 定义基础设置层和外部资源实现边界 |
+| `integration-design.md` | 条件 | 定义外部资源、基础设施和集成边界 |
 | `api-design.md` | 必备 | 统一 API / CLI / 契约语义 |
-| `memory-*.md` | 条件 | 记忆运行时、接口和子设计 |
-| `v2-architecture-pages.md` | 条件 | draw.io 设计资产索引 |
+| `<subsystem>-design.md` | 条件 | 复杂子系统的运行时、接口和详细设计 |
+| `design-assets-index.md` | 条件 | 图表、原型和其他设计资产索引 |
 
 ### `05-development-process`
 

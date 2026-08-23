@@ -55,8 +55,6 @@ def test_skill_bundles_norms_without_runtime_source_reading() -> None:
         assert package_version in skill
 
     for maintenance_detail in (
-        "项目化执行时",
-        "工作 Skill 回写契约",
         "框架源码只在维护本 skill",
         "work item evidence",
     ):

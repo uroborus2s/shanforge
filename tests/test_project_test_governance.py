@@ -381,15 +381,18 @@ def test_documented_validator_commands_use_the_project_python_runtime() -> None:
     )
     for path in paths:
         document = read(path)
-        validator_command = (
-            "uv run python "
-            "skills/document-templates/scripts/validate_test_documents.py"
-        )
+        if path.startswith("skills/document-templates/"):
+            validator_command = (
+                "uv run python <skill-dir>/scripts/validate_test_documents.py"
+            )
+            assert "`<skill-dir>`" in document
+        else:
+            validator_command = (
+                "uv run python "
+                "skills/document-templates/scripts/validate_test_documents.py"
+            )
         assert validator_command in document
-        assert not re.search(
-            r"(?<!uv run )python skills/document-templates/scripts/validate_test_documents.py",
-            document,
-        )
+        assert not re.search(r"(?<!uv run )python (?:<skill-dir>|skills/)", document)
 
 
 def test_reusable_case_and_report_templates_define_complete_human_outputs() -> None:

@@ -167,7 +167,7 @@ def test_document_templates_register_formal_docs_and_keep_temporary_docs_out() -
         assert phrase in skill
 
     for phrase in (
-        "新增正式页面后，同步根 `docs/index.md`；需要 AI 恢复时同步 `.factory/memory/doc-map.md`",
+        "采用 Shanforge Profile 且需要 AI 恢复时，再同步 `.factory/memory/doc-map.md`",
         "临时过程材料不得放入 `docs/`",
         "模板资产与输出路径",
     ):

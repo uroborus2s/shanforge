@@ -51,7 +51,7 @@ docs/
 │   │   └── roadmap.md
 │   ├── 02-discovery/
 │   │   ├── index.md
-│   │   └── hermes-agent-source-analysis-report.md
+│   │   └── source-analysis-report.md
 │   ├── 03-requirements/
 │   │   ├── index.md
 │   │   ├── prd.md
@@ -66,20 +66,13 @@ docs/
 │   │   ├── solution-overview.md
 │   │   ├── technical-selection.md
 │   │   ├── system-architecture.md
-│   │   ├── agent-platform-architecture.md
-│   │   ├── layered-domain-interface-catalog.md
+│   │   ├── component-architecture.md
+│   │   ├── interface-ownership-catalog.md
 │   │   ├── module-boundaries.md
-│   │   ├── infrastructure-layer-design.md
+│   │   ├── integration-design.md
 │   │   ├── api-design.md
-│   │   ├── memory-runtime-design.md
-│   │   ├── memory-system-detailed-design.md
-│   │   ├── memory-runtime-interfaces.md
-│   │   ├── memory-session-ledger-design.md
-│   │   ├── memory-promotion-design.md
-│   │   ├── memory-recall-design.md
-│   │   ├── memory-distillation-learning-design.md
-│   │   ├── ai-drama-production-skill-system.md
-│   │   ├── v2-architecture-pages.md
+│   │   ├── <subsystem>-design.md
+│   │   ├── design-assets-index.md
 │   │   └── assets/
 │   ├── 05-development-process/
 │   │   ├── index.md
@@ -103,14 +96,21 @@ docs/
 │       ├── requirements-matrix.md
 │       ├── interface-matrix.md
 │       └── document-index.md
-└── .factory/
-    ├── README.md
-    ├── project.json
-    ├── project.lock
-    ├── tech-profile.json
-    ├── memory/
-    ├── pm/
-    └── workitems/
+```
+
+## Shanforge Profile
+
+项目事实确认采用 Shanforge 时，可在仓库根增加以下状态目录；其他项目不创建，也不依赖它：
+
+```text
+.factory/
+├── README.md
+├── project.json
+├── project.lock
+├── tech-profile.json
+├── memory/
+├── pm/
+└── workitems/
 ```
 
 ## 根 `docs/index.md` 的职责
@@ -212,7 +212,7 @@ traceability   -> 04-project-development/10-traceability
 - 新项目优先按 4 大模块直接建目录，不要再落旧生命周期顶层结构
 - 历史项目优先走升级命令，不手工大搬家
 - 任何页面新增、删除或移动后，同步刷新根 `docs/index.md` 与相关目录首页
-- 新增正式页面后，同步根 `docs/index.md`；需要 AI 恢复时同步 `.factory/memory/doc-map.md`
+- 新增正式页面后，同步根 `docs/index.md`；采用 Shanforge Profile 且需要 AI 恢复时，再同步 `.factory/memory/doc-map.md`
 - 临时过程材料不得放入 `docs/`
 - 正式文档模板必须包含中文 `版本信息` 和 `版本历史`
 

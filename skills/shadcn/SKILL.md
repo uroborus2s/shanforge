@@ -1,6 +1,6 @@
 ---
 name: shadcn
-description: shadcn/ui 项目与组件工作流技能。用于含 components.json 的项目，或用户明确要求 shadcn/ui、组件 registry、preset、组件添加/更新/调试/组合/样式修复时；优先读取本技能 rules、cli.md、customization.md 和 mcp.md，再按项目包管理器执行命令。
+description: shadcn/ui 项目与组件工作流技能。用于含 components.json 的项目，或用户明确要求 shadcn/ui、组件 registry、preset、组件添加/更新/调试/组合/样式修复时；按任务读取最小相关资料，再按项目包管理器执行命令。
 ---
 
 # shadcn/ui
@@ -36,11 +36,18 @@ description: shadcn/ui 项目与组件工作流技能。用于含 components.jso
 4. 组件代码优先使用语义 token、现有 alias、项目图标库和 shadcn 组合结构；不要手写一套同功能组件。
 5. preset code 视为不透明值，直接交给 CLI；不要手动解码或抓取原始文件。
 
+## Updating Components
+
+1. 先运行 `shadcn diff <component>` 或对应 CLI 预览，读取上游差异与本地文件。
+2. 未定制的组件可直接更新；有本地改动时只合并所需上游差异，保留项目 alias、token、图标库和行为。
+3. 更新后读取落盘文件，并运行项目现有的 typecheck、lint、test 或最小渲染检查。
+4. 预览不完整、来源不明或命令会覆盖无法恢复的改动时停止，要求用户确认覆盖策略。
+
 ## 输出契约
 
 非 Shanforge work item 的轻量交付至少回写：
 
-- `status`: `done` 或 `blocked`
+- `status`: `done`、`blocked` 或 `needs_user_input`
 - `outputs`: 新增/修改组件、配置、样式文件或评审结论
 - `evidence`: 已读项目上下文、引用的 rule/reference、CLI 预览或 diff、关键文件位置
 - `verification`: 已运行的 typecheck、lint、test、build、组件渲染检查；未运行要说明原因

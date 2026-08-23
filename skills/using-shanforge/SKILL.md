@@ -143,7 +143,7 @@ Sol 是唯一总体设计、任务分级和模型路由 owner；Terra 和 Luna �
 - `simple + low` -> `gpt-5.6-luna`。
 - `standard | complex | medium | high` -> `gpt-5.6-terra`。
 
-### 执行模型决策表
+### Worker 执行模型决策表
 
 按表格顺序命中第一行；`*` 是兜底：
 
@@ -162,6 +162,31 @@ Sol 是唯一总体设计、任务分级和模型路由 owner；Terra 和 Luna �
 | `*` | `*` | `false` | `do_not_dispatch` |
 
 高风险 Gate 未闭合时 `execution_authorized: false`；其他任务只有在身份、范围和当前 Gate 完整时才可授权。
+
+### 子代理严格派发判定
+
+按表格顺序命中第一行；这是唯一可执行的派发条件。上表的执行模型决策只适用于 `worker`：
+
+| 条件 | dispatch_role | dispatch_required / dispatch_mode | 模型与推理强度 |
+|---|---|---|---|
+| `workflow_id` / `write_policy` 与声明分支不匹配，或多个分支可命中 | `none` | `false / direct`；`input_conflict, do_not_dispatch` | N/A，交还 Sol |
+| `workflow_id=execution-workflow`、`write_policy=source_or_test_write` 且 `execution_authorized=true` | `worker` | `true / subagent` | `simple + low` 为 Luna/`low`；其余为 Terra/`medium` |
+| `workflow_id=review-workflow`、`write_policy=state_or_gate_write`、`reviewer_type=independent_subagent`、身份/范围完整且实现/验证完成 | `reviewer` | `true / subagent` | Terra/`high`，只读 |
+| `*` | `none` | `false / direct` | N/A，仍由 Sol 控制 |
+
+独立 reviewer 是质量门，不重算或改写 worker 的复杂度、风险、执行模型和授权。worker 与 reviewer 都必须按
+[Codex 工具合同](references/codex-tools.md) 真实派发；失败关闭规则对两者同样适用。
+
+任何声明的 worker/reviewer 与其 `workflow_id` 或 `write_policy` 不匹配，或同时满足两个派发分支时，固定写
+`input_conflict`、`do_not_dispatch` 并交还 Sol；不得落入默认 direct 或猜测纠正。
+
+worker 分支固定为 `dispatch_required: true`、`dispatch_mode: subagent`；表中其余分支为
+`dispatch_required: false`、`dispatch_mode: direct` 或 reviewer 子代理，均按首个命中条件处理。
+
+授权实现必须由父 Sol 按 [Codex 工具合同](references/codex-tools.md) 显式调用 `spawn_agent`，传入与
+`execution_model` 完全一致的 `model`、规定的 `requested_reasoning_effort` 和 `fork_turns: "none"`，并在工具成功返回后记录父工具回执。
+工具未暴露、调用失败、显式模型不可用、回执缺失，或回执的 `requested_model` 与 `execution_model` 不一致时，写
+`dispatch_failed` 或 `worker_unavailable` 并停止交还 Sol；严禁 Sol 静默代写或换模型。
 普通项目化路由包追加并持久化以下字段：
 
 ```text
@@ -170,6 +195,11 @@ task_complexity: simple | standard | complex
 risk_level: low | medium | high
 execution_model: gpt-5.6-luna | gpt-5.6-terra
 execution_authorized: true | false
+dispatch_role: worker | reviewer | none
+dispatch_required: true | false
+dispatch_mode: subagent | direct
+requested_reasoning_effort: low | medium | high
+fork_turns: none
 route_reason: <命中的复杂度、风险和 Gate 规则>
 escalation_triggers:
   - scope_expanded

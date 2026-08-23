@@ -5,7 +5,8 @@ description: 有已批准的 Shanforge work item plan，且任务相对独立、
 
 # 子代理驱动开发
 
-本 skill 用于执行已批准计划。它只负责隔离实现、必要定向检查和批次状态回写。
+本 skill 只负责已批准计划的 `worker` 隔离实现、必要定向检查和批次状态回写；独立只读 review 是按 Codex
+工具合同派发的 `reviewer` 分支，不进入本 skill。
 
 ## v1.2.0 运行时路由合同
 
@@ -45,12 +46,27 @@ description: 有已批准的 Shanforge work item plan，且任务相对独立、
 
 主控必须先把用户批准范围固化为授权执行包：目标、任务集合、依赖层、允许文件、共享契约、允许动作、禁止动作、验证命令、同范围整改边界和真实人工 Gate。
 
-Terra/Luna 只消费已授权路由包；`execution_authorized` 不为 `true` 时不得派发。执行者不得重算或改写
-`control_model`、`task_complexity`、`risk_level`、`execution_model`、`route_reason` 和 `escalation_triggers`。
+worker Terra/Luna 只消费已授权路由包；`execution_authorized` 不为 `true` 时不得派发。执行者不得重算或改写
+`control_model`、`task_complexity`、`risk_level`、`execution_model`、`dispatch_required`、`dispatch_mode`、
+`dispatch_role`、`requested_reasoning_effort`、`fork_turns`、`route_reason` 和 `escalation_triggers`。
 命中 `scope_expanded`、`input_conflict`、`risk_increased`、`verification_failed_twice` 或 `human_gate` 时，
 立即停止当前执行并把事实交还 Sol；不得自行换模型或扩大授权。
 
 `execution_authorized != true -> do_not_dispatch`
+
+本 skill 内 `source_or_test_write + execution_authorized=true -> dispatch_role=worker + dispatch_required=true + dispatch_mode=subagent`；
+本 skill 的非授权实现必须为 `dispatch_role=none + dispatch_required=false + dispatch_mode=direct`，由 Sol 直接控制。独立只读 review
+是按 Codex 工具合同派发的 `reviewer` 分支，不进入本 skill。授权 worker 实现只能调用已暴露的 `spawn_agent`：`model` 必须等于
+`execution_model`，Luna 使用 `low`、Terra 使用 `medium`，且 `fork_turns="none"`；`message` 必须包含完整 task brief、精确写集、禁令和验证命令。
+父 Sol 必须在调用前生成稳定 `dispatch_id` 并保存工具成功返回的 `task_card_id`、`requested_model`、`requested_reasoning_effort`、`fork_turns`、
+`agent_id` 或 canonical task、`status: accepted`、`source: parent_tool_receipt`；`accepted` 不是子代理完成态。任一工具/模型/回执/模型一致性检查失败，置
+`dispatch_failed` 或 `worker_unavailable` 并交还 Sol，不得静默代写或换模型。
+
+本 skill 的 worker 路由沿用既有简写：
+`source_or_test_write + execution_authorized=true -> dispatch_required=true + dispatch_mode=subagent`
+其余任务必须为
+`dispatch_required=false + dispatch_mode=direct`
+；“其余任务”只指本 skill 的非授权实现，不包含独立 reviewer 分支。
 
 ### 升级信号决策表
 
@@ -108,7 +124,7 @@ Terra/Luna 只消费已授权路由包；`execution_authorized` 不为 `true` �
 6. 按依赖层分批；同层任务卡满足并行 gate 时并行派发，否则按依赖顺序执行。
 7. 给实现者提供 [implementer-task-template.md](references/implementer-task-template.md)。
 8. 如果实现者返回 `NEEDS_CONTEXT`，补充最小上下文后重新派发。
-9. 如果实现者返回 `BLOCKED`，按 [status-handling-checklist.md](references/status-handling-checklist.md) 判断是补上下文、拆任务、换更强模型还是向用户升级。
+9. 如果实现者返回 `BLOCKED`，按 [status-handling-checklist.md](references/status-handling-checklist.md) 判断是补上下文、拆任务或向 Sol 升级；不得自行换模型。
 10. 如果实现者返回 `DONE_WITH_CONCERNS`，先读 concerns；若涉及正确性或范围，先处理再 review。
 11. 实现者只返回实现内容、测试结果、文件和 concerns；低、中风险任务不落盘独立过程材料。
 12. 并行批次或里程碑完成后，由主控生成一套实现摘要、最终 evidence 和 review input package。

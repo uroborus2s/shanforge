@@ -194,6 +194,11 @@ route:
   risk_level: low | medium | high
   execution_model: gpt-5.6-luna | gpt-5.6-terra
   execution_authorized: true | false
+  dispatch_role: worker | reviewer | none
+  dispatch_required: true | false
+  dispatch_mode: subagent | direct
+  requested_reasoning_effort: low | medium | high
+  fork_turns: none
   route_reason: <matched deterministic rules>
   escalation_triggers:
     - scope_expanded
@@ -210,7 +215,21 @@ Sol 是唯一总体设计、任务分级和模型路由 owner；Terra 和 Luna �
   需要跨模块、跨会话或并行协调，或仍有未解决的设计歧义；信息不足时按 `complex`。
 - `standard`：既不满足 `simple`，也未命中 `complex`。
 - 仅 `simple + low` 路由到 `gpt-5.6-luna`；其余由 `gpt-5.6-terra` 执行。高风险 Gate 未闭合时
-  `execution_authorized: false`，由 Sol 保持控制并等待 Gate。
+  `execution_authorized: false`，由 Sol 保持控制并等待 Gate。派发分支按顺序互斥：`execution-workflow` 的已授权
+  `source_or_test_write` 为 `dispatch_role: worker, dispatch_required: true, dispatch_mode: subagent`；`review-workflow` 的
+  `state_or_gate_write`、`reviewer_type=independent_subagent`、身份/范围完整且实现/验证完成时为
+  `dispatch_role: reviewer, true, subagent`；其余为 `dispatch_role: none, false, direct`，由 Sol 控制。模型矩阵只决定 worker。
+  任一声明分支与 `workflow_id` / `write_policy` 不匹配，或多个分支可命中时，固定 `input_conflict, do_not_dispatch` 并交还 Sol；不得落入默认 direct。
+
+授权实现的真实绑定由父 Sol 调用已暴露的 `spawn_agent` 完成，参数 `model` 必须等于 `execution_model`，实现 Luna/Terra 的
+`reasoning_effort` 分别为 `low`/`medium`，并固定 `fork_turns: "none"`；message 包含完整 task brief、写集、禁令和验证命令。
+独立只读 Terra reviewer 固定 Terra/`high`，是质量门且不改写 worker 路由；其输入与 sandbox 必须只读。父 Sol 在调用前生成稳定 `dispatch_id` 绑定路由、调用和回执；成功调用至少返回
+canonical task 或 `agent_id`，其回执至少保存 `dispatch_id`、`task_card_id`、`requested_model`、`requested_reasoning_effort`、
+`fork_turns`、`agent_id` 或 canonical task、`status: accepted`、`source: parent_tool_receipt`。`accepted` 只表示工具调用成功接受，不是子代理完成态。工具未暴露、调用/模型失败、
+回执缺失或 `requested_model != execution_model` 时必须 `dispatch_failed` 或 `worker_unavailable` 并交还 Sol；不得静默代写或换模型。
+
+`.codex/config.toml` 与 `.codex/agents/*.toml` 只是宿主配置层；每次真实模型绑定以父会话的显式 `spawn_agent` 参数和成功回执为证，
+仓内不能读取或证明模型内部身份。
 
 执行者只消费 Sol 已授权的路由包，不得扩大范围、自批完成或改写复杂度、风险和执行模型。任一
 `escalation_triggers` 命中时停止当前执行并交还 Sol；连续两次验证失败记为 `verification_failed_twice`。
@@ -1511,3 +1530,5 @@ R019 作者只能把 T01–T06 产物标记为 `ready_for_review`。完整 profi
 | `v1.5.0` | 固化 Sol 唯一控制、复杂度分级及 Terra/Luna 受控执行路由 | 2026-08-23 | `AI_EXECUTOR` | `集中质量门` | `uroborus` |
 
 候选修订（2026-08-23）：移除已撤销平台运行时的会话/记忆落点，并以 WorkItem、ledger、memory 回源和顶层 Skill 发现描述当前执行面；待独立评审。
+
+候选修订（2026-08-24）：真实模型派发、父回执和失败关闭合同待 `MODEL-DISPATCH-RUNTIME-001` 独立评审；未正式发布。

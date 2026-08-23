@@ -1,38 +1,36 @@
 # Agent 会话卡
 
-- 生成时间：2026-08-23 23:57 +0800
+- 生成时间：2026-08-24 01:43 +0800
 - 项目：`shanforge`
-- 当前工作项：`SKILL-FULL-OPTIMIZATION-001`
-- 当前任务：`SKILL-FULL-OPTIMIZATION-001-T06`
-- 当前状态：`ready_for_commit_and_push`
-- 当前焦点：追加复评整改已批准并完成全量验证
-- 下一动作：`commit_current_scope_then_push_origin_v2`
+- 当前工作项：`MODEL-DISPATCH-RUNTIME-001`
+- 当前任务：`MODEL-DISPATCH-RUNTIME-001-T04`
+- 当前状态：`ready_for_local_commit`
+- 当前焦点：独立终审已批准，等待精确本地提交和干净克隆验证
+- 下一动作：`create_local_commit_then_clean_clone_verify`
 
 ## 当前事实
 
-- 当前真实 Skill 清单由 `skills/*/SKILL.md` 动态发现，共 38 个。
-- T01 基线发现 C0 / I8 / M10，涉及 13 个 Skill；其余 25 个为 `no_change_required`。
-- 首轮与 review 整改合计有证据优化 24 个 Skill，其余 14 个为 `no_change_required`。
-- 精确隔离候选完整 pytest `245 passed / 4 subtests passed`，Ruff 与 38/38 validator 通过。
-- P0 整改候选完整 pytest `262 passed / 4 subtests passed`，Ruff、38/38 validator、JSON/JSONL 和 diff check 通过。
-- T06 首轮独立评分覆盖 38/38，整体 `89.1 / C0-I23-M0`，合并为 15 个 Important finding。
-- 同 reviewer 复评 38/38 为 `approved / 95.0 / C0-I0-M0`，I-01–I-15 关闭 15/15。
-- 实现提交为 `9f7e251`；提交信息 `fix: 完成全量 Skill 优化与独立评分`。
-- 追加复评整改终审为 `approved / 93.7 / C0-I0-M2`，完整 pytest `269 passed / 4 subtests passed`，Ruff 与 38/38 validator 通过。
+- Sol 以显式模型参数真实派发 Luna T01、Terra T02/T03 和 Terra/high 独立 reviewer；父工具回执已写入 WorkItem ledger。
+- 第二轮独立 review 为 `changes_requested / 58 / C0-I4-M0`；I1、I3、跨 Skill reference 与 memory/ledger 投影已完成根因整改。
+- Review 整改测试在基线临时树 `8 failed / 1 passed`，当前模型路由 `9 passed`。
+- 当前新鲜完整 pytest 为 `273 passed`；Ruff、38/38 Skill validator、6 TOML、160 JSON、45 JSONL 与 diff check 通过。
+- 同一 reviewer Iteration 3 为 `approved / 96 / C0-I0-M0`，无人工 Gate。
+- 当前未提交，干净克隆门尚未执行。
 
 ## 当前 Gate
 
-- `local_commit_then_remote_push`
-- 用户已明确授权提交全部当前代码并推送远程。
+- `T04_ready_for_local_commit`
+- 无人工 Gate；允许 `gitcommitzh` 精确本地提交，提交后必须干净克隆验证。
 
 ## 后续授权范围
 
-- 允许当前 WorkItem、24 个有证据优化 Skill、10 个对应测试、必要 memory、独立只读 review 和本地精确提交。
-- 本轮允许提交当前全部代码并推送 `origin/v2`；不执行 PR、merge、发布或部署。
+- 允许本 WorkItem 登记的 `.codex`、路由 Skill/reference、任务模板、两份正式候选文档、治理测试、WorkItem 和必要 memory。
+- 允许同一 reviewer 只读复审、`gitcommitzh` 精确本地提交和提交后干净克隆验证；不允许 push、PR、merge、发布或部署。
 
 ## 恢复入口
 
-- `.factory/workitems/SKILL-FULL-OPTIMIZATION-001/brief.md`
-- `.factory/workitems/SKILL-FULL-OPTIMIZATION-001/plan.md`
-- `.factory/workitems/SKILL-FULL-OPTIMIZATION-001/ledger.jsonl`
-- `.factory/workitems/SKILL-FULL-OPTIMIZATION-001/reviews/independent-review-task.md`
+- `.factory/workitems/MODEL-DISPATCH-RUNTIME-001/brief.md`
+- `.factory/workitems/MODEL-DISPATCH-RUNTIME-001/plan.md`
+- `.factory/workitems/MODEL-DISPATCH-RUNTIME-001/ledger.jsonl`
+- `.factory/workitems/MODEL-DISPATCH-RUNTIME-001/evidence/MODEL-DISPATCH-RUNTIME-001-verification.md`
+- `.factory/workitems/MODEL-DISPATCH-RUNTIME-001/reviews/MODEL-DISPATCH-RUNTIME-001-independent-review.md`

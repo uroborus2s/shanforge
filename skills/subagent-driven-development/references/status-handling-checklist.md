@@ -1,6 +1,6 @@
 # Status Handling Checklist
 
-用于控制器处理实现者返回状态。
+用于控制器处理 worker 实现者返回状态；本 skill 只回写 `status` 与 `needs`，后续 Skill 由流程控制器决定。
 
 ## DONE
 
@@ -28,8 +28,9 @@
 
 - 上下文不足：补充上下文。
 - 任务过大：拆小任务。
-- 模型能力不足：换更强执行者或改为主线程执行。
-- 计划错误：写入 `needs: plan_rewrite`，交还 `using-shanforge` 流程总控。
+- 模型能力不足：保持原 `execution_model` 并交还 Sol；由 Sol 补上下文、拆任务或改计划。
+- 模型或工具不可用：`worker_unavailable` 或 `dispatch_failed`，交还 Sol；不得换模型或由 Sol 代写。
+- 计划错误：写入 `needs: plan_rewrite`，交还流程控制器。
 - 需要用户决策：停止并问用户。
 
 连续三次同类 blocker 后，不得继续空转。

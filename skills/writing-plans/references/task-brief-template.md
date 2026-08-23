@@ -20,6 +20,13 @@
 - risk_level: `low | medium | high`
 - execution_model: `gpt-5.6-luna | gpt-5.6-terra`
 - execution_authorized: `true | false`
+- write_policy: `source_or_test_write | project_fact_write | state_or_gate_write | no_project_write`
+- current_gate:
+- dispatch_role: `worker | reviewer | none`
+- dispatch_required: `true | false`
+- dispatch_mode: `subagent | direct`
+- requested_reasoning_effort: `low | medium | high`
+- fork_turns: `none`
 - route_reason:
 - escalation_triggers: `scope_expanded | input_conflict | risk_increased | verification_failed_twice | human_gate`
 
@@ -77,6 +84,19 @@
 - 修改文件：
 - concerns：
 - 可选 checkpoint：`.factory/workitems/<WORKITEM-ID>/ledger.jsonl`
+
+## 派发回执
+
+仅当 `dispatch_required: true` 时由父 Sol 在调用前生成稳定 `dispatch_id`，并保存真实 `spawn_agent` 成功回执；worker 与独立 reviewer 都适用，子代理自报不算回执。
+
+- dispatch_id: `<父 Sol 调用前生成的稳定 ID>`
+- task_card_id:
+- requested_model: `必须等于 execution_model`
+- requested_reasoning_effort:
+- fork_turns: `none`
+- agent_id / canonical_task:
+- status: `accepted（工具调用成功接受，不是子代理完成态）`
+- source: `parent_tool_receipt`
 
 ## 完成口径
 

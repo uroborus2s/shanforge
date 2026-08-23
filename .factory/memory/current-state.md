@@ -1,39 +1,38 @@
 # 当前状态
 
 - 当前模式：`codex_desktop`
-- 当前阶段：`SKILL-FULL-OPTIMIZATION-001 / SKILL-FULL-OPTIMIZATION-001-T06`
+- 当前阶段：`MODEL-DISPATCH-RUNTIME-001 / MODEL-DISPATCH-RUNTIME-001-T04`
 - 活跃任务数：1
 - 阻塞项数：0
-- 当前 Gate：`local_commit_then_remote_push`
+- 当前 Gate：`T04_ready_for_local_commit`
 
 ## 活跃任务
 
-- `SKILL-FULL-OPTIMIZATION-001-T06`：追加复评整改已批准，等待提交和推送。
+- `MODEL-DISPATCH-RUNTIME-001-T04`：独立终审已批准，等待精确本地提交和提交后干净克隆验证。
 
 ## 阻塞项
 
 - 无。
 
-本工作项整改候选已完成新鲜全量验证；并发测试治理任务已由其 owner 独立提交关闭。
-
 ## 最近事实
 
-- 动态清点 38 个 Skill；最终有证据优化 24 个，14 个 `no_change_required`。
-- 基线 C0 / I8 / M10 已关闭；首轮独立评分 `89.1 / C0-I23-M0` 的 15 个合并 Important 已整改。
-- 整改候选完整 pytest `262 passed / 4 subtests passed`，Ruff、38/38 validator、JSON/JSONL 与 Git hygiene 通过。
-- 同 reviewer 终审为 `approved / 95.0 / C0-I0-M0`，I-01–I-15 关闭 15/15，无真实人工 Gate。
-- 实现提交 `9f7e251` 后的追加复评整改为 `approved / 93.7 / C0-I0-M2`；完整 pytest `269 passed / 4 subtests passed`，Ruff 与 38/38 validator 通过。
+- Sol 已真实派发 Luna T01、Terra T02/T03 和 Terra/high 独立 reviewer；父工具回执可回读。
+- 第二轮 review `58 / C0-I4-M0` 的 worker/reviewer 条件重叠、T03 brief/测试缺口、跨 Skill reference 和 memory/ledger 投影已整改。
+- 模型路由基线 Red `8 failed / 1 passed`，候选 Green `9 passed`。
+- 新鲜完整 pytest `273 passed`；Ruff、38/38 Skill validator、6 TOML、160 JSON、45 JSONL 和 diff check 通过。
+- 同一 reviewer Iteration 3 为 `approved / 96 / C0-I0-M0`；当前候选未提交。
 
 ## 唯一下一动作
 
-- `commit_current_scope_then_push_origin_v2`
+- `create_local_commit_then_clean_clone_verify`
 
 ## 历史回源
 
-- 通用执行事实：`.factory/workitems/<WORKITEM-ID>/ledger.jsonl`
+- WorkItem：`.factory/workitems/MODEL-DISPATCH-RUNTIME-001/`
+- Ledger：`.factory/workitems/MODEL-DISPATCH-RUNTIME-001/ledger.jsonl`
+- 稳定 Ledger 索引：`.factory/workitems/<WORKITEM-ID>/ledger.jsonl`
+- 验证：`.factory/workitems/MODEL-DISPATCH-RUNTIME-001/evidence/MODEL-DISPATCH-RUNTIME-001-verification.md`
+- Review：`.factory/workitems/MODEL-DISPATCH-RUNTIME-001/reviews/MODEL-DISPATCH-RUNTIME-001-independent-review.md`
 - 非活跃任务摘要：`.factory/memory/tasks.summary.md`
-- WorkItem：`.factory/workitems/SKILL-FULL-OPTIMIZATION-001/`
-- 当前计划：`.factory/workitems/SKILL-FULL-OPTIMIZATION-001/plan.md`
-- 验证：`.factory/workitems/SKILL-FULL-OPTIMIZATION-001/evidence/verification.md`
 
 > 本文件只是有界当前态投影，不替代正式文档和 ledger。

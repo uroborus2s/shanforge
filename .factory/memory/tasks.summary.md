@@ -1,7 +1,7 @@
 # 任务摘要
 
-- 当前阶段：`MODEL-DISPATCH-RUNTIME-001 / ready_for_local_commit`
-- 当前焦点：独立终审 `approved / 96 / C0-I0-M0`，等待精确本地提交和提交后干净克隆验证。
+- 当前阶段：`MODEL-DISPATCH-RUNTIME-001 / closed`
+- 当前焦点：真实模型调度已由同 reviewer 批准；实现提交 `b270ae4` 干净克隆全绿，工作项关闭。
 
 > 历史读取规则：以下所有带日期条目都是记录发生时的历史快照。条目中的“当前”“下一步”只表示当时状态，不得覆盖本文件顶部的当前焦点和当前动作。
 
@@ -485,4 +485,4 @@
 - 2026-08-23：`TEST-GOVERNANCE-001` 同一 reviewer 复审 `approved / 98 / C0-I0-M0`，I1/I2/M1 全部关闭，无人工 Gate；下一动作是精确本地提交和提交后干净克隆验证。
 - 2026-08-23：`TEST-GOVERNANCE-001` 已关闭；实现提交 `c4534ba` 的干净克隆为 `236 passed + 4 subtests`，Ruff、两个 Skill validator、25 JSON、36 JSONL、Git 状态和 diff check 全绿。
 - 2026-08-23：`TEST-GOVERNANCE-CLOSURE-001` 已关闭；同 reviewer 复审 `approved / 98 / C0-I0-M0`，正式发布测试计划 `v3.2.0` 与案例目录 `v1.0.0`；实现提交 `ca436c9` 的干净克隆 `246 passed / 4 subtests passed`，最终报告自动校验通过。
-- 2026-08-24：`MODEL-DISPATCH-RUNTIME-001` 已实现 Sol 主控、Luna/Terra worker 与 Terra/high 独立 reviewer 的真实父会话派发；两轮 changes_requested 的派发互斥、任务简报、跨 Skill 边界和状态投影问题已关闭，同一 reviewer 终审 `approved / 96 / C0-I0-M0`，完整 pytest `273 passed`；尚未提交或执行干净克隆门。
+- 2026-08-24：`MODEL-DISPATCH-RUNTIME-001` 已实现 Sol 主控、Luna/Terra worker 与 Terra/high 独立 reviewer 的真实父会话派发；两轮 changes_requested 的派发互斥、任务简报、跨 Skill 边界和状态投影问题已关闭，同一 reviewer 终审 `approved / 96 / C0-I0-M0`。实现提交 `b270ae4` 干净克隆完整 pytest `273 passed`，Ruff、38/38 Skill validator、解析、diff 与 Git clean 全绿，工作项关闭。

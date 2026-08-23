@@ -27,7 +27,7 @@
 - Ruff：通过。
 - Skill validator：`38/38`。
 - TOML/JSON/JSONL 和 diff check：通过。
-- 当前候选已通过独立终审，尚未提交；干净克隆验证在精确提交后执行。
+- 实现提交 `b270ae4` 已通过干净克隆：pytest `273 passed`、Ruff、38/38 Skill validator、TOML/JSON/JSONL、diff 与 Git clean 全绿。
 
 ## Review 整改
 

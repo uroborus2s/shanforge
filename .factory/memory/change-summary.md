@@ -1,5 +1,7 @@
 # 变更摘要
 
+- 2026-08-24：完成并关闭 `MODEL-DISPATCH-RUNTIME-001`。以 Codex 原生 subagent 实现 Sol 唯一主控、Luna 简单低风险 worker、Terra 标准/复杂 worker 与 Terra/high 只读 reviewer；严格派发合同对 workflow/write policy 错配或重叠失败关闭。治理测试 Green `9 passed`，同 reviewer 终审 `approved / 96 / C0-I0-M0`；实现提交 `b270ae4` 干净克隆完整 pytest `273 passed`，Ruff、38/38 Skill validator、解析、diff 与 Git clean 全绿。
+
 - 2026-08-23：完成并关闭 `SKILL-FULL-OPTIMIZATION-001`。动态审计并独立评分 38 个 Skill，最终有证据优化 24 个、保留 14 个；关闭失败误报、用户配置污染、进程树残留、资源不可移植、项目状态 owner 漂移和无条件人工 Gate 等 15 个 P0 finding。同 reviewer 终审 `approved / 95.0 / C0-I0-M0`，完整 pytest `262 passed / 4 subtests passed`，实现提交 `9f7e251`。
 
 - 2026-08-23：完成并关闭 `SKILL-COMPLETENESS-P0-001` 五项 P0：同步脚本只接受含 `SKILL.md` 的目录；三个复用 Skill 统一 `doc-map.md` 回源；美术候选跨会话保留；正式设计和项目配置移除旧数量、运行时与失效路径；测试从 SHA 快照改为行为和结构不变量。同 reviewer 独立终审 `approved / 100 / C0-I0-M0`；实现提交 `fd908b4`、状态同步 `e9f9d97` 的当前 HEAD 干净克隆全绿。

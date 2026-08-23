@@ -49,3 +49,10 @@
 - 失败关闭：工具/模型/回执异常和模型不一致均返回 `dispatch_failed` 或 `worker_unavailable`；旧换模型/主线程 fallback 已移除。
 - 质量状态：`passed`；第二轮独立评审 `changes_requested / 58 / C0-I4-M0` 的四项根因已整改并完成新鲜全量验证，待同一 reviewer 终审和提交后干净克隆复验。
 - 独立终审：同一 reviewer Iteration 3 为 `approved / 96 / C0-I0-M0`，新鲜复验模型路由 `9 passed`、完整 pytest `273 passed`、Ruff、解析和 diff check 全绿。
+
+## 实现提交干净克隆
+
+- 实现提交：`b270ae4`，分支：`v2`。
+- 从该提交建立无 hardlink 的新临时克隆；克隆内 `uv run pytest -p no:cacheprovider` 为 `273 passed in 2.70s`，exit `0`。
+- 克隆内 Ruff 为 `All checks passed!`，38 个 Skill validator 为 `38/38 skills valid`，均 exit `0`。
+- 克隆内 `6 TOML / 25 JSON / 40 JSONL` 全部可解析；`git diff --check` 与 `git status --short` 无输出，HEAD 回读为 `b270ae4`，均 exit `0`。

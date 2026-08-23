@@ -4,7 +4,7 @@
 
 - 工作项：`MODEL-DISPATCH-RUNTIME-001`
 - 任务：`MODEL-DISPATCH-RUNTIME-001-T02`
-- 状态：`active`
+- 状态：`completed`
 - 优先级：`P1`
 - 任务层级：`system`
 - 关联目标：`MODEL-DISPATCH-RUNTIME-001`

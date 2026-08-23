@@ -8,7 +8,7 @@
 
 **工作项：** `MODEL-DISPATCH-RUNTIME-001`
 
-**状态：** `plan_ready`
+**状态：** `completed`
 
 ## 输入与裁决
 

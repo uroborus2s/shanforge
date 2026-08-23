@@ -27,4 +27,4 @@
 
 ## 状态
 
-`active`
+`closed`

@@ -4,15 +4,15 @@
 
 | 字段 | 内容 |
 |---|---|
-| 报告 ID / 版本 | `TEST-REPORT-TEST-GOVERNANCE-001` / `0.3.0` |
-| 文档状态 | 评审中 |
+| 报告 ID / 版本 | `TEST-REPORT-TEST-GOVERNANCE-001` / `1.0.0` |
+| 文档状态 | 已完成 |
 | Owner / 主要读者 | `AI_EXECUTOR` / 项目 Owner、维护者、Reviewer |
 | 上游测试计划 | `docs/06-delivery/test-plan.md` |
-| WorkItem / run ID | `TEST-GOVERNANCE-001` / `TEST-GOVERNANCE-001-REREVIEW-001` |
-| 精确候选 | 基于 `9f21380` 的本工作项 Git 暂存候选；文件清单见验证证据 |
+| WorkItem / run ID | `TEST-GOVERNANCE-001` / `TEST-GOVERNANCE-001-FINAL-001` |
+| 精确候选 | `c4534ba` |
 | 环境别名 | `TEST-ENV-PYTEST` |
-| 执行时间 | 2026-08-23 21:09—21:34 +08:00 |
-| 批次验证结论 | `partial`：隔离候选和独立复审通过，提交后干净克隆待执行 |
+| 执行时间 | 2026-08-23 21:09—21:43 +08:00 |
+| 批次验证结论 | `passed` |
 
 ## 2. 范围与追踪
 
@@ -29,7 +29,7 @@
 | 定向测试与完整 pytest 通过 | passed | 验证证据 |
 | Skill 与本任务静态门通过 | passed | 验证证据 |
 | 独立评审无阻断项 | passed | 同一 reviewer 复审 `approved / 98 / C0-I0-M0` |
-| 精确提交后的干净克隆全绿 | not_run | 待 T03 commit 后复验 |
+| 精确提交后的干净克隆全绿 | passed | `c4534ba`，`236 passed + 4 subtests`，静态门全绿 |
 
 ## 4. 环境健康与清理
 
@@ -41,7 +41,7 @@
 
 | 总数 | 通过 | 失败 | 错误 | 阻塞 | 跳过 | 未运行 | 取消 |
 |---:|---:|---:|---:|---:|---:|---:|---:|
-| 17 | 16 | 0 | 0 | 0 | 0 | 1 | 0 |
+| 17 | 17 | 0 | 0 | 0 | 0 | 0 | 0 |
 
 汇总按本工作项的 15 项自动验证、独立评审和 1 项提交后干净克隆门计算；Red 的预期失败用于证明守卫有效，不计入最终失败。
 
@@ -52,13 +52,13 @@
 | 无旧平台执行入口 | passed | 引用解析守卫 | 无 |
 | 人类可读案例与报告模板 | passed | 模板合同测试 | 无 |
 | 七态案例与四态批次边界 | passed | 状态合同测试 | 无 |
-| 当前工作区与干净克隆全绿 | partial | 隔离候选 `236 + 4 subtests` 全绿 | 提交后干净克隆待执行 |
+| 当前工作区与干净克隆全绿 | passed | 提交后干净克隆 `236 + 4 subtests` 全绿 | 无 |
 
 ## 7. 未通过与未执行项
 
 | 案例 ID | 状态 | 未运行 / 跳过原因 | Owner | 证据引用 |
 |---|---|---|---|---|
-| `TEST-CLEAN-CLONE-001` | not_run | 必须在精确提交后运行 | `AI_EXECUTOR` | 待 commit |
+无未通过、未执行或取消项。
 
 ## 8. 缺陷历史与残余风险
 
@@ -69,8 +69,8 @@
 
 ## 9. 发布建议
 
-- 建议：`NO-GO`（当前阶段）。
-- 解除条件：独立评审无 Critical/Important，精确本地提交后干净克隆完整门全绿。
+- 建议：`GO`，用于关闭本 WorkItem 和本地交付。
+- 边界：`docs/06-delivery/test-plan.md` 的正式版本仍为 `v3.1.0`；本次候选未冒充正式发布批准。
 
 ## 10. 评审与批准
 
@@ -87,5 +87,6 @@
 | `0.1.0` | 2026-08-23 | 提交前测试报告 | `AI_EXECUTOR` | 待评审 | not_required |
 | `0.2.0` | 2026-08-23 | 记录首轮评审、并行差异隔离和复验 | `AI_EXECUTOR` | 待复审 | not_required |
 | `0.3.0` | 2026-08-23 | 记录独立复审通过与提交后剩余 Gate | `AI_EXECUTOR` | approved | not_required |
+| `1.0.0` | 2026-08-23 | 记录实现提交和干净克隆最终通过 | `AI_EXECUTOR` | approved | not_required |
 
 报告未记录凭证、令牌、DSN、个人信息或原始敏感日志。

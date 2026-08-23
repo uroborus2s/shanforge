@@ -75,3 +75,17 @@ UV_CACHE_DIR=/tmp/shanforge-test-governance-final-cache uv run python /Users/uro
 - `git status --short` 与 `git diff --check`：无输出，exit 0。
 
 此前未初始化 Git 的首次隔离 pytest 为 `235 passed / 1 failed / 4 subtests`；唯一失败来自测试调用 `git ls-files` 时不存在 `.git`。初始化临时 Git 后同一完整测试集全绿，环境根因已证实。
+
+## 提交后干净克隆最终验证
+
+- 实现提交：`c4534ba`。
+- 干净克隆：`/tmp/shanforge-test-governance-clean.VQRkaO/shanforge`。
+- `uv run pytest -q`：exit 0，`236 passed, 4 subtests passed`。
+- `uv run ruff check .`：exit 0，`All checks passed!`。
+- `quick_validate.py skills/document-templates`：exit 0，`Skill is valid!`。
+- `quick_validate.py skills/verification-before-completion`：exit 0，`Skill is valid!`。
+- `.factory` 数据：`valid json=25 jsonl=36`。
+- `git diff --check`、`git status --short`：无输出，exit 0。
+- `git rev-parse --short HEAD`：`c4534ba`。
+
+最终结论：`passed`，失败 0、错误 0、跳过 0、未运行 0。

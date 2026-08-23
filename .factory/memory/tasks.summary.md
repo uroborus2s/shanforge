@@ -468,3 +468,4 @@
 - 2026-07-28：`PM-DASHBOARD-004-T02` 经同一 reviewer 复审 `approved / 100 / C0-I0-M0`，`T02-I1` 关闭，最终定向回归 `33 passed`。当前进入 T03，有效任务清理、确定性排序和业务首页实现中；T04-T05 尚未实施。
 - 2026-08-23：`TEST-GOVERNANCE-001` 已完成旧平台测试引用、案例/报告模板和状态合同整改；首轮独立评审 `changes_requested / 80 / C0-I2-M1`，现已用精确暂存 hunk 隔离并行工作项并完成整改，隔离候选 `236 passed + 4 subtests`、Ruff、Skill validator 和 JSON/JSONL 全绿，等待同一 reviewer 复审。
 - 2026-08-23：`TEST-GOVERNANCE-001` 同一 reviewer 复审 `approved / 98 / C0-I0-M0`，I1/I2/M1 全部关闭，无人工 Gate；下一动作是精确本地提交和提交后干净克隆验证。
+- 2026-08-23：`TEST-GOVERNANCE-001` 已关闭；实现提交 `c4534ba` 的干净克隆为 `236 passed + 4 subtests`，Ruff、两个 Skill validator、25 JSON、36 JSONL、Git 状态和 diff check 全绿。

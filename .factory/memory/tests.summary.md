@@ -377,3 +377,4 @@
   format、Mypy、依赖锁、边界扫描和 diff check 通过。Shanforge / ITA Club
   390×844、1440×900 共 4/4 浏览器验收通过，无横向溢出或控制台错误，键盘跳转与
   折叠区通过。全仓 `212 passed / 7 failed`，失败属于已登记的范围外事实或测试漂移。
+- 2026-08-23：`TEST-GOVERNANCE-001` Red 为 `4 failed / 9 passed`；实现提交 `c4534ba` 的干净克隆最终为 `236 passed + 4 subtests`，Ruff、两个 Skill validator、25 JSON、36 JSONL、Git 状态和 diff check 全绿，失败/错误/跳过/未运行均为 0。

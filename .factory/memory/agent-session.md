@@ -4,21 +4,22 @@
 - 项目：`shanforge`
 - 当前工作项：`TEST-GOVERNANCE-001`
 - 当前任务：`TEST-GOVERNANCE-001-T03`
-- 当前状态：`review_approved`
-- 当前焦点：清理旧平台测试引用并统一案例、状态和报告合同
-- 下一动作：`create_exact_local_commit_then_clean_clone_verify`
+- 当前状态：`completed`
+- 当前焦点：TEST-GOVERNANCE-001 已完成
+- 下一动作：`none`
 
 ## 当前事实
 
 - Shanforge 是 skill-first 工程协作资产，旧 `src/` 平台和对应测试不属于当前产品。
-- 正式测试计划和一个案例目录仍引用已删除的旧平台测试；现有治理测试没有检查入口存在性。
-- 工作项建立前基线为 `233 passed / 4 subtests passed`，说明陈旧引用当前不会触发失败。
-- 本工作项只修测试治理合同、模板和守卫，不恢复平台运行时或新增依赖。
+- 正式测试计划已改为当前 Skill-first 入口，失效旧平台案例目录已删除。
+- 治理测试现在解析正式计划和现存案例目录中的 `tests/test_*.py`，不存在的入口会失败。
+- 案例、报告和状态合同已统一；未恢复平台运行时或新增依赖。
+- 实现提交 `c4534ba` 的干净克隆为 `236 passed / 4 subtests passed`，并行工作项未纳入。
 
 ## 当前 Gate
 
-- `T03_exact_commit_and_clean_clone`
-- 同一 reviewer 复审 `approved / 98 / C0-I0-M0`；隔离候选完整全绿，无人工 Gate。
+- `closed`
+- 实现提交 `c4534ba` 的干净克隆全绿；工作项已关闭。
 
 ## 后续授权范围
 

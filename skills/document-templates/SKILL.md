@@ -1,11 +1,11 @@
 ---
 name: document-templates
-description: "创建、审查、整理和升级软件项目正式文档体系。适用于项目章程、需求、架构、模块边界、API/接口契约、交付计划、测试、发布、运维、交接、用户指南、管理员指南和追踪矩阵；默认按 docs-stratego 的 4 大模块组织。"
+description: "创建、审查、整理和升级软件项目正式文档体系。适用于项目章程、需求、架构、模块边界、API/接口契约、交付计划、测试、发布、运维、交接、用户指南、管理员指南和追踪矩阵；已有项目保持登记布局，新项目可回退到 docs-stratego 的 4 大模块。"
 ---
 
 # 文档模板
 
-用于维护软件项目的正式文档体系。主路径是先判断项目状态和读者，再按 `docs-stratego` 的 4 大模块补最少必要文档，最后用结构校验收口。
+用于维护软件项目的正式文档体系。主路径是先回源已有登记，再按项目状态和读者补最少必要文档，最后用与当前布局匹配的校验收口。
 
 ## 适用边界
 
@@ -14,7 +14,7 @@ description: "创建、审查、整理和升级软件项目正式文档体系。
 - 创建、审查、整理和升级软件项目正式文档体系。
 - 维护 `docs/`、根 `docs/index.md`、正式文档版本历史和追踪矩阵。
 - 把已批准需求、设计或交付事实整理成正式项目文档。
-- 按 `docs-stratego` 的 4 大模块校验目录和导航。
+- 已有登记时按目标项目的目录和导航校验；未登记的新项目可采用 `docs-stratego` 的 4 大模块。
 
 不适用于：
 
@@ -35,22 +35,24 @@ description: "创建、审查、整理和升级软件项目正式文档体系。
 
 最小路径：
 
+- 已有登记：先读 `.factory/memory/doc-map.md` 的 owner 映射，只更新目标页、版本历史和关联索引，保持登记布局。
 - 只补单页：读取事实源，更新目标页、版本历史和索引。
 - 只校验：运行 `docs-stratego source validate` 或记录无法运行原因。
-- 完整重构：先读结构和迁移 references，再按 4 大模块迁移。
+- 完整重构：只有未登记的新项目或用户明确批准迁移时，才读结构和迁移 references 并采用 4 大模块。
 
 ## 默认工作流
 
-1. 判断是否已有正式 `docs/` 和 `.factory/`。
-2. 已有项目不调用旧仓库脚本；直接维护文档，并用 `docs-stratego` CLI 校验。
+1. 判断是否已有正式 `docs/`、`.factory/` 和 `.factory/memory/doc-map.md`。
+2. 已有登记时按 `.factory/memory/doc-map.md` 的 owner 映射回源并保持当前布局；不因本 skill 的模板结构自动迁移目录。
 3. 如项目尚未纳入软件工厂治理，先交给 `using-shanforge` 判断是否需要项目纳管。
-4. 按暴露面决定是否启用 `03-developer-guide/`；不要机械生成。
-5. 根 `docs/index.md` 作为唯一导航与权限事实源。
-6. 子目录 `index.md` 只写正文概览、边界和推荐阅读顺序。
-7. 只创建下一阶段真的会被使用的文档，不批量制造空壳页。
-8. 需求分析内容必备，独立文件条件生成：读取 `analysis_mode` 和
+4. 未登记的新项目需要创建文档体系时，才使用 4 大模块作为新项目回退布局。
+5. 按暴露面决定是否启用 `03-developer-guide/`；不要机械生成。
+6. 根 `docs/index.md` 作为唯一导航与权限事实源。
+7. 子目录 `index.md` 只写正文概览、边界和推荐阅读顺序。
+8. 只创建下一阶段真的会被使用的文档，不批量制造空壳页。
+9. 需求分析内容必备，独立文件条件生成：读取 `analysis_mode` 和
    `analysis_locator`；只有 `standalone` 才创建 `requirements-analysis.md`。
-9. 修改后运行 `uvx --from docs-stratego docs-stratego source validate --repo-path .`；无法运行时写清替代核查和风险。
+10. 修改后运行与当前登记布局匹配的校验；采用 4 大模块时运行 `uvx --from docs-stratego docs-stratego source validate --repo-path .`，无法运行时写清替代核查和风险。
 
 ## 正式文档治理规则
 
@@ -77,7 +79,9 @@ description: "创建、审查、整理和升级软件项目正式文档体系。
   `assets/templates/06-release/release-checklist.md` 和 `assets/templates/07-operations/deployment-guide.md`；案例目录、运行结果和聚合报告分开保存。
 - 普通开发任务的结果进入当前 WorkItem evidence，不创建长期正式测试报告；阶段验收、发布候选或用户明确要求时，才用 `test-report.md` 生成当前 WorkItem 的人类可读报告。
 
-## 组织规则
+## 新项目回退布局
+
+以下 4 大模块只用于没有正式 owner 映射的新项目，或用户明确批准的目录迁移；已有登记项目以 `.factory/memory/doc-map.md` 为准：
 
 - 顶层按 4 大模块组织：`01-getting-started`、`02-user-guide`、`03-developer-guide`、`04-project-development`。
 - `04-project-development/` 承载治理、需求、设计、测试、发布、运维和追踪矩阵等内部过程文档。
@@ -91,13 +95,14 @@ description: "创建、审查、整理和升级软件项目正式文档体系。
 
 当用户请求“列出需要哪些文档”时：
 
-- 先按 4 大模块列出。
+- 已有登记时先按当前 owner 映射列出；未登记的新项目才按 4 大模块列出。
 - 再在 `04-project-development/` 内按阶段列出内部文档。
 - 明确公开稳定说明、内部过程文档和是否需要 `03-developer-guide/`。
 
 当用户请求“创建文档体系”时：
 
 - 先判断项目状态。
+- 已有登记时保持当前布局；未登记的新项目才使用 4 大模块回退布局。
 - 先创建或修复根 `docs/index.md` 和必要模块首页。
 - 再按当前项目事实补真正需要的正文页。
 - 最后执行结构校验。
@@ -105,7 +110,7 @@ description: "创建、审查、整理和升级软件项目正式文档体系。
 当用户请求“重构现有文档”时：
 
 - 先识别旧目录、旧索引还是未纳管状态。
-- 按 references 做目录和正文重构，不调用旧仓库脚本。
+- 默认保持已登记布局；只有用户明确批准迁移时才按 references 重构目录。
 - 重构后执行结构校验。
 - 同步受影响的正式文档、追踪矩阵和必要 `.factory/memory/`。
 

@@ -26,9 +26,9 @@ description: 美术方向 + 资源管线。用于需要先生成风格样张、U
 | 规则 | 要求 |
 |---|---|
 | 阶段推进 | 未经用户确认不得进入下一阶段；确认美术方向前只生成候选图和方向说明；确认资源清单前不生产最终资源包。 |
-| 目录流转 | 所有候选图先放 `tmp/`；用户明确确认后才移动或复制到 `approved/`；`approved/` 只放确认图和确认图的可追溯派生源。 |
-| 最终交付 | 最终资源包、`manifest.json` 和最终说明只包含确认图，或由确认图确定性裁切、缩放、去背景、打包得到的派生文件；不得包含 `tmp/` 或未确认图。 |
-| 收尾清理 | 未确认中间图必须删除；本轮结束前清空 `tmp/`。 |
+| 目录流转 | `imagegen` 产出的候选图放 `candidates/`；用户明确确认后才移动或复制到 `approved/`；`approved/` 只放确认图和确认图的可追溯派生源。 |
+| 最终交付 | 最终资源包、`manifest.json` 和最终说明只包含确认图，或由确认图确定性裁切、缩放、去背景、打包得到的派生文件；不得包含 `candidates/`、`tmp/` 或未确认图。 |
+| 收尾清理 | 候选图跨会话保留，等待用户选择时不得删除；用户完成选择后删除未被选中的候选图并清空 `tmp/`。 |
 - 生成图必须使用 `imagegen`。本地检查必须用 `view_image` 或浏览器预览查看关键输出。
 - 需要去色键或透明背景时，优先使用资源包内的 `remove_chroma_key.py`，并在 `manifest.json` 记录输入、输出和参数。
 - 不自批 `approved`。作者完成后只能回写 `ready_for_review`、`needs_user_input` 或 `blocked`。
@@ -42,6 +42,7 @@ description: 美术方向 + 资源管线。用于需要先生成风格样张、U
   art-direction.md
   sprite-spec.md
   manifest.json
+  candidates/
   approved/
   preview/
     preview.html
@@ -50,22 +51,22 @@ description: 美术方向 + 资源管线。用于需要先生成风格样张、U
   tmp/
 ```
 
-`tmp/` 是工作暂存区，不是交付物。若结束时没有用户确认，删除 `tmp/` 后返回 `needs_user_input`，并保留可复现的文字 prompt 或方向摘要。
+`candidates/` 是人工确认区，不是最终交付物；在等待选择期间持续保留。`tmp/` 只放可确定性重建的裁切、缩放、预览或打包中间文件，本轮结束可安全清空。最终导出时不包含这两个目录。
 
 ## 工作流程
 
 1. 明确目标类型：应用开发资源包、游戏开发资源包，或只做美术方向探索。
 2. 收集约束：目标用户、平台、尺寸、主题、禁用元素、品牌色、分辨率、透明背景、动画帧和导出格式。
-3. 使用 `imagegen` 生成 2-4 张风格样张、UI 美术图或游戏概念图，全部写入 `tmp/`。
+3. 使用 `imagegen` 生成 2-4 张风格样张、UI 美术图或游戏概念图，写入 `candidates/`。
 4. 使用 `view_image` 检查候选图。必要时用 `preview/preview.html` 在浏览器中并排预览。
-5. 向用户提交候选方向。没有明确确认时停止，删除 `tmp/`，返回 `needs_user_input`。
-6. 用户确认美术方向后，把确认图移入 `approved/`，写入 `art-direction.md`。
+5. 向用户提交候选方向。没有明确确认时停止，保留 `candidates/`，清理可再生的 `tmp/`，返回 `needs_user_input`。
+6. 用户确认美术方向后，把确认图移入 `approved/`，删除未被选中的候选图，写入 `art-direction.md`。
 7. 基于已确认方向生成资源清单，包含文件名、用途、尺寸、格式、透明度、派生关系和验收标准。
 8. 向用户确认资源清单。未确认时停止，不生成最终包。
 9. 用户确认清单后，生产应用开发资源包或游戏开发资源包。
 10. 生成 `manifest.json`、`sprite-spec.md`、`preview/preview.html`，并把所有资源与确认来源关联。
 11. 验证预览、透明背景、尺寸、命名、缺失文件和未确认资源泄漏。
-12. 删除 `tmp/` 中所有未确认中间图，再回写状态。
+12. 确认 `candidates/` 已在选择后清空，删除 `tmp/` 中所有可再生中间文件，再回写状态。
 
 ## 输出文件
 
@@ -111,7 +112,7 @@ description: 美术方向 + 资源管线。用于需要先生成风格样张、U
 
 - 运行资源清单一致性检查：`manifest.json` 中的每个文件都存在。
 - 检查 `manifest.json` 没有 `tmp/` 路径。
-- 检查最终资源包没有未确认中间图。
+- 检查最终资源包没有 `candidates/`、`tmp/` 或未确认中间图。
 - 使用 `view_image` 抽查关键图，确认构图、裁切、透明背景和可读性。
 - 使用浏览器打开 `preview/preview.html`，检查缩略图加载、尺寸标签、透明背景底纹和分组。
 - 需要透明背景时，运行 `remove_chroma_key.py` 的最小 smoke check。
@@ -131,13 +132,14 @@ description: 美术方向 + 资源管线。用于需要先生成风格样张、U
 - `imagegen` 不可用，且任务必须生成新图。
 - 无法查看关键图，无法判断输出是否可交付。
 - 用户要求侵权复刻、冒充在世艺术家或使用未授权素材。
-- 无法删除未确认中间图，或无法证明最终包只包含确认图。
+- 用户选择后无法删除未选候选图或临时文件，或无法证明最终包只包含确认图。
 
 返回 `ready_for_review`：
 
 - 美术方向已确认。
 - 资源清单已确认。
 - 最终资源包只包含用户确认过的图。
+- `candidates/` 已在用户选择后清理。
 - `tmp/` 已清理。
 - `manifest.json`、`art-direction.md`、`sprite-spec.md` 和 `preview/preview.html` 已生成并验证。
 
@@ -146,7 +148,7 @@ description: 美术方向 + 资源管线。用于需要先生成风格样张、U
 非 Shanforge work item 的轻量交付至少回写：
 
 - `status`: `ready_for_review`、`needs_user_input` 或 `blocked`
-- `outputs`: 资源包目录、`approved/`、`manifest.json`、`art-direction.md`、`sprite-spec.md`、`preview/preview.html`
+- `outputs`: 等待选择时的 `candidates/`，或完成后的资源包目录、`approved/`、`manifest.json`、`art-direction.md`、`sprite-spec.md`、`preview/preview.html`
 - `evidence`: 用户确认记录、`imagegen` 记录、`view_image` 检查、浏览器预览、清单一致性检查和 `tmp/` 清理证据
 - `verification`: 实际运行的检查命令；未运行必须说明原因
 - `needs`: 仍需用户确认的美术方向、资源清单或授权素材

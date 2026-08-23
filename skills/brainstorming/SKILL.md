@@ -100,12 +100,12 @@ description: "创造性工作进入需求、设计、计划或实现前使用；
 
 - 小改动和单个功能的头脑风暴结果写入 `.factory/workitems/<WORKITEM-ID>/brief.md`。
 - 过程事件、用户批准、视觉选择和状态回写事件写入 `.factory/workitems/<WORKITEM-ID>/ledger.jsonl`。
-- 项目级发现、产品定位或全局范围变化，优先更新当前 work item brief；确需成为正式事实时，新增或更新对应 `docs/04-project-development/` 正式页面并同步根导航、文档索引和 doc-map。
+- 项目级发现、产品定位或全局范围变化，优先更新当前 work item brief；确需成为正式事实时，由 `project-memory` 按目标项目 `.factory/memory/doc-map.md` 的 owner 映射回源并更新对应正式页面，同时同步根导航和文档索引。
 - 需要正式需求时，把 `needs` 标记为 `requirements`，由流程总控决定后续处理。
 - 需要正式设计时，把 `needs` 标记为 `design`，由流程总控决定后续处理。
 - 视觉探索中间文件放在 `.factory/workitems/<WORKITEM-ID>/design-assets/brainstorm/<SESSION-ID>/`。
-- 被采纳的真实设计交付物同步登记到 `docs/04-project-development/04-design/assets/` 或对应设计文档，并刷新 `.factory/memory/design-assets.summary.md`。
-- shanforge 正式产物统一使用本节列出的 work item、`docs/04-project-development/` 和 `.factory/memory/` 路径。
+- 被采纳的真实设计交付物登记到 `.factory/memory/doc-map.md` 指向的设计文档或其资产目录，并刷新 `.factory/memory/design-assets.summary.md`。
+- 目标项目尚无正式文档映射时，先由 `document-templates` 建立最小文档布局和登记，再写正式产物；不得从本 skill 硬编码目录结构。
 
 ## Brief 模板
 

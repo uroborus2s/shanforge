@@ -26,32 +26,33 @@
 
 ## 1. 目标
 
-定义记忆系统的一手事实源。
+定义 skill-first 项目的会话归因、任务身份、流程路由、状态回写和验证边界。
 
-## 2. 核心对象
+## 2. 核心事实
 
-- `SessionEvent`
-- `SessionArtifact`
-- `EvidenceRecord`
+- `.factory/workitems/<WORKITEM-ID>/brief.md` 与 `plan.md`
+- `.factory/workitems/<WORKITEM-ID>/task-briefs/<TASK-ID>-*.md`
+- `.factory/workitems/<WORKITEM-ID>/ledger.jsonl`
+- `.factory/memory/agent-session.md` 及按 `doc-map.md` 回源的摘要
 
 ## 3. 设计结论
 
-- event / artifact 必须先落 ledger，再进入蒸馏
-- ledger 条目必须有稳定 `id`
-- ledger 条目必须支持 replay 与 source refs
-- 蒸馏层不得覆盖 ledger 原文
+- 项目事实写入前必须已有 WorkItem、TaskCard 和精确写集。
+- 工作 Skill 只产出专业结果和状态包，`using-shanforge` 负责唯一下一步路由。
+- ledger 事件必须有稳定 ID、幂等键和来源引用；memory 只做可回源投影，不覆盖正式事实。
+- Skill 由代理宿主从顶层 `skills/*/SKILL.md` 按需加载，不进入仓内运行时装配。
 
-## 4. 首版落点
+## 4. 当前落点
 
-- 扩展 `domain.session.models`
-- 补充 event / artifact 的 `id` 与时间戳
-- 由记忆蒸馏主链把 ledger 投影为 `EvidenceRecord`
+- `using-shanforge` 判断处理模式、恢复上下文并路由唯一工作 Skill。
+- 各 WorkItem 的 brief、task brief 和追加式 ledger 保存可执行身份与状态事实。
+- `project-memory` 生成会话卡，并按 `.factory/memory/doc-map.md` 单文件回源。
 
 ## 5. 当前实现状态
 
-- `SessionEvent` / `SessionArtifact` 已带稳定 `id` 与 `created_at`
-- 当前 `DefaultMemoryDomainService -> EvidenceRepositoryPort` 投影 evidence 时已使用稳定 ID
-- 同一 session 的 repeated distill 不再重复写入同一 evidence record
+- 仓库保持 skill-first，不提供 `src/` 平台运行时。
+- 顶层 Skill、所属 `scripts/`、正式文档和 `.factory/` 事实构成当前执行面。
+- 重复事件由 ledger 的稳定事件 ID 与幂等键拒绝；恢复与展示均从正式事实投影。
 
 ## 完整软件项目会话归因模型
 
@@ -705,7 +706,7 @@ R003 冻结时先追加 validator profile registry revision，再用该版设计
 
 ### 20.2 本地 Skill 绑定与缺口
 
-系统扫描仓内 37 个 `skills/*/SKILL.md`，保存名称、描述、路径和文件 SHA-256。命中生命周期职责的 30 个 Skill 深读其触发、边界、输入输出、验证和失败语义后形成 58 条 SkillBinding；每条绑定保存与源 Skill hash 一起冻结的 `source_contract`，逐 Skill 写明真实触发、拥有能力、禁止能力、允许 Workflow、状态输出和失败回退。Workflow 只引用明确适用于自身的绑定，不再把同一 Method 的全部 Skill 无差别复制给每条流程。
+代理宿主直接从当前 `skills/*/SKILL.md` 的目录与 frontmatter 发现能力；该文件系统是唯一能力清单，正式设计不冻结数量、文件哈希或另建 SkillBinding 目录。Workflow 只在任务命中具体 Skill 的触发边界时读取其合同，不把同一 Method 涉及的全部 Skill 无差别加载。
 
 `gitcommitzh` 只绑定本地提交工作流程 `WF-DEL-004`，只产出本地 commit SHA、中文提交说明和提交范围验证；分支、Push、PR、Merge、发布和部署均在其禁止范围内。`requesting-code-review` 只组织评审，`verification-before-completion` 只产生新鲜验证证据；二者即使服务发布流程也不能执行远端或生产副作用。Skill 只执行方法内动作，不能替代确定性路由、角色授权、独立 Review 或 HumanDecision。
 
@@ -1508,3 +1509,5 @@ R019 作者只能把 T01–T06 产物标记为 `ready_for_review`。完整 profi
 | `v1.3.1` | 明确低、中、高风险任务的确定性判定条件和信息不足时的升级规则 | 2026-08-01 | `AI_EXECUTOR` | `集中质量门` | `uroborus` |
 | `v1.4.0` | 增加设计至生产阶段门、变更归因、候选修复复测、最终发布回归和部署闭环 | 2026-08-08 | `AI_EXECUTOR` | `集中质量门` | `uroborus` |
 | `v1.5.0` | 固化 Sol 唯一控制、复杂度分级及 Terra/Luna 受控执行路由 | 2026-08-23 | `AI_EXECUTOR` | `集中质量门` | `uroborus` |
+
+候选修订（2026-08-23）：移除已撤销平台运行时的会话/记忆落点，并以 WorkItem、ledger、memory 回源和顶层 Skill 发现描述当前执行面；待独立评审。

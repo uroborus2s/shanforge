@@ -61,9 +61,9 @@
     "docs/01-getting-started/project-overview.md",
     "docs/02-user-guide/user-guide.md",
     "docs/03-developer-guide/application-development.md",
-    "docs/04-project-development/03-requirements/prd.md",
-    "docs/04-project-development/04-design/solution-overview.md",
-    "docs/04-project-development/05-development-process/task-execution-contract.md",
+    "docs/04-product/prd.md",
+    "docs/05-design/solution-overview.md",
+    "docs/05-design/workflow-execution-design.md",
     "docs/index.md"
   ],
   "idea": "维护一套运行在 Codex、Gemini CLI 等代理宿主中的 skill-first 软件工厂资产；using-shanforge 统一控制流程，专项 skills 完成需求、设计、实现、测试、评审和交付，目标项目只保存自己的代码、文档、测试与 .factory 事实。",
@@ -164,7 +164,7 @@
       ],
       "description": "负责阶段推进、跨角色协作、审批门禁和交接节奏控制。",
       "docs": [
-        "docs/04-project-development/04-design/technical-selection.md"
+        "docs/05-design/technical-selection.md"
       ],
       "id": "coordinator",
       "preferred_tools": [
@@ -216,11 +216,9 @@
       ],
       "description": "负责澄清目标、拆解需求、补齐 REQ/NFR、维护需求一致性。",
       "docs": [
-        "docs/04-project-development/01-governance/project-charter.md",
-        "docs/04-project-development/03-requirements/prd.md",
-        "docs/04-project-development/03-requirements/requirements-analysis.md",
-        "docs/04-project-development/03-requirements/requirements-verification.md",
-        "docs/04-project-development/10-traceability/requirements-matrix.md"
+        "docs/01-getting-started/project-charter.md",
+        "docs/04-product/prd.md",
+        "docs/04-product/requirements-matrix.md"
       ],
       "id": "requirements-analyst",
       "preferred_tools": [
@@ -270,11 +268,11 @@
       ],
       "description": "负责系统拆分、接口契约、后端边界和技术风险控制。",
       "docs": [
-        "docs/04-project-development/04-design/technical-selection.md",
-        "docs/04-project-development/04-design/system-architecture.md",
-        "docs/04-project-development/04-design/module-boundaries.md",
-        "docs/04-project-development/04-design/api-design.md",
-        "docs/04-project-development/10-traceability/requirements-matrix.md"
+        "docs/05-design/technical-selection.md",
+        "docs/05-design/system-architecture.md",
+        "docs/05-design/module-domain-design.md",
+        "docs/05-design/api-design.md",
+        "docs/04-product/requirements-matrix.md"
       ],
       "id": "solution-architect",
       "preferred_tools": [
@@ -319,10 +317,10 @@
       ],
       "description": "负责用户流程、界面结构、交互状态与体验一致性。",
       "docs": [
-        "docs/04-project-development/04-design/technical-selection.md",
-        "docs/04-project-development/04-design/system-architecture.md",
-        "docs/04-project-development/04-design/module-boundaries.md",
-        "docs/04-project-development/05-development-process/wbs.md"
+        "docs/05-design/technical-selection.md",
+        "docs/05-design/system-architecture.md",
+        "docs/05-design/module-domain-design.md",
+        "docs/05-design/ux-ui-design.md"
       ],
       "id": "ux-designer",
       "preferred_tools": [
@@ -366,11 +364,11 @@
       ],
       "description": "负责服务实现、接口落地、数据一致性和工程化执行。",
       "docs": [
-        "docs/04-project-development/04-design/technical-selection.md",
-        "docs/04-project-development/04-design/module-boundaries.md",
-        "docs/04-project-development/04-design/api-design.md",
-        "docs/04-project-development/05-development-process/implementation-plan.md",
-        "docs/04-project-development/06-testing-verification/test-plan.md"
+        "docs/05-design/technical-selection.md",
+        "docs/05-design/module-domain-design.md",
+        "docs/05-design/api-design.md",
+        "docs/05-design/workflow-execution-design.md",
+        "docs/06-delivery/test-plan.md"
       ],
       "id": "backend-engineer",
       "preferred_tools": [
@@ -409,10 +407,11 @@
       ],
       "description": "负责界面实现、交互联调、前端状态管理和可访问性。",
       "docs": [
-        "docs/04-project-development/04-design/technical-selection.md",
-        "docs/04-project-development/04-design/system-architecture.md",
-        "docs/04-project-development/05-development-process/implementation-plan.md",
-        "docs/04-project-development/06-testing-verification/test-plan.md"
+        "docs/05-design/technical-selection.md",
+        "docs/05-design/system-architecture.md",
+        "docs/05-design/frontend-design.md",
+        "docs/05-design/workflow-execution-design.md",
+        "docs/06-delivery/test-plan.md"
       ],
       "id": "frontend-engineer",
       "preferred_tools": [
@@ -457,10 +456,9 @@
       ],
       "description": "负责测试计划、回归验证、Gate 前检查和质量风险暴露。",
       "docs": [
-        "docs/04-project-development/06-testing-verification/test-plan.md",
-        "docs/04-project-development/06-testing-verification/test-cases.md",
-        "docs/04-project-development/06-testing-verification/test-report.md",
-        "docs/04-project-development/10-traceability/requirements-matrix.md"
+        "docs/06-delivery/test-plan.md",
+        "docs/04-product/requirements-matrix.md",
+        "docs/05-design/interface-matrix.md"
       ],
       "id": "qa-engineer",
       "preferred_tools": [
@@ -505,9 +503,9 @@
       ],
       "description": "负责交付说明、部署运行、发布准备和交接闭环。",
       "docs": [
-        "docs/04-project-development/07-release-delivery/delivery-package.md",
-        "docs/04-project-development/07-release-delivery/release-notes.md",
-        "docs/04-project-development/08-operations-maintenance/deployment-guide.md",
+        "docs/06-delivery/release-notes.md",
+        "docs/06-delivery/deployment-guide.md",
+        "docs/06-delivery/operations-runbook.md",
         "docs/02-user-guide/user-guide.md"
       ],
       "id": "release-manager",
@@ -552,7 +550,7 @@
         ".factory/memory/tasks.summary.md",
         ".factory/memory/change-summary.md",
         ".factory/memory/agent-session.md",
-        "docs/04-project-development/10-traceability/requirements-matrix.md"
+        "docs/04-product/requirements-matrix.md"
       ],
       "id": "memory-manager",
       "preferred_tools": [
@@ -749,9 +747,9 @@
     "docs/01-getting-started/project-overview.md",
     "docs/02-user-guide/user-guide.md",
     "docs/03-developer-guide/application-development.md",
-    "docs/04-project-development/03-requirements/prd.md",
-    "docs/04-project-development/04-design/solution-overview.md",
-    "docs/04-project-development/05-development-process/task-execution-contract.md",
+    "docs/04-product/prd.md",
+    "docs/05-design/solution-overview.md",
+    "docs/05-design/workflow-execution-design.md",
     "docs/index.md"
   ]
 }

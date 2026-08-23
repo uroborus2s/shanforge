@@ -147,7 +147,7 @@ def sync_target(
     lines: list[str] = []
 
     for source_dir in sorted(source_root.iterdir(), key=lambda item: item.name):
-        if not source_dir.is_dir():
+        if not source_dir.is_dir() or not (source_dir / "SKILL.md").is_file():
             continue
         if is_hidden(source_dir) and not include_hidden:
             stats.skipped_hidden += 1

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-import hashlib
+import re
 from pathlib import Path
 
 from test_remaining_skill_project_status_contract import (
@@ -15,55 +15,32 @@ SHARED_CONTRACT = (
     REPO_ROOT / "skills" / "using-shanforge" / "references" / "work-skill-return-contract.md"
 )
 
-PROFESSIONAL_PREFIX_SHA256 = {
-    "agent-harness-construction": (
-        "b97365a4385adcab3d0a85a0240b2df406fd3beb51cebede56563263d3545c43"
-    ),
-    "ai-first-engineering": "22a546be3ca4e7ccb97405de71aa5594ad6b1908600cbd0818eecc96a2bc35a6",
-    "ai-regression-testing": "42aa8be6d43006f4b51a7410473b7e74cce80036e131da85b23b586cb53b4652",
-    "algorithmic-art": "ef87545fc2aafe4811dee1f41fdeaf28abd195c654ccb24d36b4b65a94c96d2f",
-    "api-design": "967ce770b6e1d86b282ae9cced63e100a2e37f8d2651ce72da75925d7d3969f3",
-    "art-asset-pipeline": "3073885a3861284b7e207edaa6f852ad23e96b7f173698156afc56ef8770ca89",
-    "article-writing": "244f51d8545284d0115bd7b93d15b45cb71d56070e1dec368914f2eaddc5f47d",
-    "brainstorming": "2a9d176af74058691682c1509f07232e369abc550f68e5ed0f31d94307a01687",
-    "browser-control": "363c9fb1d83714576a4d9f788c6cb19b620b49c236a2c31bdc95b824eaba2cdc",
-    "crawler4j-model-project": "3e0fff07dd04b25c67e492bc5cd444db230ada45f1ed8290ba7b0780e77ec8d3",
-    "doc-coauthoring": "be0834078b4081e84e006dfba245d472bab2e07fac7782cef5c59c432253e223",
-    "document-templates": "0a1b1a36466106da20b42079864b8dd780200e29310191b8aab1ee87222317b3",
-    "docx": "4c0902897179193845cd2e3e2772047bdf17ed4fa5d6f33dd58919a1626220e8",
-    "frontend-patterns": "577d8a43d0f5783ff88ef30f51639db5b8c88bf64855a9902b0ba09c257aa727",
-    "gitcommitzh": "f8ddcf2b910ff6a3e37118cf660ad4eb7098473943a51e0ed35f61d7a85e8751",
-    "go-developer": "136813832ae13f66f81f1fa906b29fde5e47d8e826296bbd3f1011382646ff3a",
-    "humanizer": "2a5b0a33077aafda23e54e46577a0bf964ad22c7a7f0c939f350bdd8d2e88557",
-    "java-developer": "a299f7ea659a3f1b00809835aa2affe6fa9c9346b15902a6dd9d5a5b35acfa62",
-    "pdf": "9ac28dc422d7ccd697e7ef5612979b32bae6eb01e5088e9112fc66ee60107085",
-    "python-uv-project": "d5543a107ec6b793aca69f84bf3fba452d31f622da9713300c7c907ae4010d69",
-    "receiving-code-review": "9a66085894f26c1de2fc66509590dd12c68a57523ba2fb6057736feadca64fef",
-    "release-deployment": "a953a26295776b1f8f19412c4abde17642891a5d3c493af04ef8e1ff477b9437",
-    "requirements-engineering": "28ff7111e077d962863fec76b5bc62c1910e113ed3ac9a561d277bc58f73153d",
-    "shadcn": "0cba439d7e48e9d6f2b805379129ef06d835286bda44a2eee280578f13b07b23",
-    "stratix-admin-web": "2a35b86d6681d1c934e680fb94d8c894f80daf4060289d964df06379588f93f6",
-    "stratix-service": "c19274fd17d0fc04f992e64679fe7fee9369f1dd6d24e41169353b5ec3b1630c",
-    "systematic-debugging": "e20257ce9c11c8de054d4c6b5d22b94eb5e55b9f175e61ae26d76995530aca77",
-    "tdd-workflow": "f407a0cf4abcf11502cfbf1a69489fa1c42b0256ce2eb3927c2a0ce7ea9972db",
-    "ui-ux-pro-max": "c1251201eed9cd7e6ce251c788722c257f4cbaf735b76173c719f01b2fdc82ef",
-    "webapp-testing": "c8fc74e1e19ca0f0e8e38197a9afe95cd782c21ef5554b42ced3ff8b1bf58d89",
-    "writing-plans": "ed8a88273889fd8d3efd4e9bc2e4332d3efeb5ba240237ce72687bccac6c0ba7",
-    "xlsx": "109bf2bd5b00710a152d6638d0cb815c12b66afb854acec78bef52f3df6a0ca9",
-}
-
-
-def test_professional_prefixes_are_unchanged_for_exactly_31_work_skills() -> None:
-    assert set(PROFESSIONAL_PREFIX_SHA256) == WORK_SKILLS
-
-    # Keep the trailing newline that preceded the removed heading in the frozen prefix.
+def test_work_skills_keep_professional_content_before_the_shared_contract() -> None:
     separator = f"\n{PROJECT_CONTRACT_LINK}"
     for name in sorted(WORK_SKILLS):
         skill = read_skill(name)
         assert skill.count(separator) <= 1, name
         professional_prefix = skill.split(separator, maxsplit=1)[0]
-        digest = hashlib.sha256(professional_prefix.encode()).hexdigest()
-        assert digest == PROFESSIONAL_PREFIX_SHA256[name], name
+        frontmatter = professional_prefix.split("---", 2)[1]
+        headings = re.findall(r"^## .+", professional_prefix, re.MULTILINE)
+        list_items = re.findall(r"^(?:- |\d+\. )", professional_prefix, re.MULTILINE)
+
+        assert f"name: {name}" in frontmatter, name
+        assert "description:" in frontmatter, name
+        assert len(headings) >= 3, name
+        assert len(list_items) >= 5, name
+        expected_links = 0 if name == "stratix-service" else 1
+        assert skill.count(PROJECT_CONTRACT_LINK) == expected_links, name
+
+    modified_skill_anchors = {
+        "art-asset-pipeline": ("## 工作流程", "manifest.json"),
+        "brainstorming": ("## 默认流程", "Brief 模板"),
+        "document-templates": ("## 默认工作流", "## 新项目回退布局"),
+        "requirements-engineering": ("## Shanforge 默认流程", "analysis_mode"),
+    }
+    for name, anchors in modified_skill_anchors.items():
+        skill = read_skill(name)
+        assert all(anchor in skill for anchor in anchors), name
 
 
 def test_shared_contract_separates_local_results_from_project_envelope() -> None:

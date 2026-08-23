@@ -151,8 +151,11 @@ def test_art_asset_pipeline_skill_outputs_confirmed_assets_only() -> None:
         "资源清单",
         "应用开发资源包",
         "游戏开发资源包",
-        "未确认中间图必须删除",
+        "候选图跨会话保留",
+        "等待用户选择时不得删除",
+        "删除未被选中的候选图",
         "最终资源包只包含用户确认过的图",
+        "candidates/",
         "tmp/",
         "approved/",
         "manifest.json",
@@ -160,6 +163,9 @@ def test_art_asset_pipeline_skill_outputs_confirmed_assets_only() -> None:
         "remove_chroma_key.py",
     ):
         assert phrase in skill
+
+    assert "所有候选图先放 `tmp/`" not in skill
+    assert "全部写入 `tmp/`" not in skill
 
 
 def test_black_box_eval_covers_task_card_creation_boundaries() -> None:

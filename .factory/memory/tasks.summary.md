@@ -1,9 +1,11 @@
 # 任务摘要
 
-- 当前阶段：`MODEL-ROUTING-001 / completed`
-- 当前焦点：事实源、干净基线和 Sol/Terra/Luna 路由均已闭环。
+- 当前阶段：`SKILL-COMPLETENESS-P0-001 / commit_ready`
+- 当前焦点：五项 P0 和三项 review 缺口均已关闭，独立终审 `approved / 100 / C0-I0-M0`，等待最终验证与精确本地提交。
 
 > 历史读取规则：以下所有带日期条目都是记录发生时的历史快照。条目中的“当前”“下一步”只表示当时状态，不得覆盖本文件顶部的当前焦点和当前动作。
+
+- 2026-08-23：`SKILL-COMPLETENESS-P0-001` 按顺序完成 Skill 发现、正式文档回源、美术候选生命周期、动态能力目录和最小不变量守卫；首轮 review `87 / C0-I2-M2`，三项 Important 已关闭，追加历史补齐；同 reviewer 独立终审 `approved / 100 / C0-I0-M0`，完整回归 `242 passed / 4 subtests passed`，等待精确本地提交。
 
 - 2026-08-23：T02 已固化 Sol 唯一控制和复杂度/风险路由包；仅 `simple + low` 给 Luna，
   其他已授权任务给 Terra，五类升级信号交还 Sol。Red `4 failed`、Green `4 passed`，

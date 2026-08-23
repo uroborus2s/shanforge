@@ -34,7 +34,7 @@ description: "需求工程技能。用于把想法、work item brief、已批准
 ## 输出位置
 
 - 需求草案或 brief：`.factory/workitems/<WORKITEM-ID>/brief.md`
-- 正式 PRD：`docs/04-project-development/03-requirements/prd.md` 或用户指定路径
+- 正式 PRD：用户指定路径，或 `.factory/memory/doc-map.md` 为 PRD 登记的正式路径；尚无登记的新项目先由 `document-templates` 建立最小布局和映射
 - 任务 ledger：`.factory/workitems/<WORKITEM-ID>/ledger.jsonl`
 - Memory summary：`.factory/memory/prd.summary.md`、`.factory/memory/tasks.summary.md`
 
@@ -144,7 +144,7 @@ baseline 影响分析：
 - status: requirements_ready | ready_for_review | needs_user_input | blocked
 - outputs:
   - .factory/workitems/<WORKITEM-ID>/brief.md
-  - docs/04-project-development/03-requirements/prd.md
+  - <用户指定或 .factory/memory/doc-map.md 登记的正式 PRD 路径>
 - evidence:
   - <requirements checklist or review note>
 - ledger_event: <event id>

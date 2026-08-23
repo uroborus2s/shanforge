@@ -1,6 +1,6 @@
 # 架构摘要
 
-- 更新时间：2026-07-29
+- 更新时间：2026-08-23
 - 当前架构：`skill-first`
 - 正式 owner：`docs/05-design/system-architecture.md` `v4.0.0`
 
@@ -15,6 +15,8 @@
 - PM 快照由 `skills/using-shanforge/scripts/project_snapshot.py` 生成，输入是目标项目
   `.factory`，输出是可删除重建的 `.factory/cache/site/current/`。
 - 仓库根 `scripts/` 只承担 skill 同步，不承载软件工厂流程主控。
+- Skill 能力清单由代理宿主从 `skills/*/SKILL.md` 的目录与 frontmatter 动态发现，不维护独立数量、哈希或运行时注册表。
+- 复用型 Skill 写正式文档时优先按目标项目 `.factory/memory/doc-map.md` 的 owner 映射回源；布局模板只用于未登记的新项目或明确批准的迁移。
 - `v3.x` 的 `access -> application -> domain -> runtime -> settings` 分层及其平台代码
   已废止，只可从 Git 历史追溯。
 

@@ -1,34 +1,36 @@
 # Agent 会话卡
 
-- 生成时间：2026-08-23 21:08 +0800
+- 生成时间：2026-08-23 22:00 +0800
 - 项目：`shanforge`
-- 当前工作项：`TEST-GOVERNANCE-001`
-- 当前任务：`TEST-GOVERNANCE-001-T03`
-- 当前状态：`completed`
-- 当前焦点：TEST-GOVERNANCE-001 已完成
-- 下一动作：`none`
+- 当前工作项：`SKILL-COMPLETENESS-P0-001`
+- 当前任务：`SKILL-COMPLETENESS-P0-001-T01`
+- 当前状态：`review_approved_ready_for_commit`
+- 当前焦点：按顺序关闭 Skill 完整性五项 P0 缺口
+- 下一动作：`fresh_full_verification_then_exact_local_commit`
 
 ## 当前事实
 
 - Shanforge 是 skill-first 工程协作资产，旧 `src/` 平台和对应测试不属于当前产品。
-- 正式测试计划已改为当前 Skill-first 入口，失效旧平台案例目录已删除。
-- 治理测试现在解析正式计划和现存案例目录中的 `tests/test_*.py`，不存在的入口会失败。
-- 案例、报告和状态合同已统一；未恢复平台运行时或新增依赖。
-- 实现提交 `c4534ba` 的干净克隆为 `236 passed / 4 subtests passed`，并行工作项未纳入。
+- Skill 同步以含 `SKILL.md` 的一级目录为发现源，当前真实仓为 38 个。
+- 正式文档优先按目标项目 `doc-map.md` 的 owner 映射回源；四模块只作新项目回退。
+- 美术候选图跨会话保存在 `candidates/`，最终包排除候选和可再生临时目录。
+- 能力目录由文件系统动态派生，不增加运行时、注册表或依赖。
+- 首轮独立 review 的两项 Important 已修复；同 reviewer 首次复审为 `97 / C0-I0`。
+- memory 已补录首次复审和随后 `98 / changes_requested / C0-I1` 的状态历史；提交前完整回归为 `242 passed / 4 subtests passed`。
+- 同 reviewer 独立终审为 `approved / 100 / C0-I0-M0`。
 
 ## 当前 Gate
 
-- `closed`
-- 实现提交 `c4534ba` 的干净克隆全绿；工作项已关闭。
+- `review_approved`
+- 独立终审：`approved / 100 / C0-I0-M0`；用户已要求顺序实施，下一步按项目规则完成新鲜验证和精确本地提交。
 
 ## 后续授权范围
 
-- Sol 负责设计、分级和控制；T01/T02/T03 由 Terra 按任务简报执行。
-- 允许同范围测试、文档、Skill、WorkItem、memory、独立只读评审和本地提交。
+- 允许同范围脚本、Skill、正式文档、配置、测试、WorkItem、memory、独立只读复审和本地提交。
 - 不执行 push、PR、merge 或部署。
 
 ## 恢复入口
 
-- `.factory/workitems/TEST-GOVERNANCE-001/brief.md`
-- `.factory/workitems/TEST-GOVERNANCE-001/plan.md`
-- `.factory/workitems/TEST-GOVERNANCE-001/ledger.jsonl`
+- `.factory/workitems/SKILL-COMPLETENESS-P0-001/brief.md`
+- `.factory/workitems/SKILL-COMPLETENESS-P0-001/plan.md`
+- `.factory/workitems/SKILL-COMPLETENESS-P0-001/ledger.jsonl`

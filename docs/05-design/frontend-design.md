@@ -33,7 +33,7 @@
 
 ### 20.2 本地 Skill 绑定与缺口
 
-系统扫描仓内 37 个 `skills/*/SKILL.md`，保存名称、描述、路径和文件 SHA-256。命中生命周期职责的 30 个 Skill 深读其触发、边界、输入输出、验证和失败语义后形成 58 条 SkillBinding；每条绑定保存与源 Skill hash 一起冻结的 `source_contract`，逐 Skill 写明真实触发、拥有能力、禁止能力、允许 Workflow、状态输出和失败回退。Workflow 只引用明确适用于自身的绑定，不再把同一 Method 的全部 Skill 无差别复制给每条流程。
+代理宿主直接从当前 `skills/*/SKILL.md` 的目录与 frontmatter 发现能力；该文件系统是唯一能力清单，正式设计不冻结数量、文件哈希或另建 SkillBinding 目录。Workflow 只在任务命中具体 Skill 的触发边界时读取其合同，不把同一 Method 涉及的全部 Skill 无差别加载。
 
 `gitcommitzh` 只绑定本地提交工作流程 `WF-DEL-004`，只产出本地 commit SHA、中文提交说明和提交范围验证；分支、Push、PR、Merge、发布和部署均在其禁止范围内。`requesting-code-review` 只组织评审，`verification-before-completion` 只产生新鲜验证证据；二者即使服务发布流程也不能执行远端或生产副作用。Skill 只执行方法内动作，不能替代确定性路由、角色授权、独立 Review 或 HumanDecision。
 
@@ -558,3 +558,5 @@ R019 作者只能把 T01–T06 产物标记为 `ready_for_review`。完整 profi
 | `v1.5.0` | 2026-07-23 | 增补需求分类与验收归属、需求任务双向深链、安全文档正文和折叠技术快照信息 | `uroborus` | `uroborus` | `uroborus` |
 | `v1.5.1` | 2026-07-23 | 任务详情移除内部 locator，拆分关联需求、相关设计及代码测试交付，并按登记关系推导设计深链 | `uroborus` | `uroborus` | `uroborus` |
 | `v1.6.0` | 2026-07-27 | 任务详情改为目的、工作、结果和完成确认四段式说明；需求与验收首页改为四层可展开需求树 | `AI_EXECUTOR` | `/root/enterprise_delivery_review` | `uroborus` |
+
+候选修订（2026-08-23）：Skill 能力清单改为从 `skills/*/SKILL.md` 动态发现，不再冻结数量、哈希或重复目录；待独立评审。

@@ -90,3 +90,4 @@
 - 2026-04-15：更新 `memory-system-detailed-design.md`、`memory-runtime-interfaces.md` 与 `hermes-agent-source-analysis-report.md`，吸收 Hermes Agent 的 provider manager、archive query、bounded memory 与 delegation isolation 设计精华。
 - 2026-04-15：同步更新设计索引、站点导航、需求追踪矩阵与 `.factory/memory` 摘要，补齐 `REQ-006` 的业务到设计追踪。
 - 2026-08-23：`TEST-GOVERNANCE-001` 清理旧平台测试入口和失效案例目录，新增完整测试案例模板，升级人类可读测试报告，并统一案例七态与批次四态；实现提交 `c4534ba` 已通过干净克隆验证。
+- 2026-08-23：`TEST-GOVERNANCE-CLOSURE-001` 正式发布测试计划 `v3.2.0` 和案例目录 `v1.0.0`，新增标准库案例/报告校验器与三份质量模板自动门；实现提交 `ca436c9` 干净克隆全绿，最终人类可读报告校验通过。

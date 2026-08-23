@@ -4,7 +4,7 @@
 
 - 工作项：`TEST-GOVERNANCE-CLOSURE-001`
 - 任务：`TEST-GOVERNANCE-CLOSURE-001-T02`
-- 状态：`active`
+- 状态：`completed`
 - 优先级：`P0`
 - 任务层级：`system`
 - 关联目标：`TEST-PLAN-001`

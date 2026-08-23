@@ -8,7 +8,7 @@
 
 **工作项：** `TEST-GOVERNANCE-CLOSURE-001`
 
-**状态：** `implementation_ready_for_commit`
+**状态：** `completed`
 
 ## 输入
 
@@ -83,8 +83,9 @@
 - 计划独立评审：`N/A`（中风险，作者自审）。
 - 批次代码评审：`approved / 98 / C0-I0-M0`。
 - 批次验证：隔离候选 `246 passed / 4 subtests passed`，Ruff、文档校验和结构化数据门通过。
-- 本地提交：`pending`。
+- 本地提交：`ca436c9`。
 - 记忆同步：已按共享文件 hunk 精确同步。
+- 最终报告：自动聚合校验 `report: valid`。
 
 ## 计划自审
 

@@ -29,4 +29,4 @@
 
 ## 状态
 
-`implementation_ready_for_commit`
+`closed`

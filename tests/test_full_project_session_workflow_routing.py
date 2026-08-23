@@ -314,13 +314,14 @@ def test_formal_contract_preserves_v1_2_baseline_and_adds_delivery_workflows() -
         "3d5f4cbabda86312da0603db5662175453d12dd5966c788301b0c79c2cb4992f"
     )
     assert "批准前不得修改正式文档或同步 runtime Skill" in candidate
-    assert "| 正式版本 | `v1.4.0` |" in formal
+    assert "| 正式版本 | `v1.5.0` |" in formal
     assert "| 来源候选 | `2026-08-08 用户阶段门控与闭环优化决策` |" in formal
     assert "| 发布事务 | `N/A（直接策略变更）` |" in formal
     assert "| `v1.2.0` | 发布完整项目会话归因" in formal
     assert "| `v1.3.0` | 开发期轻门禁" in formal
     assert "| `v1.3.1` | 明确低、中、高风险任务" in formal
     assert "| `v1.4.0` | 增加设计至生产阶段门" in formal
+    assert "| `v1.5.0` | 固化 Sol 唯一控制" in formal
     assert formal.count("## 完整软件项目会话归因模型") == 1
     assert formal.count("## 工作流合同") == 1
     assert "| 当前版本 | `0.2.0` |" not in formal

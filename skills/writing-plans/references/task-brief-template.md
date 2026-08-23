@@ -13,6 +13,16 @@
 - 上游计划：
 - 流水账：
 
+## 模型路由
+
+- control_model: `gpt-5.6-sol`
+- task_complexity: `simple | standard | complex`
+- risk_level: `low | medium | high`
+- execution_model: `gpt-5.6-luna | gpt-5.6-terra`
+- execution_authorized: `true | false`
+- route_reason:
+- escalation_triggers: `scope_expanded | input_conflict | risk_increased | verification_failed_twice | human_gate`
+
 ## 目标
 
 用 1-3 句说明本任务必须完成的可观察结果。

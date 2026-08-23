@@ -1,4 +1,4 @@
 interface:
   display_name: "shanforge"
   short_description: "判断阶段、变更归属和唯一下一步 skill，并闭合测试、发布与状态回写。"
-  default_prompt: "使用 $using-shanforge 判断请求是否影响项目；无项目影响直接回答，有项目影响再恢复状态。按需求、设计、实现、测试或环境归因变更，选择唯一下一步 skill；工作 skill 只回写状态、证据和 needs。"
+  default_prompt: "使用 $using-shanforge 判断请求是否影响项目；无项目影响直接回答，有项目影响再恢复状态。Sol 控制并分级，Terra/Luna 执行已授权任务；按需求、设计、实现、测试或环境归因变更，选择唯一下一步 skill；工作 skill 只回写状态、证据和 needs。"

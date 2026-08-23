@@ -128,6 +128,60 @@ description: 项目状态查询、任务延续、项目事实修改、阶段切�
   只有 Critical、Important 或高风险路径变化才复审受影响范围。
 - 长周期项目可以按里程碑收口，但禁止退化为逐任务重复评审。用户明确要求逐任务评审时才覆盖本默认策略。
 
+## Sol / Terra / Luna 模型路由
+
+Sol 是唯一总体设计、任务分级和模型路由 owner；Terra 和 Luna 不得重新分级。先使用上文风险规则得到
+`risk_level`，再由 Sol 确定复杂度：
+
+- `simple`：满足“简单代码变更直接实施”的全部条件，且 `risk_level` 为 `low`。
+- `complex`：涉及架构或系统设计、公共契约、schema、迁移、安全或生产，包含三个及以上独立交付物，
+  需要跨模块、跨会话或并行协调，或仍有未解决的设计歧义；信息不足时按 `complex`。
+- `standard`：既不满足 `simple`，也未命中 `complex`。
+
+确定性映射只有两条：
+
+- `simple + low` -> `gpt-5.6-luna`。
+- `standard | complex | medium | high` -> `gpt-5.6-terra`。
+
+### 执行模型决策表
+
+按表格顺序命中第一行；`*` 是兜底：
+
+| task_complexity | risk_level | execution_model |
+|---|---|---|
+| `simple` | `low` | `gpt-5.6-luna` |
+| `*` | `*` | `gpt-5.6-terra` |
+
+### 执行授权决策表
+
+按表格顺序命中第一行；只有身份、范围和 Gate 全部完整才允许派发：
+
+| gate_state | identity_and_scope | execution_authorized | action |
+|---|---|---|---|
+| `closed` | `complete` | `true` | `dispatch` |
+| `*` | `*` | `false` | `do_not_dispatch` |
+
+高风险 Gate 未闭合时 `execution_authorized: false`；其他任务只有在身份、范围和当前 Gate 完整时才可授权。
+普通项目化路由包追加并持久化以下字段：
+
+```text
+control_model: gpt-5.6-sol
+task_complexity: simple | standard | complex
+risk_level: low | medium | high
+execution_model: gpt-5.6-luna | gpt-5.6-terra
+execution_authorized: true | false
+route_reason: <命中的复杂度、风险和 Gate 规则>
+escalation_triggers:
+  - scope_expanded
+  - input_conflict
+  - risk_increased
+  - verification_failed_twice
+  - human_gate
+```
+
+Terra/Luna 只执行已授权任务包，不得改写上述字段、扩大范围、自批 Review 或决定完成。任一升级触发器命中时
+停止当前执行并交还 Sol；同一任务连续两次验证失败记为 `verification_failed_twice`。
+
 ## 默认流程
 
 1. 按“简单任务快速通道”先根据当前消息判定处理模式。

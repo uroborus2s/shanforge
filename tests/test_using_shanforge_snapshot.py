@@ -192,10 +192,10 @@ class ProjectSnapshotTest(unittest.TestCase):
         ledger = ROOT / ".factory" / "workitems" / "MODEL-ROUTING-001" / "ledger.jsonl"
         latest = json.loads(ledger.read_text(encoding="utf-8").splitlines()[-1])
 
-        self.assertEqual(latest["task_card_id"], "MODEL-ROUTING-001-T01")
+        self.assertEqual(latest["task_card_id"], "MODEL-ROUTING-001-T03")
         self.assertIn(latest["next_required_action"], session)
         self.assertIn(latest["work_item_id"], session)
-        self.assertIn("事实收口与干净克隆基线", session)
+        self.assertIn("模型路由集中质量门", session)
         self.assertNotIn("客户确认六角色映射", session)
 
     def test_skill_first_boundary_has_no_repository_runtime(self) -> None:

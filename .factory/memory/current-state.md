@@ -1,14 +1,14 @@
 # 当前状态
 
 - 当前模式：`codex_desktop`
-- 当前阶段：`MODEL-ROUTING-001 / MODEL-ROUTING-001-T01`
+- 当前阶段：`MODEL-ROUTING-001 / MODEL-ROUTING-001-T03`
 - 活跃任务数：1
 - 阻塞项数：0
-- 当前 Gate：`T01_post_review_full_verification_and_baseline_commit`
+- 当前 Gate：`T03_exact_local_commit_and_clean_clone_verification`
 
 ## 活跃任务
 
-- `MODEL-ROUTING-001-T01`：统一 skill-first 事实、清理历史过程资产并恢复可复现测试基线。
+- `MODEL-ROUTING-001-T03`：完成全量验证、独立评审、精确本地提交和最终干净克隆复验。
 
 ## 阻塞项
 
@@ -19,11 +19,12 @@
 - 用户已授权先完成事实源和干净克隆收口，再实现 Sol 控制、Terra/Luna 执行的模型路由。
 - 当前架构事实源是 `docs/05-design/system-architecture.md`：仓库不提供 `src/` 平台运行时。
 - 历史大型候选、原始证据和截图已备份到 `/tmp/shanforge-model-routing-001-untracked-backup-20260823.tar.gz` 后清理。
-- 清理前工作区完整测试为 `220 passed / 8 failed / 4 subtests`；失败均已定位为旧断言或需求 Skill 缺失明确根因门。
+- 清理前失败均已定位；T01 基线提交 `9245946` 的干净克隆为 `228 passed / 4 subtests passed`，Ruff、JSON/JSONL 和 Git 门通过。
+- T02 已固化 Sol 唯一控制、Terra/Luna 受控执行合同；独立复审 `approved / 98 / C0-I0-M0`，全量为 `233 passed / 4 subtests passed`。
 
 ## 唯一下一动作
 
-- 运行复审后的完整验证，形成本地基线提交，再从该提交执行干净克隆复验。
+- 创建精确本地提交，并从该提交执行最终干净克隆复验。
 
 ## 历史回源
 

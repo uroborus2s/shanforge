@@ -3,10 +3,10 @@
 - 生成时间：2026-08-23 10:16 +0800
 - 项目：`shanforge`
 - 当前工作项：`MODEL-ROUTING-001`
-- 当前任务：`MODEL-ROUTING-001-T01`
-- 当前状态：`in_progress`
-- 当前焦点：skill-first 事实收口与干净克隆基线
-- 下一动作：`run_post_review_full_verification_then_create_local_baseline_commit`
+- 当前任务：`MODEL-ROUTING-001-T03`
+- 当前状态：`approved_ready_for_local_commit`
+- 当前焦点：模型路由集中质量门、独立评审与本地提交
+- 下一动作：`create_exact_local_commit_then_clean_clone_verify`
 
 ## 当前事实
 
@@ -18,8 +18,8 @@
 
 ## 当前 Gate
 
-- `T01_post_review_full_verification_and_baseline_commit`
-- 独立复审 `approved / 97 / C0-I0-M0`；运行完整验证后创建本地基线提交，再执行干净克隆复验。
+- `T03_exact_local_commit_and_clean_clone_verification`
+- 独立复审 `approved / 98 / C0-I0-M0`；当前进入精确本地提交和提交后干净克隆复验。
 
 ## 后续授权范围
 

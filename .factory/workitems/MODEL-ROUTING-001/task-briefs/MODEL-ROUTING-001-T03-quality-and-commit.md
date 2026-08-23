@@ -4,7 +4,7 @@
 
 - 工作项：`MODEL-ROUTING-001`
 - 任务：`MODEL-ROUTING-001-T03`
-- 状态：`draft`
+- 状态：`approved`
 - 优先级：`P0`
 - 任务层级：`system`
 - 关联目标：`MODEL-ROUTING-001`

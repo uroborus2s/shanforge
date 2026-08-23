@@ -29,3 +29,14 @@
 - 根 Ruff：exit 0，`All checks passed!`。
 - `.factory` JSON/JSONL：exit 0，`factory JSON/JSONL valid`。
 - `git diff --check`：exit 0，无输出。
+
+## 提交后干净克隆复验
+
+- 时间：2026-08-23T10:53:23+08:00
+- 基线提交：`9245946`
+- 克隆：`git clone --no-local /Users/uroborus/AiProject/shanforge /tmp/shanforge-model-routing-001-clean.iMIVYT/shanforge`，exit 0。
+- 克隆 HEAD：`9245946`；`git status --porcelain=v1` 无输出。
+- 完整 pytest：exit 0，`228 passed, 4 subtests passed`。
+- 根 Ruff：exit 0，`All checks passed!`。
+- `.factory` JSON/JSONL：exit 0，`factory JSON/JSONL valid`。
+- `git diff --check`：exit 0，无输出。

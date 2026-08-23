@@ -202,3 +202,5 @@ review 输出写入 `.factory/workitems/<WORKITEM-ID>/reviews/plan-review.md`。
 `approved` 仍必须来自真实 plan review。代码实现、批次质量评审、提交和 PR 闭环由流程总控另行判断。
 
 项目化执行时，沿用 [工作 Skill 回写契约](../using-shanforge/references/work-skill-return-contract.md)；本 skill 的现有专业输出和失败语义不变。
+
+每张 task brief 原样复制模型路由字段，不重新计算；计划不得让 Terra/Luna 改写 Sol 的裁决。

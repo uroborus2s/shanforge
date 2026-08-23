@@ -45,6 +45,23 @@ description: 有已批准的 Shanforge work item plan，且任务相对独立、
 
 主控必须先把用户批准范围固化为授权执行包：目标、任务集合、依赖层、允许文件、共享契约、允许动作、禁止动作、验证命令、同范围整改边界和真实人工 Gate。
 
+Terra/Luna 只消费已授权路由包；`execution_authorized` 不为 `true` 时不得派发。执行者不得重算或改写
+`control_model`、`task_complexity`、`risk_level`、`execution_model`、`route_reason` 和 `escalation_triggers`。
+命中 `scope_expanded`、`input_conflict`、`risk_increased`、`verification_failed_twice` 或 `human_gate` 时，
+立即停止当前执行并把事实交还 Sol；不得自行换模型或扩大授权。
+
+`execution_authorized != true -> do_not_dispatch`
+
+### 升级信号决策表
+
+| signal | action |
+|---|---|
+| `scope_expanded` | `stop_and_return_to_sol` |
+| `input_conflict` | `stop_and_return_to_sol` |
+| `risk_increased` | `stop_and_return_to_sol` |
+| `verification_failed_twice` | `stop_and_return_to_sol` |
+| `human_gate` | `stop_and_return_to_sol` |
+
 - 批次内任务按依赖层连续推进；不要逐项请求继续。
 - 普通 task checkpoint 不是人工 Gate，也不是质量 Gate。子任务返回最小结果后继续，不生成逐任务 evidence、report 或 review input。
 - 授权范围不得扩大。子 agent 和主控都不能从“继续执行”推导新文件、新系统或新外部动作权限。

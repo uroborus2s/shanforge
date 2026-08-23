@@ -5,7 +5,7 @@
 | 项目 | 内容 |
 |---|---|
 | 文档 ID | `PROC-TASK-EXECUTION-001` |
-| 正式版本 | `v1.4.0` |
+| 正式版本 | `v1.5.0` |
 | 来源候选 | `2026-08-08 用户阶段门控与闭环优化决策` |
 | 发布事务 | `N/A（直接策略变更）` |
 | 负责人 | `HUMAN_PROJECT_OWNER` |
@@ -22,7 +22,7 @@
 
 ## 正式内容
 
-**最后更新：** 2026-08-08
+**最后更新：** 2026-08-23
 
 ## 1. 目标
 
@@ -188,7 +188,31 @@ route:
   forbidden_actions: <actions>
   current_gate: <gate>
   write_policy: <matrix action class>
+  control_model: gpt-5.6-sol
+  task_complexity: simple | standard | complex
+  risk_level: low | medium | high
+  execution_model: gpt-5.6-luna | gpt-5.6-terra
+  execution_authorized: true | false
+  route_reason: <matched deterministic rules>
+  escalation_triggers:
+    - scope_expanded
+    - input_conflict
+    - risk_increased
+    - verification_failed_twice
+    - human_gate
 ```
+
+Sol 是唯一总体设计、任务分级和模型路由 owner；Terra 和 Luna 不得重新分级。复杂度和风险使用正式规则裁决：
+
+- `simple`：满足简单代码变更全部条件且风险为 `low`。
+- `complex`：涉及架构或系统设计、公共契约、schema、迁移、安全或生产，包含三个及以上独立交付物，
+  需要跨模块、跨会话或并行协调，或仍有未解决的设计歧义；信息不足时按 `complex`。
+- `standard`：既不满足 `simple`，也未命中 `complex`。
+- 仅 `simple + low` 路由到 `gpt-5.6-luna`；其余由 `gpt-5.6-terra` 执行。高风险 Gate 未闭合时
+  `execution_authorized: false`，由 Sol 保持控制并等待 Gate。
+
+执行者只消费 Sol 已授权的路由包，不得扩大范围、自批完成或改写复杂度、风险和执行模型。任一
+`escalation_triggers` 命中时停止当前执行并交还 Sol；连续两次验证失败记为 `verification_failed_twice`。
 
 工作流返回状态包：
 
@@ -1483,3 +1507,4 @@ R019 作者只能把 T01–T06 产物标记为 `ready_for_review`。完整 profi
 | `v1.3.0` | 开发期轻门禁、风险分级评审和批次集中质量收口 | 2026-08-01 | `AI_EXECUTOR` | `集中质量门` | `uroborus` |
 | `v1.3.1` | 明确低、中、高风险任务的确定性判定条件和信息不足时的升级规则 | 2026-08-01 | `AI_EXECUTOR` | `集中质量门` | `uroborus` |
 | `v1.4.0` | 增加设计至生产阶段门、变更归因、候选修复复测、最终发布回归和部署闭环 | 2026-08-08 | `AI_EXECUTOR` | `集中质量门` | `uroborus` |
+| `v1.5.0` | 固化 Sol 唯一控制、复杂度分级及 Terra/Luna 受控执行路由 | 2026-08-23 | `AI_EXECUTOR` | `集中质量门` | `uroborus` |

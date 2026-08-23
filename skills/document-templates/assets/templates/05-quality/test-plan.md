@@ -77,7 +77,13 @@
 |---|---|---|
 |  |  |  |
 
-## 10. 变更记录
+## 10. 自动化治理校验
+
+- 案例目录：`uv run python skills/document-templates/scripts/validate_test_documents.py --repo-root . --catalog <案例目录路径>`
+- WorkItem 报告：`uv run python skills/document-templates/scripts/validate_test_documents.py --report <报告路径>`
+- 里程碑或发布候选必须生成并校验 WorkItem 级人类可读测试报告；普通小任务只保留命令摘要。
+
+## 11. 变更记录
 
 | 日期 | 变更内容 | 变更人 |
 |---|---|---|

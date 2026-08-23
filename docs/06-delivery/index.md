@@ -5,8 +5,9 @@
 | 项目 | 内容 |
 |---|---|
 | 文档 ID | `DOC-NAV-DELIVERY-001` |
-| 正式版本 | `v1.1.0` |
-| 来源候选 | `TASK-DELIVERY-001-R001` |
+| 正式版本 | `v1.2.0` |
+| 当前修订 | 无 |
+| 来源候选 | `TEST-GOVERNANCE-CLOSURE-001` |
 | 发布事务 | `DELIVERY-RELEASE-TX-R001-G001` |
 | 负责人 | `HUMAN_RELEASE_OPERATIONS_LEAD` |
 | 修改 / 审核 / 批准 | `AI_EXECUTOR` / 独立 Reviewer / `uroborus` |
@@ -25,9 +26,10 @@
 ## 正式文档
 
 1. [测试策略与质量门](./test-plan.md)：测试层级、发布质量门和 R002 验证入口。
-2. [发布说明](./release-notes.md)：R002 已发布变化、兼容影响和残留范围。
-3. [部署手册](./deployment-guide.md)：当前本地交付方式、环境前置、验证和回滚入口。
-4. [运维手册](./operations-runbook.md)：巡检、故障分流、恢复和升级边界。
+2. [正式测试案例目录](./test-cases.md)：稳定案例 ID、前置条件、步骤、预期结果、自动化入口与清理。
+3. [发布说明](./release-notes.md)：R002 已发布变化、兼容影响和残留范围。
+4. [部署手册](./deployment-guide.md)：当前本地交付方式、环境前置、验证和回滚入口。
+5. [运维手册](./operations-runbook.md)：巡检、故障分流、恢复和升级边界。
 
 ## 阅读顺序
 
@@ -47,3 +49,4 @@
 |---|---|---|---|---|---|
 | `v1.0.0` | 2026-07-18 | 基于 R019 建立统一质量、发布与运维入口 | `uroborus` | `uroborus` | `uroborus` |
 | `v1.1.0` | 2026-07-20 | 绑定 R002 本地正式实现交付基线和 15/123 完成口径 | `AI_EXECUTOR` | 独立 Reviewer | `uroborus` |
+| `v1.2.0` | 2026-08-23 | 登记正式测试案例目录和文档有效性校验入口 | `AI_EXECUTOR` | 独立 Reviewer | `uroborus` |

@@ -5,8 +5,9 @@
 | 项目 | 内容 |
 |---|---|
 | 文档 ID | `TRACE-DOC-001` |
-| 正式版本 | `v2.2.0` |
-| 来源候选 | `SKILL-FIRST-PM-001` |
+| 正式版本 | `v2.3.0` |
+| 当前修订 | 无 |
+| 来源候选 | `TEST-GOVERNANCE-CLOSURE-001` |
 | 发布事务 | `DESIGN-RELEASE-TX-R019-G001` |
 | 负责人 | `HUMAN_PROJECT_OWNER` |
 | 修改 / 审核 / 批准 | `uroborus` / `uroborus` / `uroborus` |
@@ -19,7 +20,7 @@
 | 路径 | 文档 ID | 标题 | 类型 | Owner | 正式版本 |
 |---|---|---|---|---|---|
 | `docs/index.md` | `DOC-NAV-ROOT-001` | 文档总入口 | `navigation` | `HUMAN_PROJECT_OWNER` | `v1.2.0` |
-| `docs/document-index.md` | `TRACE-DOC-001` | 文档索引与变更记录 | `traceability` | `HUMAN_PROJECT_OWNER` | `v2.1.0` |
+| `docs/document-index.md` | `TRACE-DOC-001` | 文档索引与变更记录 | `traceability` | `HUMAN_PROJECT_OWNER` | `v2.3.0` |
 | `docs/01-getting-started/index.md` | `DOC-NAV-GETTING-001` | 项目概览入口 | `navigation` | `HUMAN_PROJECT_OWNER` | `v1.0.0` |
 | `docs/01-getting-started/project-overview.md` | `DOC-PROJECT-OVERVIEW-001` | 项目概览 | `guide` | `HUMAN_PROJECT_OWNER` | `v1.1.0` |
 | `docs/01-getting-started/project-charter.md` | `DOC-PROJECT-CHARTER-001` | 项目章程 | `formal_baseline` | `HUMAN_PROJECT_OWNER` | `v3.0.0` |
@@ -47,8 +48,9 @@
 | `docs/05-design/workflow-execution-design.md` | `PROC-TASK-EXECUTION-001` | 会话、任务与工作流执行设计 | `formal_baseline` | `HUMAN_PROJECT_OWNER` | `v1.1.0` |
 | `docs/05-design/memory-design.md` | `DESIGN-MEMORY-001` | 记忆系统设计 | `formal_baseline` | `HUMAN_ARCHITECTURE_DOMAIN_LEAD` | `v3.1.0` |
 | `docs/05-design/interface-matrix.md` | `TRACE-API-001` | 接口与字段追踪矩阵 | `traceability` | `HUMAN_API_INTEGRATION_LEAD` | `v3.1.0` |
-| `docs/06-delivery/index.md` | `DOC-NAV-DELIVERY-001` | 质量、发布与运维入口 | `navigation` | `HUMAN_RELEASE_OPERATIONS_LEAD` | `v1.0.0` |
-| `docs/06-delivery/test-plan.md` | `TEST-PLAN-001` | 测试策略与质量门 | `formal_baseline` | `HUMAN_QUALITY_SECURITY_LEAD` | `v3.0.0` |
+| `docs/06-delivery/index.md` | `DOC-NAV-DELIVERY-001` | 质量、发布与运维入口 | `navigation` | `HUMAN_RELEASE_OPERATIONS_LEAD` | `v1.2.0` |
+| `docs/06-delivery/test-plan.md` | `TEST-PLAN-001` | 测试策略与质量门 | `formal_baseline` | `HUMAN_QUALITY_SECURITY_LEAD` | `v3.2.0` |
+| `docs/06-delivery/test-cases.md` | `TEST-CATALOG-SHANFORGE-001` | Shanforge 正式测试案例目录 | `test_catalog` | `HUMAN_QUALITY_SECURITY_LEAD` | `v1.0.0` |
 | `docs/06-delivery/release-notes.md` | `RELEASE-NOTES-001` | 发布说明 | `formal_baseline` | `HUMAN_RELEASE_OPERATIONS_LEAD` | `v3.0.0` |
 | `docs/06-delivery/deployment-guide.md` | `OPS-DEPLOYMENT-GUIDE-001` | Skill 交付手册 | `formal_baseline` | `HUMAN_RELEASE_OPERATIONS_LEAD` | `v4.0.0` |
 | `docs/06-delivery/operations-runbook.md` | `OPS-RUNBOOK-001` | 运维手册 | `formal_baseline` | `HUMAN_RELEASE_OPERATIONS_LEAD` | `v3.0.0` |
@@ -141,6 +143,7 @@
 
 | 版本 | 日期 | 变更内容 | 修改人 | 审核 | 批准 |
 |---|---|---|---|---|---|
+| `v2.3.0` | 2026-08-23 | 正式登记测试案例目录、测试计划与交付导航新版本 | `AI_EXECUTOR` | 独立 Reviewer | `uroborus` |
 | `v2.2.0` | 2026-07-28 | 登记 skill-first 架构与 skill 自带快照入口 | `uroborus` | `uroborus` | `uroborus` |
 | `v2.0.0` | 2026-07-18 | 发布重构后的文档索引与前像处置 | `uroborus` | `uroborus` | `uroborus` |
 | `v2.1.0` | 2026-07-22 | 登记 34 份人类文档，移出机器 JSON，并同步项目知识设计版本 | `uroborus` | `uroborus` | `uroborus` |

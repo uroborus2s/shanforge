@@ -5,13 +5,13 @@
 | 项目 | 内容 |
 |---|---|
 | 文档 ID | `TEST-PLAN-001` |
-| 正式版本 | `v3.1.0` |
-| 当前修订 | `TEST-GOVERNANCE-001` 候选，未发布 |
-| 来源候选 | `TEST-GOVERNANCE-001` |
+| 正式版本 | `v3.2.0` |
+| 当前修订 | 无 |
+| 来源候选 | `TEST-GOVERNANCE-CLOSURE-001` |
 | 负责人 | `HUMAN_QUALITY_SECURITY_LEAD` |
-| 正式版修改 / 审核 / 批准 | `AI_EXECUTOR` / 独立 Reviewer / `uroborus` |
-| 候选审核 / 批准 | 未执行 / 未执行 |
-| 状态 | `v3.1.0` 已生效；当前修订仅为 `ready_for_review` 候选 |
+| 修改 | `AI_EXECUTOR` |
+| 审核 / 批准 | 独立 Reviewer / uroborus |
+| 状态 | 已批准并生效 |
 | 上游 | PRD、Skill-first 系统架构、工作流执行设计 |
 | 下游 | 自动测试、WorkItem evidence、测试报告与发布 Gate |
 
@@ -43,6 +43,7 @@ UI、API、性能或安全专项只在目标项目真实存在对应暴露面时
 | Sol / Terra / Luna 路由 | `tests/test_model_tier_routing.py` |
 | 项目记忆与事实源 | `tests/test_project_memory_skill.py`、`tests/test_doc_factory_restructure.py` |
 | 测试治理 | `tests/test_project_test_governance.py` |
+| 案例/报告文档有效性 | `uv run python skills/document-templates/scripts/validate_test_documents.py --repo-root . --catalog docs/06-delivery/test-cases.md` |
 | 完整回归 | `uv run pytest -q` |
 | 静态门 | `uv run ruff check .`、`git diff --check` |
 
@@ -78,7 +79,7 @@ UI、API、性能或安全专项只在目标项目真实存在对应暴露面时
 
 | 内容 | 事实 owner | 回答的问题 |
 |---|---|---|
-| 测试案例定义 | 目标项目的测试脚本与案例目录 | 应该测什么、为什么测、怎样判定 |
+| 测试案例定义 | [`docs/06-delivery/test-cases.md`](./test-cases.md) 与对应测试脚本 | 应该测什么、为什么测、怎样判定 |
 | 单次运行结果 | 当前 WorkItem evidence | 这一次实际发生了什么 |
 | 人类可读测试报告 | 当前 WorkItem reports/evidence | 本次整体质量、缺口、风险和发布建议是什么 |
 
@@ -88,7 +89,7 @@ UI、API、性能或安全专项只在目标项目真实存在对应暴露面时
 
 案例至少包含稳定 ID、版本、名称、定义状态、目标、需求/验收追踪、层级、优先级、风险、Owner、前置条件、测试数据或 fixture、操作与预期成对步骤、环境、自动化入口、证据要求、后置/清理条件和标签。
 
-定义状态只有 `draft / active / deprecated / retired`，不能在案例定义中写 `passed` 或 `failed`。通用模板位于 `skills/document-templates/assets/templates/05-quality/test-cases.md`。
+定义状态只有 `draft / active / deprecated / retired`，不能在案例定义中写 `passed` 或 `failed`。当前项目正式目录位于 `docs/06-delivery/test-cases.md`，通用模板位于 `skills/document-templates/assets/templates/05-quality/test-cases.md`。
 
 ### 5.3 案例运行结果七态
 
@@ -115,6 +116,12 @@ UI、API、性能或安全专项只在目标项目真实存在对应暴露面时
 
 案例七态与批次四态不可混用。报告的七态计数来自案例结果，批次结论由准出条件和未运行项确定。
 
+### 5.5 自动有效性与聚合一致性
+
+- 案例目录定稿时运行 `validate_test_documents.py --repo-root . --catalog <path>`，检查索引/详情一致、必填字段、枚举和 pytest 自动化节点。
+- 里程碑、发布候选或用户明确要求的 WorkItem 报告定稿时运行 `validate_test_documents.py --report <path>`，检查精确候选、七态总数、批次四态和 GO/NO-GO。
+- 校验失败属于质量门失败；不得通过手工修改聚合结论绕过案例结果。
+
 ## 6. 发布质量门
 
 1. 候选必须绑定不可变 commit 或 digest，测试报告、review 和发布动作指向同一候选。
@@ -122,8 +129,9 @@ UI、API、性能或安全专项只在目标项目真实存在对应暴露面时
 3. 最终候选的必需测试 `failed/error/blocked/not_run/cancelled` 均为 0；`skipped` 必须有已接受理由。
 4. `uv run pytest -q`、`uv run ruff check .` 和 `git diff --check` 使用本轮新鲜结果通过。
 5. 正式测试引用均可解析到当前文件；JSON/JSONL 和 Skill 自带确定性脚本按变更影响验证。
-6. Critical/Important Finding 为 0；Review、Verification 和人工批准互不替代。
-7. Git、远端和部署结果只按真实回执报告；未执行时明确写未执行。
+6. 正式案例目录和适用的人类可读报告通过 `validate_test_documents.py`。
+7. Critical/Important Finding 为 0；Review、Verification 和人工批准互不替代。
+8. Git、远端和部署结果只按真实回执报告；未执行时明确写未执行。
 
 ## 7. 轻量测试闭环（2026-08-08 已批准生效）
 
@@ -146,5 +154,4 @@ UI、API、性能或安全专项只在目标项目真实存在对应暴露面时
 |---|---|---|---|---|---|
 | `v3.0.0` | 2026-07-18 | 基于 R019 正式落档测试策略 | `uroborus` | `uroborus` | `uroborus` |
 | `v3.1.0` | 2026-07-20 | 增加 R002 项目控制验证入口、发布质量门和证据边界 | `AI_EXECUTOR` | 独立 Reviewer | `uroborus` |
-
-候选修订：`TEST-GOVERNANCE-001` 清理旧平台入口，统一 Skill-first 测试案例、结果状态、批次结论和人类可读报告合同；尚未进入正式版本历史。
+| `v3.2.0` | 2026-08-23 | 发布正式案例目录、自动化入口有效性校验和七态报告聚合门 | `AI_EXECUTOR` | 独立 Reviewer | `uroborus` |

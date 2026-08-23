@@ -88,3 +88,14 @@
 | `1.0.0` | YYYY-MM-DD | 初版 |  |  |  |
 
 案例步骤、请求 body、预期断言和完整日志保留在测试脚本或 evidence 中，不复制到本报告。不得记录完整内部 URL、IP、端口、凭证、令牌、DSN、账号、密码、个人信息或原始敏感日志。
+
+## 12. 自动聚合校验
+
+里程碑、发布候选或用户明确要求的 WorkItem 报告定稿前运行：
+
+```bash
+uv run python skills/document-templates/scripts/validate_test_documents.py \
+  --report <当前 WorkItem 测试报告路径>
+```
+
+校验器检查精确候选、七态计数之和、批次四态和 GO/NO-GO 一致性。普通小任务仍只保留命令摘要，不强制生成本报告。

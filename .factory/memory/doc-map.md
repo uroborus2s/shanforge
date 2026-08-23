@@ -35,6 +35,7 @@
 - `docs/05-design/technical-selection.md` -> `.factory/memory/tech-stack.summary.md`
 - `docs/05-design/workflow-execution-design.md` -> `.factory/memory/tasks.summary.md`、`.factory/memory/runtime-brief.md`
 - `docs/06-delivery/test-plan.md` -> `.factory/memory/tests.summary.md`
+- `docs/06-delivery/test-cases.md` -> `.factory/memory/tests.summary.md`
 - `docs/06-delivery/*.md` -> `.factory/memory/runtime-brief.md`
 
 ## 机器配置与展示边界

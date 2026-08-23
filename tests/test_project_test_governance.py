@@ -1,9 +1,18 @@
 from __future__ import annotations
 
 import re
+import subprocess
+import sys
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
+VALIDATOR = (
+    REPO_ROOT
+    / "skills"
+    / "document-templates"
+    / "scripts"
+    / "validate_test_documents.py"
+)
 
 
 def read(path: str) -> str:
@@ -107,18 +116,28 @@ def test_reusable_test_environment_template_has_no_ambiguous_placeholders() -> N
     assert "待补充" not in template
 
 
-def test_candidate_does_not_claim_formal_release_or_human_approval() -> None:
+def run_validator(*arguments: str) -> subprocess.CompletedProcess[str]:
+    return subprocess.run(
+        [sys.executable, str(VALIDATOR), *arguments],
+        cwd=REPO_ROOT,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+
+
+def test_test_governance_revision_is_formally_published() -> None:
     plan = read("docs/06-delivery/test-plan.md")
     controls = {
         row[0]: row[1] for row in table_rows(plan, "## 文档控制") if len(row) == 2
     }
 
-    assert controls["正式版本"] == "v3.1.0"
-    assert "TEST-GOVERNANCE-001" in controls["当前修订"]
-    assert controls["当前修订"].endswith("候选，未发布")
-    assert controls["候选审核 / 批准"] == "未执行 / 未执行"
+    assert controls["正式版本"] == "v3.2.0"
+    assert controls["当前修订"] == "无"
+    assert controls["审核 / 批准"] == "独立 Reviewer / uroborus"
+    assert controls["状态"] == "已批准并生效"
     published_history = section(plan, "## 正式版本历史（仅已发布）")
-    assert "v3.2.0" not in published_history
+    assert "v3.2.0" in published_history
 
 
 def test_test_registry_has_executable_traceability() -> None:
@@ -225,7 +244,10 @@ def test_formal_test_plan_has_no_ambiguous_placeholder() -> None:
 
 
 def test_formal_test_references_resolve_to_current_test_files() -> None:
-    sources = [REPO_ROOT / "docs/06-delivery/test-plan.md"]
+    sources = [
+        REPO_ROOT / "docs/06-delivery/test-plan.md",
+        REPO_ROOT / "docs/06-delivery/test-cases.md",
+    ]
     sources.extend(
         sorted((REPO_ROOT / "tests/specifications").glob("*.testcases.yaml"))
     )
@@ -239,6 +261,135 @@ def test_formal_test_references_resolve_to_current_test_files() -> None:
     missing = sorted(path for path in referenced if not (REPO_ROOT / path).is_file())
 
     assert missing == []
+
+
+def test_formal_case_catalog_passes_automated_validity_check() -> None:
+    catalog = REPO_ROOT / "docs/06-delivery/test-cases.md"
+
+    assert VALIDATOR.is_file()
+    assert catalog.is_file()
+    result = run_validator(
+        "--repo-root",
+        str(REPO_ROOT),
+        "--catalog",
+        str(catalog),
+    )
+
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert "catalog: valid" in result.stdout
+
+
+def test_catalog_validator_rejects_a_missing_automation_node(tmp_path: Path) -> None:
+    catalog = read("docs/06-delivery/test-cases.md")
+    invalid_catalog = tmp_path / "test-cases.md"
+    invalid_variants = (
+        (
+            catalog.replace("完整会话路由合同", "索引名称漂移", 1),
+            "index/detail name mismatch",
+        ),
+        (
+            catalog.replace(
+                "test_candidate_behavior_map_is_complete_and_each_mapping_is_unique",
+                "test_missing_automation_node",
+            ),
+            "automation target does not exist",
+        ),
+        (
+            catalog.replace("### 后置条件与清理", "### 缺少后置条件", 1),
+            "missing section: ### 后置条件与清理",
+        ),
+        (
+            catalog.replace("### 标签", "### 缺少标签", 1),
+            "missing section: ### 标签",
+        ),
+    )
+    for invalid_document, expected_error in invalid_variants:
+        invalid_catalog.write_text(invalid_document, encoding="utf-8")
+        result = run_validator(
+            "--repo-root",
+            str(REPO_ROOT),
+            "--catalog",
+            str(invalid_catalog),
+        )
+        assert result.returncode == 1
+        assert expected_error in result.stderr
+
+
+def test_report_validator_checks_counts_verdict_and_release_advice(
+    tmp_path: Path,
+) -> None:
+    valid_report = """# 测试报告
+
+## 1. 报告控制
+
+| 字段 | 内容 |
+|---|---|
+| 精确候选 | abcdef1 |
+| 批次验证结论 | passed |
+
+## 5. 结果汇总
+
+| 总数 | 通过 | 失败 | 错误 | 阻塞 | 跳过 | 未运行 | 取消 |
+|---:|---:|---:|---:|---:|---:|---:|---:|
+| 4 | 4 | 0 | 0 | 0 | 0 | 0 | 0 |
+
+## 9. 发布建议
+
+- 建议：GO
+"""
+    report = tmp_path / "test-report.md"
+    report.write_text(valid_report, encoding="utf-8")
+    valid = run_validator("--report", str(report))
+    assert valid.returncode == 0, valid.stdout + valid.stderr
+    assert "report: valid" in valid.stdout
+
+    invalid_variants = (
+        (
+            valid_report.replace("| 4 | 4 | 0 |", "| 4 | 5 | -1 |"),
+            "result summary counts cannot be negative",
+        ),
+        (
+            valid_report.replace("| 4 | 4 |", "| 5 | 4 |"),
+            "result total does not equal seven-state counts",
+        ),
+        (
+            valid_report.replace(
+                "| 批次验证结论 | passed |",
+                "| 批次验证结论 | failed |",
+            ),
+            "batch verdict does not match result counts",
+        ),
+        (
+            valid_report.replace("- 建议：GO", "- 建议：NO-GO"),
+            "release advice does not match batch verdict",
+        ),
+    )
+    for invalid_report, expected_error in invalid_variants:
+        report.write_text(invalid_report, encoding="utf-8")
+        invalid = run_validator("--report", str(report))
+        assert invalid.returncode == 1
+        assert expected_error in invalid.stderr
+
+
+def test_documented_validator_commands_use_the_project_python_runtime() -> None:
+    paths = (
+        "docs/06-delivery/test-plan.md",
+        "docs/06-delivery/test-cases.md",
+        "skills/document-templates/assets/templates/05-quality/test-plan.md",
+        "skills/document-templates/assets/templates/05-quality/test-cases.md",
+        "skills/document-templates/assets/templates/05-quality/test-report.md",
+    )
+    for path in paths:
+        document = read(path)
+        validator_command = (
+            "uv run python "
+            "skills/document-templates/scripts/validate_test_documents.py"
+        )
+        assert validator_command in document
+        assert not re.search(
+            r"(?<!uv run )python skills/document-templates/scripts/validate_test_documents.py",
+            document,
+        )
 
 
 def test_reusable_case_and_report_templates_define_complete_human_outputs() -> None:
@@ -262,6 +413,7 @@ def test_reusable_case_and_report_templates_define_complete_human_outputs() -> N
         "预期结果",
         "自动化入口",
         "证据要求",
+        "validate_test_documents.py",
     ):
         assert phrase in cases
     for phrase in (
@@ -277,6 +429,7 @@ def test_reusable_case_and_report_templates_define_complete_human_outputs() -> N
         "GO | NO-GO",
         "评审与批准",
         "版本历史",
+        "validate_test_documents.py",
     ):
         assert phrase in report
 

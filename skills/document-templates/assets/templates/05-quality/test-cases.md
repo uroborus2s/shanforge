@@ -58,3 +58,15 @@
 - `<标签>`
 
 案例定义不填写 `passed` 或 `failed`。运行后在当前 WorkItem evidence 中记录案例 ID、run ID、环境别名、精确候选、七态结果、缺陷 ID 和证据引用。
+
+## 自动有效性校验
+
+案例目录定稿前运行：
+
+```bash
+uv run python skills/document-templates/scripts/validate_test_documents.py \
+  --repo-root . \
+  --catalog <项目测试案例目录路径>
+```
+
+校验失败时不得把目录标为 `active`。校验器检查索引与详情 ID 一致、必填字段与枚举有效、`automated` 案例的 pytest 文件/节点存在，以及每个步骤都有操作、预期和证据要求。

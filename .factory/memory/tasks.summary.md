@@ -472,3 +472,4 @@
 - 2026-08-23：`TEST-GOVERNANCE-001` 已完成旧平台测试引用、案例/报告模板和状态合同整改；首轮独立评审 `changes_requested / 80 / C0-I2-M1`，现已用精确暂存 hunk 隔离并行工作项并完成整改，隔离候选 `236 passed + 4 subtests`、Ruff、Skill validator 和 JSON/JSONL 全绿，等待同一 reviewer 复审。
 - 2026-08-23：`TEST-GOVERNANCE-001` 同一 reviewer 复审 `approved / 98 / C0-I0-M0`，I1/I2/M1 全部关闭，无人工 Gate；下一动作是精确本地提交和提交后干净克隆验证。
 - 2026-08-23：`TEST-GOVERNANCE-001` 已关闭；实现提交 `c4534ba` 的干净克隆为 `236 passed + 4 subtests`，Ruff、两个 Skill validator、25 JSON、36 JSONL、Git 状态和 diff check 全绿。
+- 2026-08-23：`TEST-GOVERNANCE-CLOSURE-001` 初审 `75 / C0-I2-M0`，同 reviewer 复审 `approved / 98 / C0-I0-M0`；正式发布测试计划 `v3.2.0` 与案例目录 `v1.0.0`，隔离候选 `246 passed / 4 subtests passed`，等待精确实现提交和提交后干净克隆终验。

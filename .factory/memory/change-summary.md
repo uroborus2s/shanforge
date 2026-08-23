@@ -1,5 +1,7 @@
 # 变更摘要
 
+- 2026-08-23：完成并关闭 `SKILL-FULL-OPTIMIZATION-001`。动态审计并独立评分 38 个 Skill，最终有证据优化 24 个、保留 14 个；关闭失败误报、用户配置污染、进程树残留、资源不可移植、项目状态 owner 漂移和无条件人工 Gate 等 15 个 P0 finding。同 reviewer 终审 `approved / 95.0 / C0-I0-M0`，完整 pytest `262 passed / 4 subtests passed`，实现提交 `9f7e251`。
+
 - 2026-08-23：完成并关闭 `SKILL-COMPLETENESS-P0-001` 五项 P0：同步脚本只接受含 `SKILL.md` 的目录；三个复用 Skill 统一 `doc-map.md` 回源；美术候选跨会话保留；正式设计和项目配置移除旧数量、运行时与失效路径；测试从 SHA 快照改为行为和结构不变量。同 reviewer 独立终审 `approved / 100 / C0-I0-M0`；实现提交 `fd908b4`、状态同步 `e9f9d97` 的当前 HEAD 干净克隆全绿。
 
 - 2026-07-23：完成 `TASK-IMPLEMENT-003-P001` 项目快照可读性与状态修复。旧 ledger 无事件 ID 时改为生成确定性派生 ID，恢复被漏掉的评审/批准/完成状态；总览改为六列中文敏捷看板，卡片只显示中文标题，每列最近 10 条并可展开“更多”，详情使用独立页面和返回按钮；补齐时区、父子任务推断及 SQLite 增量外键安全回退。第五轮自动独立终审 `approved / 96 / C0-I0-M0`，相关回归 102 passed，Ruff、mypy 与 Chromium 桌面/移动端检查通过。

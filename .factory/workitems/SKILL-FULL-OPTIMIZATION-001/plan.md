@@ -10,7 +10,7 @@
 
 **工作项：** `SKILL-FULL-OPTIMIZATION-001`
 
-**状态：** `ready_for_commit`
+**状态：** `completed`
 
 ## 输入
 
@@ -117,7 +117,7 @@
 - 计划独立评审：`N/A`（中风险，作者自审；用户要求的是最终逐 Skill 独立评分）。
 - 批次代码评审：`approved`（同 reviewer 复评 38/38，`95.0 / C0-I0-M0`）
 - 批次验证：`passed`（最终候选 `262 passed / 4 subtests passed`，Ruff 与 38/38 validator 通过）
-- 本地提交：`pending`
+- 本地提交：`passed`（实现提交 `9f7e251`）
 - 记忆同步：`passed`
 
 ## 计划自审

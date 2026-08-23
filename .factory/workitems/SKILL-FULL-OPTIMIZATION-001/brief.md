@@ -42,4 +42,4 @@
 
 ## 当前状态
 
-`ready_for_commit`
+`completed`

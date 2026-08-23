@@ -33,8 +33,8 @@
 | `docs/03-developer-guide/interface-reference.md` | `DOC-INTERFACE-REFERENCE-001` | 接口与函数参考 | `reference` | `HUMAN_API_INTEGRATION_LEAD` | `v1.0.0` |
 | `docs/03-developer-guide/plugin-development.md` | `DOC-PLUGIN-DEVELOPMENT-001` | 插件开发 | `guide` | `HUMAN_DEVELOPMENT_EXECUTOR` | `v1.0.0` |
 | `docs/04-product/index.md` | `DOC-NAV-PRODUCT-001` | 产品与需求入口 | `navigation` | `HUMAN_REQUIREMENTS_LEAD` | `v1.0.0` |
-| `docs/04-product/prd.md` | `PRD-SHANFORGE-001` | 产品需求文档 | `formal_baseline` | `HUMAN_REQUIREMENTS_LEAD` | `v4.1.0` |
-| `docs/04-product/requirements-matrix.md` | `TRACE-REQ-001` | 需求追踪矩阵 | `traceability` | `HUMAN_REQUIREMENTS_LEAD` | `v4.2.0` |
+| `docs/04-product/prd.md` | `PRD-SHANFORGE-001` | 产品需求文档 | `formal_baseline` | `HUMAN_REQUIREMENTS_LEAD` | `v5.0.0` |
+| `docs/04-product/requirements-matrix.md` | `TRACE-REQ-001` | 需求追踪矩阵 | `traceability` | `HUMAN_REQUIREMENTS_LEAD` | `v5.0.0` |
 | `docs/05-design/index.md` | `DOC-NAV-DESIGN-001` | 软件技术设计入口 | `navigation` | `HUMAN_ARCHITECTURE_DOMAIN_LEAD` | `v1.2.0` |
 | `docs/05-design/solution-overview.md` | `DESIGN-SOLUTION-001` | 总体方案与协作治理设计 | `formal_baseline` | `HUMAN_ARCHITECTURE_DOMAIN_LEAD` | `v3.1.0` |
 | `docs/05-design/technical-selection.md` | `DESIGN-TECH-001` | 技术选型与工程规则 | `formal_baseline` | `HUMAN_ARCHITECTURE_DOMAIN_LEAD` | `v3.1.0` |

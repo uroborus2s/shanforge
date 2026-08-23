@@ -116,8 +116,7 @@ def test_unused_development_flow_skills_are_removed() -> None:
 
     active_flow_files = (
         "skills/using-shanforge/SKILL.md",
-        "docs/04-project-development/05-development-process/"
-        "superpowers-workflow-integration-plan.md",
+        "docs/05-design/workflow-execution-design.md",
         ".factory/project.json",
         "config/software-factory.defaults.json",
     )

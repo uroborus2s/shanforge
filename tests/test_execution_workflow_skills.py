@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import re
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
@@ -134,41 +133,28 @@ def test_subagent_references_define_handoff_and_review_templates() -> None:
 
 
 def test_execution_workflow_docs_do_not_keep_stale_review_state() -> None:
-    plan = read(
-        "docs/04-project-development/05-development-process/"
-        "superpowers-workflow-integration-plan.md"
-    )
+    contract = read("docs/05-design/workflow-execution-design.md")
     codex_tools = read("skills/using-shanforge/references/codex-tools.md")
 
-    assert "| `SF-SP-005` | 本地闭环完成 |" in plan
-    assert "iteration-3 独立复审 `approved / 92`" in plan
-    assert "本地提交 `efac627`" in plan
-    assert not re.search(
-        r"`SF-SP-005`.*human_approved.*可以进入 `SF-SP-006`",
-        plan,
-    )
-    assert "finishing-a-development-branch" not in plan
+    assert "Review 不能替代 verification" in contract
+    assert "Verification 不能替代 human confirmation" in contract
+    assert "作者只能推进到 `ready_for_review`" in contract
+    assert "finishing-a-development-branch" not in contract
     assert "finishing-a-development-branch" not in codex_tools
     assert "gitcommitzh" in codex_tools
 
 
 def test_development_loop_separates_test_code_verification_and_review_tasks() -> None:
-    plan = read(
-        "docs/04-project-development/05-development-process/"
-        "superpowers-workflow-integration-plan.md"
-    )
+    contract = read("docs/05-design/workflow-execution-design.md")
 
     for phrase in (
-        "测试任务、实现任务、验证任务和评审任务必须分离",
-        "Test Writer",
-        "Implementer",
-        "Verifier",
-        "Reviewer",
-        "同一执行者不得同时承担实现和最终评审",
-        "验证任务只能运行命令和记录证据",
-        "评审任务只能判断 pass/fail",
+        "开发",
+        "测试",
+        "Review 不能替代 verification",
+        "缺 evidence、implementer report、review input package 或 ledger event",
+        "作者只能推进到 `ready_for_review`",
     ):
-        assert phrase in plan
+        assert phrase in contract
 
 
 def test_executing_plans_skill_is_inline_fallback() -> None:
@@ -215,9 +201,9 @@ def test_using_shanforge_is_flow_controller_and_owns_skill_routing() -> None:
         assert phrase in skill
 
     for phrase in (
-        "作为 Shanforge 流程总控判断当前环节",
+        "判断请求是否影响项目",
         "选择唯一下一步 skill",
-        "工作 skill 只产出状态、证据和 needs",
+        "工作 skill 只回写状态、证据和 needs",
     ):
         assert phrase in metadata
 

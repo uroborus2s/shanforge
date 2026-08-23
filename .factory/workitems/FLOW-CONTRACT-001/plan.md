@@ -1,82 +1,28 @@
-# FLOW-CONTRACT-001 实施计划
+# FLOW-CONTRACT-001 当前计划入口
 
-## 版本信息
+R020 正式设计已经发布并完成发布后验证。当前已把正式设计转换为 [TASK-IMPLEMENT-001-P001 实施计划](plans/TASK-IMPLEMENT-001-P001.md) 和 8 张代码任务卡；作者整改后独立复审 `approved / 96 / 0-0-0`。
 
-| 项目 | 内容 |
+| 项目 | 当前事实 |
 |---|---|
-| 文档编号 | `FLOW-CONTRACT-001-PLAN` |
-| 文档类型 | 工作项实施计划 |
-| 当前版本 | `0.1.0` |
-| 当前状态 | 草稿 |
-| 最近更新 | 2026-07-06 |
+| WorkItem | `FLOW-CONTRACT-001` |
+| 当前 TaskCard | `TASK-IMPLEMENT-001-ai-workflow-platform-implementation` |
+| 当前计划 | `TASK-IMPLEMENT-001-P001` |
+| 正式设计输入 | `TASK-DESIGN-001-R020` / `DESIGN-RELEASE-TX-R020-G001` |
+| 项目整体坐标 | 第 5/8 步“开发实现”进行中 |
+| 当前节点 | T01–T08 实现、独立 Review、整改与主代理最终复验全部完成 |
+| 当前状态 | `implementation_complete_with_preexisting_static_debt / ready_for_human_candidate_or_release_decision` |
+| 计划 SHA-256 | `fd6c760009b295604a0018c335229ad5dba84c18b7d08b63d52ff2d122ad2a9f` |
+| 独立复审 | `approved / 96`；Critical/Important/Minor=`0/0/0`；Decision SHA-256 `20e2e2c201eacd08a8181edacf2248b2423c5f55a0074d14a299eb09e521e839` |
+| 作者验证 | 最终 validator `194/194 passed`；Node syntax、JSON、diff check 通过 |
+| 代码任务 | T01 合同内核；T02 位置查询；T03 处置/Gate；T04 十五行回复；T05 evidence/CAS；T06 快速验证/transfer；T07 provenance；T08 装配/集成 |
+| 执行 DAG | T01 → 并行 T02/T03/T05/T07 → T04(T02/T03)、T06(T05) → T08 |
+| 产品代码写入 | T01–T08 已完成；正式发布、Git、远端、部署均为 0 |
+| 后台任务 | 无；所有实施与复审代理均已结束 |
+| 为什么停下 | 第 5/8 步开发实施已经完成，已到新的授权边界 |
+| 是否影响下一项工作 | 全仓既有 Ruff/mypy `33/73` 是发布 concern；运行时和全量 pytest 已通过 |
+| 下一责任人 | `uroborus` 决定静态债务清理或候选/正式发布授权；获授权后由 `AI_EXECUTOR` 执行 |
+| 需要用户做什么 | 当前实施任务无需操作；启动下一阶段时选择授权范围 |
+| 自动连续边界 | 获得一次授权后，Red/Green、任务验证、独立代码评审和同范围整改不逐项确认 |
+| 仍需单独授权 | 正式发布、Git index/commit、Push/PR/Merge、远端、部署、凭证和不可逆动作 |
 
-## 版本历史
-
-| 版本 | 修改内容 | 日期 | 修改人 | 审核 | 批准 |
-|---|---|---|---|---|---|
-| `0.1.0` | 建立与正式实施方案一致的 work item 执行计划 | 2026-07-06 | Codex | 待审核 | 待批准 |
-| `0.1.1` | 补充项目级测试治理、测试环境、端口管理、启动记忆和非活跃任务降级任务 | 2026-07-06 | Codex | 待审核 | 待批准 |
-
-## 目标
-
-交付 `FLOW-REQ-001` 的正式需求、正式实施方案、导航、doc-map、memory 摘要和 work item ledger。
-
-## 架构
-
-正式事实放在 `docs/04-project-development/`。执行索引和过程证据放在 `.factory/workitems/FLOW-CONTRACT-001/`。AI 恢复上下文只读取 `.factory/memory/` 摘要和 `doc-map.md`，不把 PM HTML 或临时 evidence 当事实源。
-
-## 输入
-
-- 用户关于流程契约、文档结构、记忆结构、PM、版本管理、领域模块、前后端设计和防跳步机制的讨论。
-- `skills/using-shanforge/SKILL.md`
-- `skills/project-memory/SKILL.md`
-- `skills/requirements-engineering/SKILL.md`
-- `skills/document-templates/SKILL.md`
-- `skills/writing-plans/SKILL.md`
-- `docs/04-project-development/05-development-process/superpowers-workflow-integration-plan.md`
-- `.factory/memory/doc-map.md`
-- `.factory/memory/tasks.summary.md`
-
-## 文件
-
-| 类型 | 路径 | 职责 |
-|---|---|---|
-| 新建 | `docs/04-project-development/03-requirements/process-workflow-contract-requirements.md` | 正式需求 |
-| 新建 | `docs/04-project-development/05-development-process/process-workflow-contract-implementation-plan.md` | 正式实施方案 |
-| 修改 | `docs/index.md` | 根导航 |
-| 修改 | `docs/04-project-development/05-development-process/index.md` | 开发过程阅读顺序 |
-| 修改 | `.factory/memory/doc-map.md` | 正式文档到 summary 映射 |
-| 修改 | `.factory/memory/tasks.summary.md` | 流程契约任务摘要 |
-| 新建 | `.factory/workitems/FLOW-CONTRACT-001/brief.md` | 工作项简报 |
-| 新建 | `.factory/workitems/FLOW-CONTRACT-001/ledger.jsonl` | 工作项流水账 |
-
-## 任务
-
-1. 写正式需求文档，覆盖四类场景、三层文档、baseline、领域模块、前后端设计、版本管理、PM 和防跳步。
-2. 写正式实施方案，覆盖流程管控、skill 调用图、运行时文档设计、每个 skill 的输入输出、每个 skill 的内部流程和任务拆解。
-3. 更新根导航和开发过程首页。
-4. 更新 doc-map 和 tasks summary。
-5. 写 work item brief、plan 和 ledger。
-6. 补充项目级测试治理、测试环境和端口管理规则。
-7. 补充启动记忆读取和非活跃任务降级规则。
-8. 运行文档导航相关测试和 diff 检查。
-9. 输出状态为 `ready_for_review`，等待独立 review。
-
-## 测试策略
-
-- 文档导航：`uv run pytest tests/test_sf_sp_010_documentation_navigation.py`
-- PM 邻近回归：`uv run pytest tests/test_project_management_control_plane.py`
-- diff 检查：`git diff --check`
-- 未运行 `docs-stratego source validate` 时必须说明原因。
-
-## 评审门
-
-- 计划评审：`pending`
-- 文档评审：`pending`
-- 验证：`pending`
-- 人工确认：`pending`
-- 提交：`pending`
-
-## 完成口径
-
-本工作项只能进入 `ready_for_review`。`approved` 必须来自独立 review，`closed` 必须来自人工确认。
+已知正式追踪漂移：requirements matrix 的部分行仍写“设计待重基线”。R020 released manifest 是当前实现合同；T08 只生成受控文档变更包，正式文档事务完成前不得声称 matrix 已同步。

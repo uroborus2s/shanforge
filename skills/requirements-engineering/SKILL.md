@@ -67,6 +67,7 @@ description: "需求工程技能。用于把想法、work item brief、已批准
 - `change_requirement`：定位原 Requirement，按需求版本规则追加版本历史，再做影响分析。
 - `fix_bug`：先由调试结果判定事实 owner。只有业务目标、范围或验收标准错误才变更 Requirement；设计错误回设计，
   实现错误回代码，测试预期错误回测试。不得把每个 Bug 自动升级成需求变更。
+- bug 需求必须先有复现和根因；缺少任一项时保持调查状态，不进入需求批准。
 
 ## 必写分析
 

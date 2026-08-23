@@ -1,6 +1,6 @@
 {
   "schema_id": "ProjectKnowledgeRelationDeclarations/v1",
-  "version": "4",
+  "version": "6",
   "relations": [
     {"from_entity_id":"doc:DESIGN-ARCH-001","to_entity_id":"REQ-PKI-001","relation_type":"SATISFIES","strength":"strong","confidence":1.0},
     {"from_entity_id":"doc:DOC-NAV-DESIGN-001","to_entity_id":"REQ-PKI-002","relation_type":"SATISFIES","strength":"strong","confidence":1.0},
@@ -110,6 +110,16 @@
     {"from_entity_id":"PK-SOURCE-MIGRATION-001-T03","to_entity_id":"NFR-PKI-003","relation_type":"IMPLEMENTS","strength":"strong","confidence":1.0},
     {"from_entity_id":"PK-SOURCE-MIGRATION-001-T03","to_entity_id":"NFR-PKI-007","relation_type":"IMPLEMENTS","strength":"strong","confidence":1.0},
     {"from_entity_id":"PK-SOURCE-MIGRATION-001-T03","to_entity_id":"NFR-PKI-008","relation_type":"IMPLEMENTS","strength":"strong","confidence":1.0},
-    {"from_entity_id":"PK-SOURCE-MIGRATION-001-T03","to_entity_id":"NFR-PKI-009","relation_type":"IMPLEMENTS","strength":"strong","confidence":1.0}
+    {"from_entity_id":"PK-SOURCE-MIGRATION-001-T03","to_entity_id":"NFR-PKI-009","relation_type":"IMPLEMENTS","strength":"strong","confidence":1.0},
+    {"from_entity_id":"PK-SOURCE-MIGRATION-001-T04","to_entity_id":"REQ-PKI-008","relation_type":"IMPLEMENTS","strength":"strong","confidence":1.0},
+    {"from_entity_id":"PM-DASHBOARD-004-T02","to_entity_id":"REQ-PKI-018","relation_type":"IMPLEMENTS","strength":"strong","confidence":1.0},
+    {"from_entity_id":"PM-DASHBOARD-004-T02","to_entity_id":"REQ-PKI-019","relation_type":"IMPLEMENTS","strength":"strong","confidence":1.0},
+    {"from_entity_id":"PM-DASHBOARD-004-T03","to_entity_id":"REQ-PKI-017","relation_type":"IMPLEMENTS","strength":"strong","confidence":1.0},
+    {"from_entity_id":"PM-DASHBOARD-004-T03","to_entity_id":"REQ-PKI-018","relation_type":"IMPLEMENTS","strength":"strong","confidence":1.0},
+    {"from_entity_id":"PM-DASHBOARD-004-T03","to_entity_id":"REQ-PKI-019","relation_type":"IMPLEMENTS","strength":"strong","confidence":1.0},
+    {"from_entity_id":"PM-DASHBOARD-004-T04","to_entity_id":"REQ-PKI-020","relation_type":"IMPLEMENTS","strength":"strong","confidence":1.0},
+    {"from_entity_id":"PM-DASHBOARD-004-T04","to_entity_id":"REQ-PKI-021","relation_type":"IMPLEMENTS","strength":"strong","confidence":1.0},
+    {"from_entity_id":"PM-DASHBOARD-004-T04","to_entity_id":"NFR-PKI-012","relation_type":"IMPLEMENTS","strength":"strong","confidence":1.0},
+    {"from_entity_id":"PM-DASHBOARD-004-T05","to_entity_id":"doc:DESIGN-UX-UI-001","relation_type":"DEPENDS_ON","strength":"strong","confidence":1.0}
   ]
 }

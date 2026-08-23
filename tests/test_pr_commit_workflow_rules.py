@@ -13,6 +13,10 @@ def test_gitcommitzh_requires_pr_closure_preflight() -> None:
     skill = read("skills/gitcommitzh/SKILL.md")
 
     for phrase in (
+        "用户明确说“暂不提交”“只写草案”“只允许写某文件”时，优先级高于自动提交触发",
+        "只写草案",
+        "已授权提交",
+        "blocked",
         "PR 闭环与提交前置检查",
         "work item ledger",
         "review 结论",
@@ -25,6 +29,10 @@ def test_gitcommitzh_requires_pr_closure_preflight() -> None:
         "pending_human_confirmation",
         "禁止把未确认的 reviewer approved 当作提交闭环依据",
         "gitcommitzh 不负责创建、推送或合并 PR",
+        "工作结果：",
+        "- work_item: <WORKITEM-ID or none>",
+        "- skill: gitcommitzh",
+        "- ledger_event: <event id or none>",
     ):
         assert phrase in skill
 
@@ -118,16 +126,15 @@ def test_pr_commit_rules_do_not_reintroduce_script_gate() -> None:
 
 
 def test_workflow_plan_tracks_sf_sp_008_commit_closure_rules() -> None:
-    plan = read(
-        "docs/04-project-development/05-development-process/"
-        "superpowers-workflow-integration-plan.md"
-    )
+    agents = read("AGENTS.md")
+    gitcommitzh = read("skills/gitcommitzh/SKILL.md")
+
+    for phrase in ("本地提交用 `gitcommitzh`",):
+        assert phrase in agents
 
     for phrase in (
-        "| `SF-SP-008` | PR 闭环与提交规则 |",
-        "提交必须使用 `gitcommitzh`",
-        "`gitcommitzh` 只做本地提交，不创建、不推送、不合并 PR",
-        "代码类 work item 已进入 PR 闭环",
-        "本地提交不能冒充 push、PR 或 merge",
+        "本地提交",
+        "远端 push、PR、merge、分支切换和历史改写不由本 skill 执行",
+        "提交范围只包含当前任务相关代码、文档、测试和 `.factory/memory/` 同步文件",
     ):
-        assert phrase in plan
+        assert phrase in gitcommitzh

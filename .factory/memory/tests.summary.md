@@ -1,13 +1,55 @@
 # 测试摘要
 
-- 当前阶段：`ENTERPRISE-AI-DELIVERY-001 / EAD-TASK-003`
-- 当前验证结论：T03 6 roles、14 RACI、6 gates、T02 45 transitions、
-  Gate 6 transitions、5 authority negative cases、5 separation cases、Ruff 和
-  diff check 通过；独立复审 `approved / 100 / C0-I0-M0`。
+- 当前阶段：`MODEL-ROUTING-001 / MODEL-ROUTING-001-T01`
+- 当前验证结论：工作区完整 pytest `228 passed / 4 subtests passed`；根 Ruff、
+  `.factory` JSON/JSONL 与 `git diff --check` 通过。干净克隆复验等待本地基线提交。
 
-- 2026-07-27：T03 最终验证通过：Validator 回读 T02 的 45 条状态转移，
-  验证 6 条 Gate 子集、5 个权限负例和 5 组职责分离负例；Ruff、JSONL、
-  memory 边界和 diff check 通过，候选保持 `pending_customer_confirmation`。
+- 2026-07-30：并行任务 `PM-DASHBOARD-005-T01` 第七轮路线 Green
+  `2 passed / 4 subtests`，聚焦快照 `10 passed / 4 subtests`，Ruff check/format
+  通过。真实快照为 32 节点、5 根、3 张唯一主板任务、0 空状态格，第二次生成
+  `cache_hit=true`。站内 `.html` 链接 `31,607 checked / 0 missing`。1440×900 与
+  390×844 Chrome 验收无横向溢出，移动状态段单列，路线根/子节点/任务入口通过，
+  console error 0。全仓后像 `219 passed / 7 failed / 4 subtests`，七个失败 node ID
+  与修改前完全一致且均在本任务禁止范围。独立任务评审新鲜复跑相同结果，结论为
+  `approved / 99 / C0-I0-M0`；下一 Gate 是用户 UI 验收。
+- 2026-07-29：并行任务 `PM-DASHBOARD-005-T01` 聚焦快照合同 `5 passed`，
+  Ruff check/format 通过；第三轮 UI 整改已用 1440×900 与 390×844 验证六页 Tab、
+  需求分组与分类、当前工作链接、详情返回和路线图到每日进展的下钻链。页面级无
+  横向溢出、控制台错误 `0`；最终第二次生成 `cache_hit=true`。全仓最近一次为
+  `214 passed / 7 failed`，7 项均为允许路径外既有失败。独立接手复核
+  `approved / 96 / C0-I0-M0`，但第四轮 390×844 黑盒复现确认：移动路线图初始
+  不可见、路线卡缺少下钻、分组层级错误和终态被 closeout 重开。第四轮已完成
+  `1 failed / 4 passed → 5 passed`，Ruff 与 diff check 通过；独立评审整改又完成
+  `1 failed / 5 passed → 6 passed`，覆盖重叠需求、需求链接 DOM 和显式终态覆盖。真实
+  双次生成 generation id 一致且第二次 `cache_hit=true`。390×844 /
+  1440×900 验证六个 Tab、
+  174/174 看板操作、6/6 路线操作、`FLOW-TASK-015` 位于“已完成”、页面级溢出 0、
+  控制台错误 0；重复需求组 0、无效需求链接 0。全仓为 `215 passed / 7 failed`，
+  7 项均为允许路径外既有失败；同一 reviewer 复核为
+  `approved / 100 / C0-I0-M0`。第五轮 UI 退回已完成只读 DOM 诊断：顶部路线阶段
+  `5 个 / 0 链接`，计划阶段 `5 个 / 2 链接`，任务性质组 `8`、需求/工作项组 `40`、
+  可折叠任务性质组 `0`。两个根因和第五轮方案获批后，Red 分别按 `0/5` 阶段链接和
+  静态嵌套 section 失败；Green `2 passed`，聚焦 `7 passed`，Ruff 通过。真实快照
+  阶段链接/锚点 `5/5`、原生折叠业务组 `40/40`、标签任务 `174/174`、旧嵌套容器
+  `0`，双生成 ID 一致且第二次 `cache_hit=true`。全仓 `216 passed / 7 failed`，
+  失败集合与上一轮相同。自动浏览器因本地 `file://` 安全策略和 Chrome 沙箱限制
+  未运行；独立 reviewer 新鲜复跑聚焦 `7 passed` 与两条 Ruff 均通过，并确认真实 HTML
+  结构计数，结论 `approved / 97 / C0-I0-M0`。双视口视觉与交互继续等待用户 UI 验收。
+  第六轮针对“同一计划 fragment 不等于路线下钻”和“状态优先全历史主板不可读”建立
+  3 项 Red，最小实现后 `3 passed`，聚焦快照 `8 passed`；Ruff check 与 format check
+  均通过。真实快照包含 5 个唯一阶段页，03 有 8 个直接子步骤（7 完成、1 当前），
+  当前主板为 7 张任务卡、终态历史 167 条折叠。双生成 ID 一致且第二次
+  `cache_hit=true`。全仓 `217 passed / 7 failed`，七项失败与既有范围外基线相同；
+  本地浏览器策略禁止自动访问 `file://`。独立评审 Iteration 1 为
+  `changes_requested / 86 / C0-I2-M0`；缺状态反例和三条移动端 CSS 合同整改后，
+  聚焦仍为 `8 passed`，同一 reviewer 复审为 `approved / 98 / C0-I0-M0`。
+  视觉验收仍等待用户。
+- 2026-07-27：T03 首轮评审整改验证通过：Validator 直接回读 T02 的 45 条
+  状态转移，验证 6 条 Gate 子集、5 个权限负例和 5 组职责分离负例；Ruff 与
+  diff check 通过，等待 Iteration 2 独立复审。
+- 2026-07-27：T03 首轮静态契约验证通过：
+  `roles=6 raci_rows=14 gates=6 transitions=6 negative_cases=5`，Ruff、
+  ledger 20 行、5 个必需产物和 diff check 通过。
 - 2026-07-27：T02 最终验证通过：validator、4+5 负例、golden digest、Ruff、
   work item/review ledger、收口契约、current-state 边界和 diff check 均通过。
 - 2026-07-27：T02 Iteration 3 整改验证通过：唯一 `data` canonical payload 与
@@ -41,6 +83,7 @@
   `changes_requested / 76 / C0-I3-M0`；旧自动人工 Gate 冲突、测试假通过和状态投影漂移已完成整改，
   同一 Reviewer 复审已 `approved / 98 / C0-I0-M0`，当前只执行精确本地提交。
 - 2026-07-23：`TASK-IMPLEMENT-003-P001` 项目快照第五轮整改验证通过。项目知识与站点相关回归 `102 passed`；受影响 Python/测试 Ruff 通过；`mypy src` 为 `279 source files` 全通过；Chromium 桌面 1440×900、移动 390×844 的六列看板、每列最近 10 条与“更多”、中文卡片标题、详情页返回、无横向溢出和零 console/page error 全通过；连续两次 snapshot 第二次 cache hit。独立终审 `approved / 96 / C0-I0-M0`。
+- 2026-07-21：`TASK-IMPLEMENT-002-R001` final candidate 验证通过。最终沙箱全量 1272 passed，5 个 Chromium Mach 权限阻断 viewport 在沙箱外 browser 文件 13/13 中通过，因此 1277 unique tests 均有通过结果；final trace 10，性能 atomic P95 c1/c8 `4.218542/97.205ms`、projection `3.314917/18.715208ms`，final builder/validator、Ruff/format/diff 通过。Evidence：`.factory/workitems/FLOW-CONTRACT-001/evidence/TASK-IMPLEMENT-002-R001-final-candidate-verification.md`。
 - 2026-07-20：`TASK-IMPLEMENT-002-P001` 最终计划验证 exit 0：scope SHA `ec7e2f69…13cfd`、plan SHA `b88d431d…8f8be1`、review SHA `b3363876…eb8f1` 精确匹配；T01–T08 8/8、需求 11/11、UI N/A/测试/命令/边界 8/8、占位 0、staging/release/append-only/quarantine/replay 和整体候选 Review 路径通过，两份 JSONL 与 diff check 通过。未运行产品 pytest/Ruff/mypy/性能测试，原因是本轮为计划任务且无产品代码授权。Evidence：`.factory/workitems/FLOW-CONTRACT-001/evidence/TASK-IMPLEMENT-002-P001-final-plan-verification.md`。
 - 2026-07-20：R001 正式文档激活后验证通过。正式 validator artifacts `6/6`、candidate/formal manifest/root matched、内容验收/授权/激活事件 `1/1/1`、权限边界通过；expect activation `0` 的负向检查按预期以 `activation_event_count_mismatch` 拒绝。全仓 `832 passed / 0 failed / 0 skipped / 0 not_run`，Ruff 0、format 299、mypy 0/236、Skill 38/38、docs-stratego、lock、JSONL、runtime Skill absence 和 diff check 通过。Evidence：`.factory/workitems/FLOW-CONTRACT-001/evidence/TASK-DELIVERY-001-R001-post-activation-verification.md`。
 - 2026-07-20：`TASK-DELIVERY-001-R001` 最终复验通过。Validator：source 10/10、artifacts 6/6、implemented 15/123、remaining 108/123、root `632e705a…869c`；文档 6/6、metadata 6/6、相对链接和禁止事实通过；6/6 负向攻击全部拒绝。全仓正式门禁：pytest 832、Ruff 0、format 299、mypy 0/236、Skill 38/38、lock、diff、manifest JSON、runtime Skill 目录边界通过；docs-stratego exit 0。独立复审 `approved / 100 / 0-0-0`。Evidence：`.factory/workitems/FLOW-CONTRACT-001/evidence/TASK-DELIVERY-001-R001-verification.md`；Decision：`.factory/workitems/FLOW-CONTRACT-001/reviews/TASK-DELIVERY-001-R001-independent-review.md`。
@@ -293,8 +336,40 @@
 - 2026-07-20：TASK-SKILL-003 初始 RED `9 failed / 19 passed`、GREEN `28 passed`；两轮评审整改后目标与相邻回归 `51 passed`，fresh-context `fast-path smoke` `22/22`，逐断言均精确 `2/2`。最终 Skill validator、Ruff、format `311/311`、mypy `0/245`、JSONL 与 diff check 通过；全仓 pytest `961 passed / 3 failed`，仅失败于范围外 R002 `expected 299, got 311`。
 - 2026-07-21：TASK-SKILL-004 初始 owner RED `5 failed / 3 passed`、首轮 GREEN `8 passed`；review `I-001` 原样透传测试 `1 failed -> 1 passed`，最终 owner `9 passed`、Skill 相邻 `141 passed`、流程相邻 `30 passed`、black-box `10/10`、33/33 Skill valid、目标 Ruff/format、mypy `0/253`、JSONL/diff check 通过。全仓 pytest `1143 passed / 3 failed`，仅范围外 R002 `expected 299, got 323`；全仓 Ruff/format 的既有 552 项/56 文件债务不归本任务。
 - 2026-07-23：TASK-IMPLEMENT-003 最终候选定向 `87 passed`，extractor + renderer `19 passed`，文档/路由 `15 passed`；Ruff、40 文件 format、mypy `0/279`、diff/ignore 检查通过。Chromium 四主视口与代码详情桌面/手机 `1 passed`、8 张截图；axe 7 页 `0 violation`。全仓 `1322 passed / 3 failed`，失败仅属于范围外 `ui-ux-pro-max` / `writing-plans` 既有改动。
+- 2026-07-23：PK-SOURCE-MIGRATION-001-T04 初始新增行为 `4 failed`，合并优先级补充 `1 failed`；首轮修复后项目知识回归 `64 passed`。独立评审整改新增英文/编号简报、138 份真实语料和非推测空态测试，红灯 `3 failed` 后转绿；父工作项限定身份补充 SQLite 单实体合并回归后目标测试 `69 passed`、Mypy `0/279`、限定 Ruff 通过，固定 CLI 全量增量刷新成功，Chrome 桌面/390px 移动端控制台错误为 0。
 - 2026-07-23：`PROJECT-ARTIFACTS-001` T03/T04 联合回归 `89 passed`，Renderer 回归 `21 passed`；三条固定资产 CLI 均返回 `valid=true`，桌面和 390px 移动端静态页面无横向溢出、控制台错误为 0。最终干净候选验证见本工作项 completion evidence。
 - 2026-07-27：`TASK-WORKFLOW-SEMANTICS-001` 新鲜关闭验证为 `50 passed`，同范围 Ruff、JSONL 和限定 diff check 通过。
+- 2026-07-27：`SKILL-FLOW-AUDIT-001` 初次为 `37 passed`，最终回读为 `36 passed / 1 failed`；失败来自未冻结的 `stratix-service` 并行改动，关闭门当前不通过。
+- 2026-07-27：`PK-SOURCE-MIGRATION-001-T04` 最终回归真实结果为 `61 passed / 1 failed`；失败节点发现 4 份新登记任务简报未投影任一正式任务语义。未把后续 Ruff、Mypy、文档发布或快照刷新写成通过。
+- 2026-07-27：`PM-DASHBOARD-003-T01` 静态合同通过；Chrome 关闭回归在 390px 与 1440px 下分别为 `scrollWidth=viewport`，十要素、五 lane、五详情页签和抽屉均通过，控制台错误为 0。
+- 2026-07-27：`PK-SOURCE-MIGRATION-001-T04-SCHEMA-REPAIR` 初始 RED
+  `3 failed / 1 passed` 转 GREEN `4 passed`；评审 I1 身份元数据负例再由
+  `1 failed` 转 GREEN，最终 Task 身份负例与 Task 章节正例 `2 passed`。
+  项目知识五文件最终 `67 passed`，
+  Ruff、Mypy 290 source、docs-stratego、固定快照通过，Chrome 5 页×2 视口
+  共 10/10 无横向溢出或控制台错误。
+- 2026-07-27：PK T04 正式化后新鲜复验为五文件 `67 passed`、Ruff format/lint、
+  Mypy 290、docs-stratego 全绿；最终快照
+  `generation:8f6481166c22bf392f45e63ae3b9e836098780770e0ae8a4aeff3069108f78b3`
+  成功，Chrome 10/10 通过。
+- 2026-07-27：SKILL Iteration 6 隔离关闭门拆分后收集
+  `test_skill_flow_process_audit.py` 共 8 个节点；冻结的 9 个候选/共享合同节点
+  最终关闭复验 `9 passed`，Ruff format/lint 通过，候选 SHA-256 为 9/9，
+  WorkItem/review ledger JSONL 与限定 diff-check 通过。
+- 2026-07-28：`PM-DASHBOARD-004-T02` 根因测试从 `4 failed / 28 passed`
+  转为 `32 passed`；中文冒号任务身份、P0/P1/P2 严格校验、PRD v4.2.0
+  新需求和强关系均通过。T02 Python 范围 Ruff format/lint、关系 JSON 和限定
+  diff check 通过；尚未执行 T03 看板测试或最终全仓回归。
+- 2026-07-28：T02 评审 `T02-I1` fenced-code 污染反例从 `1 failed` 转为
+  `1 passed`；T02 定向回归更新为 `33 passed`，extractor 与测试 Ruff
+  format/lint、限定 diff check 通过。
+- 2026-07-28：`PM-DASHBOARD-004-T03` renderer 初始合同 `4 failed`，SQLite
+  合并根因 `1 failed`，首轮联合 Green `41 passed`；独立评审三项反例
+  `3 failed → 3 passed`，最终索引与 renderer 联合 `43 passed`，Ruff
+  format/lint 和限定 diff check 通过。
+- 2026-07-28：`PM-DASHBOARD-004-T04` 质量与文档阅读合同 `4 failed` 转 Green；
+  基础/资产 renderer `31 passed`，连同 SQLite 投影相邻回归 `50 passed`，
+  Ruff format/lint、限定 diff check和真实 snapshot 通过。
 - 2026-07-29：`SKILL-FIRST-PM-001-T01` 快照行为测试 `3 passed`；Ruff、
   format、Mypy、依赖锁、边界扫描和 diff check 通过。Shanforge / ITA Club
   390×844、1440×900 共 4/4 浏览器验收通过，无横向溢出或控制台错误，键盘跳转与

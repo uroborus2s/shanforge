@@ -1,12 +1,12 @@
 {
   "preset": "custom",
-  "title": "抽象 Agent 平台规划画像",
-  "stack": "待人工确认",
-  "summary": "基于当前文档与实现状态整理的平台规划画像，后续围绕平台契约与运行时实现继续细化。",
+  "title": "Skill-first 软件工厂",
+  "stack": "Markdown Skills / Python 3 / uv / pytest / Git",
+  "summary": "由代理宿主加载的工程协作 skills、正式文档和项目事实合同，不提供独立 Agent 平台运行时。",
   "projects": [
-    "抽象 Agent 平台",
-    "业务 Agent App",
-    "多模型工作流装配"
+    "Shanforge Skills",
+    "目标项目工程协作",
+    "宿主模型分层路由"
   ],
   "modules": [
     "agents",
@@ -18,15 +18,15 @@
     "workflows"
   ],
   "rules": [
-    "平台需求、设计、测试与 `.factory/memory/` 必须同步更新。",
-    "业务 Agent App 不直接依赖基础设施实现。",
+    "Skill、正式文档、测试与 `.factory/memory/` 必须同步更新。",
+    "目标项目不得依赖 Shanforge 源码、虚拟环境或本机绝对路径。",
     "代码、正式文档、测试与 `.factory/memory/` 必须同步更新。"
   ],
   "admin_requirements": [],
   "commands": [],
   "guides": [],
-  "owner": "Codex",
-  "note": "已切换为 `v2` 平台规划画像。",
+  "owner": "项目负责人",
+  "note": "skill-first 边界已生效；确定性能力只放在所属 skill 的 scripts。",
   "applied_at": "2026-04-01 10:43:45",
   "required_skills": [],
   "role_required_skills": {}

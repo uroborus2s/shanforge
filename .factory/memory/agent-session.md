@@ -1,49 +1,34 @@
 # Agent 会话卡
 
-- 生成时间：2026-07-29 00:25 +0800
+- 生成时间：2026-08-23 10:16 +0800
 - 项目：`shanforge`
-- 当前阶段：`ENTERPRISE-AI-DELIVERY-001 / EAD-TASK-003`
-- 当前状态：`approved_pending_customer_confirmation`
-- 当前焦点：多岗位 RACI 与六类流程门禁
-- 下一动作：精确提交 T03 候选，再路由其他不受该人工 Gate 阻塞的工作项
+- 当前工作项：`MODEL-ROUTING-001`
+- 当前任务：`MODEL-ROUTING-001-T01`
+- 当前状态：`in_progress`
+- 当前焦点：skill-first 事实收口与干净克隆基线
+- 下一动作：`run_post_review_full_verification_then_create_local_baseline_commit`
 
 ## 当前事实
 
-- T01 已由提交 `314983e` 收口，T02 已由提交 `f5ed0e4` 收口。
-- T03 已定义 6 个通用岗位、14 个 RACI 活动和 6 类流程门禁。
-- Iteration 2 独立复审为 `approved / 100 / C0-I0-M0`。
-- Validator 回读 T02 的 45 条转移，并覆盖 5 个权限负例和 5 组职责分离负例。
-- 通用 RACI 不绑定真实人员，状态保持 `pending_customer_confirmation`。
-- WorkItem 保持开放；依赖真实角色映射的 T04 执行未启动。
-
-## 最近完成的并行事实
-
-- `SKILL-FIRST-PM-001` 已把 PM 快照迁入 `using-shanforge` 自带脚本，ITA Club
-  最终快照 generation 为
-  `86a2c1f9a27a88303c115491150042aa8c31503bdb710361114f13cc3bca4951`，
-  第二次运行 `cache_hit=true`。
-- Shanforge `src/` 平台 runtime 及专属测试已删除；独立复审与 project-memory 增量复审
-  均为 `approved / C0-I0-M0`。
-- 该并行工作项不改变 EAD 当前 Gate 或唯一下一动作。
-
-## 已读取上下文
-
-- EAD brief、plan、T03 task brief、RACI/Gate 契约、evidence、implementer report、review input 和 ledger。
-
-## 未读 / 已排除
-
-- 客户生产系统、代码仓库和真实客户数据：未接入。
-- 客户生产资料和未脱敏样本：T03 不需要。
-- 其他待办 WorkItem：当前只推进 EAD。
+- 用户要求的顺序不可交换：先事实统一、工作区清理和干净克隆全绿，再实现模型路由。
+- 正式架构已确定 Shanforge 是 skill-first 资产，不是 Agent 平台运行时；仓库没有 `src/`。
+- 当前工作区历史过程资产已做可恢复备份并按正式留存规则裁剪。
+- 清理前完整测试为 `220 passed / 8 failed / 4 subtests`；仅跟踪文件模拟克隆为 `205 passed / 16 failed / 4 subtests`。
+- 额外 8 个克隆失败来自未跟踪但被合同测试引用的最小事实资产，已识别并保留。
 
 ## 当前 Gate
 
-- Gate：`customer_role_authority_and_segregation_confirmation`
-- Review 输入：`.factory/workitems/ENTERPRISE-AI-DELIVERY-001/reviews/EAD-TASK-003-review-input.md`
-- 人工确认：六角色映射、逐角色决策权、业务/运营兼任理由和五组强制分离。
+- `T01_post_review_full_verification_and_baseline_commit`
+- 独立复审 `approved / 97 / C0-I0-M0`；运行完整验证后创建本地基线提交，再执行干净克隆复验。
 
-## 禁止动作
+## 后续授权范围
 
-- 不把通用岗位模板绑定未经确认的真实人员。
-- 不启动完整 Web、数据库、API 或客户系统集成。
-- 不执行 Push、PR、Merge 或部署。
+- T01 通过后，Sol 作为唯一设计、分级和路由控制者；Terra/Luna 只执行路由包。
+- 不新增模型服务、数据库、依赖或 `src/` 运行时。
+- 不执行 push、PR、merge 或部署。
+
+## 恢复入口
+
+- `.factory/workitems/MODEL-ROUTING-001/brief.md`
+- `.factory/workitems/MODEL-ROUTING-001/plan.md`
+- `.factory/workitems/MODEL-ROUTING-001/ledger.jsonl`

@@ -6,7 +6,7 @@
 |---|---|
 | 文档 ID | `TEST-PLAN-001` |
 | 正式版本 | `v3.1.0` |
-| 当前修订 | `FLOW-TASK-013` 候选，未发布 |
+| 当前修订 | `FLOW-TASK-013` 与 `PROJECT-ARTIFACTS-001` 候选，未发布 |
 | 来源候选 | `TASK-DELIVERY-001-R001` |
 | 发布事务 | `DELIVERY-RELEASE-TX-R001-G001` |
 | 负责人 | `HUMAN_QUALITY_SECURITY_LEAD` |
@@ -53,10 +53,10 @@
 
 | 测试 ID | 人类可读名称 | 需求 ID | 任务 ID | 可执行入口 | Evidence | 结果 | 环境 ID |
 |---|---|---|---|---|---|---|---|
-| `TEST-BB-001` | Shanforge 整体黑盒流程评估 | `REQ-AI-WORKFLOW-053` | `FLOW-TASK-012` | `.venv/bin/python -m pytest -q tests/test_black_box_workflow_eval.py` | `.factory/workitems/FLOW-CONTRACT-001/evidence/FLOW-TASK-012-review-fix-verification.md` | `passed`（13/13） | `TEST-ENV-PYTEST` |
-| `TEST-UI-001` | 项目快照页面结构与导航回归 | `REQ-PKI-008` | `FLOW-TASK-011` | `.venv/bin/python -m pytest -q tests/test_project_site_renderer.py tests/test_prd_project_knowledge_requirements.py` | `.factory/workitems/FLOW-CONTRACT-001/evidence/TASK-IMPLEMENT-003-P001-review-remediation.md` | `passed`（入口 18/18；扩展证据 102/102） | `TEST-ENV-STATIC` |
-| `TEST-API-001` | 项目知识索引契约回归 | `REQ-PKI-004` | `TASK-IMPLEMENT-003-P001` | `.venv/bin/python -m pytest -q tests/test_project_knowledge_contracts.py` | `.factory/workitems/FLOW-CONTRACT-001/evidence/TASK-IMPLEMENT-003-P001-T06-verification.md` | `passed`（入口 5/5） | `TEST-ENV-PYTEST` |
-| `TEST-REL-001` | Shanforge 发布回归 | `REQ-AI-WORKFLOW-037` | `TASK-IMPLEMENT-001-ai-workflow-platform-implementation` | `.venv/bin/python -m pytest -q && .venv/bin/ruff check src tests && .venv/bin/ruff format --check src tests && .venv/bin/mypy src && uv lock --check && git diff --check` | `.factory/workitems/FLOW-CONTRACT-001/evidence/TASK-IMPLEMENT-001-R002-post-release-verification.md` | `passed`（R002 发布证据） | `TEST-ENV-PYTEST` |
+| `TEST-BB-001` | Shanforge 整体合同回归 | `REQ-SF-002` | `MODEL-ROUTING-001-T01` | `uv run pytest -q` | `.factory/workitems/MODEL-ROUTING-001/evidence/MODEL-ROUTING-001-T01-verification.md` | `passed`（228 + 4 subtests） | `TEST-ENV-PYTEST` |
+| `TEST-UI-001` | 项目快照页面结构与导航回归 | `REQ-SF-007` | `PM-DASHBOARD-005-T01` | `uv run pytest -q tests/test_using_shanforge_snapshot.py` | `.factory/workitems/PM-DASHBOARD-005/evidence/PM-DASHBOARD-005-T01-round-7-verification.md` | `passed`（工作区回归） | `TEST-ENV-STATIC` |
+| `TEST-API-001` | 项目事实与恢复契约回归 | `REQ-SF-003` | `MODEL-ROUTING-001-T01` | `uv run pytest -q tests/test_project_memory_skill.py tests/test_doc_factory_restructure.py` | `.factory/workitems/MODEL-ROUTING-001/evidence/MODEL-ROUTING-001-T01-verification.md` | `passed`（工作区回归） | `TEST-ENV-PYTEST` |
+| `TEST-REL-001` | Shanforge 发布回归 | `REQ-SF-004` | `MODEL-ROUTING-001-T01` | `uv run pytest -q && uv run ruff check . && git diff --check` | `.factory/workitems/MODEL-ROUTING-001/evidence/MODEL-ROUTING-001-T01-verification.md` | `passed`（提交前候选） | `TEST-ENV-PYTEST` |
 
 变更先按影响选择单元/契约、整体黑盒、UI 测试、API 测试和发布回归。某层级不适用时必须记录 `N/A` 与原因，不能把未运行写成通过。
 
@@ -169,3 +169,6 @@ R002 的权威运行结果位于 `.factory/workitems/FLOW-CONTRACT-001/evidence/
 |---|---|---|---|---|---|
 | `v3.0.0` | 2026-07-18 | 基于 R019 正式落档测试策略 | `uroborus` | `uroborus` | `uroborus` |
 | `v3.1.0` | 2026-07-20 | 增加 R002 项目控制验证入口、发布质量门和证据边界 | `AI_EXECUTOR` | 独立 Reviewer | `uroborus` |
+
+候选修订：增补 `TestCaseCatalog/v1`、`TestRunResult/v1`、`TestReport/v1` 的字段、
+七态、追踪、证据路径、聚合算法与 SQLite 展示语义；尚未进入正式版本历史。

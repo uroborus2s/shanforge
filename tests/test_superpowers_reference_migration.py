@@ -55,42 +55,27 @@ def test_existing_skills_have_migrated_reference_templates() -> None:
 
 
 def test_workflow_template_migration_progress_is_tracked() -> None:
-    plan = read(
-        "docs/04-project-development/05-development-process/superpowers-workflow-integration-plan.md"
-    )
+    contract = read("docs/05-design/workflow-execution-design.md")
     tasks = read(".factory/memory/tasks.summary.md")
 
     for phrase in (
         "writing-plans",
-        "requesting-code-review",
-        "verification-before-completion",
-        "systematic-debugging",
+        "executing-plans",
+        "subagent-driven-development",
+        "tdd-workflow",
     ):
-        assert phrase in plan
+        assert phrase in contract
 
-    assert "`SF-SP-008` 已提交为 `e048784`" in tasks
-    assert "`SF-SP-009` 已提交为 `9296f58`" in tasks
-    assert "`SF-SP-010` 已提交为 `3b0e9a5`" in tasks
-    assert "`SF-SP-001/002/003/004/005/006/007` 已人工确认" in tasks
-    assert "当前不新增 `SF-SP-011`" in tasks
-    assert (
-        "详细报告见 `.factory/workitems/SF-SP-010/reports/"
-        "superpowers-workflow-integration-closeout-report.md`"
-        in tasks
-    )
-    assert "review、完成验证、独立调试等后续 workflow skill 的 references 仍未完成" not in plan
-    assert "剩余 workflow skill 的 references 仍待随对应 skill 创建迁移" not in tasks
-    assert "整体流程集成当前只剩 `SF-SP-010` 文档、导航、memory 同步收口" not in tasks
-    assert (
-        "requesting-code-review / verification-before-completion / systematic-debugging"
-        not in tasks
-    )
+    assert "DOC-FACTORY-RESTRUCTURE-001" in tasks
+    assert "破坏性" in tasks
+    assert not (
+        REPO_ROOT / "docs/04-project-development/05-development-process/"
+        "superpowers-workflow-integration-plan.md"
+    ).exists()
 
 
 def test_downstream_workflow_reference_paths_exist_and_helper_scope_is_tracked() -> None:
-    plan = read(
-        "docs/04-project-development/05-development-process/superpowers-workflow-integration-plan.md"
-    )
+    contract = read("docs/05-design/workflow-execution-design.md")
     expected_paths = (
         "skills/project-memory/references/session-start-checklist.md",
         "skills/writing-plans/references/workitem-plan-template.md",
@@ -107,40 +92,26 @@ def test_downstream_workflow_reference_paths_exist_and_helper_scope_is_tracked()
     )
 
     for path in expected_paths:
-        assert path in plan
         assert (REPO_ROOT / path).is_file()
 
-    assert "SF-SP-003 helper code 迁移结论" in plan
-    assert "没有新增必须迁出的全局 helper code" in plan
-    assert "skills/systematic-debugging/references/root-cause-checklist.md" not in plan
-    assert (
-        "skills/verification-before-completion/references/evidence-report-template.md"
-        not in plan
-    )
+    for phrase in (
+        "任务分解",
+        "开发",
+        "测试",
+        "review input package",
+        "ledger event",
+    ):
+        assert phrase in contract
 
 
 def test_superpowers_plan_defines_memory_layers_and_human_confirmation_gate() -> None:
-    plan = read(
-        "docs/04-project-development/05-development-process/superpowers-workflow-integration-plan.md"
-    )
+    contract = read("docs/05-design/workflow-execution-design.md")
 
     for phrase in (
-        "### 4.1 记忆分层",
-        "`using-shanforge` 是唯一的流程路由 owner",
-        "工作 skill 的边界固定为",
-        "不写“与其他 skill 的关系”",
-        "不决定下一步 skill",
-        "入口压缩层",
-        "主题摘要层",
-        "Work item 执行层",
-        "Ledger 审计层",
-        "正式文档层",
-        "### 7.8 Loop 结束人工确认门",
+        "Review 不能替代 verification",
+        "Verification 不能替代 human confirmation",
         "pending_human_confirmation",
-        "human_approved | human_changes_requested",
-        "本轮执行完成，等待人工确认",
-        "把 reviewer 的 `approved` 当成人工 `human_approved`",
-        "human_confirmation_status: pending | human_approved | human_changes_requested",
-        "approved` 和 `human_approved` 是两个不同状态",
+        "作者只能推进到 `ready_for_review`",
+        "不得自批 `approved`",
     ):
-        assert phrase in plan
+        assert phrase in contract

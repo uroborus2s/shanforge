@@ -30,7 +30,7 @@ def test_brainstorming_skill_is_chinese_and_shanforge_state_driven() -> None:
         "本 skill 只回写 brief、批准状态、outputs、evidence、ledger_event 和 `needs`",
         ".factory/workitems/<WORKITEM-ID>/brief.md",
         ".factory/workitems/<WORKITEM-ID>/ledger.jsonl",
-        "docs/04-project-development/02-discovery/brainstorm-record.md",
+        "新增或更新对应 `docs/04-project-development/` 正式页面",
         "docs/04-project-development/04-design/assets/",
         "shanforge 正式产物统一使用本节列出的 work item",
         "作者自检不能把状态推进到 `approved` 或 `done`",

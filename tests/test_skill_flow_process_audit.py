@@ -292,7 +292,7 @@ def test_other_prompt_review_target_skills_have_work_item_status_packages() -> N
             "- ledger_event: <event id or none>",
         ),
         "skills/ui-ux-pro-max/SKILL.md": (
-            "非 Shanforge work item 的轻量交付",
+            "非 Shanforge work item 的最终响应结尾必须单独回写",
             "- work_item: <WORKITEM-ID or none>",
             "- skill: ui-ux-pro-max",
             "- status: ready_for_review | blocked | needs_user_input",

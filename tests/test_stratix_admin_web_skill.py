@@ -75,10 +75,12 @@ def test_output_contract_and_blocked_semantics_are_present() -> None:
 
     for phrase in (
         "工作结果：",
+        "- work_item: <WORKITEM-ID or none>",
         "- skill: stratix-admin-web",
         "- status: ready_for_review | blocked | needs_user_input",
         "页面清单和组件清单",
         "哪些重复 UI 被提升",
+        "- ledger_event: <event id or none>",
         "`blocked` 用于缺页面清单",
         "`needs_user_input` 用于必须由用户决定后台信息架构",
     ):

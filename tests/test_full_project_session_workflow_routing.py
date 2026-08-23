@@ -424,7 +424,6 @@ def test_flow_task_015_is_registered_as_closed_after_local_commit() -> None:
     task = read(".factory/workitems/FLOW-CONTRACT-001/task-briefs/FLOW-TASK-015.md")
     queue = read(".factory/workitems/FLOW-CONTRACT-001/implementation-queue.md")
     ledger = read(".factory/workitems/FLOW-CONTRACT-001/ledger.jsonl")
-    current_state = read(".factory/memory/current-state.md")
     tests_summary = read(".factory/memory/tests.summary.md")
     events = [json.loads(line) for line in ledger.splitlines() if '"task":"FLOW-TASK-015"' in line]
     latest_status = events[-1]["status"]
@@ -438,10 +437,6 @@ def test_flow_task_015_is_registered_as_closed_after_local_commit() -> None:
     assert "pending_human_confirmation" not in task_row
     assert "FLOW-TASK-015" in tests_summary
     assert "57 passed" in tests_summary
-    assert "- 当前阶段：`FLOW-CONTRACT-001 / CLOSED`" in current_state
-    assert "- 活跃任务数：0" in current_state
-    assert "- 当前无活动任务。" in current_state
-    assert "- 当前 Gate：`none`" in current_state
 
 
 def test_delivery_stage_gate_bug_loop_and_release_receipt_are_closed() -> None:

@@ -30,3 +30,11 @@ def test_writing_plans_defines_four_task_scopes_and_traceability_rules() -> None
     assert "- 任务层级：`project | requirement | cross_cutting | system`" in template
     assert "- 关联目标：" in template
     assert "强关系" in template
+
+
+def test_writing_plans_requires_explicit_task_priority() -> None:
+    skill = read("skills/writing-plans/SKILL.md")
+    template = read("skills/writing-plans/references/task-brief-template.md")
+
+    assert "`P0 | P1 | P2`" in skill
+    assert "- 优先级：`P0 | P1 | P2`" in template

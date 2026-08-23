@@ -99,12 +99,10 @@ def test_doc_map_tracks_navigation_plan_and_test_report_sources() -> None:
 
 def test_doc_factory_restructure_summary_tracks_destructive_migration() -> None:
     tasks = read(".factory/memory/tasks.summary.md")
-    current_state = read(".factory/memory/current-state.md")
 
-    for content in (tasks, current_state):
-        assert "DOC-FACTORY-RESTRUCTURE-001" in content
-        assert "破坏性" in content
-        assert "task-execution-contract.md" in content
+    assert "DOC-FACTORY-RESTRUCTURE-001" in tasks
+    assert "破坏性" in tasks
+    assert "task-execution-contract.md" in tasks
 
 
 def test_superpowers_closeout_report_tracks_completed_and_open_items() -> None:

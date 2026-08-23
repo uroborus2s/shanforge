@@ -1,8 +1,8 @@
 {
-  "generated_at": "2026-04-13 23:05:24",
-  "stage": "PLAN",
-  "focus": "v2 开发进度",
-  "owner": "Codex",
+  "generated_at": "2026-08-23 10:39:36",
+  "stage": "IMPLEMENTATION",
+  "focus": "MODEL-ROUTING-001-T01 事实收口与干净基线",
+  "owner": "uroborus",
   "active_roles": [
     "coordinator",
     "solution-architect",

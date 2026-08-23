@@ -4,7 +4,7 @@
 
 - 工作项：`FLOW-CONTRACT-001`
 - 任务：`FLOW-TASK-014`
-- 状态：`draft`
+- 状态：`completed_independently_approved`
 - 上游计划：`.factory/workitems/FLOW-CONTRACT-001/plan.md`
 - 流水账：`.factory/workitems/FLOW-CONTRACT-001/ledger.jsonl`
 

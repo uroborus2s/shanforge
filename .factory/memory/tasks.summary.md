@@ -1,19 +1,73 @@
 # 任务摘要
 
-- 当前阶段：`ENTERPRISE-AI-DELIVERY-001 / EAD-TASK-003`
-- 当前焦点：T03 已批准待客户岗位确认；候选先本地提交。
+- 当前阶段：`MODEL-ROUTING-001 / MODEL-ROUTING-001-T01`
+- 当前焦点：skill-first 事实与测试基线已收口，等待独立 review 和本地基线提交后的干净克隆复验。
 
 > 历史读取规则：以下所有带日期条目都是记录发生时的历史快照。条目中的“当前”“下一步”只表示当时状态，不得覆盖本文件顶部的当前焦点和当前动作。
 
+- 2026-08-23：`MODEL-ROUTING-001-T01` 已备份并裁剪约 95MB 历史过程资产，统一正式
+  PRD、追踪矩阵、项目配置和当前 memory 到 skill-first 边界。完整 pytest
+  `228 passed / 4 subtests passed`，根 Ruff、JSON/JSONL 与 diff check 通过；下一门为
+  独立只读 review、本地基线提交及提交后干净克隆复验。
+
+- 2026-07-30：并行任务 `PM-DASHBOARD-005-T01` 第七轮已按获批方案完成实现与验证。
+  EAD `Work Breakdown` 已迁移为显式 `parent_id` 四列表，32 个节点全部生成独立页面；
+  非法父链 fail-closed。主板只含产品主线和一个并行工作项，共 3 张唯一任务，六状态
+  汇总一次、空状态段 0、上方重复任务卡 0。聚焦 `10 passed / 4 subtests`，Ruff 通过；
+  全仓 `219 passed / 7 个与前像相同的范围外失败 / 4 subtests`。1440×900 和
+  390×844 浏览器路径无横向溢出，控制台错误 0。独立任务评审为
+  `approved / 99 / C0-I0-M0`；当前等待用户 UI 验收，验收前不得提交或关闭。
+- 2026-07-30：并行任务 `PM-DASHBOARD-005-T01` 第六轮候选被用户再次退回。用户已确认
+  三项根因和路线目标：显式 `parent_id` 任意层级树、取消每组固定六空格、统一负责人
+  范围并去除重复任务。第七轮计划采用四列路线节点表、每节点独立页面、一次六状态汇总和
+  组内非空状态段。独立计划评审 Iteration 1 为 `changes_requested / 84 / C0-I2-M1`；
+  精确 allowlist、工作项分组链接断言和全仓失败身份前像整改后，Iteration 2 为
+  `approved / 98 / C0-I0-M0`。当前 Gate 为 `round_7_fix_plan_confirmation`；
+  实现授权为 `false`，未修改源文件、测试、主线计划或缓存，未提交。
+- 2026-07-29：并行任务 `PM-DASHBOARD-005-T01` 已按退回意见完成管理视图重做：
+  10 类底层内容收敛为 6 个独立负责人页面，产品主线与看板维护分离。第三轮退回的
+  “按需求分组后按层级/类型分类”、全部当前工作卡详情链接、独立页面与稳定返回、
+  路线图下钻到计划/任务/每日 ledger 进展均已实现。独立接手复核为
+  `approved / 96 / C0-I0-M0`，但第四轮真实 UI 验收再次退回。已稳定复现移动路线图
+  默认隐藏、7 张路线卡仅 2 张可点、整张任务卡不可点、错误的“需求优先”分组层级和
+  closeout 事件重新激活已完成任务；用户已确认四个根因并批准第四轮修复方案。
+  “任务性质优先 + 需求任务二级分组 + 显式操作 + 终态校正”已完成测试先行实现。
+  第四轮独立复核发现 2 个 Important 和 1 个 Minor：重叠需求组、需求 ID 不可点击、
+  显式重开分支缺少自动化；三项已整改并由同一 reviewer 复核关闭，最终
+  `approved / 100 / C0-I0-M0`，但第五轮真实 UI 验收再次退回：顶部 5 个路线阶段
+  `0/5` 可点击；看板分类继续使用嵌套容器且 40 个需求/工作项组都不是折叠面板。两个
+  根因和第五轮修复计划均已获用户确认；第五轮候选已完成“5/5 阶段锚点下钻 +
+  40/40 原生折叠业务组 + 174/174 性质/专业标签 + 扁平任务行”。Red 两项按根因失败，
+  Green `2 passed`，聚焦 `7 passed`，全仓 `216 passed / 7 failed` 且失败集合未扩大。
+  自动浏览器受本地 `file://` 安全策略限制；独立评审按静态 HTML 和新鲜验证给出
+  `approved / 97 / C0-I0-M0`，但第六轮真实 UI 验收再次退回：5 个阶段都只进入同一
+  总计划页的不同锚点，没有阶段自己的子路线；看板仍以状态优先切分全部 174 个任务，
+  其中 169 个终态任务占据“已完成”主列。两个根因已由用户确认；第六轮计划候选改为
+  “H3-H6 显式路线树 + 5 个独立阶段页 + 活动工作项业务泳道 + 历史终态下沉”，03
+  显示 8 个直接子步骤。用户批准后已完成测试先行实现：Red `3 failed`，Green
+  `3 passed`，聚焦快照 `8 passed`，Ruff check/format 通过。真实页面为 5 个独立
+  阶段页，03 为 `7 completed / 1 current`；当前看板只保留 7 张有效任务卡，
+  167 条终态历史下沉折叠。全仓 `217 passed / 7 failed`，失败集合与前轮相同。
+  自动浏览器受本地 `file://` 安全策略限制，未冒充视觉通过。独立评审 Iteration 1
+  发现状态静默推断和移动端 CSS 未锁定两项 Important；整改后同一 reviewer 复审为
+  `approved / 98 / C0-I0-M0`。当前等待用户 UI 验收，尚未提交。
 - 2026-07-29：`SKILL-FIRST-PM-001-T01` 以 skill-local 标准库脚本替代旧 runtime 看板；
   Shanforge / ITA Club 第二次生成均缓存命中，四组浏览器验收通过，定向 `3 passed`，
   全仓 `212 passed / 7 failed`，7 项均为范围外既有漂移。首轮和复审 findings 已关闭，
   独立复审 `approved / C0-I0-M0`；本地提交 `ac67036`、`4f5ed56`，状态 `closed`。
+- 2026-07-28：`PM-DASHBOARD-004-T03` 已完成业务分组、稳定任务合并、严格状态映射、诚实完成度和业务卡片实现，renderer `22 passed`。真实快照为当前交付 0、待办 1、待治理 139、归档 60、系统 0；根因是 `sqlite_index` 未从任务简报补回 `task_scope/priority/traceability_targets`，范围外实现等待用户批准最小写集扩展。
+- 2026-07-28：用户批准 T03 最小写集扩展；SQLite 合并根因测试 `1 failed → 1 passed`，索引与 renderer 联合 `41 passed`。新快照为当前交付 1、待办 2、待治理 137、归档 60、系统 0，T03 已显示 P0、跨需求任务和三项强需求关系，当前 `ready_for_review`。
+- 2026-07-28：T03 首轮独立评审 `74 / C0-I3-M0`；`project` 层级、强 `IMPLEMENTS` 关系和稳定 ID 最终排序三项反例均由 `1 failed` 转绿，联合回归更新为 `43 passed`，当前 `ready_for_same_reviewer_rereview`。
+- 2026-07-28：T03 iteration 2 同一 reviewer 复审 `approved / 100 / C0-I0-M0`，三项 Finding 全部关闭；当前进入 T04 质量汇总与长文档阅读。
+- 2026-07-28：T04 将质量页分为测试资产、执行证据和诊断，技术明细默认折叠；长文档在正文前显示用途、读者、状态和稳定章节链接。定向 `31 passed`、相邻 SQLite 投影联合 `50 passed`，真实质量计数 `851 / 0 / 216`，当前 `ready_for_review`。
 - 2026-07-27：旁路工作项 `STRATIX-SERVICE-GUIDE-001-T01` 已把 Stratix 源码调查与业务开发规范分离：删除运行时 `source-locations.md`，所有业务项目直接遵循 skill 内统一规范；回归 `19 passed`，独立复审 `approved / 100 / C0-I0-M0`，进入精确范围本地提交，不改变顶部主项目 Gate。
-- 2026-07-27：T03 已定义 6 个岗位、14 个 RACI 活动和 6 类门禁；
-  首轮评审 `84 / C0-I1-M1` 的两项 Finding 已关闭，Iteration 2 独立复审
-  `approved / 100 / C0-I0-M0`。候选待客户确认角色映射、决策权和五组强制
-  actor 分离；确认前不得激活或进入依赖真实角色映射的 T04 执行。
+- 2026-07-27：T03 首轮评审 `84 / C0-I1-M1`；已补客户 6 项确认包内的
+  5 组强制 actor 分离，并让 Validator 回读 T02 的 45 条转移、覆盖完整 A/R、
+  未确认客户、AI actor 和职责分离负例；Iteration 2 独立复审
+  `approved / 100 / C0-I0-M0`，当前等待客户岗位授权确认。
+- 2026-07-27：T02 已由本地提交 `f5ed0e4` 收口。T03 已定义 6 个通用岗位、
+  14 个 RACI 活动和 6 类门禁；真实 actor 映射保持
+  `pending_customer_confirmation`。
 - 2026-07-27：T02 Iteration 4 独立复审 `approved / 98 / C0-I0-M1`；
   陈旧字段计数 Minor 已修正，最终验证通过，当前
   `approved_ready_for_local_commit`，WorkItem 保持开放。
@@ -44,7 +98,25 @@
   `approved / 98 / C0-I0-M0`，本地提交 `f21654d`；15/15 项队列完成。
   其他 WorkItem 盘点为 8 个仍有实际后续动作、12 个仅缺 ledger 显式关闭事件；
   详见 `.factory/workitems/FLOW-CONTRACT-001/reports/FLOW-CONTRACT-001-closeout-and-open-workitems-audit.md`。
+- 2026-07-23：`FLOW-TASK-015` 方案 Review 依次为 `46/C3-I4`、`82/C1-I1`、最终 `approved / 98 / C0-I0-M1`。v1.2.0 候选绑定正式 v1.1.0 基线，包含 16 个行为、13 个工作流、可达的身份创建控制流、fail-closed 写入矩阵和逐工作流节点转换；结构 7、规定组合 56、Ruff 和 diff check 通过。候选 hash 已冻结，正式文档和 runtime Skills 未修改，当前等待人工治理确认。
+- 2026-07-23：`FLOW-TASK-014` 启动记忆和非活跃任务降级规则完成。当前会话事实足够时零 memory 读取，缺口按一个最小片段扩展；`current-state.md` 收敛为 45 行、2331 bytes、5 条最近事实，历史 ledger/evidence/review/report 保留；目标 9、直接相邻 33 通过，同一 Reviewer 最终 `approved / 98 / C0-I0-M0`。
+- 2026-07-23：`FLOW-TASK-013` 项目级测试治理完成。正式测试计划保持 `v3.1.0`，当前治理修订明确为未发布候选；4 个稳定测试 ID 分别绑定需求、任务、可执行入口、evidence、结果和 2 个真实环境。目标 9、相邻 30、黑盒入口 13、UI 入口 18、API 入口 5 均通过；同一 Reviewer 最终 `approved / 98 / C0-I0-M0`。
+- 2026-07-22：旁路工作项 `SKILL-CLEANUP-001` 已退役仓内 `skills/skill-creator` 及其 eval、benchmark、报告和打包工具，不新增 `skill-evaluation`；本地脚本依赖与专属测试已清理，范围验证见 `.factory/workitems/SKILL-CLEANUP-001/evidence/completion-verification.md`，当前 `ready_for_review`，不改变顶部主工作项进度。
+- 2026-07-22：`SKILL-CLEANUP-001` 将 `go-backend-developer` 改名为 `go-developer`，并同步 Codex 全局项目 Skill 软链接；仓内与全局链接均为 37 项，名称、目标路径和有效性完全一致，验证见 `.factory/workitems/SKILL-CLEANUP-001/evidence/go-developer-rename-and-global-link-sync-verification.md`，当前 `ready_for_review`。
+- 2026-07-22：`uroborus` 回复“确认”，精确批准 R009 Manifest `8be9d829…77ae` 与 candidate root `ce079fcd…df68`。需求 Gate 已关闭，授权原位正式化、设计、计划、实现、测试、迁移及验证后当前任务本地提交；不包含 `TASK-IMPLEMENT-002-R001`、远端、PR、Merge 或部署。
+- 2026-07-21：`TASK-REQ-006` R001–R004 精确需求候选已冻结，8 个语义 Artifact root `5ab03160…94c5`，Manifest `8338d35e…d160`；同一独立 Reviewer 最终 `approved / 96 / C0-I0-M0`。候选固定 `docs` 仅人类当前文档、SQLite 非权威关联索引、单 8 KiB 记忆点、事件驱动压缩、有界 cache、`.factory/pm` 去事实化、每 scope 单一 `current.html` 与授权 fail-closed。当前等待人工计划确认，正式文档、设计、代码、Git 和发布均未执行。
+- 2026-07-21：用户后续讨论使 R004 Manifest 失效；合并 R005 独立评审 `changes_requested / 58 / C1-I6-M0`。R006 已在原范围整改：分级离线/受限发布、R014 双 Hash pin、137 字段唯一 field map、固定 as_of、stable symbol ID、16 REQ/64 AC/11 NFR 机器合同和 22 条封闭状态转移；当前同一 Reviewer 复审，尚未人工批准。
+- 2026-07-21：R006 复审 `changes_requested / 78 / C0-I4-M0`。R007 将 13 个 PM row model 绑定 R014 record identity/命名空间键，16/64/11 与 Markdown 逐字段 JCS Hash 对账，10 个非终态改为 50 条互斥穷尽事件转移，并统一 canonical `ProjectProgressSnapshot/v2`；当前同一 Reviewer 复审。
+- 2026-07-21：R007 复审 `changes_requested / 89 / C0-I1-M0`，仅剩 root 前像歧义。R008 固定 `{requirements,nfrs}` 规范对象、不含派生字段的 JCS 前像，canonical bytes 23717、SHA-256 `96be53fe…045e`；复用未变化的 R007 PM field map，当前同一 Reviewer 复审。
+- 2026-07-21：R008 独立复审 `approved / 98 / C0-I0-M0`；freeze 前事实审计发现 R014 机器合同的 `candidate_unapproved` 是冻结历史字段，权威 release manifest `ea84805f…ef4e` 已记录用户批准并 `released`。R009 仅修正发布状态 Owner、绑定 release manifest 并重算规范 root，当前同一 Reviewer 回归。
+- 2026-07-21：R009 发布状态事实修正经同一 Reviewer `approved / 99 / C0-I0-M0`；16/64/11、23720-byte root、137 fields、50 transitions、Snapshot v2 与 R014 release pin 全部复核通过，进入精确 Hash 人工 Gate 编制。
+- 2026-07-21：R009 精确候选已冻结，6 个 Artifact root `ce079fcd…df68`，Manifest `8be9d829…77ae`；`design_or_implementation_authorized=false`，等待用户精确 Hash 确认。
+- 2026-07-21：TASK-IMPLEMENT-002 T01–T08 8/8 完成，11/11 候选需求实现；T08 Spec/Quality 和整体独立 Review 均 `approved / 100 / C0-I0-M0`。Final candidate 38 artifacts，root `3d52c5…d770`，formal release false；当前唯一 Gate 为精确 manifest hash 批准。
 - 2026-07-21：旁路工作项 `PM-DASHBOARD-002-T01` 已把 Excel 样例信息架构一次性固化进 HTML 状态模板；运行时禁止回读 `.xls/.xlsx`。独立复审 `approved / 99 / C0-I0-M0`，最终定向 23、相邻 11+42、Ruff 和五视口截图门通过；不改变顶部主工作项进度或正式产品事实。
+- 2026-07-21：T08 定向924、全仓1249、静态门与性能/11追踪全绿；pre-review manifest `d267e9…d330` 不可批准，当前 task-level Review。
+- 2026-07-21：T07 focused Spec/Quality `approved / 100 / C0-I0-M0`，34 个定向集成/scaffold 与隔离/静态探针通过。P001 完成 7/8，进入 T08。
+- 2026-07-21：T06 最终 focused Spec/Quality `approved / 100 / C0-I0-M0`，三项 Finding 全闭；finding 4、visibility 12 与静态门通过。P001 完成 6/8，进入 T07。
+- 2026-07-21：T05 最终 Spec/Quality `approved / 100 / C0-I0-M0`，六项 Finding 全闭；末轮按 fast-path 仅 exact race 1、affected projection 50 和静态门。P001 完成 5/8，进入 T06。
 - 2026-07-21：T05 完成 Red/Green 与作者验证：172/79/101/323 tests、Ruff/format/mypy 全绿，当前独立 Review。P001 完成仍为 4/8，无人工 Gate。
 - 2026-07-21：T04 最终 Spec/Quality `approved / 100 / C0-I0-M0`，五项 Finding 全闭；29/101/121/286 tests、事务/竞态探针与静态门全绿。P001 完成 4/8，进入 T05。
 - 2026-07-21：T04 完成 Red/Green：21/93/113/286 tests 与 Ruff/format/mypy 全绿，当前独立 Spec/Quality Review。P001 完成仍为 3/8，无人工 Gate。
@@ -343,13 +415,40 @@
 - 完成后再进入 promotion policy、dataset 筛选和真实 summarizer/provider 的进一步治理
 - 2026-07-20：`TASK-SKILL-003-simple-task-fast-path` 第一批实现已完成，独立 reviewer iteration 3 为 `approved / 96 / C0 I0 M0`，最终新鲜验证已收口：入口先做当前消息初判；direct/lightweight 直接返回且零仓内写入，项目化请求恢复事实后再完成路由。范围不含 32 个工作 skill 的状态字段收敛。
 - 2026-07-21：`TASK-SKILL-004-work-skill-status-envelope-owner` 第二批实现已独立复审通过：精确 32 个工作 Skill 去除四个重复项目状态字段并保留专业正文哈希；总控生成项目状态信封，本地 `status/needs` 原样透传。首次 `gitcommitzh` 因必要文件混有上游内容而 blocked；用户随后明确授权纳入形成完整提交所必需的同文件范围外改动，当前进入受限候选文件集本地提交。
-- 2026-07-19 历史事件：`TASK-QUALITY-001-P001` 完成全仓静态债务清理并曾生成 `TASK-IMPLEMENT-001-R001`。该候选随后已被用户明确撤销，从未正式发布；原精确哈希 Gate 已关闭且不得恢复。当前状态只以本文件顶部 TASK-QUALITY-002 焦点为准。
 - 2026-07-23：`TASK-IMPLEMENT-003-P001` 已完成 39 表知识索引、137 字段 PM 投影、稳定 locator/query CLI、异步项目状态同步、缓存维护与只读多页面站点；第四轮独立终审 `approved / 98 / C0-I0-M0`，精确范围本地提交已创建。
 - 2026-07-23：`TASK-IMPLEMENT-003-P001` 第五轮整改完成：修复旧 ledger 事件状态丢失、任务去重/时区/父子状态推断和增量投影外键安全问题；项目总览改为六列中文敏捷看板，卡片中文标题、每列最近 10 条、“更多”展开及独立详情页均已落地。自动独立终审 `approved / 96 / C0-I0-M0`，当前进入精确范围本地提交。
+- 2026-07-19 历史事件：`TASK-QUALITY-001-P001` 完成全仓静态债务清理并曾生成 `TASK-IMPLEMENT-001-R001`。该候选随后已被用户明确撤销，从未正式发布；原精确哈希 Gate 已关闭且不得恢复。当前状态只以本文件顶部 TASK-QUALITY-002 焦点为准。
+- 2026-07-21：`PM-DASHBOARD-003` 页面原型已响应用户 Important 反馈：Excel 项目管理十要素从隐式映射改为显式、可点击驾驶舱，并补齐字段级详情映射；静态验证通过，`file://` 浏览器自动化受安全策略阻断，当前等待人工视觉复审。该旁路设计任务不改变主项目 Gate，未实现生产 renderer 或本地服务。
+- 2026-07-23：`PK-SOURCE-MIGRATION-001-T04` 将任务详情改为目的、具体工作、交付结果和完成口径四段式，将需求页改为产品到验收标准四层树；138/138 注册任务简报均形成唯一任务实体并至少提取一类正式任务语义，任务简报与 Ledger 的父工作项限定身份已统一，推测性空态已删除。第三轮独立复审 `approved / 98 / C0-I0-M0`，两份设计增补保持候选未发布，当前等待用户确认预览；不改变 `FLOW-TASK-015` 的正式人工确认 Gate。
 - 2026-07-23：`PROJECT-ARTIFACTS-001-T01` 已完成 Penpot 设计资产合同首轮评审整改：manifest/domain 必填与 ID 约束、Penpot 状态 Schema、路径链 symlink 拒绝、Token 独立解析/限长/校验及 CLI 回归均已验证；`v1.2.0` 保持候选未发布，当前等待同一独立 Reviewer 复审。整个工作项的 OpenAPI、测试资产、SQLite 投影和统一 HTML 展示仍在实施中。
 - 2026-07-23：`PROJECT-ARTIFACTS-001-T01` Iteration 2 已继续封闭组件状态类型/唯一性、Schema 点段路径和合法 Token 集成 fixture；完整合同回归为 `33 passed`，当前再次等待同一独立 Reviewer 复审。
 - 2026-07-23：`PROJECT-ARTIFACTS-001-T01` Iteration 3 独立复审通过，`approved / 97 / C0-I0-M0`；无伪 `.penpot`，`v1.2.0` 继续保持候选未发布。工作项进入 T02 OpenAPI 与稳定 YAML 索引。
 - 2026-07-23：`PROJECT-ARTIFACTS-001-T02` 首轮独立评审 `changes_requested / 76 / C0-I3-M1`；Schema/domain、索引前验证门、完整 source definition 和占位 server 已同范围整改，联合回归 `48 passed`，当前等待同一 Reviewer 复审。
 - 2026-07-23：`PROJECT-ARTIFACTS-001` 四项任务均已实现并独立批准：T01 Penpot 资产合同 `97`、T02 OpenAPI 详细合同 `99`、T03 测试合同与 SQLite 投影 `98`、T04 单一项目文档入口与增量快照 `96`。仓库不伪造 `.penpot`；真实源文件仍需在 Penpot 打开目标文件并连接本地插件后导出。
 - 2026-07-27：`TASK-WORKFLOW-SEMANTICS-001` 已获用户关闭确认并通过新鲜关闭验证，完整语义套件 `50 passed`、Ruff 通过，终态为 `closed`。
+- 2026-07-27：`SKILL-FLOW-AUDIT-001` 的隔离关闭门方案已获批准，但执行发现 `agent-harness-construction`、`article-writing` 缺少现有隔离测试节点；唯一聚合节点还读取 4 个范围外 Skill。任务按批准方案异常流程停在 `blocked`，尚未修改 Skill/Test；解阻需批准仅拆分 `tests/test_skill_flow_process_audit.py` 的现有断言。
+- 2026-07-27：`PK-SOURCE-MIGRATION-001-T04-SCHEMA-REPAIR` 首轮独立评审为
+  `changes_requested / 86 / C0-I1-M0`；`Task:` 身份元数据会被同行解析误当作 `goal`。
+  生产缺陷已修复；Iteration 2 复审为 `changes_requested / 89 / C0-I1-M0`，仅缺
+  `## Task` 章节正例以锁定上下文分离。该正例已补齐，双场景 `2 passed`、五文件
+  `67 passed`；Iteration 3 最终复审 `approved / 99 / C0-I0-M0`。当前唯一 Gate
+  是人工确认两份正式设计候选精确哈希；候选仍未发布。
+- 2026-07-27：用户已确认 PK T04 重新冻结的两份候选精确哈希并授权正式化、验证、
+  关闭和精确本地提交；同时批准 SKILL 仅拆分
+  `tests/test_skill_flow_process_audit.py` 的现有聚合断言，不授权修改 Skill、其他测试
+  或远端。
+- 2026-07-27：`PK-SOURCE-MIGRATION-001-T04` 与 Schema repair 已正式关闭；
+  data-design `v1.4.0`、frontend-design `v1.6.0` 生效。正式化后五文件
+  `67 passed`、Ruff、Mypy 290、docs-stratego、固定快照和 Chrome 10/10 全绿；
+  父 WorkItem 已完成，进入精确本地提交。
+- 2026-07-27：`SKILL-FLOW-AUDIT-001` 隔离关闭门已按批准范围完成：仅拆分
+  `tests/test_skill_flow_process_audit.py` 的现有聚合断言，关闭门收紧为 9 个候选/
+  共享合同专属节点；`9 passed`、Ruff、9/9 SHA-256、JSONL 与 diff-check 通过，
+  当前等待独立只读评审。
+- 2026-07-27：SKILL 隔离关闭门独立评审已通过，`approved / 99 / C0-I0-M0`；
+  Reviewer 确认 9 个节点不读取范围外 Skill、动态集合、历史 WorkItem 或共享 memory，
+  最终关闭验证 `9 passed`、Ruff、9/9 SHA-256、JSONL 与 diff-check 全绿；
+  `SKILL-FLOW-AUDIT-001` 已关闭，进入精确本地提交。
+- 2026-07-27：`PM-DASHBOARD-003-T01` 已按人工批准完成一行 `minmax(0, 1fr)` CSS 根因修复；独立评审 `approved / 98 / C0-I0-M0`，桌面与 390px 移动端关闭验证通过，任务终态为 `closed`。父工作项仍是原型人工视觉评审状态，不代表生产 renderer、发布或部署获批。
 - 2026-07-28：`STRATIX-SERVICE-GUIDE-001-T01` 已处理 I003：移除专业 Skill 的项目治理尾注并写明实际版本基线；四组定向契约测试 `28 passed`，独立复审 `approved / 100 / C0-I0-M0`，进入最终验证和精确本地提交。
+- 2026-07-28：`PM-DASHBOARD-004-T02` 经同一 reviewer 复审 `approved / 100 / C0-I0-M0`，`T02-I1` 关闭，最终定向回归 `33 passed`。当前进入 T03，有效任务清理、确定性排序和业务首页实现中；T04-T05 尚未实施。

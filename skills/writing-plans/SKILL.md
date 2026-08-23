@@ -117,6 +117,9 @@ description: 仅在已批准的 spec、需求、设计或 work item brief 需要
 
 ## 任务层级与关联
 
+每张正式任务卡必须声明优先级，且只允许 `P0 | P1 | P2`。优先级是人工登记的
+排期事实；不得根据标题、更新时间或任务状态猜测。
+
 每张正式任务卡都声明 `task_scope`，且只允许：
 `project | requirement | cross_cutting | system`。`task_scope` 是业务层级，
 不得复用 `task_kind` 表达 `task_scope`。

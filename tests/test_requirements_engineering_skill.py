@@ -11,6 +11,7 @@ def read(path: str) -> str:
 
 def test_requirements_engineering_declares_shanforge_outputs_and_gates() -> None:
     skill = read("skills/requirements-engineering/SKILL.md")
+    frontmatter = skill.split("---", 2)[1]
 
     for phrase in (
         ".factory/workitems/<WORKITEM-ID>/brief.md",
@@ -26,6 +27,8 @@ def test_requirements_engineering_declares_shanforge_outputs_and_gates() -> None
     ):
         assert phrase in skill
 
+    assert "requirements-analyst" not in frontmatter
+
 
 def test_requirements_engineering_keeps_prd_template_linked() -> None:
     skill = read("skills/requirements-engineering/SKILL.md")
@@ -35,6 +38,9 @@ def test_requirements_engineering_keeps_prd_template_linked() -> None:
     assert "REQ-XXX" in template
     assert "AC-1" in template
     assert "NFR-XXX" in template
+    assert "INVEST 检查" in template
+    assert "AC 示例" in template
+    assert "NFR 示例" in template
 
 
 def test_requirements_engineering_supports_flow_contract_scenarios() -> None:

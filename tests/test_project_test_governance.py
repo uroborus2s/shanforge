@@ -143,7 +143,10 @@ def test_test_registry_has_executable_traceability() -> None:
     }
 
     prd = read("docs/04-product/prd.md")
-    ledger = read(".factory/workitems/FLOW-CONTRACT-001/ledger.jsonl")
+    ledgers = "\n".join(
+        path.read_text(encoding="utf-8")
+        for path in (REPO_ROOT / ".factory" / "workitems").glob("*/ledger.jsonl")
+    )
     environments = {
         row[0] for row in table_rows(plan, "### 4.2 当前测试环境基线")[1:]
     }
@@ -154,7 +157,7 @@ def test_test_registry_has_executable_traceability() -> None:
         assert re.fullmatch(r"TEST-(?:BB|UI|API|REL)-\d{3}", test_id)
         assert re.fullmatch(r"(?:REQ|NFR)-[A-Z0-9-]+", requirement_id)
         assert requirement_id in prd
-        assert task_id in ledger
+        assert task_id in ledgers
         assert command.startswith((".venv/bin/", "uv "))
         assert " 加" not in command
         assert evidence.startswith(".factory/workitems/")

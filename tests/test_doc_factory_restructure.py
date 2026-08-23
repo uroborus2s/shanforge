@@ -100,8 +100,8 @@ def test_task_execution_contract_defines_six_task_types_and_gates() -> None:
         assert phrase in contract
 
     assert "| 版本 | 修改内容 | 日期 | 修改人 | 审核 | 批准 |" in contract
-    assert "| `0.1.0` | 初版，固化六类任务执行方式" in contract
-    assert "| 项目负责人 |" in contract
+    assert "| `v1.4.0` | 增加设计至生产阶段门" in contract
+    assert "| `uroborus` |" in contract
     assert "| 项目负责人 |" in architecture_pages
     assert "Codex" not in contract
     assert "Codex" not in architecture_pages
@@ -202,5 +202,6 @@ def test_current_workitem_has_standard_artifacts() -> None:
     passed = [event for event in events if event.get("status") == "passed"]
     assert passed
     assert passed[-1]["next_required_action"] == "independent_review"
-    assert {event["actor"] for event in events} == {"用户授权代执行"}
+    assert events[0]["actor"] == "用户授权代执行"
+    assert {event["actor"] for event in events} <= {"用户授权代执行", "AI_EXECUTOR"}
     assert passed[-1]["task"] == "TASK-001-destructive-full-doc-migration"

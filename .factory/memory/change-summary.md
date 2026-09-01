@@ -1,6 +1,6 @@
 # 变更摘要
 
-- 2026-09-01：`HUMAN-RESPONSE-CONTRACT-003` 补齐修复位置五字段与代码形状合同：代码写入禁止局部函数定义和无独立职责的单调用点公共 helper，实际实现回写 `code_shape_check`；用户指南保持候选修订。定向 `30 passed`，独立评审 `approved / C0-I0-M0`，等待精确本地提交。
+- 2026-09-01：`HUMAN-RESPONSE-CONTRACT-003` 已关闭。补齐修复位置五字段与代码形状合同：代码写入禁止局部函数定义和无独立职责的单调用点公共 helper，实际实现回写 `code_shape_check`；用户指南保持候选修订。实现提交 `91a3aea`，定向 `30 passed`，独立评审 `approved / C0-I0-M0`。
 
 - 2026-09-01：`SOFTWARE-LIFECYCLE-GOVERNANCE-001` 统一 Skill-first 架构、接口、前端、UI、数据、记忆与工作流正式事实，删除退役平台机器附件，补齐 12 阶段生命周期矩阵和语义反转防回退测试；同一 reviewer 终审 `approved / 97 / C0-I0-M0`。实现提交 `f9654c6` 的干净克隆 `290 passed / 4 subtests passed`，Ruff、38/38 Skill、解析、案例目录、diff 与 Git clean 全绿。
 

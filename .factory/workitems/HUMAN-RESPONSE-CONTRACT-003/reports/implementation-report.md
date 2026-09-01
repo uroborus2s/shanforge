@@ -13,3 +13,4 @@
 - 定向测试：`30 passed`。
 - Ruff、3 个 Skill validator、JSONL、diff check：通过。
 - 独立评审：`approved / C0-I0-M0`。
+- 实现提交：`91a3aea`（`feat: 补齐修复定位与代码形状合同`）。

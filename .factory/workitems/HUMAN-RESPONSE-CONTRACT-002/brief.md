@@ -2,7 +2,7 @@
 
 ## 状态
 
-`ready_for_commit`
+`closed`
 
 ## 来源
 

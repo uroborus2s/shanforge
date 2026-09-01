@@ -13,3 +13,4 @@
 - 本工作项范围：`25 passed, 1 deselected`；Ruff、四个 Skill validator、ledger 和 diff check 通过。
 - 仓库关联基线因并行正式文档重写暂为 `repository_baseline_partial`，详见 `evidence/verification.md`。
 - 独立终审与用户指南增量复审均为 `approved / C0-I0-M0`。
+- 实现提交：`91460c2`。

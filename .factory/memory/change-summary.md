@@ -1,6 +1,6 @@
 # 变更摘要
 
-- 2026-09-01：`HUMAN-RESPONSE-CONTRACT-002` 完成按工作类型的人类可读会话合同：开发只按已批准 WBS/TaskCard/ledger 报告，测试提供完整计数、覆盖范围和失败明细，Bug/修复提供根因事实与三分支 TaskCard 决策；用户指南保留为待正式批准/发布候选。独立终审 `approved / C0-I0-M0`，当前等待精确本地提交。
+- 2026-09-01：`HUMAN-RESPONSE-CONTRACT-002` 完成按工作类型的人类可读会话合同：开发只按已批准 WBS/TaskCard/ledger 报告，测试提供完整计数、覆盖范围和失败明细，Bug/修复提供根因事实与三分支 TaskCard 决策；用户指南保留为待正式批准/发布候选。独立终审 `approved / C0-I0-M0`，实现提交 `91460c2`，工作项关闭。
 
 - 2026-08-24：完成并关闭 `MODEL-DISPATCH-RUNTIME-001`。以 Codex 原生 subagent 实现 Sol 唯一主控、Luna 简单低风险 worker、Terra 标准/复杂 worker 与 Terra/high 只读 reviewer；严格派发合同对 workflow/write policy 错配或重叠失败关闭。治理测试 Green `9 passed`，同 reviewer 终审 `approved / 96 / C0-I0-M0`；实现提交 `b270ae4` 干净克隆完整 pytest `273 passed`，Ruff、38/38 Skill validator、解析、diff 与 Git clean 全绿。
 

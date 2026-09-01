@@ -6,7 +6,7 @@
 
 **复杂度 / 风险：** `complex / medium`。
 
-**状态：** `ready_for_commit`
+**状态：** `closed`
 
 ## Work Breakdown
 

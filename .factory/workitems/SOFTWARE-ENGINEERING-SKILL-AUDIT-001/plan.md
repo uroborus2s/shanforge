@@ -1,6 +1,6 @@
 # SOFTWARE-ENGINEERING-SKILL-AUDIT-001 审计计划
 
-**状态：** `ready_for_commit`
+**状态：** `closed`
 
 | 步骤 | 状态 | 产物 |
 |---|---|---|

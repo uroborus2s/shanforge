@@ -151,3 +151,30 @@ def test_shared_contract_is_markdown_not_a_runtime_skill_manager() -> None:
     assert SHARED_CONTRACT.suffix == ".md"
     assert not (REPO_ROOT / "src" / "runtime" / "skills").exists()
     assert not (REPO_ROOT / "src" / "settings" / "skills").exists()
+
+
+def test_repair_locations_are_structured_and_do_not_invent_symbols() -> None:
+    contract = SHARED_CONTRACT.read_text(encoding="utf-8")
+    repair_contract = contract.split("## 修复位置与代码形状", maxsplit=1)[1].split(
+        "\n## ", maxsplit=1
+    )[0]
+    status_path = (
+        REPO_ROOT / "skills" / "using-shanforge" / "references" / "human-readable-status.md"
+    )
+    status = status_path.read_text(encoding="utf-8")
+    repair_status = status.split("### Bug / 修复", maxsplit=1)[1].split("\n### ", maxsplit=1)[0]
+
+    for content in (repair_contract, repair_status):
+        for field in ("file", "symbol", "change", "reason", "verification"):
+            assert field in content
+    assert "模块、配置项或文档章节" in repair_contract
+
+
+def test_result_package_reports_code_shape_compliance() -> None:
+    contract = SHARED_CONTRACT.read_text(encoding="utf-8")
+    result_section = contract.split("## 工作 Skill 本职结果包", maxsplit=1)[1]
+    package = result_section.split("\n## ", maxsplit=1)[0]
+
+    assert "code_shape_check: passed | failed | not_applicable" in package
+    assert "只有本轮没有修改代码时才可 `not_applicable`" in package
+    assert "凡修改源码或测试代码不得用 N/A" in package

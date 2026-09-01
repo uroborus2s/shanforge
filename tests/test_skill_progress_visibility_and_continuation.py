@@ -203,3 +203,25 @@ def test_completion_evidence_reports_claim_scope_without_owning_project_state() 
 def test_runtime_skill_management_is_not_reintroduced() -> None:
     assert not (REPO_ROOT / "src" / "runtime" / "skills").exists()
     assert not (REPO_ROOT / "src" / "settings" / "skills").exists()
+
+
+def test_source_or_test_write_routes_carry_code_shape_constraints() -> None:
+    controller = read("skills/using-shanforge/SKILL.md")
+    section = controller.split("### source_or_test_write 代码形状约束", maxsplit=1)[1].split(
+        "\n## ", maxsplit=1
+    )[0]
+
+    for phrase in (
+        "禁止函数或方法体内定义命名函数、局部 helper 或方法",
+        "禁止抽取只有一个调用点且无独立职责的公共 helper",
+        "框架强制入口、接口实现、回调注册或资源生命周期边界",
+        "不得包装一次转发",
+        "正常函数调用组合不是嵌套函数定义",
+    ):
+        assert phrase in section
+
+    status_package = controller.split("## 工作 skill 状态回写协议", maxsplit=1)[1].split(
+        "\n## ", maxsplit=1
+    )[0]
+    assert "code_shape_check: passed | failed | not_applicable" in status_package
+    assert "凡修改源码或测试代码不得用 N/A" in status_package

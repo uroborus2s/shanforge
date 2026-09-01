@@ -120,6 +120,12 @@ description: 遇到 bug、测试失败、构建失败、性能异常或任何意
 - fault_owner: requirement | design | implementation | test | configuration | environment | production
 - risk: low | medium | high
 - bug_facts: <现象、影响、复现、直接原因、根源原因、事实 owner、风险、修复状态和回归验证>
+- change_locations: <未修复时为 none；实际修复后才列出以下位置>
+  - file: <实际修改文件>
+    symbol: <实际函数、方法或符号；没有函数边界时写模块、配置项或文档章节>
+    change: <具体改动>
+    reason: <改动原因>
+    verification: <回归验证>
 - repair_decision: original_task_remediation | bug_taskcard | return_to_owner
 - impacted_tests: <failed case, root-cause case, affected callers/contracts>
 - ledger_event: <event id>

@@ -20,11 +20,29 @@
 - progress_delta: <本轮已完成、开始、阻塞或未改变的本职事实；按适用性提供>
 - verification_summary: <本轮验证范围、结果和未运行项；按适用性提供>
 - defect_summary: <已知缺陷现象、归因和影响；按适用性提供>
+- code_shape_check: passed | failed | not_applicable
+- change_locations: <按适用性提供；每项提供 file、symbol、change、reason、verification>
 ```
 
 `task_id/task_type 表示正式任务身份`，`skill 表示执行者身份`；二者不是替代关系。不得统一或改写工作 Skill 的既有专业输出，也不得为了共享本合同而收窄其 `status`、`outputs`、`evidence`、`needs`、真实 blocker 或人工确认语义。
 
 `human_summary` 是可直接翻译的本职结论；其余三项按适用性提供，缺失时总控不得猜测。工作 Skill 不得推断 WBS 分母、产品功能完成度或项目完成层级；项目完成层级仍由 `using-shanforge` 结合项目事实决定。
+
+`code_shape_check` 只有本轮没有修改代码时才可 `not_applicable`；凡修改源码或测试代码不得用 N/A，必须回写 `passed` 或 `failed`。
+
+## 修复位置与代码形状
+
+Bug、修复或代码写入结果的 `change_locations` 必须逐项使用以下结构：
+
+```text
+- file: <实际修改文件>
+  symbol: <实际函数、方法或符号；没有函数边界时写模块、配置项或文档章节>
+  change: <具体改动>
+  reason: <为什么需要该改动>
+  verification: <验证命令、测试或检查结果>
+```
+
+每个 `source_or_test_write` 授权包还必须明确：禁止函数或方法体内定义命名函数、局部 helper 或方法；禁止抽取只有一个调用点且无独立职责的公共 helper。正常函数调用组合不是嵌套函数定义。框架强制入口、接口实现、回调注册或资源生命周期边界仅在承担真实职责时例外，不得包装一次转发。实际实现结果以 `code_shape_check: passed | failed` 回写两条禁令的检查结论。
 
 ## 测试类 verification_summary
 

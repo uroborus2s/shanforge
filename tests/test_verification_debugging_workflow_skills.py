@@ -253,3 +253,26 @@ def test_status_package_and_taskcard_decision_are_structured_contracts() -> None
     assert "原任务整改，不新建 TaskCard" in decision
     assert "创建 Bug TaskCard" in decision
     assert "回对应事实 owner，不创建产品 Bug TaskCard" in decision
+
+
+def test_debugging_and_tdd_status_packages_include_change_locations() -> None:
+    debugging = read("skills/systematic-debugging/SKILL.md")
+    tdd = read("skills/tdd-workflow/SKILL.md")
+
+    debugging_package = debugging.split("## 状态包", maxsplit=1)[1]
+    tdd_package = tdd.split("## 输出契约", maxsplit=1)[1]
+    tdd_flow = tdd.split("## 默认流程", maxsplit=1)[1].split("\n## ", maxsplit=1)[0]
+    for content in (debugging_package, tdd_package):
+        assert "change_locations" in content
+        for field in ("file", "symbol", "change", "reason", "verification"):
+            assert field in content
+
+    assert "未修复时为 none" in debugging_package
+    assert "code_shape_check: passed | failed | not_applicable" in tdd_package
+    assert "执行两条代码形状禁令" in tdd_package
+    assert "凡修改源码或测试代码不得用 N/A" in tdd_package
+    for phrase in (
+        "不得定义局部函数",
+        "单调用点且无独立职责的 helper 必须内联",
+    ):
+        assert phrase in tdd_flow

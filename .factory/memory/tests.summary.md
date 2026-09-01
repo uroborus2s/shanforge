@@ -3,6 +3,8 @@
 - 当前阶段：`SOFTWARE-LIFECYCLE-GOVERNANCE-001 / closed`
 - 当前验证结论：实现提交 `f9654c6` 干净克隆完整 pytest `290 passed / 4 subtests passed`；Ruff、38/38 Skill validator、6 TOML、41 JSON、42 JSONL、5-case 目录、diff 与 Git clean 全绿。
 
+- 2026-09-01：`HUMAN-RESPONSE-CONTRACT-003` 定向合同测试 `30 passed`，Ruff、3 个 Skill validator、工作项 JSONL 与 diff check 通过；独立 reviewer 复验同样为 `30 passed`。
+
 - 2026-09-01：生命周期矩阵语义反转 Red 为 `1 failed / 10 passed`，修复后治理专项 `27 passed`；同一 reviewer 四个反向探针全部拒绝、正向矩阵通过。
 
 - 2026-09-01：`HUMAN-RESPONSE-CONTRACT-002` 实现提交 `91460c2`；工作项范围 `25 passed, 1 deselected`，Ruff、四个变更 Skill validator、JSONL 与 diff check 通过；并行 `SOFTWARE-LIFECYCLE-GOVERNANCE-001` 正式文档重写使关联旧锚点基线暂为 `19 passed, 2 failed`，故只声明 `task_scope_passed / repository_baseline_partial`。

@@ -50,7 +50,7 @@ description: 在编写新功能、修复 Bug 或重构代码时使用此技能�
 2. 高风险 Bug 确认根因和修复方案 Gate 均已通过；低、中风险直接进入最小修复。
 3. 选择最小测试层级，优先使用项目现有测试工具。
 4. `RED`：运行测试，确认失败原因符合预期。
-5. 写最小实现，只改根因路径。
+5. 写最小实现，只改根因路径；在 `GREEN` 前执行两条代码形状禁令：不得定义局部函数；单调用点且无独立职责的 helper 必须内联。
 6. `GREEN`：重新运行原失败测试、根因测试和受影响调用方 / 契约；单次缺陷修复不默认运行全仓测试。
 7. 如需重构，保持测试通过后再整理。
 8. 完成前记录新鲜验证证据、失败数量、跳过项和未运行项，以及 RED 测试范围、GREEN 回归范围、覆盖与未覆盖范围；完整七态汇总由完成前验证流程按正式基线报告。
@@ -88,6 +88,14 @@ TDD、调试和完成前验证的合并质量门见 [tdd-debugging-verification-
 - evidence:
   - <red command/result>
   - <green command/result>
+- code_shape_check: passed | failed | not_applicable（执行两条代码形状禁令：不定义局部函数；不抽取单调用点公共 helper）
+- `not_applicable` 只有本轮没有修改代码时才可使用；凡修改源码或测试代码不得用 N/A。
+- change_locations:
+  - file: <实际修改文件>
+    symbol: <实际函数、方法或符号；没有函数边界时写模块、配置项或文档章节>
+    change: <具体改动>
+    reason: <改动原因>
+    verification: <green command/result>
 - ledger_event: <event id>
 - needs:
   - none | root_cause | tests | verification | human_confirmation

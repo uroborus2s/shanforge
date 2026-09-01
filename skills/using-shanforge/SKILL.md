@@ -212,6 +212,14 @@ escalation_triggers:
 Terra/Luna 只执行已授权任务包，不得改写上述字段、扩大范围、自批 Review 或决定完成。任一升级触发器命中时
 停止当前执行并交还 Sol；同一任务连续两次验证失败记为 `verification_failed_twice`。
 
+### source_or_test_write 代码形状约束
+
+所有 `source_or_test_write` 路由包必须携带以下约束，并由实现回写说明是否符合：
+
+- 禁止函数或方法体内定义命名函数、局部 helper 或方法；正常函数调用组合不是嵌套函数定义。
+- 禁止抽取只有一个调用点且无独立职责的公共 helper；此类逻辑保持内联。
+- 框架强制入口、接口实现、回调注册或资源生命周期边界可以作为真实职责例外，但不得包装一次转发。
+
 ## 默认流程
 
 1. 按“简单任务快速通道”先根据当前消息判定处理模式。
@@ -451,6 +459,8 @@ baseline work item 规则：
 - progress_delta: <本轮已完成、开始、阻塞或未改变的本职事实；按适用性提供>
 - verification_summary: <本轮验证范围、结果和未运行项；按适用性提供>
 - defect_summary: <已知缺陷现象、归因和影响；按适用性提供>
+- code_shape_check: passed | failed | not_applicable
+- change_locations: <修复位置清单；每项提供 file、symbol、change、reason、verification>
 ```
 
 本 skill 再结合 work item ledger、review ledger、已授权范围和真实 Gate 生成项目状态信封：
@@ -465,6 +475,8 @@ baseline work item 规则：
 ```
 
 工作 Skill 的本地 `blocked`、`needs_user_input` 或 human-confirmation need 是输入事实；是否形成项目 blocker 或 human Gate，由本 skill 结合 ledger 判断。`direct_answer` 与 `lightweight_analysis` 不使用这两类状态包。
+
+`code_shape_check` 只有本轮没有修改代码时才可 `not_applicable`；凡修改源码或测试代码不得用 N/A，必须回写 `passed` 或 `failed`。
 
 工作 skill 不写：
 

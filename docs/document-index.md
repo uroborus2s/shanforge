@@ -5,10 +5,10 @@
 | 项目 | 内容 |
 |---|---|
 | 文档 ID | `TRACE-DOC-001` |
-| 正式版本 | `v2.3.0` |
+| 正式版本 | `v2.4.0` |
 | 当前修订 | 无 |
-| 来源候选 | `TEST-GOVERNANCE-CLOSURE-001` |
-| 发布事务 | `DESIGN-RELEASE-TX-R019-G001` |
+| 来源候选 | `SOFTWARE-LIFECYCLE-GOVERNANCE-001` |
+| 发布事务 | `N/A（本次索引同步不产生发布事务）` |
 | 负责人 | `HUMAN_PROJECT_OWNER` |
 | 修改 / 审核 / 批准 | `uroborus` / `uroborus` / `uroborus` |
 | 状态 | 已批准并生效 |
@@ -20,7 +20,7 @@
 | 路径 | 文档 ID | 标题 | 类型 | Owner | 正式版本 |
 |---|---|---|---|---|---|
 | `docs/index.md` | `DOC-NAV-ROOT-001` | 文档总入口 | `navigation` | `HUMAN_PROJECT_OWNER` | `v1.2.0` |
-| `docs/document-index.md` | `TRACE-DOC-001` | 文档索引与变更记录 | `traceability` | `HUMAN_PROJECT_OWNER` | `v2.3.0` |
+| `docs/document-index.md` | `TRACE-DOC-001` | 文档索引与变更记录 | `traceability` | `HUMAN_PROJECT_OWNER` | `v2.4.0` |
 | `docs/01-getting-started/index.md` | `DOC-NAV-GETTING-001` | 项目概览入口 | `navigation` | `HUMAN_PROJECT_OWNER` | `v1.0.0` |
 | `docs/01-getting-started/project-overview.md` | `DOC-PROJECT-OVERVIEW-001` | 项目概览 | `guide` | `HUMAN_PROJECT_OWNER` | `v1.1.0` |
 | `docs/01-getting-started/project-charter.md` | `DOC-PROJECT-CHARTER-001` | 项目章程 | `formal_baseline` | `HUMAN_PROJECT_OWNER` | `v3.0.0` |
@@ -31,29 +31,29 @@
 | `docs/03-developer-guide/index.md` | `DOC-NAV-DEVELOPER-001` | 开发者指南入口 | `navigation` | `HUMAN_ARCHITECTURE_DOMAIN_LEAD` | `v1.0.0` |
 | `docs/03-developer-guide/development-setup.md` | `DOC-DEVELOPMENT-SETUP-001` | 开发环境 | `guide` | `HUMAN_DEVELOPMENT_EXECUTOR` | `v1.0.0` |
 | `docs/03-developer-guide/application-development.md` | `DOC-APPLICATION-DEVELOPMENT-001` | 应用开发 | `guide` | `HUMAN_DEVELOPMENT_EXECUTOR` | `v1.0.0` |
-| `docs/03-developer-guide/interface-reference.md` | `DOC-INTERFACE-REFERENCE-001` | 接口与函数参考 | `reference` | `HUMAN_API_INTEGRATION_LEAD` | `v1.0.0` |
+| `docs/03-developer-guide/interface-reference.md` | `DOC-INTERFACE-REFERENCE-001` | 接口与函数参考 | `reference` | `HUMAN_API_INTEGRATION_LEAD` | `v2.0.0` |
 | `docs/03-developer-guide/plugin-development.md` | `DOC-PLUGIN-DEVELOPMENT-001` | 插件开发 | `guide` | `HUMAN_DEVELOPMENT_EXECUTOR` | `v1.0.0` |
 | `docs/04-product/index.md` | `DOC-NAV-PRODUCT-001` | 产品与需求入口 | `navigation` | `HUMAN_REQUIREMENTS_LEAD` | `v1.0.0` |
 | `docs/04-product/prd.md` | `PRD-SHANFORGE-001` | 产品需求文档 | `formal_baseline` | `HUMAN_REQUIREMENTS_LEAD` | `v5.0.0` |
-| `docs/04-product/requirements-matrix.md` | `TRACE-REQ-001` | 需求追踪矩阵 | `traceability` | `HUMAN_REQUIREMENTS_LEAD` | `v5.0.0` |
-| `docs/05-design/index.md` | `DOC-NAV-DESIGN-001` | 软件技术设计入口 | `navigation` | `HUMAN_ARCHITECTURE_DOMAIN_LEAD` | `v1.2.0` |
-| `docs/05-design/solution-overview.md` | `DESIGN-SOLUTION-001` | 总体方案与协作治理设计 | `formal_baseline` | `HUMAN_ARCHITECTURE_DOMAIN_LEAD` | `v3.1.0` |
-| `docs/05-design/technical-selection.md` | `DESIGN-TECH-001` | 技术选型与工程规则 | `formal_baseline` | `HUMAN_ARCHITECTURE_DOMAIN_LEAD` | `v3.1.0` |
+| `docs/04-product/requirements-matrix.md` | `TRACE-REQ-001` | 需求追踪矩阵 | `traceability` | `HUMAN_REQUIREMENTS_LEAD` | `v5.1.0` |
+| `docs/05-design/index.md` | `DOC-NAV-DESIGN-001` | 软件技术设计入口 | `navigation` | `HUMAN_ARCHITECTURE_DOMAIN_LEAD` | `v1.3.0` |
+| `docs/05-design/solution-overview.md` | `DESIGN-SOLUTION-001` | 总体方案与协作治理设计 | `formal_baseline` | `HUMAN_ARCHITECTURE_DOMAIN_LEAD` | `v4.0.0` |
+| `docs/05-design/technical-selection.md` | `DESIGN-TECH-001` | 技术选型与工程规则 | `formal_baseline` | `HUMAN_ARCHITECTURE_DOMAIN_LEAD` | `v4.0.0` |
 | `docs/05-design/system-architecture.md` | `DESIGN-ARCH-001` | Skill-first 系统架构 | `formal_baseline` | `HUMAN_ARCHITECTURE_DOMAIN_LEAD` | `v4.0.0` |
-| `docs/05-design/module-domain-design.md` | `DESIGN-MODULE-001` | 模块与领域设计 | `formal_baseline` | `HUMAN_ARCHITECTURE_DOMAIN_LEAD` | `v3.1.0` |
-| `docs/05-design/data-design.md` | `DESIGN-DATA-001` | 数据与存储设计 | `formal_baseline` | `HUMAN_DATABASE_LEAD` | `v1.1.0` |
-| `docs/05-design/api-design.md` | `DESIGN-API-001` | 接口与事件设计 | `formal_baseline` | `HUMAN_API_INTEGRATION_LEAD` | `v3.1.0` |
-| `docs/05-design/frontend-design.md` | `DESIGN-FRONTEND-001` | 前端架构与页面设计 | `formal_baseline` | `HUMAN_DEVELOPMENT_EXECUTOR` | `v1.1.0` |
-| `docs/05-design/ux-ui-design.md` | `DESIGN-UX-UI-001` | 用户体验、交互与 UI 设计 | `formal_baseline` | `HUMAN_UX_LEAD` | `v1.1.0` |
-| `docs/05-design/workflow-execution-design.md` | `PROC-TASK-EXECUTION-001` | 会话、任务与工作流执行设计 | `formal_baseline` | `HUMAN_PROJECT_OWNER` | `v1.1.0` |
-| `docs/05-design/memory-design.md` | `DESIGN-MEMORY-001` | 记忆系统设计 | `formal_baseline` | `HUMAN_ARCHITECTURE_DOMAIN_LEAD` | `v3.1.0` |
-| `docs/05-design/interface-matrix.md` | `TRACE-API-001` | 接口与字段追踪矩阵 | `traceability` | `HUMAN_API_INTEGRATION_LEAD` | `v3.1.0` |
+| `docs/05-design/module-domain-design.md` | `DESIGN-MODULE-001` | 模块与领域设计 | `formal_baseline` | `HUMAN_ARCHITECTURE_DOMAIN_LEAD` | `v4.0.0` |
+| `docs/05-design/data-design.md` | `DESIGN-DATA-001` | 数据与存储设计 | `formal_baseline` | `HUMAN_DATABASE_LEAD` | `v2.1.0` |
+| `docs/05-design/api-design.md` | `DESIGN-API-001` | 接口与事件设计 | `formal_baseline` | `HUMAN_API_INTEGRATION_LEAD` | `v4.0.0` |
+| `docs/05-design/frontend-design.md` | `DESIGN-FRONTEND-001` | 前端架构与页面设计 | `formal_baseline` | `HUMAN_DEVELOPMENT_EXECUTOR` | `v2.0.0` |
+| `docs/05-design/ux-ui-design.md` | `DESIGN-UX-UI-001` | 用户体验、交互与 UI 设计 | `formal_baseline` | `HUMAN_UX_LEAD` | `v2.0.0` |
+| `docs/05-design/workflow-execution-design.md` | `PROC-TASK-EXECUTION-001` | 会话、任务与工作流执行设计 | `formal_baseline` | `HUMAN_PROJECT_OWNER` | `v2.0.0` |
+| `docs/05-design/memory-design.md` | `DESIGN-MEMORY-001` | 记忆系统设计 | `formal_baseline` | `HUMAN_ARCHITECTURE_DOMAIN_LEAD` | `v4.0.0` |
+| `docs/05-design/interface-matrix.md` | `TRACE-API-001` | 接口与字段追踪矩阵 | `traceability` | `HUMAN_API_INTEGRATION_LEAD` | `v4.0.0` |
 | `docs/06-delivery/index.md` | `DOC-NAV-DELIVERY-001` | 质量、发布与运维入口 | `navigation` | `HUMAN_RELEASE_OPERATIONS_LEAD` | `v1.2.0` |
-| `docs/06-delivery/test-plan.md` | `TEST-PLAN-001` | 测试策略与质量门 | `formal_baseline` | `HUMAN_QUALITY_SECURITY_LEAD` | `v3.2.0` |
-| `docs/06-delivery/test-cases.md` | `TEST-CATALOG-SHANFORGE-001` | Shanforge 正式测试案例目录 | `test_catalog` | `HUMAN_QUALITY_SECURITY_LEAD` | `v1.0.0` |
-| `docs/06-delivery/release-notes.md` | `RELEASE-NOTES-001` | 发布说明 | `formal_baseline` | `HUMAN_RELEASE_OPERATIONS_LEAD` | `v3.0.0` |
+| `docs/06-delivery/test-plan.md` | `TEST-PLAN-001` | 测试策略与质量门 | `formal_baseline` | `HUMAN_QUALITY_SECURITY_LEAD` | `v3.3.0` |
+| `docs/06-delivery/test-cases.md` | `TEST-CATALOG-SHANFORGE-001` | Shanforge 正式测试案例目录 | `test_catalog` | `HUMAN_QUALITY_SECURITY_LEAD` | `v1.1.0` |
+| `docs/06-delivery/release-notes.md` | `RELEASE-NOTES-001` | 发布说明 | `formal_baseline` | `HUMAN_RELEASE_OPERATIONS_LEAD` | `v3.1.0` |
 | `docs/06-delivery/deployment-guide.md` | `OPS-DEPLOYMENT-GUIDE-001` | Skill 交付手册 | `formal_baseline` | `HUMAN_RELEASE_OPERATIONS_LEAD` | `v4.0.0` |
-| `docs/06-delivery/operations-runbook.md` | `OPS-RUNBOOK-001` | 运维手册 | `formal_baseline` | `HUMAN_RELEASE_OPERATIONS_LEAD` | `v3.0.0` |
+| `docs/06-delivery/operations-runbook.md` | `OPS-RUNBOOK-001` | 运维手册 | `formal_baseline` | `HUMAN_RELEASE_OPERATIONS_LEAD` | `v4.0.0` |
 
 ## 68 个正式前像处置
 
@@ -143,6 +143,7 @@
 
 | 版本 | 日期 | 变更内容 | 修改人 | 审核 | 批准 |
 |---|---|---|---|---|---|
+| `v2.4.0` | 2026-09-01 | 同步生命周期基线、T02 设计版本及交付文档控制版本 | `AI_EXECUTOR` | 集中质量门 | `uroborus` |
 | `v2.3.0` | 2026-08-23 | 正式登记测试案例目录、测试计划与交付导航新版本 | `AI_EXECUTOR` | 独立 Reviewer | `uroborus` |
 | `v2.2.0` | 2026-07-28 | 登记 skill-first 架构与 skill 自带快照入口 | `uroborus` | `uroborus` | `uroborus` |
 | `v2.0.0` | 2026-07-18 | 发布重构后的文档索引与前像处置 | `uroborus` | `uroborus` | `uroborus` |

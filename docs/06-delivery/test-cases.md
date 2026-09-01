@@ -5,21 +5,22 @@
 | 项目 | 内容 |
 |---|---|
 | 文档 ID | `TEST-CATALOG-SHANFORGE-001` |
-| 正式版本 | `v1.0.0` |
+| 正式版本 | `v1.1.0` |
 | 当前修订 | 无 |
-| 来源候选 | `TEST-GOVERNANCE-CLOSURE-001` |
+| 来源候选 | `SOFTWARE-LIFECYCLE-GOVERNANCE-001` |
 | 负责人 | `HUMAN_QUALITY_SECURITY_LEAD` |
 | 修改 / 审核 / 批准 | `AI_EXECUTOR` / 独立 Reviewer / `uroborus` |
 | 状态 | 已批准并生效 |
 | 上游 | `TEST-PLAN-001`、PRD、Skill-first 系统架构 |
 | 下游 | pytest、WorkItem evidence、人类可读测试报告 |
-| 最后更新 | 2026-08-23 |
+| 最后更新 | 2026-09-01 |
 
 ## 案例索引
 
 | 案例 ID | 名称 | 需求 / 验收标准 | 层级 | 优先级 | 风险等级 | 自动化入口 |
 |---|---|---|---|---|---|---|
 | `TEST-BB-001` | 完整会话路由合同 | `REQ-SF-002` | 整体黑盒 | P0 | high | `tests/test_full_project_session_workflow_routing.py::test_candidate_behavior_map_is_complete_and_each_mapping_is_unique` |
+| `TEST-BB-002` | 生命周期治理一致性 | `REQ-SF-001`、`REQ-SF-003`、`REQ-SF-004`、`REQ-SF-008` | 整体黑盒 | P0 | high | `tests/test_lifecycle_governance.py` |
 | `TEST-UI-001` | 项目快照结构与导航 | `REQ-SF-007` | UI | P1 | medium | `tests/test_using_shanforge_snapshot.py::ProjectSnapshotTest::test_snapshot_renders_compact_scoped_board_without_duplicate_tasks` |
 | `TEST-API-001` | 项目记忆幂等契约 | `REQ-SF-003` | API/契约 | P0 | high | `tests/test_project_memory_skill.py::test_project_memory_ledger_schema_prevents_repeat_work` |
 | `TEST-REL-001` | 测试治理发布守卫 | `REQ-SF-004` | 发布回归 | P0 | high | `tests/test_project_test_governance.py::test_formal_test_references_resolve_to_current_test_files` |
@@ -64,6 +65,47 @@
 ### 标签
 
 - workflow、black-box、routing
+
+## 案例：`TEST-BB-002`
+
+- 名称：生命周期治理一致性
+- 版本：1.0.0
+- 定义状态：active
+- 测试目标：阻止 Skill-first 设计基线、需求状态、退役附件和生命周期矩阵再次漂移。
+- 需求 / 验收标准：`REQ-SF-001`、`REQ-SF-003`、`REQ-SF-004`、`REQ-SF-008` / SOFTWARE-LIFECYCLE-GOVERNANCE-001。
+- 关联设计 / API / UI / 任务：系统架构、工作流执行设计、文档索引 / SOFTWARE-LIFECYCLE-GOVERNANCE-001-T01。
+- 测试类型与层级：整体黑盒。
+- 优先级：P0
+- 风险等级：high
+- Owner：HUMAN_QUALITY_SECURITY_LEAD
+- 环境别名：TEST-ENV-PYTEST
+- 自动化状态：automated
+- 自动化入口：`tests/test_lifecycle_governance.py`
+
+### 前置条件
+
+1. 当前候选包含正式设计、需求矩阵和测试登记。
+2. pytest 可以只读解析 Markdown。
+
+### 测试数据 / fixture
+
+| 数据 / fixture | 用途 | 敏感 | 准备 / 复位方式 |
+|---|---|---|---|
+| 当前正式 Markdown | 比较版本、退役路径、需求状态和生命周期字段 | false | 直接读取；无写入 |
+
+### 步骤与判定
+
+| 序号 | 操作步骤 | 预期结果 | 证据要求 |
+|---:|---|---|---|
+| 1 | 执行登记的 pytest 文件 | 所有正式版本、退役资格、REQ-SF-008 和生命周期矩阵均一致 | pytest 回执与失败摘要 |
+
+### 后置条件与清理
+
+- 无状态写入或常驻资源。
+
+### 标签
+
+- lifecycle、governance、traceability、black-box
 
 ## 案例：`TEST-UI-001`
 
@@ -205,4 +247,5 @@ uv run python skills/document-templates/scripts/validate_test_documents.py \
 
 | 版本 | 日期 | 变更内容 | 修改人 | 审核 | 批准 |
 |---|---|---|---|---|---|
+| `v1.1.0` | 2026-09-01 | 登记 `TEST-BB-002` 生命周期治理一致性案例 | `AI_EXECUTOR` | 集中质量门 | `uroborus` |
 | `v1.0.0` | 2026-08-23 | 建立 Skill-first 正式案例目录和自动有效性入口 | `AI_EXECUTOR` | 独立 Reviewer | `uroborus` |

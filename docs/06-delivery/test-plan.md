@@ -5,9 +5,9 @@
 | 项目 | 内容 |
 |---|---|
 | 文档 ID | `TEST-PLAN-001` |
-| 正式版本 | `v3.2.0` |
+| 正式版本 | `v3.3.0` |
 | 当前修订 | 无 |
-| 来源候选 | `TEST-GOVERNANCE-CLOSURE-001` |
+| 来源候选 | `SOFTWARE-LIFECYCLE-GOVERNANCE-001` |
 | 负责人 | `HUMAN_QUALITY_SECURITY_LEAD` |
 | 修改 | `AI_EXECUTOR` |
 | 审核 / 批准 | 独立 Reviewer / uroborus |
@@ -42,6 +42,7 @@ UI、API、性能或安全专项只在目标项目真实存在对应暴露面时
 | 会话与任务工作流 | `tests/test_full_project_session_workflow_routing.py`、`tests/test_task_workflow_semantics.py` |
 | Sol / Terra / Luna 路由 | `tests/test_model_tier_routing.py` |
 | 项目记忆与事实源 | `tests/test_project_memory_skill.py`、`tests/test_doc_factory_restructure.py` |
+| 生命周期治理一致性 | `tests/test_lifecycle_governance.py` |
 | 测试治理 | `tests/test_project_test_governance.py` |
 | 案例/报告文档有效性 | `uv run python skills/document-templates/scripts/validate_test_documents.py --repo-root . --catalog docs/06-delivery/test-cases.md` |
 | 完整回归 | `uv run pytest -q` |
@@ -58,6 +59,7 @@ UI、API、性能或安全专项只在目标项目真实存在对应暴露面时
 | 测试 ID | 人类可读名称 | 需求 ID | 任务 ID | 可执行入口 | Evidence | 结果 | 环境 ID |
 |---|---|---|---|---|---|---|---|
 | `TEST-BB-001` | Shanforge 整体合同回归 | `REQ-SF-002` | `MODEL-ROUTING-001-T01` | `uv run pytest -q` | `.factory/workitems/MODEL-ROUTING-001/evidence/MODEL-ROUTING-001-T01-verification.md` | `passed`（228 + 4 subtests） | `TEST-ENV-PYTEST` |
+| `TEST-BB-002` | 生命周期治理一致性 | `REQ-SF-004` | `SOFTWARE-LIFECYCLE-GOVERNANCE-001-T01` | `uv run pytest tests/test_lifecycle_governance.py -q` | `.factory/workitems/SOFTWARE-LIFECYCLE-GOVERNANCE-001/evidence/SOFTWARE-LIFECYCLE-GOVERNANCE-001-T01-verification.md` | `passed`（8 tests） | `TEST-ENV-PYTEST` |
 | `TEST-UI-001` | 项目快照页面结构与导航回归 | `REQ-SF-007` | `PM-DASHBOARD-005-T01` | `uv run pytest -q tests/test_using_shanforge_snapshot.py` | `.factory/workitems/PM-DASHBOARD-005/evidence/PM-DASHBOARD-005-T01-round-7-verification.md` | `passed`（工作区回归） | `TEST-ENV-STATIC` |
 | `TEST-API-001` | 项目事实与恢复契约回归 | `REQ-SF-003` | `MODEL-ROUTING-001-T01` | `uv run pytest -q tests/test_project_memory_skill.py tests/test_doc_factory_restructure.py` | `.factory/workitems/MODEL-ROUTING-001/evidence/MODEL-ROUTING-001-T01-verification.md` | `passed`（工作区回归） | `TEST-ENV-PYTEST` |
 | `TEST-REL-001` | Shanforge 发布回归 | `REQ-SF-004` | `MODEL-ROUTING-001-T01` | `uv run pytest -q && uv run ruff check . && git diff --check` | `.factory/workitems/MODEL-ROUTING-001/evidence/MODEL-ROUTING-001-T01-verification.md` | `passed`（提交前候选） | `TEST-ENV-PYTEST` |
@@ -152,6 +154,7 @@ UI、API、性能或安全专项只在目标项目真实存在对应暴露面时
 
 | 版本 | 日期 | 变更 | 修改人 | 审核 | 批准 |
 |---|---|---|---|---|---|
+| `v3.3.0` | 2026-09-01 | 登记生命周期治理一致性测试与当前 WorkItem evidence | `AI_EXECUTOR` | 集中质量门 | `uroborus` |
 | `v3.0.0` | 2026-07-18 | 基于 R019 正式落档测试策略 | `uroborus` | `uroborus` | `uroborus` |
 | `v3.1.0` | 2026-07-20 | 增加 R002 项目控制验证入口、发布质量门和证据边界 | `AI_EXECUTOR` | 独立 Reviewer | `uroborus` |
 | `v3.2.0` | 2026-08-23 | 发布正式案例目录、自动化入口有效性校验和七态报告聚合门 | `AI_EXECUTOR` | 独立 Reviewer | `uroborus` |

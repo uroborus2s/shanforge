@@ -132,12 +132,12 @@ def test_test_governance_revision_is_formally_published() -> None:
         row[0]: row[1] for row in table_rows(plan, "## 文档控制") if len(row) == 2
     }
 
-    assert controls["正式版本"] == "v3.2.0"
+    assert controls["正式版本"] == "v3.3.0"
     assert controls["当前修订"] == "无"
     assert controls["审核 / 批准"] == "独立 Reviewer / uroborus"
     assert controls["状态"] == "已批准并生效"
     published_history = section(plan, "## 正式版本历史（仅已发布）")
-    assert "v3.2.0" in published_history
+    assert "v3.3.0" in published_history
 
 
 def test_test_registry_has_executable_traceability() -> None:
@@ -156,6 +156,7 @@ def test_test_registry_has_executable_traceability() -> None:
     records = rows[1:]
     assert {record[0] for record in records} == {
         "TEST-BB-001",
+        "TEST-BB-002",
         "TEST-UI-001",
         "TEST-API-001",
         "TEST-REL-001",

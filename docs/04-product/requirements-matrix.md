@@ -5,12 +5,12 @@
 | 项目 | 内容 |
 |---|---|
 | 文档 ID | `TRACE-REQ-001` |
-| 正式版本 | `v5.0.0` |
-| 来源候选 | `MODEL-ROUTING-001` |
-| 变更等级 | `MAJOR` |
+| 正式版本 | `v5.1.0` |
+| 来源候选 | `SOFTWARE-LIFECYCLE-GOVERNANCE-001` |
+| 变更等级 | `MINOR` |
 | 状态 | 已批准并生效 |
 | 负责人 / 变更 / 审核 / 批准 | `uroborus` |
-| 最近更新 | 2026-08-23 |
+| 最近更新 | 2026-09-01 |
 
 ## 当前需求映射
 
@@ -23,7 +23,7 @@
 | `REQ-SF-005` | `prd.md` | Artifact 留存规则 | `MODEL-ROUTING-001-T01` | 清理 manifest / 恢复校验 | 当前有效 |
 | `REQ-SF-006` | `system-architecture.md` | Skill-local scripts | 按所属 skill | 脚本合同测试 | 当前有效 |
 | `REQ-SF-007` | `pm-dashboard-rendering.md` | `project_snapshot.py` | `PM-DASHBOARD-005-T01` | 快照合同测试 | 当前有效 |
-| `REQ-SF-008` | `workflow-execution-design.md` | `using-shanforge` / 执行 skills | `MODEL-ROUTING-001-T02` | 模型路由合同测试 | 待 T02 实现 |
+| `REQ-SF-008` | `workflow-execution-design.md` | `using-shanforge` / 执行 skills | `MODEL-DISPATCH-RUNTIME-001` 的 T02 / WorkItem | 模型路由合同测试 | 当前有效 |
 | `REQ-SF-009` | `workflow-execution-design.md` | 宿主权限与项目 Gate | 按工作项 | 负向权限测试 | 当前有效 |
 
 ## 追踪规则
@@ -38,5 +38,6 @@
 
 | 版本 | 变更 | 日期 | 修改 / 审核 / 批准 |
 |---|---|---|---|
+| `v5.1.0` | `REQ-SF-008` 同步到已关闭 `MODEL-DISPATCH-RUNTIME-001` 的 T02 / WorkItem，并标记当前有效 | 2026-09-01 | `AI_EXECUTOR` / 集中质量门 / `uroborus` |
 | `v5.0.0` | 只保留 skill-first 当前需求映射，移除旧平台运行时矩阵 | 2026-08-23 | `uroborus` |
 | `v4.2.0` | 历史：项目知识与状态站点需求矩阵 | 2026-07-28 | `uroborus` |

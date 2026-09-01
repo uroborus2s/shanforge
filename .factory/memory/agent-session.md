@@ -1,31 +1,31 @@
 # Agent 会话卡
 
-- 生成时间：2026-09-01 21:50 +0800
+- 生成时间：2026-09-01 23:18 +0800
 - 项目：`shanforge`
-- 当前工作项：`SOFTWARE-LIFECYCLE-GOVERNANCE-001`
-- 当前任务：`SOFTWARE-LIFECYCLE-GOVERNANCE-001-T04`
-- 当前状态：`closed`
-- 当前焦点：软件生命周期治理实现与干净克隆验证已闭环
-- 下一动作：`none`
+- 当前工作项：`SOFTWARE-ENGINEERING-SKILL-AUDIT-001`
+- 当前任务：`SOFTWARE-ENGINEERING-SKILL-AUDIT-001-T05`
+- 当前状态：`ready_for_commit`
+- 当前焦点：38 个 Skill 的 190/190 评分和综合缺陷报告已验证
+- 下一动作：`create_exact_local_commit`
 
 ## 当前事实
 
-- 用户已授权统一 Skill-first 正式设计事实、补生命周期输入输出/Gate 矩阵和跨文档一致性校验，并要求提交后干净克隆全绿。
-- Sol 裁决整体为 `complex / medium`；T01–T03 worker 固定 Terra/medium，T04 独立 reviewer 固定 Terra/high。
-- T01–T03 与两轮 Review 整改已完成；完整候选 `290 passed / 4 subtests passed`，Ruff、38/38 Skill validator、6 TOML / 176 JSON / 47 JSONL、案例目录和 diff hygiene 全绿。
+- 用户要求中文语言、Skill 设计、软件工程、项目管理和沟通五类专家全面审核软件工程 Skill，并给出完整评分。
+- 五个 Terra/high 只读专家均覆盖 `38/38`；系统矩阵 `85.6/100`，审计结论 `changes_recommended`。
+- 本轮只新增审计事实、评分和证据，没有修改 Skill、源码或测试；全量 pytest `294 passed / 4 subtests passed`，Ruff 通过。
 
 ## 当前 Gate
 
-- `none`：WorkItem 已关闭，没有遗留人工 Gate。
+- `none`：审计交付物已验证，没有人工 Gate；整改范围不在本工作项授权内。
 
 ## 允许范围
 
-- 现行设计基线、文档索引、需求追踪、测试登记、旧机器附件资格和本 WorkItem 状态文件。
-- 禁止新增 `src/` runtime、服务、API 平台、依赖、远端或生产动作。
+- 只允许本工作项审计产物和必要 memory/review ledger 同步。
+- 禁止修改任何 Skill、源码、测试、正式产品文档、远端或生产状态。
 
 ## 恢复入口
 
-- `.factory/workitems/SOFTWARE-LIFECYCLE-GOVERNANCE-001/brief.md`
-- `.factory/workitems/SOFTWARE-LIFECYCLE-GOVERNANCE-001/plan.md`
-- `.factory/workitems/SOFTWARE-LIFECYCLE-GOVERNANCE-001/ledger.jsonl`
-- `.factory/workitems/SOFTWARE-LIFECYCLE-GOVERNANCE-001/task-briefs/`
+- `.factory/workitems/SOFTWARE-ENGINEERING-SKILL-AUDIT-001/brief.md`
+- `.factory/workitems/SOFTWARE-ENGINEERING-SKILL-AUDIT-001/reports/final-scorecard.md`
+- `.factory/workitems/SOFTWARE-ENGINEERING-SKILL-AUDIT-001/reports/consolidated-audit.md`
+- `.factory/workitems/SOFTWARE-ENGINEERING-SKILL-AUDIT-001/ledger.jsonl`

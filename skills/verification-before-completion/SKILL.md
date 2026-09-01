@@ -33,8 +33,10 @@ description: 准备声明完成、修复、通过、可提交、可开 PR 或进
 
 ## 输出
 
-- 低、中风险任务：当前状态包中的新鲜命令、exit code 和结果摘要，不强制落盘文件。
-- 批次 / 里程碑 / 项目或高风险专项：`.factory/workitems/<WORKITEM-ID>/evidence/` 和必要的
+- 普通低、中风险 TaskCard：状态包中可回读的新鲜命令、exit code 和结果摘要；不强制单独落盘。
+- 批次、里程碑或高风险专项：必须落盘 evidence。
+- 任何阶段、项目或关闭声明：必须落盘 evidence。
+- 需落盘的 evidence 位于 `.factory/workitems/<WORKITEM-ID>/evidence/`；批次、里程碑或高风险专项按需附
   `.factory/workitems/<WORKITEM-ID>/reports/`。
 - ledger：`.factory/workitems/<WORKITEM-ID>/ledger.jsonl`
 
@@ -42,7 +44,7 @@ description: 准备声明完成、修复、通过、可提交、可开 PR 或进
 
 - 证据先于声明。
 - 不能用旧结果、推测、信心或子 agent 报告代替验证。
-- 每个完成声明都必须先识别能证明声明的命令；只有批次、里程碑、项目或高风险声明需要持久化 evidence。
+- 每个完成声明都必须先识别能证明声明的命令；普通低、中风险 TaskCard 使用可回读的新鲜命令回执，不强制单独落盘；批次、里程碑、高风险专项，以及任何阶段、项目或关闭声明必须落盘 evidence。
 - 必须运行完整命令。
 - 必须读取完整输出。
 - 必须检查 exit code。
@@ -60,8 +62,8 @@ description: 准备声明完成、修复、通过、可提交、可开 PR 或进
 6. 统计失败数量、错误数量、跳过数量和未运行项。
 7. 对照 [completion-claim-checklist.md](references/completion-claim-checklist.md) 判断能否声明成功。
 8. 对 Red-Green 场景按 [red-green-verification-template.md](references/red-green-verification-template.md) 记录。
-9. 低、中风险任务把命令、exit code 和结果写入状态包；批次、里程碑、项目或高风险专项才按
-   [completion-evidence-template.md](references/completion-evidence-template.md) 写一份 evidence。
+9. 普通低、中风险 TaskCard 把命令、exit code 和结果写入状态包；批次、里程碑、高风险专项，以及任何阶段、项目或关闭声明按
+   [completion-evidence-template.md](references/completion-evidence-template.md) 落盘 evidence。
 10. 明确本次证据实际覆盖的声明和未验证项，不把局部通过外推为项目完成。
 11. 更新 ledger，输出验证 `status`、证据与本地 `needs`，交还 `using-shanforge` 生成项目状态。
 
@@ -115,7 +117,7 @@ description: 准备声明完成、修复、通过、可提交、可开 PR 或进
 - 输出能直接证明声明。
 - exit code 与失败数量支持结论。
 - 未运行项、偏离原因和风险已写明。
-- 批次、里程碑、项目或高风险声明的 evidence 文件已落盘；普通任务已有可回读命令结果。
+- 批次、里程碑、高风险专项，以及任何阶段、项目或关闭声明的 evidence 文件已落盘；普通低、中风险 TaskCard 已有可回读命令结果。
 
 ## 关闭 gate
 

@@ -13,7 +13,7 @@ import re
 from pathlib import Path
 from typing import Any
 
-FINAL_MARKERS = ("closed", "committed", "completed", "done", "passed", "superseded")
+COMPLETED_STATUSES = ("completed", "closed", "superseded")
 ATTENTION_MARKERS = (
     "blocked",
     "failed",
@@ -23,7 +23,7 @@ ATTENTION_MARKERS = (
     "waiting",
     "awaiting",
 )
-ACTIVE_MARKERS = ("in_progress", "ready_for", "execut", "review", "verify")
+ACTIVE_MARKERS = ("active", "in_progress", "ready_for", "execut", "review", "verify")
 VIEW_LINKS = (
     ("overview", "index.html", "项目总览"),
     ("roadmap", "roadmap.html", "路线图"),
@@ -132,7 +132,7 @@ def _category(status: str) -> str:
     normalized = status.lower()
     if any(marker in normalized for marker in ATTENTION_MARKERS):
         return "attention"
-    if any(marker in normalized for marker in FINAL_MARKERS):
+    if normalized in COMPLETED_STATUSES:
         return "completed"
     if any(marker in normalized for marker in ACTIVE_MARKERS):
         return "active"
@@ -153,10 +153,7 @@ def _effective_event(
             for value in ("changes_requested", "changes-requested", "changes requested")
         ):
             terminal = None
-        elif any(
-            value in str(event.get("status") or "").lower()
-            for value in ("closed", "committed", "completed", "done", "superseded")
-        ) and (
+        elif str(event.get("status") or "").lower() in COMPLETED_STATUSES and (
             not work_item
             or str(event.get("completion_level") or "").lower() == "work_item"
             or "work_item_closed" in event_type
@@ -306,12 +303,10 @@ def _plan_stages(text: str) -> list[dict[str, Any]]:
             label = "状态未登记"
         else:
             normalized = status.lower()
-            if normalized == "approved" or any(
-                marker in normalized for marker in ("completed", "closed", "done")
-            ):
+            if normalized in COMPLETED_STATUSES:
                 state = "completed"
                 label = "已完成"
-            elif "approved_pending" in normalized or any(
+            elif normalized == "approved" or "approved_pending" in normalized or any(
                 marker in normalized
                 for marker in (
                     "review",

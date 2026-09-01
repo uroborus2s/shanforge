@@ -68,6 +68,9 @@ return_to_orchestrator | pending_human_confirmation | needs_independent_review |
 ```
 
 `approved` 只表示 reviewer 通过。它不等于人工确认。
+`approved` 只允许作为 `review_status`，不得改变 TaskCard 生命周期状态；TaskCard 只能是
+`planned | active | ready_for_review | completed | closed | blocked`。产品和 WBS 完成只认
+`completed | closed | superseded`。
 默认 gate 是 `return_to_orchestrator`；只有输入包已存在真实人工 Gate 时才写 `pending_human_confirmation`。
 
 ## 独立性门

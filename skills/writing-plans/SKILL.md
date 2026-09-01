@@ -11,8 +11,9 @@ description: 仅在已批准的 spec、需求、设计或 work item brief 需要
 ## v1.2.0 运行时路由合同
 
 - `SB-PLAN` 进入 `planning-workflow`，`write_policy: project_fact_write`。
-- 写入前，route 必须有已存在且非空的 `work_item_id`、`task_card_id`，以及精确 `allowed_paths`、
-  `forbidden_actions`、`current_gate`、`write_policy`；只写 allowlist 内 plan、TaskCard 和计划证据。
+- 写入前，route 必须有已存在且非空的 `work_item_id`、`task_card_id`、`wbs_id`、`current_gate`，以及精确
+  `allowed_paths`、`forbidden_actions`、`write_policy`；只写 allowlist 内
+  plan、TaskCard 和计划证据。
 - 返回 `status`、`outputs`、`evidence`、`ledger_event`、`gate` 和本地 `needs`；本 skill 不执行计划，
   不自批 Review。
 
@@ -87,7 +88,7 @@ description: 仅在已批准的 spec、需求、设计或 work item brief 需要
 1. 宣告正在使用 `writing-plans` 生成实施计划。
 2. 先应用“简单任务不触发”判定；命中时不生成任何计划产物，返回 `not_applicable`。
 3. 确认输入已批准；未批准时停止并交回流程总控。
-4. 确认 work item id；没有 id 时先用当前任务名生成稳定临时 id，并写入计划头部。
+4. 确认已存在的 work item、TaskCard 和 WBS 身份；缺任一身份字段时返回 `blocked`，不生成临时 ID。
 5. 做范围检查：如果输入覆盖多个独立子系统，建议拆成多个 work item plan；实现前确认设计输入已同时给出开发设计和
    测试设计（验收、层级、角色 / 接口案例、环境数据、自动化入口、进入 / 退出条件和报告结构）。缺项回设计，不在计划中猜补。
 6. 先锁定文件结构：列出 create、modify、test、docs、memory 文件。
@@ -114,6 +115,13 @@ description: 仅在已批准的 spec、需求、设计或 work item brief 需要
 - 2-5 分钟动作只作为任务内部 checklist，不单独拆成任务卡。
 - 内部 checklist 至少覆盖：读必要文件、最小实现、必要测试或静态检查、真实结果。
 - 提交不是每个小步骤的硬要求；本 skill 只在计划中说明“是否形成可提交工作单元”，不决定提交 skill。
+
+## 任务身份
+
+- 主计划必须包含 `## Work Breakdown`，表头固定为 `id | parent_id | title | status`。
+- 每张 TaskCard 的 `task_card_id` 必须映射到该表中唯一的 `wbs_id`；TaskCard、ledger 和 session 必须复用同一组
+  `task_card_id`、`wbs_id`、`current_gate` 与模板规定的恢复字段，不得重新编号或推导替代身份。
+- 计划自审与独立 plan review 缺少 WBS、TaskCard 映射或模板规定的恢复字段时失败。
 
 ## 任务层级与关联
 
@@ -153,6 +161,7 @@ plan review 必须拒绝缺少层级、缺少该层级所需关联或把 `system
 3. Type consistency：后续任务使用的函数、类型、字段是否与前序定义一致。
 4. Buildability：工程师按计划执行时是否会卡在缺文件、缺命令、缺上下文。
 5. Quality convergence：是否有一个批次质量任务，并按风险覆盖 review、API、服务、集成和必要专项测试。
+6. 任务身份：是否有最小 WBS，且每张 TaskCard、ledger 和 session 的身份与恢复字段完整一致。
 
 发现问题时先修计划，再请求 review。不要把有缺口的计划交给执行者。
 

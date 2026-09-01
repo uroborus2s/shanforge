@@ -6,8 +6,13 @@
 - 时间：<ISO-8601>
 - Actor：<Codex | Gemini | 其他>
 - 阶段：<BRAINSTORM | REQUIREMENTS | DESIGN | PLAN | IMPLEMENTATION | TESTING | ACCEPTANCE | RELEASE | MAINTENANCE>
-- Work item：<ID 或 none>
+- 项目整体进度：`<work_item_id> / <task_card_id>`
+- 当前工作项：<work_item_id 或 none>
+- 当前任务：<task_card_id 或 none>
+- 当前 WBS：<wbs_id 或 none>
 - 状态：<in_progress | ready_for_review | blocked>
+- Gate：<current_gate 或 none>
+- 唯一下一动作：<next_required_action 或 none>
 
 ## 本轮目标
 

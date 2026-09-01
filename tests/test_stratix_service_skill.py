@@ -19,8 +19,8 @@ def test_skill_is_renamed_and_uses_current_toolchain() -> None:
     assert not OLD_SKILL_ROOT.exists()
     assert "name: stratix-service" in frontmatter
     assert "stratix-nodejs-backend" not in content
-    assert "npm view @stratix/create dist-tags --json" in cli
-    assert "npm view @stratix/forge dist-tags --json" in cli
+    assert "npm view" not in cli
+    assert "dist-tags" not in cli
     assert "业务项目直接遵循本规范，无需读取框架源码" in content
     assert "由本 skill 维护者更新规范" in content
     assert "create-stratix" in content
@@ -134,6 +134,46 @@ def test_cli_upgrade_guard_requires_live_capability_probe() -> None:
         assert phrase in content
 
     assert "stratix config generate-key --length 32 --format base64" in content
+
+
+def test_cli_creation_requires_a_verified_local_creator_and_fails_closed() -> None:
+    content = read_skill_file("references/cli-workflow.md")
+
+    for phrase in (
+        "显式/已安装 CLI 和相关包版本",
+        "`@stratix/create`: `1.1.2`",
+        "未知或不兼容立即 `blocked`",
+        "`detected`、`required`、`difference`",
+        "未执行命令",
+        "唯一 `next_required_action`",
+        "不自动安装或升级",
+        "不运行未固定版本的远端创建器",
+        "已验证兼容的本地 `create-stratix`",
+    ):
+        assert phrase in content
+
+    assert "npx create-stratix" not in content
+    assert "npm view" not in content
+    assert content.index("仅在上述创建门通过后") < content.index(
+        "create-stratix list templates"
+    )
+
+
+def test_service_version_gate_fails_closed_without_a_compatible_package_matrix() -> None:
+    content = read_skill_file("SKILL.md")
+
+    for phrase in (
+        "## 版本兼容门",
+        "`package.json`、lockfile 和已安装 `node_modules/@stratix/*/package.json`",
+        "不能假设各包同版",
+        "仅当每个相关包与本 skill 的支持矩阵兼容时",
+        "未知或不匹配时，立即 `blocked`",
+        "每个相关包的 `detected`、`required`、`difference`",
+        "未执行命令",
+        "唯一 `next_required_action`",
+        "不自动安装或升级",
+    ):
+        assert phrase in content
 
 
 def test_service_boundary_defers_admin_web_pages_to_admin_web_skill() -> None:

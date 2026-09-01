@@ -57,8 +57,15 @@ Logrus 官方处于 maintenance mode。本 skill 因用户明确选型继续使�
 4. 按 [工程规范](references/engineering-standards.md) 和 [技术栈契约](references/stack-contract.md) 实现最小改动。
 5. 按 [Ponytail、代码形状与设计规则](references/simplicity-and-design.md) 删除推测性抽象、单次调用 helper 和未获批准的兼容回退。
 6. 新项目才使用 [服务模板](references/template-usage.md)；已有项目不得强套模板目录。
-7. 运行 `gofmt`、`go vet ./...`、`go test ./...`；项目已有 lint、race 或集成测试时一并运行。
+7. 按“验证范围”运行定向或全量检查；项目已有 lint、race 或集成测试只在对应风险、Gate 或项目规则要求时运行。
 8. 只按真实命令结果报告，作者状态最多到 `ready_for_review`。
+
+## 验证范围
+
+- 普通低、中风险改动：仅对实际改动的 Go 文件运行 `gofmt`，运行受影响包的 `go test`，并按风险和改动需要运行受影响包 `go vet`。
+- 批次、里程碑、高风险、发布或项目既有 Gate 明确要求时：运行全量集合，可包括 `go test ./...`、`go vet ./...`，以及项目既有的 race、集成测试或其他质量门。
+- 先读取项目实际包、测试与质量门入口；以上是范围规则，不把示例命令或路径假定为所有项目都存在。
+- 每次回复必须列出已运行范围、未运行的全量项及原因；定向通过不得表述为全量通过。
 
 ## 必须遵守
 
@@ -106,7 +113,9 @@ Logrus 官方处于 maintenance mode。本 skill 因用户明确选型继续使�
 - outputs:
   - <代码、迁移、配置或评审位置>
 - evidence:
-  - <gofmt、vet、test、lint、race 或集成测试结果>
+  - 已运行范围：<实际 gofmt、受影响包 test/vet、或全量命令及结果>
+  - 未运行的全量项及原因：<未运行的全量 test/vet/race/集成测试及原因；全量执行时写无>
+  - <定向通过不得表述为全量通过>
 - ledger_event: <event id or none>
 - needs:
   - review | verification | root_cause | user_input | none

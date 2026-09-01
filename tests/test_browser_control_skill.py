@@ -22,7 +22,8 @@ class BrowserControlSkillTests(unittest.TestCase):
     def test_tool_routing_prioritizes_browser_use_for_local_browser(self) -> None:
         content = (SKILL_ROOT / "SKILL.md").read_text(encoding="utf-8")
 
-        self.assertIn("优先使用本机 `browser-use` CLI", content)
+        self.assertIn("能力探测", content)
+        self.assertIn("仅在 `browser-use` CLI 已确认可用后", content)
         self.assertIn("Codex Browser 插件", content)
         self.assertIn("Codex Chrome 插件", content)
         self.assertIn("不要用 `web.run` 替代本地浏览器控制", content)
@@ -53,6 +54,8 @@ class BrowserControlSkillTests(unittest.TestCase):
             "- status: ready_for_review | blocked | needs_user_input",
             "- ledger_event: <event id or none>",
             "`blocked` 用于浏览器工具不可用",
+            "missing_capability",
+            "next_required_action",
             "`needs_user_input` 用于需要登录、验证码、权限授权",
         ):
             self.assertIn(phrase, content)

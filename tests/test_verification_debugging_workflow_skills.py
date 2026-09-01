@@ -41,6 +41,17 @@ def test_verification_blocks_closure_without_fresh_command_output_and_evidence()
         assert phrase in skill
 
 
+def test_verification_evidence_tiers_are_consistent() -> None:
+    skill = read("skills/verification-before-completion/SKILL.md")
+
+    for phrase in (
+        "普通低、中风险 TaskCard：状态包中可回读的新鲜命令、exit code 和结果摘要；不强制单独落盘。",
+        "批次、里程碑或高风险专项：必须落盘 evidence。",
+        "任何阶段、项目或关闭声明：必须落盘 evidence。",
+    ):
+        assert phrase in skill
+
+
 def test_verification_references_define_completion_evidence_package() -> None:
     expected = {
         "skills/verification-before-completion/references/completion-evidence-template.md": (

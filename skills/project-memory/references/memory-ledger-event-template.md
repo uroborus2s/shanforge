@@ -22,6 +22,9 @@ Ledger 是恢复事实源。对话记忆和 todo 与 ledger 冲突时，以 ledg
   "outputs": [
     ".factory/memory/agent-session.md"
   ],
+  "task_card_id": "SF-SP-002-T01",
+  "wbs_id": "SF-SP-002-T01",
+  "current_gate": "status-memory-workflow",
   "next_status": "ready_for_workitem_routing",
   "next_required_action": "hand_back_to_using_shanforge"
 }
@@ -40,6 +43,9 @@ Ledger 是恢复事实源。对话记忆和 todo 与 ledger 冲突时，以 ledg
   "work_item_id": "SF-SP-002",
   "action": "implement_project_memory_skill",
   "status": "ready_for_review",
+  "task_card_id": "SF-SP-002-T01",
+  "wbs_id": "SF-SP-002-T01",
+  "current_gate": "independent_review",
   "idempotency_key": "SF-SP-002:project-memory-skill:implement",
   "evidence": [
     "tests/test_project_memory_skill.py"
@@ -56,3 +62,5 @@ Ledger 是恢复事实源。对话记忆和 todo 与 ledger 冲突时，以 ledg
 - `approved` 必须来自独立 review task 或未参与实现的 reviewer。
 - `done` 必须同时有验证、review、PR 或 memory sync 证据。
 - 事件只能记录已发生的动作，不能预填计划。
+- 会话卡、session ledger 与 work item ledger 都必须记录相同的 `task_card_id`、`wbs_id`、`current_gate`、
+  `next_required_action`；无活动任务时四个字段显式记录 `none`，不得省略。

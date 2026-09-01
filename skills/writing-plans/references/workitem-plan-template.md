@@ -49,9 +49,23 @@
 - 下游依赖：
 - 禁止耦合：
 
+## Work Breakdown
+
+| id | parent_id | title | status |
+|---|---|---|---|
+| `<WBS-ID>` |  | <可验收交付物> | `planned | current | completed` |
+
+每张 TaskCard 的 `task_card_id` 必须映射到唯一 `wbs_id`；ledger 和 session 复用相同的
+`task_card_id`、`wbs_id`、`current_gate`、`next_required_action`。
+
 ## 任务
 
 ### 任务 N：<组件名称>
+
+- task_card_id: `<TASK-CARD-ID>`
+- wbs_id: `<WBS-ID>`
+- current_gate: `<gate>`
+- next_required_action: `<action>`
 
 **最小任务切片：**
 

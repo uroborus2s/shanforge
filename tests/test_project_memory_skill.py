@@ -3,6 +3,8 @@ from __future__ import annotations
 import re
 from pathlib import Path
 
+import pytest
+
 REPO_ROOT = Path(__file__).resolve().parents[1]
 SKILL_ROOT = REPO_ROOT / "skills" / "project-memory"
 
@@ -195,6 +197,32 @@ def test_project_memory_ledger_schema_prevents_repeat_work() -> None:
         assert phrase in content
 
     assert '"next_skill"' not in content
+
+
+@pytest.mark.parametrize(
+    "field", ("task_card_id", "wbs_id", "current_gate", "next_required_action")
+)
+def test_project_memory_templates_reject_missing_recovery_identity(field: str) -> None:
+    session = read_skill_file("references/session-card-template.md")
+    ledger = read_skill_file("references/memory-ledger-event-template.md")
+    task_brief = (REPO_ROOT / "skills/writing-plans/references/task-brief-template.md").read_text(
+        encoding="utf-8"
+    )
+    plan_review = (REPO_ROOT / "skills/writing-plans/references/plan-review-template.md").read_text(
+        encoding="utf-8"
+    )
+
+    assert field in session
+    assert f'"{field}"' in ledger
+    assert field in task_brief
+    assert field in plan_review
+
+
+def test_project_memory_session_template_uses_snapshot_readable_labels() -> None:
+    session = read_skill_file("references/session-card-template.md")
+
+    for label in ("项目整体进度", "当前工作项", "当前任务", "Gate", "唯一下一动作"):
+        assert label in session
 
 
 def test_project_memory_declares_fact_source_priority_and_summary_limits() -> None:

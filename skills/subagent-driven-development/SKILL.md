@@ -92,7 +92,22 @@ worker Terra/Luna 只消费已授权路由包；`execution_authorized` 不为 `t
 - 单个低、中风险任务不要求 verification evidence、implementer report 或 review checkpoint。
 - 批次 / 里程碑缺最终验证证据、实现摘要、review input 或 ledger event 时，不得推进到 `ready_for_review`。
 - 发现 task brief 允许文件范围不足、测试命令缺失、验收口径缺失或计划与代码事实冲突时，停止并回写 `blocked` 或 `needs_user_input`。
-- 完成状态只能回写为：`ready_for_review`、`blocked` 或 `needs_user_input`。
+- 完成状态只能回写为：`ready_for_review`、`blocked` 或 `needs_user_input`（此处完成状态仅指批次控制器状态）。
+
+### worker 回执到控制器处理
+
+worker 回执是 TaskCard 层事实，不是批次控制器状态；控制器逐值按下表处理，不把任一值直接改写成
+`ready_for_review`：
+
+| worker 回执 | 唯一控制器处理 |
+|---|---|
+| `DONE` | 当前 TaskCard 实现结束；继续当前批次，不写批次状态 |
+| `DONE_WITH_CONCERNS` | 先处理 concerns；非阻塞时继续当前批次，不写批次状态 |
+| `NEEDS_CONTEXT` | 补最小上下文并重派；无法补足时写 `needs_user_input` |
+| `BLOCKED` | 写 `blocked` 并交还 Sol |
+
+`DONE` 只表示该 TaskCard 的实现工作结束，不代表批次、产品或项目完成；不得从单个 worker `DONE` 推导 `ready_for_review`。
+只有集中 evidence、实现摘要、review input 和 ledger event 齐全的批次候选才可写 `ready_for_review`。
 
 ## 子 agent 边界
 
@@ -118,7 +133,7 @@ worker Terra/Luna 只消费已授权路由包；`execution_authorized` 不为 `t
 
 1. 宣告正在使用 `subagent-driven-development` 执行计划。
 2. 读取 work item plan 和 ledger。
-3. 跳过 ledger 中已经 `approved` 或 `done` 的任务。
+3. 只跳过 TaskCard 生命周期为 `completed` 或 `closed` 的任务；`review_status=approved` 不作为跳过依据，包括 TaskCard 仍为 `active` 或 `ready_for_review`。
 4. 提取所有待执行 task brief。
 5. 为每个任务确认 dependencies、影响文件、共享契约、Gate、测试命令、文档同步和 memory 同步。
 6. 按依赖层分批；同层任务卡满足并行 gate 时并行派发，否则按依赖顺序执行。
@@ -132,7 +147,7 @@ worker Terra/Luna 只消费已授权路由包；`execution_authorized` 不为 `t
 14. 只在批次状态变化或跨会话恢复需要时更新 `.factory/memory/`。
 15. 输出状态回写包，交还 `using-shanforge` 判断下一步。
 16. 如果输入包已经明确授权一批待执行任务，且当前任务没有 `blocked` 或 `needs_user_input`，继续执行同一批次下一个任务；不要逐项请求继续。
-17. 如果下一任务超出输入包范围、触碰新文件范围、需要新决策，或当前任务状态不是 `ready_for_review`，停止并交还 `using-shanforge` 重新路由。
+17. 如果下一任务超出输入包范围、触碰新文件范围、需要新决策，或当前批次候选为 `blocked` 或 `needs_user_input`，停止并交还 `using-shanforge` 重新路由。
 
 ## 流程边界
 
@@ -175,6 +190,7 @@ worker Terra/Luna 只消费已授权路由包；`execution_authorized` 不为 `t
 
 ## 输出
 
+普通低、中风险 TaskCard 使用可回读的新鲜命令回执，不强制单独落盘；批次、里程碑、高风险专项，以及任何阶段、项目或关闭声明必须落盘 evidence。
 每个低、中风险任务只返回内存中的最小状态；批次或里程碑只产生一套：
 
 - `.factory/workitems/<WORKITEM-ID>/evidence/<batch>.md`

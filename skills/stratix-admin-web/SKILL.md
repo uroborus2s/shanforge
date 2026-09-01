@@ -29,6 +29,12 @@ description: Stratix 管理后台前端开发规范。仅在用户明确提到 S
 - API 契约、OpenAPI、mock 数据或 `admin-mock` 输出。
 - 目标验证命令、浏览器检查范围和移动端要求。
 
+## 版本兼容门
+
+任何 Stratix 指导或生成前，先核对项目/生成器/CLI 版本与能力：读取 `package.json`、lockfile 和已安装包元数据，确认 `create-stratix --help` 与 `pnpm exec stratix --help`。本 skill 支持 `@stratix/create` `1.1.2` 和 `@stratix/forge` `1.1.4`；项目声明或安装的相关 `@stratix/*` 包也必须与对应 Stratix 支持矩阵一致，生成器能力必须实际列出 `app web-admin`、`admin-page` 或 `admin-crud` 才能使用相应命令。
+
+未知或不兼容时，立即 `blocked`；回执列出相关项目/生成器/CLI 的 `detected`、`required`、`difference`、未执行的生成命令和唯一 `next_required_action`。不自动安装或升级，也不运行任何生成命令。
+
 ## 总原则
 
 - 先读现有页面和组件。已有组件能用就用，别重写。
@@ -42,7 +48,7 @@ description: Stratix 管理后台前端开发规范。仅在用户明确提到 S
 
 ## Stratix 工作流
 
-1. 先探测项目和 CLI：
+1. 先通过版本兼容门，再探测项目和 CLI：
    - 读 `package.json`、lockfile 和已有目录。
    - 已有项目优先用 `pnpm exec stratix --help`。
    - 新项目先查 `create-stratix list templates` 和 `create-stratix list presets`。
@@ -132,7 +138,7 @@ description: Stratix 管理后台前端开发规范。仅在用户明确提到 S
   - review | verification | user_input | none
 ```
 
-`blocked` 用于缺页面清单、API 契约、权限模型、项目无法安装或 CLI 能力无法确认，导致无法安全实现。
+版本未知或不兼容时也必须 `blocked`。`blocked` 用于缺页面清单、API 契约、权限模型、项目无法安装或 CLI 能力无法确认，导致无法安全实现。
 
 `needs_user_input` 用于必须由用户决定后台信息架构、角色权限、危险操作策略或设计系统取舍。
 

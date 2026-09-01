@@ -1,5 +1,7 @@
 # Skill Updates Summary
 
+- 当前（2026-09-02）：`SOFTWARE-ENGINEERING-SKILL-REMEDIATION-001` 已完成 T01–T08。计划、TaskCard、ledger 与会话统一 WBS 身份；review approved 不再等同任务完成；开发、测试、Bug、修复回复保留完整事实；Go/Python 验证按风险分层；外部工具和 Crawler4j/Stratix 版本未知时失败关闭。最终 `322 passed / 4 subtests passed`，38/38 validator 与独立复审 `approved / C0-I0-M0`。
+
 - 当前（2026-08-23）：追加 38/38 复评发现的 8 个 Important 已关闭，统一可移植路径、结果枚举、shadcn 命令、测试 ID、提交转换、Windows 主路径树终止与 XLSX 非零失败。终审 `approved / 93.7 / C0-I0-M2`，完整 pytest `269 passed / 4 subtests`，等待提交并推送 `origin/v2`。
 
 - 当前（2026-08-23）：`SKILL-FULL-OPTIMIZATION-001` 已逐项审计 38 个 Skill；首轮 `89.1 / C0-I23-M0` 的 15 个合并 Important 全部整改。最终有证据优化 24 个、保留 14 个；同 reviewer 终审 38/38 为 `approved / 95.0 / C0-I0-M0`，完整 pytest `262 passed / 4 subtests`，Ruff 与 38/38 validator 通过，实现提交 `9f7e251`，工作项关闭。

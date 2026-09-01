@@ -30,7 +30,7 @@ description: 美术方向 + 资源管线。用于需要先生成风格样张、U
 | 最终交付 | 最终资源包、`manifest.json` 和最终说明只包含确认图，或由确认图确定性裁切、缩放、去背景、打包得到的派生文件；不得包含 `candidates/`、`tmp/` 或未确认图。 |
 | 收尾清理 | 候选图跨会话保留，等待用户选择时不得删除；用户完成选择后删除未被选中的候选图并清空 `tmp/`。 |
 - 生成图必须使用 `imagegen`。本地检查必须用 `view_image` 或浏览器预览查看关键输出。
-- 需要去色键或透明背景时，优先使用资源包内的 `remove_chroma_key.py`，并在 `manifest.json` 记录输入、输出和参数。
+- 需要透明背景时，先确认当前会话实际可用的生成或图像处理能力；需要去色键时同样如此。`manifest.json` 记录实际使用的工具、输入和输出。`remove_chroma_key.py` 在本仓库中不存在，不得假定或运行它。
 - 不自批 `approved`。作者完成后只能回写 `ready_for_review`、`needs_user_input` 或 `blocked`。
 
 ## 推荐目录
@@ -46,8 +46,6 @@ description: 美术方向 + 资源管线。用于需要先生成风格样张、U
   approved/
   preview/
     preview.html
-  tools/
-    remove_chroma_key.py
   tmp/
 ```
 
@@ -91,7 +89,7 @@ description: 美术方向 + 资源管线。用于需要先生成风格样张、U
 - 每个文件的路径、用途、尺寸、格式、状态和确认来源。
 - `approved_source` 字段，指向 `approved/` 中的确认图或其派生链。
 - `derived_from` 字段，记录裁切、缩放、去背景或 sprite packing 来源。
-- `tooling` 字段，记录 `imagegen`、`remove_chroma_key.py`、预览和验证命令。
+- `tooling` 字段，记录实际可用的 `imagegen`、图像处理、预览和验证入口。
 - 不得包含 `tmp/` 路径，不得列入未确认图。
 
 `preview/preview.html` 必须包含：
@@ -101,13 +99,6 @@ description: 美术方向 + 资源管线。用于需要先生成风格样张、U
 - 应用资源按页面 / 状态分组；游戏资源按角色、地块、道具、特效和 UI 分组。
 - 本地打开即可查看，不依赖远端服务。
 
-`remove_chroma_key.py` 必须满足：
-
-- 输入图、输出图、色键颜色和容差可配置。
-- 默认不覆盖源文件。
-- 失败时返回非零退出码，并说明输入缺失、格式错误或输出不可写。
-- 只作为确定性后处理工具，不替代用户确认。
-
 ## 验证要求
 
 - 运行资源清单一致性检查：`manifest.json` 中的每个文件都存在。
@@ -115,7 +106,7 @@ description: 美术方向 + 资源管线。用于需要先生成风格样张、U
 - 检查最终资源包没有 `candidates/`、`tmp/` 或未确认中间图。
 - 使用 `view_image` 抽查关键图，确认构图、裁切、透明背景和可读性。
 - 使用浏览器打开 `preview/preview.html`，检查缩略图加载、尺寸标签、透明背景底纹和分组。
-- 需要透明背景时，运行 `remove_chroma_key.py` 的最小 smoke check。
+- 需要透明背景时，只验证实际可用处理入口产出的 alpha 通道；没有可用入口时不执行处理。
 - 游戏资源必须检查 sprite sheet 尺寸、帧格一致、锚点说明和动画命名。
 - 应用资源必须检查目标平台尺寸、暗色 / 亮色适配和空状态 / 图标可读性。
 
@@ -133,6 +124,7 @@ description: 美术方向 + 资源管线。用于需要先生成风格样张、U
 - 无法查看关键图，无法判断输出是否可交付。
 - 用户要求侵权复刻、冒充在世艺术家或使用未授权素材。
 - 用户选择后无法删除未选候选图或临时文件，或无法证明最终包只包含确认图。
+- 透明背景是交付必需项而能力不可用：返回 `blocked`，说明缺失能力、已探测的生成/处理入口、未执行的资源步骤，并只给出一个 `next_required_action`（提供可用的透明背景生成或处理入口）。
 
 返回 `ready_for_review`：
 
@@ -151,6 +143,8 @@ description: 美术方向 + 资源管线。用于需要先生成风格样张、U
 - `outputs`: 等待选择时的 `candidates/`，或完成后的资源包目录、`approved/`、`manifest.json`、`art-direction.md`、`sprite-spec.md`、`preview/preview.html`
 - `evidence`: 用户确认记录、`imagegen` 记录、`view_image` 检查、浏览器预览、清单一致性检查和 `tmp/` 清理证据
 - `verification`: 实际运行的检查命令；未运行必须说明原因
+- `missing_capability`: 仅 `blocked` 时填写缺失的透明背景生成或处理能力
+- `next_required_action`: 仅 `blocked` 时填写一个解决动作
 - `needs`: 仍需用户确认的美术方向、资源清单或授权素材
 
 若在 Shanforge work item 中使用，只回写状态包，不替 `using-shanforge` 决定 review、人工确认、提交或下一步 skill：

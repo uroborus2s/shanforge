@@ -22,9 +22,15 @@ description: 使用 Stratix 工具链开发、重构、调试和评审 Stratix �
 
 本规范适用于 `@stratix/core@1.1.2`、`@stratix/forge@1.1.4`、`@stratix/create@1.1.2`、`@stratix/database@1.1.1` 和 `@stratix/testing@1.0.0-beta.1`。业务项目直接遵循本规范，无需读取框架源码；目标项目使用其他版本或缺少本文所列 CLI 能力时，报告兼容性差异，由本 skill 维护者更新规范，不由业务项目自行研究源码形成新规则。
 
+## 版本兼容门
+
+先从 `package.json`、lockfile 和已安装 `node_modules/@stratix/*/package.json` 交叉读取每个相关包的实际版本；不能假设各包同版。支持矩阵是：`@stratix/core`: `1.1.2`、`@stratix/forge`: `1.1.4`、`@stratix/create`: `1.1.2`、`@stratix/database`: `1.1.1`、`@stratix/testing`: `1.0.0-beta.1`。仅当每个相关包与本 skill 的支持矩阵兼容时，才沿用命令和规则。
+
+未知或不匹配时，立即 `blocked`；不运行生成、doctor、build、release 或其他会改变目标项目的命令，不自动安装或升级。回执逐包列出每个相关包的 `detected`、`required`、`difference`，再列未执行命令和唯一 `next_required_action`（补齐版本事实、切换到兼容版本，或要求维护者更新矩阵之一）。
+
 ## 默认流程
 
-1. 从 `package.json`、lockfile 和 `node_modules/@stratix/*/package.json` 确认实际版本。
+1. 先通过版本兼容门；从 `package.json`、lockfile 和 `node_modules/@stratix/*/package.json` 确认实际版本。
 2. 用项目内 `pnpm exec stratix --help`、`list templates`、`list presets` 确认可用命令；创建器用 `create-stratix`。
 3. 先生成最小骨架，再检查生成文件；不要手写猜测模板。
 4. 新功能先确定业务域。简单项目使用根级三层；业务增长后使用 `src/modules/<domain>/` 收拢同一套三层。

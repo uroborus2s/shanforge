@@ -4,7 +4,10 @@
 
 - 工作项：
 - 任务：
-- 状态：`draft | active | ready_for_review | approved | changes_requested`
+- task_card_id:
+- wbs_id:
+- 状态：`planned | active | ready_for_review | completed | closed | blocked`
+- review_status: `not_requested | self_check_passed | approved | changes_requested`
 - 优先级：`P0 | P1 | P2`
 - 任务层级：`project | requirement | cross_cutting | system`
 - 关联目标：
@@ -12,6 +15,8 @@
 - 强关系：`IMPLEMENTS | DEPENDS_ON | N/A`
 - 上游计划：
 - 流水账：
+- current_gate:
+- next_required_action:
 
 ## 模型路由
 
@@ -21,7 +26,6 @@
 - execution_model: `gpt-5.6-luna | gpt-5.6-terra`
 - execution_authorized: `true | false`
 - write_policy: `source_or_test_write | project_fact_write | state_or_gate_write | no_project_write`
-- current_gate:
 - dispatch_role: `worker | reviewer | none`
 - dispatch_required: `true | false`
 - dispatch_mode: `subagent | direct`
@@ -101,4 +105,5 @@
 ## 完成口径
 
 低、中风险任务完成后继续批次，不单独进入 review。只有高风险专项或批次质量候选可以写
-`ready_for_review`；`approved` 必须来自适用的独立评审。
+`ready_for_review`；`approved` 只允许写入 review_status，且必须来自适用的独立评审。它不改变
+TaskCard 生命周期状态；产品和 WBS 完成只认 `completed | closed | superseded`。

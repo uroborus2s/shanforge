@@ -14,6 +14,20 @@ description: 使用 crawler4j `0.4.0` 的 `core-native-v2` 模块协议创建、
 - `crawler4j-sdk` 只作为开发依赖，提供 CLI、脚手架、扫描、校验、manifest lock、打包、发布和宿主桥接。
 - `module.yaml` 只保留模块元数据与升级源，工作流、页面操作、数据契约、宿主页、对象装配都改为代码装饰器声明后再由 SDK/Core 扫描。
 
+## 版本兼容门
+
+任何 `0.4.0` / `core-native-v2` 指导或命令前，先读取目标项目的实际 CLI/包版本、`module.yaml.runtime_api` 与可得的 `.crawler4j/manifest.lock.json` 协议事实；可用时交叉核对 CLI 的 `--version`、项目依赖/lock 和 manifest。仅当实际版本为 `0.4.0` 且协议为 `core-native-v2` 时，才继续给出或执行本 skill 的命令。新项目在生成前也必须先确认 CLI/包为 `0.4.0`，生成后立即核对新建 `module.yaml` 与 manifest。
+
+缺版本、未知或不兼容时，立即 `blocked`；不执行 init、generate、lock、check、package、host 或 release 命令，也不安装或升级。回执只报告：
+
+```text
+- detected_version: <CLI/package and module/manifest protocol facts, or unknown>
+- required_version: 0.4.0/core-native-v2
+- difference: <missing or incompatible fact>
+- not_executed_commands: <the blocked command(s)>
+- next_required_action: <one action: provide a compatible project/version fact or request an explicit migration>
+```
+
 ## 先确认当前工作对象
 
 - 当前目录存在 `module.yaml` 且 `module.yaml.runtime_api == core-native-v2` 时，把它视为 `0.4.0` 标准模块项目。
@@ -163,7 +177,7 @@ description: 使用 crawler4j `0.4.0` 的 `core-native-v2` 模块协议创建、
   - review | verification | user_input | release_credentials | none
 ```
 
-`blocked` 用于 CLI 不存在、当前版本与 `0.4.0` / `core-native-v2` 不匹配、结构校验失败、manifest lock 或 package verify 失败、仍存在禁止的旧运行时契约，且不能在允许范围内修复的情况。
+`blocked` 用于 CLI 不存在、当前版本与 `0.4.0` / `core-native-v2` 不匹配或未知、结构校验失败、manifest lock 或 package verify 失败、仍存在禁止的旧运行时契约，且不能在允许范围内修复的情况。
 
 `needs_user_input` 用于模块名、GitHub repo、升级源、发布凭据、是否执行破坏性迁移或宿主安装目标不明确的情况。
 

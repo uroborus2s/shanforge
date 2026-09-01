@@ -78,6 +78,34 @@ def test_subagent_driven_development_does_not_route_next_skill() -> None:
         assert phrase in skill
 
 
+def test_subagent_execution_skips_only_completed_or_closed_taskcards() -> None:
+    skill = read("skills/subagent-driven-development/SKILL.md")
+
+    assert "只跳过 TaskCard 生命周期为 `completed` 或 `closed` 的任务" in skill
+    assert "`review_status=approved` 不作为跳过依据" in skill
+    assert "TaskCard 仍为 `active` 或 `ready_for_review`" in skill
+    assert "跳过 ledger 中已经 `approved` 或 `done` 的任务" not in skill
+
+
+def test_worker_statuses_have_one_controller_disposition() -> None:
+    skill = read("skills/subagent-driven-development/SKILL.md")
+
+    for row in (
+        "| `DONE` | 当前 TaskCard 实现结束；继续当前批次，不写批次状态 |",
+        "| `DONE_WITH_CONCERNS` | 先处理 concerns；非阻塞时继续当前批次，不写批次状态 |",
+        "| `NEEDS_CONTEXT` | 补最小上下文并重派；无法补足时写 `needs_user_input` |",
+        "| `BLOCKED` | 写 `blocked` 并交还 Sol |",
+    ):
+        assert row in skill
+
+    assert "`DONE` 只表示该 TaskCard 的实现工作结束" in skill
+    assert "不得从单个 worker `DONE` 推导 `ready_for_review`" in skill
+    assert (
+        "只有集中 evidence、实现摘要、review input 和 ledger event 齐全的批次候选才可写 "
+        "`ready_for_review`"
+    ) in skill
+
+
 def test_subagent_references_define_handoff_and_review_templates() -> None:
     expected = {
         "skills/subagent-driven-development/references/implementer-task-template.md": (

@@ -101,7 +101,9 @@ python3 <skill-directory>/scripts/project_snapshot.py --project-root <project-ro
 - 只有卡片明确显示“等待你的确认”时才代表真实人工 Gate。
 - 工作项和任务数量不是产品功能完成率；缺少批准范围分母时必须显示“产品完成率暂不可计算”。
 - 当前会话卡只用于定位产品主线 work item / task；该主线 ledger 的有效事件提供状态、
-  Gate 和下一动作。工作项或任务已有 `closed`、`committed`、`completed` 或 `superseded`
+  Gate 和下一动作。`approved` 只属于 review_status，不得作为 TaskCard 生命周期或产品/WBS
+  完成依据；产品和 WBS 完成只认 `completed`、`closed` 或 `superseded`。工作项或任务已有
+  `closed`、`completed` 或 `superseded`
   终态时，后续 closeout review、verification 或 commit-ready 事件只进入审计，不得重开；
   只有显式 `reopen` 或 `changes_requested` 重开终态。会话卡与 ledger 冲突时，负责人视图
   采用该规则归约后的较新事实，不展示已失效动作。

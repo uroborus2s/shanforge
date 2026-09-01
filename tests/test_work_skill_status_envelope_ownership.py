@@ -178,3 +178,13 @@ def test_result_package_reports_code_shape_compliance() -> None:
     assert "code_shape_check: passed | failed | not_applicable" in package
     assert "只有本轮没有修改代码时才可 `not_applicable`" in package
     assert "凡修改源码或测试代码不得用 N/A" in package
+
+
+def test_shared_contract_keeps_evidence_tiers_aligned() -> None:
+    contract = SHARED_CONTRACT.read_text(encoding="utf-8")
+
+    for phrase in (
+        "普通低、中风险 TaskCard 使用可回读的新鲜命令回执，不强制单独落盘。",
+        "批次、里程碑、高风险专项，以及任何阶段、项目或关闭声明必须落盘 evidence。",
+    ):
+        assert phrase in contract

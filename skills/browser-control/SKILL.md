@@ -1,6 +1,6 @@
 ---
 name: browser-control
-description: 当用户要求用本地浏览器、browser-use、真实浏览器、Chrome profile、Codex Browser 或 Codex Chrome 访问 URL、检查网页、点击/输入、截图、读取页面状态、调试 localhost 或控制浏览器时使用此技能。尤其当用户说“用本地浏览器访问/打开某个 URL”时，必须使用此技能并优先走 browser-use CLI。
+description: 当用户要求用本地浏览器、browser-use、真实浏览器、Chrome profile、Codex Browser 或 Codex Chrome 访问 URL、检查网页、点击/输入、截图、读取页面状态、调试 localhost 或控制浏览器时使用此技能。先探测当前会话实际可用入口，再按用户意图操作。
 ---
 
 # Browser Control
@@ -21,19 +21,18 @@ description: 当用户要求用本地浏览器、browser-use、真实浏览器�
 
 如果用户只是要求查询公开信息且不需要渲染页面，不要为了浏览而浏览；优先用已有搜索/文档工具回答。
 
-## 工具路由
+## 能力探测与工具路由
 
-按用户意图选择工具：
+执行前探测当前会话是否真实暴露以下入口：本机 `browser-use CLI`、Codex Browser 插件、Codex Chrome 插件、Computer Use。只记录可用入口；未暴露的入口不得展示为可执行命令。
 
-1. 用户明确说“本地浏览器”“browser-use”“真实浏览器访问 URL”时，优先使用本机 `browser-use` CLI。
-2. 用户明确说 `@Browser`、Codex 内嵌浏览器、预览本地前端、打开 file preview，使用 Codex Browser 插件。
-3. 用户明确说 `@Chrome`、需要用户 Chrome 登录态、Chrome 扩展或已有 Chrome profile，使用 Codex Chrome 插件。
-4. 需要操作非浏览器桌面应用，或网页只能通过图形界面判断且结构化工具不可用时，才使用 Computer Use。
-5. 不要用 `web.run` 替代本地浏览器控制；`web.run` 只适合互联网检索，不代表访问了用户本地浏览器。
+1. 用户明确要求 `browser-use` 而它不可用时，返回 `blocked` 或 `needs_user_input`，不得改用其他工具。
+2. 用户只要求本地浏览器时，在已探测的入口中按意图选择：`browser-use` CLI；Codex Browser 插件（`@Browser`、内嵌预览）；Codex Chrome 插件（`@Chrome`、登录态或 profile）；最后才是 Computer Use（仅图形界面可操作）。
+3. 所有入口均不可用时返回 `blocked`，不执行浏览器操作。
+4. 不要用 `web.run` 替代本地浏览器控制；`web.run` 只适合互联网检索，不代表访问了用户本地浏览器。
 
 ## 使用本地浏览器访问 URL
 
-当用户指定“使用本地浏览器访问 URL”时，默认执行：
+仅在 `browser-use` CLI 已确认可用后，用户指定“使用本地浏览器访问 URL”才执行：
 
 ```bash
 browser-use --headed --session browser-control --json open <URL>
@@ -74,7 +73,7 @@ URL 必须是用户给出的明确目标。不要循环猜测 URL 变体。若 U
 5. 再读取状态：每次动作后获取最便宜的确认信息。
 6. 汇报结果：给出当前 URL、页面标题、已执行动作、观察到的页面状态、后续可选动作。
 
-对于 `browser-use` CLI，常用命令：
+仅在 `browser-use` CLI 已确认可用后，常用命令：
 
 ```bash
 browser-use --session browser-control --json state
@@ -126,11 +125,13 @@ browser-use --session browser-control --json close
 - evidence:
   - <browser-use state / screenshot path / plugin observation summary>
 - ledger_event: <event id or none>
+- missing_capability: <仅 blocked：缺失入口>
+- next_required_action: <仅 blocked：一个解决动作>
 - needs:
   - review | verification | user_input | none
 ```
 
-`blocked` 用于浏览器工具不可用、URL 无法访问、页面加载失败、截图或状态读取命令失败，且当前会话无法通过最小重试恢复的情况。
+`blocked` 用于浏览器工具不可用、URL 无法访问、页面加载失败、截图或状态读取命令失败，且当前会话无法通过最小重试恢复的情况。回执必须写明缺失入口、已探测的入口、未执行的操作，以及唯一 `next_required_action`；不得伪造页面已打开。
 
 `needs_user_input` 用于需要登录、验证码、权限授权、账号/支付/隐私确认、缺少目标 URL，或继续操作会产生外部副作用的情况。
 

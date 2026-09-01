@@ -6,6 +6,12 @@ license: 版权所有。完整条款请参阅 LICENSE.txt
 
 # DOCX 处理
 
+## 能力探测
+
+开始前确认与任务匹配的仓内脚本、已安装依赖和当前会话专用工具是否真实可用；只选择已确认的入口，再展示或执行相应命令。全部入口不可用时返回 `status: blocked`，不生成或转换文件，也不安装依赖。
+
+blocked 回执必须包含 `missing_capability`、已探测的入口、未执行的步骤和唯一 `next_required_action`。
+
 ## 任务分支
 
 先判断用户要的是哪一种结果，不要从工具清单开始。
@@ -14,7 +20,7 @@ license: 版权所有。完整条款请参阅 LICENSE.txt
 
 | 分支 | 动作 |
 |---|---|
-| 读取 / 提取 | 先用 `pandoc --track-changes=all document.docx -o output.md` 或 `python <skill-dir>/scripts/office/unpack.py document.docx unpacked/` 读取内容；需要版式证据时再转 PDF/图片。 |
+| 读取 / 提取 | 在对应入口已确认可用后，用 `pandoc --track-changes=all document.docx -o output.md` 或 `python <skill-dir>/scripts/office/unpack.py document.docx unpacked/` 读取内容；需要版式证据时再转 PDF/图片。 |
 | 创建新文档 | 使用仓内已有 `docx` 依赖或现有生成脚本；没有依赖时先报告缺口，不建议临时安装新依赖。 |
 | 编辑现有文档 | 先解包，编辑 `unpacked/word/` 的 XML，再用 `python <skill-dir>/scripts/office/pack.py unpacked/ output.docx --original document.docx` 打包。 |
 | 修订 / 批注 | 保留 Word 修订结构；作者字段使用用户指定名称，未指定时用中性项目名或当前执行者名称，不写特定助手品牌。 |
@@ -79,7 +85,7 @@ pdftoppm -jpeg -r 150 output.pdf page
 
 ## 失败处理
 
-- 输入文件缺失、加密、损坏或无法转换：`status: blocked`，写清失败命令和 stderr。
+- 输入文件缺失、加密、损坏、无法转换或无可用入口：`status: blocked`，写清失败命令（如有）、stderr（如有）、已探测入口和未执行步骤。
 - 用户要求覆盖但风险不清：`status: needs_user_input`。
 - 验证失败：`status: blocked`，列出失败原因、已生成文件和未完成项。
 - 只完成文本提取但未做版式验证：报告 partial，不说“完成文档生成”。
@@ -96,6 +102,8 @@ pdftoppm -jpeg -r 150 output.pdf page
 - evidence:
   - <validate/convert/render command summary>
 - ledger_event: <event id or none>
+- missing_capability: <仅 blocked：缺失的 DOCX 入口>
+- next_required_action: <仅 blocked：一个解决动作>
 - needs:
   - review | verification | user_input | none
 ```

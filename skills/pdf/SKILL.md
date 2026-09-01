@@ -6,6 +6,12 @@ license: 版权所有。完整条款请参阅 LICENSE.txt
 
 # PDF 处理
 
+## 能力探测
+
+开始前确认与任务匹配的仓内脚本、已安装依赖和当前会话专用工具是否真实可用；只选择已确认的入口，再展示或执行相应命令。全部入口不可用时返回 `status: blocked`，不生成、转换或安装依赖。
+
+blocked 回执必须包含 `missing_capability`、已探测的入口、未执行的步骤和唯一 `next_required_action`。
+
 ## 任务分支
 
 先按用户目标选分支，再选择工具。
@@ -14,7 +20,7 @@ license: 版权所有。完整条款请参阅 LICENSE.txt
 
 | 分支 | 动作 |
 |---|---|
-| 读取文本 | 先试 `pdftotext` 或 `pdfplumber`；需要保留版面时用 `pdftotext -layout`。 |
+| 读取文本 | 在入口已确认可用后，试 `pdftotext` 或 `pdfplumber`；需要保留版面时用 `pdftotext -layout`。 |
 | 提取表格 | 用 `pdfplumber` 读取页和表格；导出表格时写 `.xlsx` 或 `.csv` 新文件。 |
 | 合并 / 拆分 / 旋转 | 用 `pypdf` 或 `qpdf`，保持原 PDF 不动，输出新文件。 |
 | 创建 PDF | 用 `reportlab` 生成；版式敏感时渲染页面图片检查。 |
@@ -75,7 +81,7 @@ python <skill-dir>/scripts/fill_pdf_form_with_annotations.py input.pdf fields.js
 
 ## 失败处理
 
-- 文件缺失、损坏、加密且无密码：`status: blocked`。
+- 文件缺失、损坏、加密且无密码或无可用入口：`status: blocked`；后者写明已探测入口与未执行步骤。
 - 页码范围、字段坐标或输出格式不明确：`status: needs_user_input`。
 - 验证失败或渲染不一致：`status: blocked`，保留失败输出用于排查。
 - OCR 结果低可信：交付 partial，并列出需要人工复核的页。
@@ -92,6 +98,8 @@ python <skill-dir>/scripts/fill_pdf_form_with_annotations.py input.pdf fields.js
 - evidence:
   - <qpdf/page-count/render/OCR check summary>
 - ledger_event: <event id or none>
+- missing_capability: <仅 blocked：缺失的 PDF 入口>
+- next_required_action: <仅 blocked：一个解决动作>
 - needs:
   - review | verification | user_input | none
 ```

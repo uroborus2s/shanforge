@@ -1,7 +1,9 @@
 # 测试摘要
 
-- 当前阶段：`SOFTWARE-LIFECYCLE-GOVERNANCE-001 / closed`
-- 当前验证结论：实现提交 `f9654c6` 干净克隆完整 pytest `290 passed / 4 subtests passed`；Ruff、38/38 Skill validator、6 TOML、41 JSON、42 JSONL、5-case 目录、diff 与 Git clean 全绿。
+- 当前阶段：`SOFTWARE-ENGINEERING-SKILL-REMEDIATION-001 / closed`
+- 当前验证结论：整改后完整 pytest `322 passed / 4 subtests passed`；Ruff、38/38 Skill validator、黑盒 9/9 和 diff check 全部通过。
+
+- 2026-09-02：T08 首轮全量为 `316 passed / 2 failed / 4 subtests passed`，根因为 `writing-plans/SKILL.md` 错误拥有项目级下一动作；修复和评审整改后为 `322 passed / 4 subtests passed`。Memory closeout 又发现会话卡字段名与 ledger 身份不一致，`321 passed / 1 failed`；修复后最终仍为 `322 passed / 4 subtests passed`。评审整改定向 41 passed；Ruff、38/38 validator、黑盒 9/9、JSONL 和 diff check 通过。
 
 - 2026-09-01：`SOFTWARE-ENGINEERING-SKILL-AUDIT-001` 审计提交 `4929f58`；覆盖验证 `5 reviewers / 38 skills / 190 scores`，重算矩阵 `85.6`；全量 pytest `294 passed / 4 subtests passed`，Ruff、工作项 JSONL、diff check 通过，`skills/` 与 `tests/` 无 tracked 改动。
 

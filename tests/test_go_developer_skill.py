@@ -49,6 +49,23 @@ def test_main_entry_defines_boundaries_workflow_and_status() -> None:
         assert phrase in content
 
 
+def test_verification_scope_is_risk_based_and_reports_full_suite_omissions() -> None:
+    content = read("SKILL.md")
+
+    for phrase in (
+        "普通低、中风险改动",
+        "仅对实际改动的 Go 文件运行 `gofmt`",
+        "受影响包的 `go test`",
+        "按风险和改动需要运行受影响包 `go vet`",
+        "批次、里程碑、高风险、发布或项目既有 Gate 明确要求时",
+        "`go test ./...`",
+        "已运行范围",
+        "未运行的全量项及原因",
+        "定向通过不得表述为全量通过",
+    ):
+        assert phrase in content
+
+
 def test_references_cover_go_engineering_and_fixed_stack_risks() -> None:
     engineering = read("references/engineering-standards.md")
     simplicity = read("references/simplicity-and-design.md")

@@ -33,6 +33,27 @@ class Crawler4jModelSkillIntegrationTests(unittest.TestCase):
         ):
             self.assertIn(phrase, content)
 
+    def test_crawler4j_model_skill_fails_closed_on_unknown_or_incompatible_protocol(self):
+        content = (REPO_ROOT / "skills" / "crawler4j-model-project" / "SKILL.md").read_text(
+            encoding="utf-8"
+        )
+
+        for phrase in (
+            "## 版本兼容门",
+            "任何 `0.4.0` / `core-native-v2` 指导或命令前",
+            "实际 CLI/包版本",
+            "`module.yaml.runtime_api`",
+            "`.crawler4j/manifest.lock.json`",
+            "仅当实际版本为 `0.4.0` 且协议为 `core-native-v2`",
+            "缺版本、未知或不兼容时，立即 `blocked`",
+            "- detected_version:",
+            "- required_version: 0.4.0/core-native-v2",
+            "- difference:",
+            "- not_executed_commands:",
+            "- next_required_action:",
+        ):
+            self.assertIn(phrase, content)
+
 
 if __name__ == "__main__":
     unittest.main()

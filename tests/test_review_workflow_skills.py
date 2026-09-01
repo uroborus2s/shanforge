@@ -91,6 +91,16 @@ def test_requesting_code_review_references_define_review_packages() -> None:
             assert phrase in content
 
 
+def test_task_templates_keep_review_and_task_card_statuses_separate() -> None:
+    task_brief = read("skills/writing-plans/references/task-brief-template.md")
+    task_review = read("skills/requesting-code-review/references/task-review-template.md")
+
+    assert "`planned | active | ready_for_review | completed | closed | blocked`" in task_brief
+    assert "`approved` 只允许写入 review_status" in task_brief
+    assert "- review_status: approved | changes_requested | self_check_passed" in task_review
+    assert "不得改变 TaskCard 生命周期状态" in task_review
+
+
 def test_review_gate_rejects_self_approval_and_requires_reviewer_na_decision() -> None:
     skill = read("skills/requesting-code-review/SKILL.md")
 

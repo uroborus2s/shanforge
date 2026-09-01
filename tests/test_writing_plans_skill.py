@@ -167,6 +167,20 @@ def test_writing_plans_references_define_plan_and_task_templates() -> None:
         assert phrase not in all_references
 
 
+def test_planning_templates_require_one_shared_task_identity() -> None:
+    skill = read("skills/writing-plans/SKILL.md")
+    workitem_plan = read("skills/writing-plans/references/workitem-plan-template.md")
+    task_brief = read("skills/writing-plans/references/task-brief-template.md")
+    plan_review = read("skills/writing-plans/references/plan-review-template.md")
+
+    assert "稳定临时 id" not in skill
+    assert "| id | parent_id | title | status |" in workitem_plan
+    for field in ("task_card_id", "wbs_id", "current_gate", "next_required_action"):
+        assert field in task_brief
+        assert field in plan_review
+    assert "缺少 WBS、TaskCard 映射或恢复字段时失败" in plan_review
+
+
 def test_writing_plan_templates_use_minimal_tasks_and_one_batch_quality_gate() -> None:
     skill = read("skills/writing-plans/SKILL.md")
     workitem_plan = read("skills/writing-plans/references/workitem-plan-template.md")

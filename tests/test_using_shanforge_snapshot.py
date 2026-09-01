@@ -13,6 +13,50 @@ SCRIPT = ROOT / "skills" / "using-shanforge" / "scripts" / "project_snapshot.py"
 
 
 class ProjectSnapshotTest(unittest.TestCase):
+    def test_review_approval_does_not_complete_task_card_or_wbs(self) -> None:
+        loaded = runpy.run_path(str(SCRIPT))
+        category = loaded["_category"]
+        effective_event = loaded["_effective_event"]
+        plan_stages = loaded["_plan_stages"]
+
+        active = effective_event(
+            [{"status": "active", "review_status": "approved"}]
+        )
+        ready_for_review = effective_event(
+            [{"status": "ready_for_review", "review_status": "approved"}]
+        )
+        completed = effective_event([{"status": "completed"}])
+        closed = effective_event([{"status": "closed"}])
+        stages = plan_stages(
+            "## Work Breakdown\n\n"
+            "| id | parent_id | title | status |\n"
+            "|---|---|---|---|\n"
+            "| ACTIVE | | 仍在执行 | active |\n"
+            "| REVIEW | | 等待评审 | ready_for_review |\n"
+            "| APPROVED | | 评审已通过 | approved |\n"
+            "| COMPLETED | | 已完成 | completed |\n"
+            "| CLOSED | | 已关闭 | closed |\n"
+            "| SUPERSEDED | | 已替代 | superseded |\n"
+        )
+
+        self.assertEqual(active["status"], "active")
+        self.assertEqual(ready_for_review["status"], "ready_for_review")
+        self.assertEqual(category(active["status"]), "active")
+        self.assertEqual(category(ready_for_review["status"]), "active")
+        self.assertEqual(category(completed["status"]), "completed")
+        self.assertEqual(category(closed["status"]), "completed")
+        self.assertEqual(
+            {stage["id"]: stage["state"] for stage in stages},
+            {
+                "ACTIVE": "current",
+                "REVIEW": "current",
+                "APPROVED": "current",
+                "COMPLETED": "completed",
+                "CLOSED": "completed",
+                "SUPERSEDED": "completed",
+            },
+        )
+
     def test_plan_stages_use_explicit_parent_ids_at_arbitrary_depth(self) -> None:
         parse = runpy.run_path(str(SCRIPT))["_plan_stages"]
 
@@ -45,6 +89,75 @@ class ProjectSnapshotTest(unittest.TestCase):
         self.assertEqual([node["depth"] for node in nodes], list(range(7)))
         self.assertEqual(nodes[3]["state"], "current")
         self.assertEqual(nodes[6]["state"], "planned")
+
+    def test_snapshot_projects_shared_wbs_task_card_and_recovery_identity(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            project = Path(directory)
+            memory = project / ".factory" / "memory"
+            work_item = project / ".factory" / "workitems" / "WI-IDENTITY"
+            task_briefs = work_item / "task-briefs"
+            memory.mkdir(parents=True)
+            task_briefs.mkdir(parents=True)
+            (project / ".factory" / "project.json").write_text(
+                json.dumps({"project_name": "身份投影", "stage": "IMPLEMENTATION"}),
+                encoding="utf-8",
+            )
+            session_template = (
+                ROOT / "skills" / "project-memory" / "references" / "session-card-template.md"
+            ).read_text(encoding="utf-8")
+            (memory / "agent-session.md").write_text(
+                session_template.replace("<work_item_id>", "WI-IDENTITY")
+                .replace("<task_card_id>", "WI-IDENTITY-T01")
+                .replace("<wbs_id>", "WI-IDENTITY-T01")
+                .replace("<current_gate 或 none>", "independent_review")
+                .replace("<next_required_action 或 none>", "完成独立评审"),
+                encoding="utf-8",
+            )
+            (work_item / "brief.md").write_text(
+                "# WI-IDENTITY：身份投影\n\n- 阶段：IMPLEMENTATION\n",
+                encoding="utf-8",
+            )
+            (work_item / "plan.md").write_text(
+                "# 身份投影计划\n\n## Work Breakdown\n\n"
+                "| id | parent_id | title | status |\n"
+                "|---|---|---|---|\n"
+                "| WI-IDENTITY-T01 | | 统一任务身份 | current |\n",
+                encoding="utf-8",
+            )
+            (task_briefs / "WI-IDENTITY-T01.md").write_text(
+                "# WI-IDENTITY-T01：统一任务身份\n\n"
+                "- 任务：WI-IDENTITY-T01\n- 状态：ready_for_review\n",
+                encoding="utf-8",
+            )
+            (work_item / "ledger.jsonl").write_text(
+                json.dumps(
+                    {
+                        "work_item_id": "WI-IDENTITY",
+                        "task_card_id": "WI-IDENTITY-T01",
+                        "wbs_id": "WI-IDENTITY-T01",
+                        "status": "ready_for_review",
+                        "current_gate": "independent_review",
+                        "gate_reason": "independent_review",
+                        "next_required_action": "完成独立评审",
+                    },
+                    ensure_ascii=False,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+
+            self._run(project)
+
+            site = project / ".factory" / "cache" / "site" / "current"
+            plan = (site / "plans" / "WI-IDENTITY.html").read_text(encoding="utf-8")
+            task = (site / "tasks" / "WI-IDENTITY-T01.html").read_text(encoding="utf-8")
+            overview = (site / "index.html").read_text(encoding="utf-8")
+            documents = (site / "documents.html").read_text(encoding="utf-8")
+            self.assertIn("WI-IDENTITY-T01", plan)
+            self.assertIn("统一任务身份", plan)
+            self.assertIn("WI-IDENTITY-T01", task)
+            self.assertIn("independent_review", documents)
+            self.assertIn("完成独立评审", overview)
 
     def test_invalid_route_tree_fails_closed(self) -> None:
         loaded = runpy.run_path(str(SCRIPT))

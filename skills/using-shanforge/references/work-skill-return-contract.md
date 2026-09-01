@@ -30,6 +30,16 @@
 
 `code_shape_check` 只有本轮没有修改代码时才可 `not_applicable`；凡修改源码或测试代码不得用 N/A，必须回写 `passed` 或 `failed`。
 
+## 项目化回复合并
+
+上述局部结果包是工作 Skill 的专业增量，不是项目化回复本身。项目化回复必须合并 human_summary、`progress_delta`、`verification_summary`、`defect_summary`、`change_locations` 与项目状态信封，按事实组织成面向用户的处理结果、验证与风险、下一步。字段不适用或缺事实时明确说明或省略该局部字段，缺事实不得猜；项目状态信封仍只由 `using-shanforge` 生成。
+
+## evidence 分层
+
+普通低、中风险 TaskCard 使用可回读的新鲜命令回执，不强制单独落盘。
+批次、里程碑、高风险专项，以及任何阶段、项目或关闭声明必须落盘 evidence。
+落盘 evidence 证明对应声明，不得用普通 TaskCard 的局部命令回执推导批次、阶段或项目完成。
+
 ## 修复位置与代码形状
 
 Bug、修复或代码写入结果的 `change_locations` 必须逐项使用以下结构：

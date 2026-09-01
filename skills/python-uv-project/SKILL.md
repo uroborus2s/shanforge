@@ -83,9 +83,14 @@ uv sync
 - 检查 lint：`uv run ruff check .`
 - 类型检查：`uv run mypy src tests`
 
-### 评审和交付前
+### 验证范围
 
-至少通过以下检查：
+- 普通低、中风险改动：运行受影响范围的 `pytest`、受影响文件或目录的 Ruff；涉及类型边界时运行必要的 `mypy`。
+- 批次、里程碑、高风险、发布或项目既有 Gate 明确要求时：运行完整 `pytest`、Ruff、mypy，以及项目既有的集成、E2E 或其他质量门。
+- 先读取项目实际测试、目录和质量门入口；以下全量命令仅在适用时使用，不把 `src`、`tests` 或固定路径假定为所有项目都存在。
+- 每次回复必须列出已运行范围、未运行的全量项及原因；定向通过不得表述为全量通过。
+
+适用的全量检查可为：
 
 ```bash
 uv run ruff format --check .
@@ -94,7 +99,7 @@ uv run mypy src tests
 uv run pytest
 ```
 
-如果项目不是 `src/` 布局，按实际路径调整，但不要跳过这四类检查。
+如果项目不是 `src/` 布局，按实际路径调整。
 
 ## 配置规则
 
@@ -157,7 +162,9 @@ uv run pytest
 - outputs:
   - <changed file path>
 - evidence:
-  - <uv run pytest / ruff / mypy output summary>
+  - 已运行范围：<实际 pytest、Ruff、mypy 或全量命令及结果>
+  - 未运行的全量项及原因：<未运行的完整 pytest/Ruff/mypy/集成检查及原因；全量执行时写无>
+  - <定向通过不得表述为全量通过>
 - ledger_event: <event id or none>
 - needs:
   - review | verification | user_input | debugging | none

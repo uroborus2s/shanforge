@@ -85,3 +85,21 @@ def test_output_contract_and_blocked_semantics_are_present() -> None:
         "`needs_user_input` 用于必须由用户决定后台信息架构",
     ):
         assert phrase in content
+
+
+def test_admin_web_version_gate_fails_closed_before_generation() -> None:
+    content = read_skill()
+
+    for phrase in (
+        "## 版本兼容门",
+        "项目/生成器/CLI 版本与能力",
+        "`package.json`、lockfile 和已安装包元数据",
+        "`create-stratix --help`",
+        "`pnpm exec stratix --help`",
+        "未知或不兼容时，立即 `blocked`",
+        "`detected`、`required`、`difference`",
+        "未执行的生成命令",
+        "唯一 `next_required_action`",
+        "不自动安装或升级",
+    ):
+        assert phrase in content

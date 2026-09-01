@@ -64,6 +64,27 @@ def test_skill_bundles_norms_without_runtime_source_reading() -> None:
     assert not (SKILL_ROOT / "references" / "source-locations.md").exists()
 
 
+def test_service_version_gate_lists_the_fixed_support_matrix() -> None:
+    skill = read("SKILL.md")
+
+    for phrase in (
+        "`@stratix/core`: `1.1.2`",
+        "`@stratix/forge`: `1.1.4`",
+        "`@stratix/create`: `1.1.2`",
+        "`@stratix/database`: `1.1.1`",
+        "`@stratix/testing`: `1.0.0-beta.1`",
+    ):
+        assert phrase in skill
+
+
+def test_cli_workflow_does_not_select_creator_versions_from_latest_tags() -> None:
+    workflow = read("references/cli-workflow.md")
+
+    assert "npm view" not in workflow
+    assert "dist-tags" not in workflow
+    assert "latest" not in workflow
+
+
 def test_application_guide_has_current_stratix_config_template() -> None:
     guide = read("references/application-development.md")
 

@@ -1,31 +1,44 @@
 # Agent 会话卡
 
-- 生成时间：2026-09-01 23:22 +0800
+- 生成时间：2026-09-02 00:45 +0800
 - 项目：`shanforge`
-- 当前工作项：`SOFTWARE-ENGINEERING-SKILL-AUDIT-001`
-- 当前任务：`SOFTWARE-ENGINEERING-SKILL-AUDIT-001-T05`
+- 项目整体进度：`SOFTWARE-ENGINEERING-SKILL-REMEDIATION-001` 已完成 `8/8`
+- 当前工作项：`SOFTWARE-ENGINEERING-SKILL-REMEDIATION-001`
+- 当前任务：`SOFTWARE-ENGINEERING-SKILL-REMEDIATION-001-T08`
+- 当前 WBS：`WBS-REM-08`
 - 当前状态：`closed`
-- 当前焦点：38 个 Skill 的 190/190 评分和综合缺陷报告已提交；整改尚未实施
+- 当前 Gate：`closed`
+- 停止原因：无
 - 下一动作：`none`
 
 ## 当前事实
 
-- 用户要求中文语言、Skill 设计、软件工程、项目管理和沟通五类专家全面审核软件工程 Skill，并给出完整评分。
-- 五个 Terra/high 只读专家均覆盖 `38/38`；系统矩阵 `85.6/100`，审计结论 `changes_recommended`。
-- 本轮只新增审计事实、评分和证据，没有修改 Skill、源码或测试；全量 pytest `294 passed / 4 subtests passed`，Ruff 通过。
+- `SOFTWARE-ENGINEERING-SKILL-REMEDIATION-001` 的 T01–T08 全部完成，修复 WBS/任务身份、状态分层、worker/evidence、人类可读响应、验证范围、工具探测和版本失败关闭合同。
+- T08 整改后全量验证为 `322 passed / 4 subtests passed`；Ruff、38/38 Skill validator、黑盒 9/9 和 diff check 通过。
+- 原独立 reviewer 已关闭 I-01、I-02、I-03，最终结论 `approved / C0-I0-M0`。
+- 工作项没有发布、远端写入、PR、Merge 或部署动作。
 
-## 当前 Gate
+## 已读取上下文
 
-- `none`：审计工作项已关闭；整改范围不在本工作项授权内。
+- `.factory/memory/agent-session.md`：发现旧卡仍停在审计完成、整改未实施。
+- `.factory/workitems/SOFTWARE-ENGINEERING-SKILL-REMEDIATION-001/ledger.jsonl`：核对 T08 最新 Gate 和完成事件。
+- `.factory/memory/current-state.md`：发现当前态仍停在旧治理工作项。
+- `skills/project-memory/references/` 的会话卡、ledger 和 current-state 清单：按模板同步关闭事实。
 
-## 允许范围
+## 未读 / 已排除上下文
 
-- 只允许本工作项审计产物和必要 memory/review ledger 同步。
-- 禁止修改任何 Skill、源码、测试、正式产品文档、远端或生产状态。
+- `.factory/memory/runtime-brief.md`、`doc-map.md`、角色章程和阶段 `docs/`：当前 work item ledger 与证据已足够，不扩张读取。
+- 其他历史 work item 正文：不影响本次关闭。
+
+## 禁止动作
+
+- 不得重复执行已通过的 T01–T08。
+- 不得把本地完成误报为发布或远端完成。
+- 不得从旧 memory 历史条目恢复已关闭 Gate。
 
 ## 恢复入口
 
-- `.factory/workitems/SOFTWARE-ENGINEERING-SKILL-AUDIT-001/brief.md`
-- `.factory/workitems/SOFTWARE-ENGINEERING-SKILL-AUDIT-001/reports/final-scorecard.md`
-- `.factory/workitems/SOFTWARE-ENGINEERING-SKILL-AUDIT-001/reports/consolidated-audit.md`
-- `.factory/workitems/SOFTWARE-ENGINEERING-SKILL-AUDIT-001/ledger.jsonl`
+- `.factory/workitems/SOFTWARE-ENGINEERING-SKILL-REMEDIATION-001/ledger.jsonl`
+- `.factory/workitems/SOFTWARE-ENGINEERING-SKILL-REMEDIATION-001/evidence/T08-verification.md`
+- `.factory/workitems/SOFTWARE-ENGINEERING-SKILL-REMEDIATION-001/reports/T08-implementation-summary.md`
+- `.factory/workitems/SOFTWARE-ENGINEERING-SKILL-REMEDIATION-001/reviews/T08-rereview.md`

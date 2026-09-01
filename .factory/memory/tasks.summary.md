@@ -1,9 +1,11 @@
 # 任务摘要
 
-- 当前阶段：`SOFTWARE-ENGINEERING-SKILL-AUDIT-001 / closed`
-- 当前焦点：五专家审计已覆盖 38/38，形成 190/190 逐项评分、综合报告和 `85.6/100` 矩阵；审计提交 `4929f58`，Skill/Test 未修改，整改尚未实施。
+- 当前阶段：`SOFTWARE-ENGINEERING-SKILL-REMEDIATION-001 / closed`
+- 当前焦点：审计整改 T01–T08 已完成；全量验证 `322 passed / 4 subtests passed`，独立复审 `approved / C0-I0-M0`，当前无活动任务。
 
 > 历史读取规则：以下所有带日期条目都是记录发生时的历史快照。条目中的“当前”“下一步”只表示当时状态，不得覆盖本文件顶部的当前焦点和当前动作。
+
+- 2026-09-02：`SOFTWARE-ENGINEERING-SKILL-REMEDIATION-001` 完成 T01–T08，统一 WBS/TaskCard 身份、评审/任务/产品状态、worker/evidence、人类可读开发测试 Bug 修复回复、风险分级验证、工具探测和版本失败关闭；最终 reviewer `approved / C0-I0-M0`。回源：`.factory/workitems/SOFTWARE-ENGINEERING-SKILL-REMEDIATION-001/ledger.jsonl`。
 
 - 2026-09-01：`SOFTWARE-ENGINEERING-SKILL-AUDIT-001` 五专家只读审计完成，结论 `changes_recommended / C0 / 原始 I27 / 原始 M18`；整改尚未实施。
 

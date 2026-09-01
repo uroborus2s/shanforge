@@ -60,6 +60,43 @@ def test_controller_uses_three_part_human_response_without_stopping_internal_wor
         assert phrase in final_response_boundary
 
 
+def test_project_responses_use_a_shared_header_and_work_type_body() -> None:
+    controller = read("skills/using-shanforge/SKILL.md")
+    contract = read("skills/using-shanforge/references/human-readable-status.md")
+
+    assert "共享状态头 + 按工作类型正文" in controller
+    for phrase in (
+        "已批准 WBS、TaskCard 和 ledger",
+        "已完成、进行中、未开始和阻塞",
+        "可观察结果和验证状态",
+        "无法计算",
+        "不得猜测百分比或分母",
+        "system、评审、提交等任务不得算作产品功能",
+        "开发 / 计划",
+        "测试",
+        "Bug / 修复",
+        "评审 / 交付",
+        "内部 ID、Gate、路径和命令只作为末尾技术记录",
+    ):
+        assert phrase in contract
+
+
+def test_controller_reconciles_worker_facts_before_advancing_wbs_progress() -> None:
+    controller = read("skills/using-shanforge/SKILL.md")
+    contract = read("skills/using-shanforge/references/human-readable-status.md")
+
+    assert "所有展示的 WBS/产品进度变化必须先与已批准 WBS、TaskCard 和 ledger 对账" in controller
+    boundary = contract.split("## 进度事实对账边界", maxsplit=1)[1].split("\n## ", maxsplit=1)[0]
+    assert (
+        "| 已批准 WBS、TaskCard 和 ledger 可匹配 | 映射为对应 WBS 项状态 | 可推进该项产品完成度 |"
+        in boundary
+    )
+    assert (
+        "| worker facts 无法匹配 | 仅作为本轮执行观察或技术记录 | 不得推进产品完成度 |"
+        in boundary
+    )
+
+
 def test_controller_distinguishes_internal_actions_from_true_human_gates() -> None:
     controller = read("skills/using-shanforge/SKILL.md")
 

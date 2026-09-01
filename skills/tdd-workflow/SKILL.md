@@ -53,7 +53,7 @@ description: 在编写新功能、修复 Bug 或重构代码时使用此技能�
 5. 写最小实现，只改根因路径。
 6. `GREEN`：重新运行原失败测试、根因测试和受影响调用方 / 契约；单次缺陷修复不默认运行全仓测试。
 7. 如需重构，保持测试通过后再整理。
-8. 完成前记录新鲜验证证据、失败数量、跳过项和未运行项。
+8. 完成前记录新鲜验证证据、失败数量、跳过项和未运行项，以及 RED 测试范围、GREEN 回归范围、覆盖与未覆盖范围；完整七态汇总由完成前验证流程按正式基线报告。
 
 根因定位清单见 [root-cause-checklist.md](references/root-cause-checklist.md)。
 完成证据格式见 [evidence-report-template.md](references/evidence-report-template.md)。

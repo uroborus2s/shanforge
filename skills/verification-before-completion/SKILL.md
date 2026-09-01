@@ -70,6 +70,17 @@ description: 准备声明完成、修复、通过、可提交、可开 PR 或进
 - 案例运行结果：`passed | failed | error | blocked | skipped | not_run | cancelled`。
 - 批次验证结论：`passed | partial | failed | blocked`。`partial` 只表示批次仍有未运行项或验证缺口，不是单个案例结果。
 
+### 本轮测试事实
+
+有正式测试时，以正式测试计划、测试案例目录和本轮测试报告为范围；三者缺失或不完整时明确写“无法计算”，不得估算总数或把局部结果外推。
+
+基线缺失或不完整时，汇总字段写“无法计算（不可估算）”，范围字段说明缺失的测试计划、案例目录或本轮报告；不得以已运行命令数代替测试基线。
+
+- 汇总固定为 `total | passed | failed | error | blocked | skipped | not_run | cancelled`；零项也要如实列出。
+- 每个 `failed` 或 `error` 项列出测试 ID、关联功能、可观察现象和当前归因；尚未证实时写“根因待调查”，不猜测产品根因。
+- 同时说明本轮覆盖范围和未覆盖范围。局部通过不得表述为项目通过。
+- 本 skill 只报告测试事实；缺陷根因、修复状态和 TaskCard 决策由事实 owner 的调试流程提供。
+
 验证计划必须按变更影响选择测试层级，不能只列当前最容易运行的测试：
 
 | 层级 | 适用场景 | 稳定编号 |
@@ -140,6 +151,21 @@ description: 准备声明完成、修复、通过、可提交、可开 PR 或进
   - <evidence path>
 - evidence:
   - <command and output summary>
+- total: <integer | 无法计算>
+- passed: <integer | 无法计算>
+- failed: <integer | 无法计算>
+- error: <integer | 无法计算>
+- blocked: <integer | 无法计算>
+- skipped: <integer | 无法计算>
+- not_run: <integer | 无法计算>
+- cancelled: <integer | 无法计算>
+- covered_scope: <本轮覆盖的功能、路径或测试层级>
+- uncovered_scope: <未覆盖范围，或基线缺失说明>
+- failed_or_error_cases:
+  - test_id: <TEST-*>
+    feature: <关联功能>
+    symptom: <可观察现象>
+    attribution: <当前归因 | 根因待调查>
 - ledger_event: <event id>
 - needs:
   - none | rerun | verification_plan | human_confirmation

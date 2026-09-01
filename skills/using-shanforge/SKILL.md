@@ -257,6 +257,10 @@ Terra/Luna 只执行已授权任务包，不得改写上述字段、扩大范围
 
 标题可以根据当前语境使用更自然的同义表达，但三部分的语义和顺序不能缺失。工作 Skill 状态包和项目状态信封是内部输入，流程总控必须先翻译成人类可理解的三段式回复，不得原样堆给用户。
 
+## 共享状态头 + 按工作类型正文
+
+项目化回复在三段式外壳内遵循 [人类可读状态正文合同](references/human-readable-status.md)：先给共享状态头，再按当前工作类型选择正文。所有展示的 WBS/产品进度变化必须先与已批准 WBS、TaskCard 和 ledger 对账；无法匹配的工作 Skill 回写事实只能作为本轮执行观察或技术记录，不能推进产品完成度。工作 Skill 不拥有项目完成层级。
+
 第三部分不新增人工 Gate：
 
 - “无需回复”表示不存在真实人工 Gate，不是暂停、阻塞或完成状态。
@@ -443,6 +447,10 @@ baseline work item 规则：
   - <path>
 - ledger_event: <path 或 event id>
 - needs: <该 Skill 的既有本地 needs>
+- human_summary: <面向用户的本职事实摘要>
+- progress_delta: <本轮已完成、开始、阻塞或未改变的本职事实；按适用性提供>
+- verification_summary: <本轮验证范围、结果和未运行项；按适用性提供>
+- defect_summary: <已知缺陷现象、归因和影响；按适用性提供>
 ```
 
 本 skill 再结合 work item ledger、review ledger、已授权范围和真实 Gate 生成项目状态信封：

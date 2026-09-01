@@ -76,12 +76,25 @@ description: 遇到 bug、测试失败、构建失败、性能异常或任何意
 
 ### Phase 4：风险分级与交接
 
-1. 输出调查结论，明确复现结果、直接原因、根源原因、事实 owner、影响范围和证据。
+1. 输出调查结论：现象、影响、复现、直接原因、根源原因、事实 owner、风险、修复状态和回归验证。根因未定位时只输出已知事实与下一项诊断动作。
 2. 若根因成立，状态写为 `root_cause_found`。
 3. 若不能复现，状态写为 `needs_user_input`，列出缺少的信息。
 4. 若证据不足，状态写为 `blocked`，只补诊断需求。
 5. 低、中风险写 `needs: owner_fix`，交给事实 owner 直接修复，并只复测失败案例、根因案例和受影响调用方 / 契约。
 6. 高风险写 `needs: human_confirmation`；根因确认后只形成最小修复方案，第二次确认前不得改实现。
+
+### 修复 TaskCard 决策
+
+根因已证实后只作以下一种决定，避免同一问题分裂成多张卡：
+
+| 条件 | 决定 |
+|---|---|
+| 当前任务验收前发现，且同一根因、同一允许范围，可在原验收内修复 | 原任务整改，不新建 TaskCard |
+| 已交付或已验收功能的回归，或跨任务、模块、owner，超出允许范围，高风险/生产缺陷，或需独立排期、依赖或验收 | 创建 Bug TaskCard |
+| 测试预期、夹具、脚本、配置或环境错误 | 回对应事实 owner，不创建产品 Bug TaskCard |
+
+- 多个失败项同一根因只创建一张 Bug TaskCard。
+- 新卡关联失败 `TEST-*`、受影响 `REQ-*`/WBS、来源任务和根因证据；未定位根因前不创建产品 Bug TaskCard。
 
 ## 禁止
 
@@ -106,6 +119,8 @@ description: 遇到 bug、测试失败、构建失败、性能异常或任何意
   - <reproduction and diagnosis path or command receipt>
 - fault_owner: requirement | design | implementation | test | configuration | environment | production
 - risk: low | medium | high
+- bug_facts: <现象、影响、复现、直接原因、根源原因、事实 owner、风险、修复状态和回归验证>
+- repair_decision: original_task_remediation | bug_taskcard | return_to_owner
 - impacted_tests: <failed case, root-cause case, affected callers/contracts>
 - ledger_event: <event id>
 - needs:

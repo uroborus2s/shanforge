@@ -178,3 +178,78 @@ def test_verification_debugging_openai_metadata_is_chinese() -> None:
     assert 'display_name: "系统化调试"' in debugging_metadata
     assert "根因" in debugging_metadata
     assert "修复前" in debugging_metadata
+
+
+def test_workflow_skills_expose_human_readable_test_bug_and_repair_facts() -> None:
+    verification = read("skills/verification-before-completion/SKILL.md")
+    debugging = read("skills/systematic-debugging/SKILL.md")
+    tdd = read("skills/tdd-workflow/SKILL.md")
+
+    for phrase in (
+        "正式测试计划、测试案例目录和本轮测试报告",
+        "total | passed | failed | error | blocked | skipped | not_run | cancelled",
+        "测试 ID、关联功能、可观察现象和当前归因",
+        "根因待调查",
+        "本轮覆盖范围",
+        "未覆盖范围",
+        "局部通过不得表述为项目通过",
+    ):
+        assert phrase in verification
+
+    for phrase in (
+        "现象、影响、复现、直接原因、根源原因、事实 owner、风险、修复状态和回归验证",
+        "当前任务验收前",
+        "同一根因、同一允许范围",
+        "原任务整改，不新建 TaskCard",
+        "已交付或已验收功能的回归",
+        "创建 Bug TaskCard",
+        "同一根因只创建一张 Bug TaskCard",
+        "测试预期、夹具、脚本、配置或环境错误",
+        "不创建产品 Bug TaskCard",
+        "TEST-*",
+        "REQ-*",
+        "来源任务",
+        "根因证据",
+    ):
+        assert phrase in debugging
+
+    for phrase in (
+        "RED 测试范围",
+        "GREEN 回归范围",
+        "覆盖与未覆盖范围",
+    ):
+        assert phrase in tdd
+
+
+def test_status_package_and_taskcard_decision_are_structured_contracts() -> None:
+    verification = read("skills/verification-before-completion/SKILL.md")
+    debugging = read("skills/systematic-debugging/SKILL.md")
+
+    status_package = verification.split("## 状态包", maxsplit=1)[1]
+    for field in (
+        "- total: <integer | 无法计算>",
+        "- passed: <integer | 无法计算>",
+        "- failed: <integer | 无法计算>",
+        "- error: <integer | 无法计算>",
+        "- blocked: <integer | 无法计算>",
+        "- skipped: <integer | 无法计算>",
+        "- not_run: <integer | 无法计算>",
+        "- cancelled: <integer | 无法计算>",
+        "- covered_scope:",
+        "- uncovered_scope:",
+        "- failed_or_error_cases:",
+        "test_id: <TEST-*>",
+        "feature: <关联功能>",
+        "symptom: <可观察现象>",
+        "attribution: <当前归因 | 根因待调查>",
+    ):
+        assert field in status_package
+    assert "无法计算（不可估算）" in verification
+
+    decision = debugging.split("### 修复 TaskCard 决策", maxsplit=1)[1].split(
+        "## 禁止", maxsplit=1
+    )[0]
+    assert "只作以下一种决定" in decision
+    assert "原任务整改，不新建 TaskCard" in decision
+    assert "创建 Bug TaskCard" in decision
+    assert "回对应事实 owner，不创建产品 Bug TaskCard" in decision

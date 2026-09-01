@@ -56,6 +56,49 @@ def test_shared_contract_separates_local_results_from_project_envelope() -> None
         assert contract.count(fact) == 1
 
 
+def test_work_skill_return_contract_exposes_consumable_facts_without_owning_progress() -> None:
+    contract = SHARED_CONTRACT.read_text(encoding="utf-8")
+
+    for field in (
+        "human_summary",
+        "progress_delta",
+        "verification_summary",
+        "defect_summary",
+    ):
+        assert f"- {field}:" in contract
+
+    for phrase in (
+        "按适用性提供",
+        "不得推断 WBS 分母、产品功能完成度或项目完成层级",
+        "项目完成层级仍由 `using-shanforge`",
+    ):
+        assert phrase in contract
+
+
+def test_test_work_returns_structured_verification_facts() -> None:
+    contract = SHARED_CONTRACT.read_text(encoding="utf-8")
+    verification = contract.split("## 测试类 verification_summary", maxsplit=1)[1].split(
+        "\n## ", maxsplit=1
+    )[0]
+
+    for row in (
+        "- total: <number>",
+        "- passed: <number>",
+        "- failed: <number>",
+        "- error: <number>",
+        "- blocked: <number>",
+        "- skipped: <number>",
+        "- not_run: <number>",
+        "- cancelled: <number>",
+        "- covered_scope: <本轮覆盖范围>",
+        "- uncovered_scope: <未覆盖范围>",
+        "- failed_or_error_cases: <TEST-ID、关联功能、现象、归因；无则 none>",
+    ):
+        assert row in verification
+
+    assert "非测试工作可以使用通用 verification_summary" in contract
+
+
 def test_using_shanforge_is_the_project_envelope_owner() -> None:
     controller = read_skill("using-shanforge")
     section = controller.split("## 工作 skill 状态回写协议", maxsplit=1)[1]

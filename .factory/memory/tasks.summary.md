@@ -1,7 +1,7 @@
 # 任务摘要
 
-- 当前阶段：`SOFTWARE-LIFECYCLE-GOVERNANCE-001 / create_exact_local_commit`
-- 当前焦点：同一 Terra/high/read-only reviewer 已以 `97 / C0-I0-M0` 关闭 I1–I4；进入精确本地提交和提交后干净克隆复验。
+- 当前阶段：`SOFTWARE-LIFECYCLE-GOVERNANCE-001 / closed`
+- 当前焦点：实现提交 `f9654c6` 已通过 `--no-local` 干净克隆完整质量门；工作项关闭。
 
 > 历史读取规则：以下所有带日期条目都是记录发生时的历史快照。条目中的“当前”“下一步”只表示当时状态，不得覆盖本文件顶部的当前焦点和当前动作。
 

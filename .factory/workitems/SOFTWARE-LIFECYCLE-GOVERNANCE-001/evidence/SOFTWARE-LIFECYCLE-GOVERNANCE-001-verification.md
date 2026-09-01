@@ -4,9 +4,9 @@
 
 - Work item：`SOFTWARE-LIFECYCLE-GOVERNANCE-001`
 - Actor：`gpt-5.6-sol`
-- 时间：`2026-09-01T21:41:49+08:00`
+- 时间：`2026-09-01T21:50:39+08:00`
 - 验证声明：当前候选已统一正式设计事实，补齐生命周期输入/输出/Gate 矩阵，建立跨文档一致性回归保护，并完成两轮 Review 整改。
-- 结论：`review_approved`
+- 结论：`passed_closed`
 
 ## TDD 与根因整改
 
@@ -34,12 +34,21 @@
 - 一致性：`TEST-BB-002` 检查正式版本索引、旧平台路径、退休附件/来源、需求状态、生命周期矩阵结构与逐阶段语义、设计导航、测试文档控制、current memory 和来源候选。
 - 过程数据：WorkItem brief、plan、四张 task brief、ledger、T01 evidence、本验证证据、实现摘要和 review input 均可回源。
 
+## 提交后干净克隆
+
+- 实现提交：`f9654c6`（`feat: 统一软件生命周期治理事实`）。
+- 克隆：`git clone --no-local /Users/uroborus/AiProject/shanforge /tmp/shanforge-lifecycle-GGYVN0/shanforge`。
+- `uv run pytest -p no:cacheprovider -q`：`290 passed, 4 subtests passed in 2.34s`。
+- Ruff：通过；Skill validator：`38/38`；测试案例目录：`valid (5 cases)`。
+- 已跟踪数据：`6 TOML / 41 JSON / 42 JSONL valid`。
+- `git diff --check` 无输出，`git status --porcelain` 无输出，克隆 HEAD 为 `f9654c6`。
+
 ## 偏离与残余风险
 
 - UI、HTTP API、服务、E2E、安全和性能运行测试未运行：本次只变更 Markdown/JSON 治理合同和 pytest 静态/结构守卫，没有可启动的 UI/API/服务运行面。
 - 首轮独立 Review 为 `58 / C0-I4-M0`；两轮整改后，同一 reviewer iteration 3 为 `approved / 97 / C0-I0-M0`。
-- 本地提交和提交后干净克隆尚未执行；它们是复审通过后的 Gate，不被本候选验证结论替代。
+- 未执行 push、PR、merge、发布或部署；这些动作不在本 WorkItem 授权范围。
 
 ## 结论
 
-`review_approved`
+`passed_closed`

@@ -8,7 +8,7 @@
 
 **工作项：** `SOFTWARE-LIFECYCLE-GOVERNANCE-001`
 
-**状态：** `plan_ready`
+**状态：** `completed`
 
 ## 输入与裁决
 
@@ -58,7 +58,7 @@
 ## 集中质量门
 
 - 计划自审：通过；三项实现交付物、精确写集、依赖、模型和验证命令完整。
-- 独立评审：`pending`
-- 批次验证：`pending`
+- 独立评审：`approved / 97 / C0-I0-M0`
+- 批次验证：`290 passed / 4 subtests passed`；其他质量门全绿
 - 本地提交：用户以“做到干净克隆全绿”授权当前 WorkItem 精确本地提交。
 - 远端动作：`not_authorized`

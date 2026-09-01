@@ -32,4 +32,5 @@
 - Ruff：通过。
 - Skill validator：`38/38`。
 - `6 TOML / 176 JSON / 47 JSONL`、测试目录 5/5、diff hygiene：通过。
-- 同一 reviewer iteration 3 已关闭 I1–I4，结果 `approved / 97 / C0-I0-M0`；本地提交与提交后干净克隆待后续 Gate。
+- 同一 reviewer iteration 3 已关闭 I1–I4，结果 `approved / 97 / C0-I0-M0`。
+- 实现提交 `f9654c6` 的 `--no-local` 干净克隆为 `290 passed / 4 subtests passed`；Ruff、38/38 Skill、已跟踪数据解析、5-case 目录、diff 与 Git clean 全绿。

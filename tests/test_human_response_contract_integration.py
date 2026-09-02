@@ -12,8 +12,18 @@ def test_humanizer_preserves_status_facts_and_brainstorming_only_gates_material_
         "三段式语义",
         "进度、验证、Bug、修复位置和唯一下一动作",
         "只能润色段内措辞",
+        "技术评估的需求依据、现象、代码证据、因果链、影响与满足度结论、建议修改位置和验证方法",
     ):
         assert phrase in humanizer
+
+    status_section = humanizer.split("## Shanforge 状态回复", maxsplit=1)[1].split(
+        "\n## ", maxsplit=1
+    )[0]
+    for phrase in (
+        "评估时点与修复状态必须保留",
+        "不得把评估建议改写成已修复",
+    ):
+        assert phrase in status_section
 
     for phrase in (
         "改变目标、范围、验收或不可逆取舍",
@@ -121,3 +131,39 @@ def test_status_examples_are_real_consumable_three_part_responses_with_one_next_
         ):
             assert phrase in example
         assert example.count("唯一下一动作：") == 1
+
+
+def test_technical_assessment_example_keeps_a_user_consumable_fact_chain() -> None:
+    status = (
+        REPO_ROOT / "skills/using-shanforge/references/human-readable-status.md"
+    ).read_text(encoding="utf-8")
+    example = status.split("## 技术评估示例", maxsplit=1)[1].split("\n## ", maxsplit=1)[0]
+
+    for phrase in (
+        "### 处理结果",
+        "整改前静态评估记录",
+        "需求依据：目标：",
+        "验收：",
+        "约束：",
+        "现象：实际：",
+        "期望：",
+        "触发：",
+        "证据：",
+        "代码证据：file：",
+        "symbol：",
+        "控制流：",
+        "因果链：直接原因：",
+        "根源原因：",
+        "需求影响：",
+        "影响与满足度结论：",
+        "建议：修改位置：",
+        "验证方法：",
+        "尚未修复",
+        "### 验证与风险",
+        "其他未覆盖的技术评估回复路径可能仍遗漏需求 → 现象 → 代码因果链",
+        "### 下一步",
+        "唯一下一动作：在记录时点确认建议范围",
+        "无需回复",
+    ):
+        assert phrase in example
+    assert example.count("唯一下一动作：") == 1

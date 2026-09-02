@@ -1,7 +1,7 @@
 # 当前状态
 
 - 当前模式：`codex_desktop`
-- 当前阶段：`SOFTWARE-ENGINEERING-SKILL-AUDIT-CLOSURE-001 / CLOSED`
+- 当前阶段：`TECHNICAL-ASSESSMENT-RESPONSE-001 / CLOSED`
 - 活跃任务数：0
 - 阻塞项数：0
 - 当前 Gate：`none`
@@ -16,11 +16,10 @@
 
 ## 最近事实
 
-- T09–T13 和复评整改 R01–R06 全部完成；五专家覆盖 38 个 Skill、190/190 项评分。
-- 系统综合分从 `85.6` 提升到 `92.9`（`+7.3`）。
-- 原始 Finding `C0 / I27 / M18` 共 45 项已关闭 `45/45`；最终剩余 `C0 / I0 / M0`。
-- 最终验证为 `356 passed / 11 subtests passed`、Ruff、38/38 validator、18 项响应黑盒、11/11 TaskCard 图和 diff check 全部通过。
-- 五位独立专家最终结论均为 `approved`。
+- 技术评估回复合同已增加“需求 → 现象 → 代码 → 原因 → 影响 → 建议”正文和 `technical_assessment_summary` 回写字段。
+- humanizer 必须保留评估时点和修复状态，不得把建议改写成已修复。
+- 独立复审 `approved / 100 / C0-I0-M0`，首轮 1 个 Important 已关闭。
+- 最终验证为 `358 passed / 11 subtests passed`、Ruff、38/38 validator、19 项响应黑盒、TaskCard 图、ledger、代码形态和 diff check 全部通过。
 
 ## 唯一下一动作
 
@@ -28,11 +27,10 @@
 
 ## 历史回源
 
-- 最近 WorkItem：`.factory/workitems/SOFTWARE-ENGINEERING-SKILL-AUDIT-CLOSURE-001/`
-- Ledger：`.factory/workitems/SOFTWARE-ENGINEERING-SKILL-AUDIT-CLOSURE-001/ledger.jsonl`
-- Evidence：`.factory/workitems/SOFTWARE-ENGINEERING-SKILL-AUDIT-CLOSURE-001/evidence/T13-post-review-verification.md`
-- Review：`.factory/workitems/SOFTWARE-ENGINEERING-SKILL-AUDIT-CLOSURE-001/reviews/T13-project-management.md`
-- Report：`.factory/workitems/SOFTWARE-ENGINEERING-SKILL-AUDIT-CLOSURE-001/reports/post-remediation-scorecard.md`
+- 最近 WorkItem：`.factory/workitems/TECHNICAL-ASSESSMENT-RESPONSE-001/`
+- Ledger：`.factory/workitems/TECHNICAL-ASSESSMENT-RESPONSE-001/ledger.jsonl`
+- Evidence：`.factory/workitems/TECHNICAL-ASSESSMENT-RESPONSE-001/evidence/completion-verification.md`
+- Review：`.factory/workitems/TECHNICAL-ASSESSMENT-RESPONSE-001/reviews/independent-review.md`
 - 稳定 Ledger 索引：`.factory/workitems/<WORKITEM-ID>/ledger.jsonl`
 - 非活跃任务摘要：`.factory/memory/tasks.summary.md`
 

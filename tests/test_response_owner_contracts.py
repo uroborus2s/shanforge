@@ -84,3 +84,20 @@ def test_harness_candidates_and_release_facts_do_not_replace_controller_response
     ):
         assert field in contract
     assert "唯一 `next_required_action`" in contract
+
+
+def test_work_skill_contract_carries_technical_assessment_facts_without_claiming_a_fix() -> None:
+    contract = read("skills/using-shanforge/references/work-skill-return-contract.md")
+
+    for phrase in (
+        "technical_assessment_summary",
+        "需求依据（目标、验收、约束）",
+        "现象（实际、期望、触发、证据；静态审查可注明）",
+        "代码证据（真实 file、symbol、控制流或数据流）",
+        "因果链（代码行为→现象→需求影响；区分直接原因、根源原因和未知）",
+        "影响与满足度结论",
+        "建议修改位置与验证方法",
+        "不得把建议表述为已修复",
+        "不得用评分、内部 ID、路径或术语清单替代解释",
+    ):
+        assert phrase in contract

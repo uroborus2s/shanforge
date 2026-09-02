@@ -20,6 +20,7 @@
 - progress_delta: <本轮已完成、开始、阻塞或未改变的本职事实；按适用性提供>
 - verification_summary: <本轮验证范围、结果和未运行项；按适用性提供>
 - defect_summary: <已知缺陷现象、归因和影响；按适用性提供>
+- technical_assessment_summary: <需求依据（目标、验收、约束）、现象（实际、期望、触发、证据；静态审查可注明）、代码证据（真实 file、symbol、控制流或数据流）、因果链（代码行为→现象→需求影响；区分直接原因、根源原因和未知）、影响与满足度结论、建议修改位置与验证方法；按适用性提供>
 - release_summary: <发布候选、环境、回执与健康/冒烟结果；仅发布工作按适用性提供>
 - code_shape_check: passed | failed | not_applicable
 - change_locations: <按适用性提供；每项提供 file、symbol、change、reason、verification>
@@ -33,7 +34,9 @@
 
 ## 项目化回复合并
 
-上述局部结果包是工作 Skill 的专业增量，不是项目化回复本身。项目化回复必须合并 human_summary、`progress_delta`、`verification_summary`、`defect_summary`、`change_locations` 与项目状态信封；发布工作再按适用性合并 `release_summary`。按事实组织成面向用户的处理结果、验证与风险、下一步。字段不适用或缺事实时明确说明或省略该局部字段，缺事实不得猜；项目状态信封仍只由 `using-shanforge` 生成。
+上述局部结果包是工作 Skill 的专业增量，不是项目化回复本身。项目化回复必须合并 human_summary、`progress_delta`、`verification_summary`、`defect_summary`、`change_locations` 与项目状态信封；技术评估工作再按适用性合并 `technical_assessment_summary`，发布工作再按适用性合并 `release_summary`。按事实组织成面向用户的处理结果、验证与风险、下一步。字段不适用或缺事实时明确说明或省略该局部字段，缺事实不得猜；项目状态信封仍只由 `using-shanforge` 生成。
+
+技术评估必须让用户沿“需求 → 现象 → 代码 → 原因 → 影响 → 建议”理解问题。不得用“架构不合理、耦合高、建议重构”等抽象判断，不得用评分、内部 ID、路径或术语清单替代解释；未知原因须明确为未知并说明已有证据。评估阶段的建议不得把建议表述为已修复。
 
 ## evidence 分层
 

@@ -63,7 +63,7 @@ evidence: <paths or refs>
 - 回滚成功：`rolled_back`；不得写成发布成功。
 - 健康、冒烟和观察均满足项目阈值：`released`。
 
-Skill 完成时只返回回执，不决定下一步 Skill，不自动 push、merge、提交或再次发布。
+Skill 完成时只返回本职发布回执，不决定下一步 Skill，不自动 push、merge、提交或再次发布；不拥有最终 human/progress/verification/defect/change/release 响应。
 
 发布回执是本 skill 的专业输出；项目化执行所需的任务身份、`needs` 和 ledger 事件由共享回写契约补齐，不复制进回执。
 

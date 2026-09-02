@@ -82,6 +82,13 @@ def test_skill_keeps_specialized_routing_and_project_contract() -> None:
         assert phrase in content
 
 
+def test_design_search_is_not_described_as_a_business_database() -> None:
+    content = read(SKILL)
+
+    assert "设计知识检索命中" in content
+    assert "数据库命中" not in content
+
+
 def test_platform_references_cover_native_constraints() -> None:
     expected = {
         "web.md": ("语义 HTML", "400%", "prefers-reduced-motion"),

@@ -54,19 +54,11 @@ worker Terra/Luna 只消费已授权路由包；`execution_authorized` 不为 `t
 
 `execution_authorized != true -> do_not_dispatch`
 
-本 skill 内 `source_or_test_write + execution_authorized=true -> dispatch_role=worker + dispatch_required=true + dispatch_mode=subagent`；
-本 skill 的非授权实现必须为 `dispatch_role=none + dispatch_required=false + dispatch_mode=direct`，由 Sol 直接控制。独立只读 review
-是按 Codex 工具合同派发的 `reviewer` 分支，不进入本 skill。授权 worker 实现只能调用已暴露的 `spawn_agent`：`model` 必须等于
+worker 派发条件、非授权关闭条件和 reviewer 分支均以 `using-shanforge` 的“子代理严格派发判定”为唯一规范定义；本 skill 只引用该判定。授权 worker 实现只能调用已暴露的 `spawn_agent`：`model` 必须等于
 `execution_model`，Luna 使用 `low`、Terra 使用 `medium`，且 `fork_turns="none"`；`message` 必须包含完整 task brief、精确写集、禁令和验证命令。
 父 Sol 必须在调用前生成稳定 `dispatch_id` 并保存工具成功返回的 `task_card_id`、`requested_model`、`requested_reasoning_effort`、`fork_turns`、
 `agent_id` 或 canonical task、`status: accepted`、`source: parent_tool_receipt`；`accepted` 不是子代理完成态。任一工具/模型/回执/模型一致性检查失败，置
 `dispatch_failed` 或 `worker_unavailable` 并交还 Sol，不得静默代写或换模型。
-
-本 skill 的 worker 路由沿用既有简写：
-`source_or_test_write + execution_authorized=true -> dispatch_required=true + dispatch_mode=subagent`
-其余任务必须为
-`dispatch_required=false + dispatch_mode=direct`
-；“其余任务”只指本 skill 的非授权实现，不包含独立 reviewer 分支。
 
 ### 升级信号决策表
 
@@ -88,7 +80,7 @@ worker Terra/Luna 只消费已授权路由包；`execution_authorized` 不为 `t
 - 执行前必须确认 task brief 已授权；不跳过 dependencies，不提前进入后续依赖层。
 - 只有同一依赖层中 dependencies 已完成、无文件冲突、无未确认 Gate、共享契约已定的任务卡，才允许并行派发。
 - 每张可并行任务卡创建一个独立子任务并行执行；不满足并行条件时按依赖顺序执行。
-- 缺目标、验收结果、依赖、允许文件或必要验证命令时不得开始执行；不强制无关设计章节或 `N/A` 占位。
+- 缺目标、验收标准、依赖、允许文件或必要验证命令时不得开始执行；不强制无关设计章节或 `N/A` 占位。
 - 单个低、中风险任务不要求 verification evidence、implementer report 或 review checkpoint。
 - 批次 / 里程碑缺最终验证证据、实现摘要、review input 或 ledger event 时，不得推进到 `ready_for_review`。
 - 发现 task brief 允许文件范围不足、测试命令缺失、验收口径缺失或计划与代码事实冲突时，停止并回写 `blocked` 或 `needs_user_input`。

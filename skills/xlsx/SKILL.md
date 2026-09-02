@@ -22,7 +22,7 @@ blocked 回执必须包含 `missing_capability`、已探测的入口、未执行
 | 修改现有工作簿 | 用 `openpyxl`，尽量保留格式、公式、合并单元格和多 sheet 结构。 |
 | 创建新工作簿 | 用 `pandas` 或 `openpyxl` 写新文件；需要样式、列宽、冻结窗格或公式时用 `openpyxl`。 |
 | CSV 编码 | 中文 CSV 先识别或尝试 `utf-8`、`gbk`、`gb18030`；不要静默丢字符。 |
-| 验证 / 重算 | 读取输出文件，核对 sheet、列、行数、关键公式和值；需要时运行 `python <skill-dir>/scripts/recalc.py` 或 `python <skill-dir>/scripts/office/validate.py output.xlsx`。 |
+| 验证 / 重算 | 读取输出文件，核对 sheet、列、行数、关键公式和值；需要时运行 `python <skill-dir>/scripts/recalc.py` 或 `python <skill-dir>/scripts/office/validate.py output.xlsx`；最小解包→打包往返可运行 `python <skill-dir>/scripts/office/validate.py output.xlsx --package-only`，XML 编辑时再解包输出文件并检查必需 XML 均可读取。 |
 
 ## 安全写入
 

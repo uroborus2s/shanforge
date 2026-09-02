@@ -66,7 +66,7 @@ description: 批次或里程碑开发完成、PR 前、高风险专项或需要�
 8. 无阻塞问题且有真实独立 reviewer 证据时，结论才可以写 `approved`。
 9. 每个批次只写一份最终 review 和一条 review ledger event。
 10. reviewer 返回 `changes_requested` 时直接在原 diff 上整改并重跑受影响测试；只有 Critical、Important
-    或高风险路径变化才复审受影响范围，不生成逐轮 triage、response 和 rereview 文件。
+    或高风险路径变化才复审受影响范围；不写 triage 或 response，只组织 review 与原范围整改。
 11. loop 结束时写明 `human_confirmation_required: true | false` 和 `gate_reason`。只有真实人工 Gate 才写 `pending_human_confirmation`；普通任务 review 通过则返回流程总控继续既有授权范围内的验证、后续任务或收口。
 
 ## 只读评审与同范围整改

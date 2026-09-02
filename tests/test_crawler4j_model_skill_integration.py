@@ -1,9 +1,26 @@
 import json
+import subprocess
+import sys
+import tempfile
 import unittest
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 DEFAULTS_CONFIG = REPO_ROOT / "config" / "software-factory.defaults.json"
+CHECKER = REPO_ROOT / "skills/crawler4j-model-project/scripts/check_compatibility.py"
+
+
+def write_fake_crawler4j(
+    path: Path, marker: Path, version: str = "0.4.0", version_exit: int = 0, structure_exit: int = 0
+) -> None:
+    path.write_text(
+        "#!/bin/sh\n"
+        f"printf '%s\\n' \"$*\" >> {marker}\n"
+        f"if [ \"$1\" = \"--version\" ]; then echo {version}; exit {version_exit}; fi\n"
+        f"exit {structure_exit}\n",
+        encoding="utf-8",
+    )
+    path.chmod(0o755)
 
 
 class Crawler4jModelSkillIntegrationTests(unittest.TestCase):
@@ -53,6 +70,113 @@ class Crawler4jModelSkillIntegrationTests(unittest.TestCase):
             "- next_required_action:",
         ):
             self.assertIn(phrase, content)
+
+    def test_version_and_protocol_smoke_runs_real_cli_after_lock_compatibility(self):
+        with tempfile.TemporaryDirectory() as directory:
+            project = Path(directory)
+            module = project / "module.yaml"
+            module.write_text("runtime_api: core-native-v2\n", encoding="utf-8")
+            lock = project / ".crawler4j" / "manifest.lock.json"
+            lock.parent.mkdir()
+            lock.write_text(json.dumps({"scanned": []}), encoding="utf-8")
+            marker = project / "crawler4j.calls"
+            bin_dir = project / "bin"
+            bin_dir.mkdir()
+            write_fake_crawler4j(bin_dir / "crawler4j", marker)
+            compatible = subprocess.run(
+                [sys.executable, str(CHECKER), str(project)],
+                check=False,
+                text=True,
+                capture_output=True,
+                env={"PATH": str(bin_dir)},
+            )
+            self.assertEqual(compatible.returncode, 0, compatible.stdout)
+            self.assertEqual(
+                marker.read_text(encoding="utf-8").splitlines(),
+                ["--version", "module check structure"],
+            )
+
+    def test_version_gate_rejects_invalid_lock_without_running_smoke(self):
+        with tempfile.TemporaryDirectory() as directory:
+            project = Path(directory)
+            (project / "module.yaml").write_text("runtime_api: core-native-v2\n", encoding="utf-8")
+            lock = project / ".crawler4j" / "manifest.lock.json"
+            lock.parent.mkdir()
+            marker = project / "crawler4j.calls"
+            bin_dir = project / "bin"
+            bin_dir.mkdir()
+            write_fake_crawler4j(bin_dir / "crawler4j", marker)
+            for content in ("not json", "[]"):
+                with self.subTest(content=content):
+                    lock.write_text(content, encoding="utf-8")
+                    incompatible = subprocess.run(
+                        [sys.executable, str(CHECKER), str(project)],
+                        check=False,
+                        text=True,
+                        capture_output=True,
+                        env={"PATH": str(bin_dir)},
+                    )
+                    self.assertNotEqual(incompatible.returncode, 0)
+                    self.assertIn("manifest lock is invalid", incompatible.stdout)
+                    self.assertFalse(marker.exists())
+
+    def test_cli_smoke_failure_fails_closed(self):
+        with tempfile.TemporaryDirectory() as directory:
+            project = Path(directory)
+            (project / "module.yaml").write_text("runtime_api: core-native-v2\n", encoding="utf-8")
+            lock = project / ".crawler4j" / "manifest.lock.json"
+            lock.parent.mkdir()
+            lock.write_text("{}", encoding="utf-8")
+            marker = project / "crawler4j.calls"
+            bin_dir = project / "bin"
+            bin_dir.mkdir()
+            for version, version_exit, structure_exit, calls in (
+                ("0.3.9", 0, 0, ["--version"]),
+                ("0.4.0", 1, 0, ["--version"]),
+                ("0.4.0", 0, 1, ["--version", "module check structure"]),
+            ):
+                with self.subTest(version=version, structure_exit=structure_exit):
+                    write_fake_crawler4j(
+                        bin_dir / "crawler4j", marker, version, version_exit, structure_exit
+                    )
+                    result = subprocess.run(
+                        [sys.executable, str(CHECKER), str(project)],
+                        check=False,
+                        text=True,
+                        capture_output=True,
+                        env={"PATH": str(bin_dir)},
+                    )
+                    self.assertEqual(result.returncode, 1)
+                    self.assertEqual(marker.read_text(encoding="utf-8").splitlines(), calls)
+                    marker.unlink()
+
+    def test_incompatible_protocol_or_override_skips_structure_smoke(self):
+        with tempfile.TemporaryDirectory() as directory:
+            project = Path(directory)
+            lock = project / ".crawler4j" / "manifest.lock.json"
+            lock.parent.mkdir()
+            lock.write_text("{}", encoding="utf-8")
+            marker = project / "crawler4j.calls"
+            bin_dir = project / "bin"
+            bin_dir.mkdir()
+            write_fake_crawler4j(bin_dir / "crawler4j", marker)
+            for runtime_api, cli_version in (("legacy-v1", None), ("core-native-v2", "0.3.9")):
+                with self.subTest(runtime_api=runtime_api, cli_version=cli_version):
+                    (project / "module.yaml").write_text(
+                        f"runtime_api: {runtime_api}\n", encoding="utf-8"
+                    )
+                    command = [sys.executable, str(CHECKER), str(project)]
+                    if cli_version is not None:
+                        command.extend(("--cli-version", cli_version))
+                    result = subprocess.run(
+                        command,
+                        check=False,
+                        text=True,
+                        capture_output=True,
+                        env={"PATH": str(bin_dir)},
+                    )
+                    self.assertEqual(result.returncode, 1)
+                    self.assertFalse(marker.exists())
 
 
 if __name__ == "__main__":

@@ -10,6 +10,7 @@ description: 使用 Playwright 或项目已有测试栈验证本地 Web 应用�
 - 用 `webapp-testing`：本地应用、localhost、可重复脚本、断言、截图证据、控制台日志、回归验证。
 - 用 `browser-control`：用户要“用本地浏览器/Chrome/browser-use 打开”、依赖现有登录态或扩展、检查当前浏览器标签、外部网站、一次性人工式点击读取。
 - 不确定时先看任务是否需要可重复验证。需要可重复验证就用本 skill。
+- 需要真实浏览器能力时不得自行决定转交 `browser-control`；只返回能力边界和候选，由 `using-shanforge` 总控路由。
 
 ## 任务分支
 
@@ -80,7 +81,7 @@ with sync_playwright() as p:
 ## 失败处理
 
 - dev server 启动失败、端口冲突、依赖缺失：`status: blocked`，列出命令和 stderr。
-- 需要登录态、扩展或真实浏览器状态：`status: needs_user_input` 或转交 `browser-control` 边界说明。
+- 需要登录态、扩展或真实浏览器状态：`status: needs_user_input`，返回 `browser-control` 候选和能力边界，由总控路由。
 - 断言失败：`status: blocked`，保留证据并说明复现步骤。
 - 只能完成截图无断言：报告 partial，不宣称回归通过。
 

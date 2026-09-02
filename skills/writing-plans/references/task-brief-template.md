@@ -3,10 +3,12 @@
 ## 工作项
 
 - 工作项：
-- 任务：
-- task_card_id:
-- wbs_id:
+- 任务：`<TASK-CARD-ID>`
+- task_card_id: `<TASK-CARD-ID>`
+- wbs_id: `<WBS-ID>`
 - 状态：`planned | active | ready_for_review | completed | closed | blocked`
+- owner: `<owner>`
+- depends_on: `<TASK-CARD-ID,... | none>`
 - review_status: `not_requested | self_check_passed | approved | changes_requested`
 - 优先级：`P0 | P1 | P2`
 - 任务层级：`project | requirement | cross_cutting | system`
@@ -94,7 +96,7 @@
 仅当 `dispatch_required: true` 时由父 Sol 在调用前生成稳定 `dispatch_id`，并保存真实 `spawn_agent` 成功回执；worker 与独立 reviewer 都适用，子代理自报不算回执。
 
 - dispatch_id: `<父 Sol 调用前生成的稳定 ID>`
-- task_card_id:
+- task_card_id: `<TASK-CARD-ID>`
 - requested_model: `必须等于 execution_model`
 - requested_reasoning_effort:
 - fork_turns: `none`

@@ -95,6 +95,19 @@ def test_status_examples_are_real_consumable_three_part_responses_with_one_next_
             "verification：",
             "回归结果：",
         ),
+        "发布示例": (
+            "发布候选：",
+            "环境：",
+            "发布状态：released",
+            "健康检查：passed",
+            "冒烟结果：passed",
+            "缺陷：无",
+            "file：",
+            "symbol：文档章节",
+            "change：",
+            "reason：",
+            "verification：",
+        ),
     }
 
     for heading, required_facts in examples.items():

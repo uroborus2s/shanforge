@@ -60,6 +60,16 @@ class BrowserControlSkillTests(unittest.TestCase):
         ):
             self.assertIn(phrase, content)
 
+    def test_snapshot_choices_explain_structure_state_and_accessibility(self) -> None:
+        content = (SKILL_ROOT / "SKILL.md").read_text(encoding="utf-8")
+
+        for phrase in (
+            "DOM snapshot 用于验证页面结构、元素和属性",
+            "state snapshot 用于验证交互控件的当前状态",
+            "accessibility snapshot 用于验证可访问树、名称和角色",
+        ):
+            self.assertIn(phrase, content)
+
 
 if __name__ == "__main__":
     unittest.main()

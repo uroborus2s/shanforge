@@ -24,7 +24,7 @@ description: 使用 Stratix 工具链开发、重构、调试和评审 Stratix �
 
 ## 版本兼容门
 
-先从 `package.json`、lockfile 和已安装 `node_modules/@stratix/*/package.json` 交叉读取每个相关包的实际版本；不能假设各包同版。支持矩阵是：`@stratix/core`: `1.1.2`、`@stratix/forge`: `1.1.4`、`@stratix/create`: `1.1.2`、`@stratix/database`: `1.1.1`、`@stratix/testing`: `1.0.0-beta.1`。仅当每个相关包与本 skill 的支持矩阵兼容时，才沿用命令和规则。
+先从 `package.json`、lockfile 和已安装 `node_modules/@stratix/*/package.json` 交叉读取每个相关包的实际版本；本 checker 要求 lockfile 为 `pnpm-lock.yaml`。不能假设各包同版。运行 `python <skill-dir>/scripts/check_compatibility.py <project>`，它按固定矩阵验证 package、lock 和已安装版本，并在矩阵通过后实际执行 `pnpm exec stratix --help` 和 `pnpm exec stratix doctor`；只有两条 smoke 都退出 0 才通过版本门。支持矩阵是：`@stratix/core`: `1.1.2`、`@stratix/forge`: `1.1.4`、`@stratix/create`: `1.1.2`、`@stratix/database`: `1.1.1`、`@stratix/testing`: `1.0.0-beta.1`。仅当每个相关包与本 skill 的支持矩阵兼容时，才沿用命令和规则。
 
 未知或不匹配时，立即 `blocked`；不运行生成、doctor、build、release 或其他会改变目标项目的命令，不自动安装或升级。回执逐包列出每个相关包的 `detected`、`required`、`difference`，再列未执行命令和唯一 `next_required_action`（补齐版本事实、切换到兼容版本，或要求维护者更新矩阵之一）。
 

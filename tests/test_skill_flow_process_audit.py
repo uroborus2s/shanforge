@@ -160,7 +160,8 @@ def test_core_workflow_skills_expose_required_gates() -> None:
             "先核实反馈再修改",
             "禁止盲改",
             "每项修复后都要验证",
-            "response 已写入",
+            "只有 allowlist 与 `write_policy` 同时授权时才写",
+            "否则交还 `using-shanforge` 总控",
         ),
         "skills/gitcommitzh/SKILL.md": (
             "审查 Git 工作区",

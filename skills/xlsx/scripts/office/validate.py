@@ -42,7 +42,6 @@ def validate_xlsx(unpacked_dir: Path) -> bool:
         return False
     return True
 
-
 def main():
     parser = argparse.ArgumentParser(description="Validate Office document XML files")
     parser.add_argument(
@@ -74,6 +73,11 @@ def main():
         default="Claude",
         help="Author name for redlining validation (default: Claude)",
     )
+    parser.add_argument(
+        "--package-only",
+        action="store_true",
+        help="Only validate ZIP extraction and well-formed XML",
+    )
     args = parser.parse_args()
 
     path = Path(args.path)
@@ -101,6 +105,16 @@ def main():
     else:
         assert path.is_dir(), f"Error: {path} is not a directory or Office file"
         unpacked_dir = path
+
+    if args.package_only:
+        try:
+            for xml_file in (*unpacked_dir.rglob("*.xml"), *unpacked_dir.rglob("*.rels")):
+                ET.parse(xml_file)
+        except ET.ParseError as error:
+            print(f"Error: Invalid Office XML: {error}")
+            sys.exit(1)
+        print("Package validation PASSED!")
+        sys.exit(0)
 
     match file_extension:
         case ".docx":

@@ -95,7 +95,7 @@ description: 项目状态查询、任务延续、项目事实修改、阶段切�
 简单代码变更仍属于项目影响，但不等于必须写正式计划。同时满足以下条件时走直接实施：
 
 - 用户未明确要求正式计划。
-- 需求和验收结果明确，无产品、设计或架构取舍。
+- 需求和验收标准明确，无产品、设计或架构取舍。
 - 一次局部代码修改加对应单测即可完成。
 - 不改变公共接口、跨层边界、数据 schema、迁移、依赖、安全权限、外部系统或发布方式。
 - 不需要多个可独立验收交付物、跨会话追踪、并行或多人协调。
@@ -188,6 +188,8 @@ worker 分支固定为 `dispatch_required: true`、`dispatch_mode: subagent`；�
 工具未暴露、调用失败、显式模型不可用、回执缺失，或回执的 `requested_model` 与 `execution_model` 不一致时，写
 `dispatch_failed` 或 `worker_unavailable` 并停止交还 Sol；严禁 Sol 静默代写或换模型。
 普通项目化路由包追加并持久化以下字段：
+
+字段机器名保持不变，按中文用途读取：任务身份：`work_item_id`、`task_card_id`、`wbs_id`（来自基础 route）；控制/复杂度：`control_model`、`task_complexity`；风险/范围：`risk_level`、`execution_authorized`、`route_reason`；派发：`execution_model`、`dispatch_role`、`dispatch_required`、`dispatch_mode`、`requested_reasoning_effort`、`fork_turns`；Gate/升级：`current_gate`、`escalation_triggers`。字段值仍供机器消费，不翻译或改名。
 
 ```text
 control_model: gpt-5.6-sol
@@ -444,26 +446,7 @@ baseline work item 规则：
 
 工作 skill 完成时只返回状态包，不写下一步 skill。详细边界见 [工作 Skill 回写契约](references/work-skill-return-contract.md)。这里的状态包是工作 Skill 本职结果包；它不推断项目完成层级：
 
-```text
-工作 Skill 本职结果包：
-- work_item: <ID>
-- task_id: <TASK-ID or none>
-- task_type: <formal task type>
-- skill: <skill-name>
-- status: <该 Skill 的既有本地状态>
-- outputs:
-  - <path>
-- evidence:
-  - <path>
-- ledger_event: <path 或 event id>
-- needs: <该 Skill 的既有本地 needs>
-- human_summary: <面向用户的本职事实摘要>
-- progress_delta: <本轮已完成、开始、阻塞或未改变的本职事实；按适用性提供>
-- verification_summary: <本轮验证范围、结果和未运行项；按适用性提供>
-- defect_summary: <已知缺陷现象、归因和影响；按适用性提供>
-- code_shape_check: passed | failed | not_applicable
-- change_locations: <修复位置清单；每项提供 file、symbol、change、reason、verification>
-```
+本职结果包字段、`release_summary` 及其适用性只由 [工作 Skill 回写契约](references/work-skill-return-contract.md) 定义；本 skill 不复制该枚举。
 
 本 skill 再结合 work item ledger、review ledger、已授权范围和真实 Gate 生成项目状态信封：
 

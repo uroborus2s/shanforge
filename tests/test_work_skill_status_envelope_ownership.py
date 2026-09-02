@@ -101,13 +101,16 @@ def test_test_work_returns_structured_verification_facts() -> None:
 
 def test_using_shanforge_is_the_project_envelope_owner() -> None:
     controller = read_skill("using-shanforge")
+    contract = SHARED_CONTRACT.read_text(encoding="utf-8")
     section = controller.split("## 工作 skill 状态回写协议", maxsplit=1)[1]
     section = section.split("\n## ", maxsplit=1)[0]
     work_result = section.split("项目状态信封：", maxsplit=1)[0]
     project_envelope = section.split("项目状态信封：", maxsplit=1)[1]
 
     assert "references/work-skill-return-contract.md" in section
-    assert "工作 Skill 本职结果包：" in work_result
+    assert "工作 Skill 本职结果包：" not in work_result
+    assert "## 工作 Skill 本职结果包" in contract
+    assert "项目状态信封：" in project_envelope
     for field in ("project_position", "completion_level", "stop_reason", "scope_remaining"):
         assert field not in work_result
         assert field in project_envelope
@@ -123,7 +126,8 @@ def test_local_status_and_needs_are_forwarded_without_normalization() -> None:
     formal_package = formal_design.split("## 统一任务包", maxsplit=1)[1]
     formal_package = formal_package.split("\n## 六类任务", maxsplit=1)[0]
 
-    for owner_contract in (controller, contract, formal_package):
+    assert "references/work-skill-return-contract.md" in controller
+    for owner_contract in (contract, formal_package):
         assert "status: <该 Skill 的既有本地状态>" in owner_contract
         assert "needs: <该 Skill 的既有本地 needs>" in owner_contract
 

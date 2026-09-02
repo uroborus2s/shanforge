@@ -13,7 +13,8 @@ description: 项目状态查询、任务延续、会话恢复、上下文压缩�
   后者 `write_policy: state_or_gate_write`。
 - `SB-RESUME` 写入前，route 必须有已存在且非空的 `work_item_id`、`task_card_id`，以及精确
   `allowed_paths`、`forbidden_actions`、`current_gate`、`write_policy`；memory summary 不能单独证明身份。
-- 只读状态查看不写 ledger；恢复写入必须有 readback evidence 和 ledger event。
+- 只读状态查看不写 ledger；恢复写入必须有 readback evidence 和 ledger event。读取回执（receipt）只说明读了什么、为何扩展和明确未读项，不是项目事实写入。
+- 无活动 WorkItem 的纯 `SB-STATUS` / `no_project_write` 请求跳过 work-item ledger，不因缺少 TaskCard/WBS 返回 `blocked`，不写项目事实。
 - 返回 `status`、`outputs`、`evidence`、`ledger_event` 和 `gate`；缺事实或身份时返回 `blocked`，不猜测。
   项目级下一动作由 `using-shanforge` 生成，本 skill 只恢复或同步既有事实。
 
@@ -72,7 +73,7 @@ description: 项目状态查询、任务延续、会话恢复、上下文压缩�
 8. 只有需要项目元数据时，才读取 `.factory/project.json`。
 9. 按 `references/relevance-gate.md` 判断是否读取任务相关 summary。
 10. 需要实现前，再按项目规则回源技术设计事实。
-11. 读取 work item ledger；以最新有效事件核对当前 Gate，`status=approved|done|passed` 且 `idempotency_key` 相同的动作不得重复执行。
+11. 对有活动 WorkItem 的恢复请求读取 work item ledger；以最新有效事件核对当前 Gate，`status=approved|done|passed` 且 `idempotency_key` 相同的动作不得重复执行。无活动 WorkItem 的纯 `SB-STATUS` / `no_project_write` 请求跳过 work-item ledger。
 12. 输出压缩会话卡：项目整体进度、当前任务、已完成、正在执行、停止原因、唯一下一动作、已读上下文、明确排除项和禁止动作。
 13. 需要落盘时，按 references 模板更新会话卡、ledger 和 `.factory/memory/`。
 

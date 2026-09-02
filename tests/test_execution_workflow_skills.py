@@ -49,7 +49,7 @@ def test_subagent_driven_development_skill_is_shanforge_localized() -> None:
 def test_execution_skills_block_when_task_gate_inputs_are_missing() -> None:
     expected_phrases = (
         "任务 gate",
-        "缺目标、验收结果、依赖、允许文件或必要验证命令时不得开始执行",
+        "缺目标、验收标准、依赖、允许文件或必要验证命令时不得开始执行",
         "单个低、中风险任务不要求 verification evidence、implementer report 或 review checkpoint",
         "批次 / 里程碑缺最终验证证据、实现摘要、review input 或 ledger event 时",
         "不得推进到 `ready_for_review`",

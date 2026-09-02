@@ -45,7 +45,7 @@ description: 设计并优化 AI 代理的行动空间、工具定义和观察格
 每个工具的响应都应包含：
 - `status`: success (成功) | warning (警告) | error (错误)
 - `summary`: 一行结果摘要
-- `next_actions`: 可执行的后续动作
+- `next_actions`: 仅为内部候选的后续动作，不直接面向用户
 - `artifacts`: 文件路径 / ID
 
 ## 错误恢复契约
@@ -102,6 +102,8 @@ description: 设计并优化 AI 代理的行动空间、工具定义和观察格
 - needs:
   - review | verification | user_input | none
 ```
+
+项目化用户输出仍只有一个 `next_required_action`，由 `using-shanforge` 总控生成；不得把 `next_actions` 候选当作多个用户动作。
 
 ## 失败语义
 

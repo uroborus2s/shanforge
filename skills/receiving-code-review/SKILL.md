@@ -12,8 +12,9 @@ description: 收到 review feedback、PR 评论、任务评审意见或外部 re
 - review feedback triage 属于 `SB-REVIEW` / `review-workflow`。`state_or_gate_write` 时只核实、分类并写
   triage/response；发现需要修改实现时，返回本地 `needs: implementation`，由主控重新路由。
 - 只有收到明确整改 TaskCard，且 `write_policy` 为 `source_or_test_write` 时才修改 allowlist 内源码或测试并运行验证。
-- 本 skill 写 triage、状态或整改前，route 必须有已存在且非空的 `work_item_id`、`task_card_id`，以及精确
-  `allowed_paths`、`forbidden_actions`、`current_gate`、`write_policy`。
+- 本 skill 写 triage、response、ledger 或 memory 前，route 必须有已存在且非空的 `work_item_id`、`task_card_id`，以及精确
+  `allowed_paths`、`forbidden_actions`、`current_gate`、`write_policy`；只有 allowlist 与 `write_policy` 同时授权时才写 triage、response、ledger 或 memory，否则交还 `using-shanforge` 总控。
+- triage/response 只由 receiving-code-review 在确有 review feedback 且授权时形成；发起 review 的 skill 只组织 review 与原范围整改，不双写。
 - 返回 `status`、`outputs`、`evidence`、`ledger_event`、`gate` 和本地 `needs`；不得用接收反馈
   直接覆盖 reviewer Decision 或自批 `approved`。
 
@@ -45,9 +46,9 @@ description: 收到 review feedback、PR 评论、任务评审意见或外部 re
 8. `state_or_gate_write` 路由只写 triage、技术判断和待整改项，不修改源码或测试。
 9. `source_or_test_write` 整改路由每次只改一个反馈项或一组强相关反馈，并在每项修复后运行对应验证。
 10. 按 [review-response-template.md](references/review-response-template.md) 写 response。
-11. triage/response 写入 `.factory/workitems/<WORKITEM-ID>/reviews/`；仅整改路由写修复报告和验证证据。
-12. 更新 `.factory/workitems/<WORKITEM-ID>/ledger.jsonl`。
-13. 执行 memory sync，更新 `.factory/memory/review-ledger.jsonl`、`.factory/memory/tasks.summary.md` 和必要 summary。
+11. 在 allowlist 与 `write_policy` 已授权时，triage/response 写入 `.factory/workitems/<WORKITEM-ID>/reviews/`；仅整改路由写修复报告和验证证据。
+12. 在同一授权下更新 `.factory/workitems/<WORKITEM-ID>/ledger.jsonl`。
+13. 在同一授权下执行 memory sync，更新 `.factory/memory/review-ledger.jsonl`、`.factory/memory/tasks.summary.md` 和必要 summary；未授权时交还总控。
 
 ## 外部反馈处理
 
@@ -60,7 +61,7 @@ description: 收到 review feedback、PR 评论、任务评审意见或外部 re
 - 是否与用户已有架构决策冲突。
 - 是否违反 YAGNI。
 
-如果反馈错误，使用技术理由 pushback。不要防御性表达。
+如果反馈错误，基于技术证据提出异议（pushback）。不要防御性表达。
 
 ## N/A 反馈处理
 
@@ -95,7 +96,7 @@ description: 收到 review feedback、PR 评论、任务评审意见或外部 re
 
 ## 完成状态
 
-triage 路由在反馈已核实分类、response 已写入、ledger 和 memory 已同步后完成，并用 `needs: implementation` 交回需要整改的条目；整改路由还必须完成修复验证和修复报告。两类路由都不得自行覆盖原 reviewer Decision。
+triage 路由在反馈已核实分类、且已获写入授权时 response、ledger 和 memory 已同步后完成；未获授权时只返回技术结论并交还总控。用 `needs: implementation` 交回需要整改的条目；整改路由还必须完成修复验证和修复报告。两类路由都不得自行覆盖原 reviewer Decision。
 
 ```text
 工作结果：

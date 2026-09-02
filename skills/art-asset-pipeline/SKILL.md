@@ -57,14 +57,13 @@ description: 美术方向 + 资源管线。用于需要先生成风格样张、U
 2. 收集约束：目标用户、平台、尺寸、主题、禁用元素、品牌色、分辨率、透明背景、动画帧和导出格式。
 3. 使用 `imagegen` 生成 2-4 张风格样张、UI 美术图或游戏概念图，写入 `candidates/`。
 4. 使用 `view_image` 检查候选图。必要时用 `preview/preview.html` 在浏览器中并排预览。
-5. 向用户提交候选方向。没有明确确认时停止，保留 `candidates/`，清理可再生的 `tmp/`，返回 `needs_user_input`。
+5. 向用户提交候选方向。没有明确确认时停止，保留 `candidates/`，返回 `needs_user_input`。
 6. 用户确认美术方向后，把确认图移入 `approved/`，删除未被选中的候选图，写入 `art-direction.md`。
 7. 基于已确认方向生成资源清单，包含文件名、用途、尺寸、格式、透明度、派生关系和验收标准。
 8. 向用户确认资源清单。未确认时停止，不生成最终包。
 9. 用户确认清单后，生产应用开发资源包或游戏开发资源包。
 10. 生成 `manifest.json`、`sprite-spec.md`、`preview/preview.html`，并把所有资源与确认来源关联。
-11. 验证预览、透明背景、尺寸、命名、缺失文件和未确认资源泄漏。
-12. 确认 `candidates/` 已在选择后清空，删除 `tmp/` 中所有可再生中间文件，再回写状态。
+11. 按下方 manifest 合同验证预览、透明背景、尺寸、命名、缺失文件和未确认资源泄漏；再按收尾清理规则处理候选与临时文件并回写状态。
 
 ## 输出文件
 
@@ -92,6 +91,10 @@ description: 美术方向 + 资源管线。用于需要先生成风格样张、U
 - `tooling` 字段，记录实际可用的 `imagegen`、图像处理、预览和验证入口。
 - 不得包含 `tmp/` 路径，不得列入未确认图。
 
+机器可检验的最小合同是 JSON 对象：顶层 `pack_type` 只能是 `app` 或 `game`；`assets` 是数组；每个条目至少有字符串 `path`、`purpose` 和 `source`。`path` 与 `source` 必须是资源包内相对路径、不得以 `/` 开头、不得含 `..`、不得位于 `tmp/` 或 `candidates/`；每个 `path` 对应的文件必须存在，且 `source` 必须指向 `approved/` 中存在的确认源。临时路径或缺失文件使 manifest 验证失败。
+
+运行 `python <skill-dir>/scripts/validate_manifest.py <asset-pack>/manifest.json`；只有退出码为 0 才能记录 manifest 验证通过。
+
 `preview/preview.html` 必须包含：
 
 - 所有最终资源的缩略图预览。
@@ -101,8 +104,7 @@ description: 美术方向 + 资源管线。用于需要先生成风格样张、U
 
 ## 验证要求
 
-- 运行资源清单一致性检查：`manifest.json` 中的每个文件都存在。
-- 检查 `manifest.json` 没有 `tmp/` 路径。
+- 运行资源清单一致性检查：按上述合同拒绝临时路径和缺失文件。
 - 检查最终资源包没有 `candidates/`、`tmp/` 或未确认中间图。
 - 使用 `view_image` 抽查关键图，确认构图、裁切、透明背景和可读性。
 - 使用浏览器打开 `preview/preview.html`，检查缩略图加载、尺寸标签、透明背景底纹和分组。
@@ -131,8 +133,6 @@ description: 美术方向 + 资源管线。用于需要先生成风格样张、U
 - 美术方向已确认。
 - 资源清单已确认。
 - 最终资源包只包含用户确认过的图。
-- `candidates/` 已在用户选择后清理。
-- `tmp/` 已清理。
 - `manifest.json`、`art-direction.md`、`sprite-spec.md` 和 `preview/preview.html` 已生成并验证。
 
 ## 状态回写

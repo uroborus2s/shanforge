@@ -57,6 +57,7 @@
 
 每张 TaskCard 的 `task_card_id` 必须映射到唯一 `wbs_id`；ledger 和 session 复用相同的
 `task_card_id`、`wbs_id`、`current_gate`、`next_required_action`。
+WBS 状态仅使用 `planned | current | completed`；它是进度状态，不能代替 TaskCard 生命周期。
 
 ## 任务
 
@@ -64,12 +65,17 @@
 
 - task_card_id: `<TASK-CARD-ID>`
 - wbs_id: `<WBS-ID>`
+- owner: `<owner>`
+- depends_on: `<TASK-CARD-ID,... | none>`
 - current_gate: `<gate>`
 - next_required_action: `<action>`
 
+TaskCard 生命周期是独立字段，只使用 `planned | active | ready_for_review | completed | closed | blocked`，
+不得写入 WBS `status`。
+
 **最小任务切片：**
 
-- 目标和验收结果：
+- 目标和验收标准：
 - 依赖：
 - 实现：
 - 必要的定向测试或静态检查：
@@ -160,11 +166,13 @@ pytest tests/exact/path/to/test.py::test_specific_behavior -v
 
 用以下门禁判断计划是否可进入执行候选。
 
-- 计划独立评审：`N/A | pending`（仅高风险或用户明确要求）
-- 批次代码评审：`pending`
-- 批次验证：`pending`
-- 拉取请求 / 提交：`pending`
-- 记忆同步：`pending`
+| Gate ID | Gate | owner | 进入条件 | evidence path | 状态 |
+|---|---|---|---|---|---|
+| `<GATE-ID>` | 计划独立评审 | <owner> | 高风险或用户明确要求 | `<path 或 N/A>` | `N/A | pending` |
+| `<GATE-ID>` | 批次代码评审 | <owner> | 批次实现与验证摘要已就绪 | `<path>` | `pending` |
+| `<GATE-ID>` | 批次验证 | <owner> | 实现完成 | `<path>` | `pending` |
+| `<GATE-ID>` | 拉取请求 / 提交 | <owner> | review 与验证通过 | `<path>` | `pending` |
+| `<GATE-ID>` | 记忆同步 | <owner> | 收口事实已观察 | `<path>` | `pending` |
 
 ## 计划自审
 

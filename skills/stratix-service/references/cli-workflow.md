@@ -17,6 +17,8 @@ pnpm exec stratix list presets
 
 不要假设这些包版本相同。未知或不兼容立即 `blocked`：逐包列出 `detected`、`required`、`difference`、未执行命令和唯一 `next_required_action`；不自动安装或升级，不运行未固定版本的远端创建器。命令以已验证兼容的本地 `create-stratix` 与目标项目内 `--help` 为准。
 
+先运行 `python <skill-dir>/scripts/check_compatibility.py <project>`；它要求 `pnpm-lock.yaml` 中存在每个矩阵包的锁定版本。只有 package、lock 和已安装版本都通过后，兼容 smoke 才真实执行：在目标项目运行 `pnpm exec stratix --help` 和 `pnpm exec stratix doctor`，两者退出码均为 0 才算兼容。将任一相关包版本或 lock 改为矩阵外版本后，兼容入口必须先返回非零并输出逐包差异，且不得运行 smoke。这不是 Markdown 关键词检查，也不允许以手写版本字符串替代命令退出码。
+
 ## 工具边界
 
 - `create-stratix`：创建 app/plugin。

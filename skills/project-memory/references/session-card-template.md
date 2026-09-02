@@ -12,6 +12,7 @@
 - 当前 WBS：<wbs_id 或 none>
 - 状态：<in_progress | ready_for_review | blocked>
 - Gate：<current_gate 或 none>
+- 停止原因：<none 或具体原因>
 - 唯一下一动作：<next_required_action 或 none>
 
 ## 本轮目标

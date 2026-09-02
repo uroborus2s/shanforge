@@ -73,6 +73,8 @@ URL 必须是用户给出的明确目标。不要循环猜测 URL 变体。若 U
 5. 再读取状态：每次动作后获取最便宜的确认信息。
 6. 汇报结果：给出当前 URL、页面标题、已执行动作、观察到的页面状态、后续可选动作。
 
+选择 snapshot 时：DOM snapshot 用于验证页面结构、元素和属性；state snapshot 用于验证交互控件的当前状态；accessibility snapshot 用于验证可访问树、名称和角色。结构或属性问题选 DOM，点击/输入后的控件变化选 state，无障碍名称、角色或阅读顺序选 accessibility；可同时需要时分别读取，不用截图替代。
+
 仅在 `browser-use` CLI 已确认可用后，常用命令：
 
 ```bash

@@ -20,6 +20,7 @@
 - progress_delta: <本轮已完成、开始、阻塞或未改变的本职事实；按适用性提供>
 - verification_summary: <本轮验证范围、结果和未运行项；按适用性提供>
 - defect_summary: <已知缺陷现象、归因和影响；按适用性提供>
+- release_summary: <发布候选、环境、回执与健康/冒烟结果；仅发布工作按适用性提供>
 - code_shape_check: passed | failed | not_applicable
 - change_locations: <按适用性提供；每项提供 file、symbol、change、reason、verification>
 ```
@@ -32,7 +33,7 @@
 
 ## 项目化回复合并
 
-上述局部结果包是工作 Skill 的专业增量，不是项目化回复本身。项目化回复必须合并 human_summary、`progress_delta`、`verification_summary`、`defect_summary`、`change_locations` 与项目状态信封，按事实组织成面向用户的处理结果、验证与风险、下一步。字段不适用或缺事实时明确说明或省略该局部字段，缺事实不得猜；项目状态信封仍只由 `using-shanforge` 生成。
+上述局部结果包是工作 Skill 的专业增量，不是项目化回复本身。项目化回复必须合并 human_summary、`progress_delta`、`verification_summary`、`defect_summary`、`change_locations` 与项目状态信封；发布工作再按适用性合并 `release_summary`。按事实组织成面向用户的处理结果、验证与风险、下一步。字段不适用或缺事实时明确说明或省略该局部字段，缺事实不得猜；项目状态信封仍只由 `using-shanforge` 生成。
 
 ## evidence 分层
 
@@ -85,7 +86,7 @@ Bug、修复或代码写入结果的 `change_locations` 必须逐项使用以下
 - completion_level: none | task | stage | project
 - stop_reason: none | blocker | human_gate
 - scope_remaining: <已授权范围内剩余工作；没有则写“无”>
-- next_required_action: <唯一下一动作；没有则写“无”>
+- next_required_action: <唯一 `next_required_action`；没有则写“无”>
 ```
 
 没有真实 blocker 或有效 human Gate 时，`stop_reason` 必须是 `none`；既有授权范围内仍有内部验证、评审、整改或收口动作时继续路由，不把内部 checkpoint 变成用户 Gate。

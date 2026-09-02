@@ -77,3 +77,11 @@
 | 沟通 | 90.0 | C0 / I5 / M3 |
 
 原始专家 Findings 合计 `C0 / I27 / M18`；相同根因在跨专家报告中有重复，最终按主题去重和优先级见 `consolidated-audit.md`。
+
+## 整改后复评（2026-09-02）
+
+- 五专家再次覆盖全部 38 个 Skill，评分覆盖仍为 `190/190`。
+- 系统矩阵总分从 `85.6` 提升到 `92.9`，变化 `+7.3`。
+- 原始 `C0 / I27 / M18` 共 45 个问题已关闭 `45/45`。
+- 最终剩余 `Critical 0 / Important 0 / Minor 0`，五专家均给出 `approved`。
+- 本节只追加整改后事实，不覆盖上方审计基线。完整前后评分、问题关闭说明和验证证据见 `../../SOFTWARE-ENGINEERING-SKILL-AUDIT-CLOSURE-001/reports/post-remediation-scorecard.md`。

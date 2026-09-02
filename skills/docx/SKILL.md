@@ -22,9 +22,9 @@ blocked 回执必须包含 `missing_capability`、已探测的入口、未执行
 |---|---|
 | 读取 / 提取 | 在对应入口已确认可用后，用 `pandoc --track-changes=all document.docx -o output.md` 或 `python <skill-dir>/scripts/office/unpack.py document.docx unpacked/` 读取内容；需要版式证据时再转 PDF/图片。 |
 | 创建新文档 | 使用仓内已有 `docx` 依赖或现有生成脚本；没有依赖时先报告缺口，不建议临时安装新依赖。 |
-| 编辑现有文档 | 先解包，编辑 `unpacked/word/` 的 XML，再用 `python <skill-dir>/scripts/office/pack.py unpacked/ output.docx --original document.docx` 打包。 |
+| 编辑现有文档 | 先解包，编辑 `unpacked/word/` 的 XML，再用 `python <skill-dir>/scripts/office/pack.py unpacked/ output.docx --original document.docx` 打包；交付前再次解包输出文件并检查必需 XML 均可读取。 |
 | 修订 / 批注 | 保留 Word 修订结构；作者字段使用用户指定名称，未指定时用中性项目名或当前执行者名称，不写特定助手品牌。 |
-| 验证 / 视觉检查 | 运行 `python <skill-dir>/scripts/office/validate.py output.docx`；版式敏感时用 `python <skill-dir>/scripts/office/soffice.py --headless --convert-to pdf output.docx` 再渲染抽查页面。 |
+| 验证 / 视觉检查 | 运行 `python <skill-dir>/scripts/office/validate.py output.docx`；最小解包→打包往返可运行 `python <skill-dir>/scripts/office/validate.py output.docx --package-only`；版式敏感时用 `python <skill-dir>/scripts/office/soffice.py --headless --convert-to pdf output.docx` 再渲染抽查页面。 |
 
 旧版 `.doc` 先转换：
 

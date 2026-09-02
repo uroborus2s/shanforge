@@ -1,5 +1,7 @@
 # Skill Updates Summary
 
+- 当前（2026-09-02）：`SOFTWARE-ENGINEERING-SKILL-AUDIT-CLOSURE-001` 已完成 T09–T13 和 R01–R06。开发、测试、Bug、修复、发布响应按工作类型提供可读事实；计划模板明确 WBS 状态、TaskCard 生命周期、owner 和依赖 DAG；Crawler4j/Stratix 使用真实 lock + CLI smoke；代码形态门拒绝嵌套函数和嵌套 lambda。五专家复评 `190/190`，综合分 `85.6 → 92.9`，45/45 Finding 关闭，最终 `approved / C0-I0-M0`。
+
 - 当前（2026-09-02）：`SOFTWARE-ENGINEERING-SKILL-REMEDIATION-001` 已完成 T01–T08。计划、TaskCard、ledger 与会话统一 WBS 身份；review approved 不再等同任务完成；开发、测试、Bug、修复回复保留完整事实；Go/Python 验证按风险分层；外部工具和 Crawler4j/Stratix 版本未知时失败关闭。最终 `322 passed / 4 subtests passed`，38/38 validator 与独立复审 `approved / C0-I0-M0`。
 
 - 当前（2026-08-23）：追加 38/38 复评发现的 8 个 Important 已关闭，统一可移植路径、结果枚举、shadcn 命令、测试 ID、提交转换、Windows 主路径树终止与 XLSX 非零失败。终审 `approved / 93.7 / C0-I0-M2`，完整 pytest `269 passed / 4 subtests`，等待提交并推送 `origin/v2`。

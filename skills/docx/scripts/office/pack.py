@@ -19,8 +19,6 @@ from pathlib import Path
 
 import defusedxml.minidom
 
-from validators import DOCXSchemaValidator, PPTXSchemaValidator, RedliningValidator
-
 def pack(
     input_directory: str,
     output_file: str,
@@ -76,6 +74,8 @@ def _run_validation(
     validators = []
 
     if suffix == ".docx":
+        from validators import DOCXSchemaValidator, RedliningValidator
+
         author = "Claude"
         if infer_author_func:
             try:
@@ -88,6 +88,8 @@ def _run_validation(
             RedliningValidator(unpacked_dir, original_file, author=author),
         ]
     elif suffix == ".pptx":
+        from validators import PPTXSchemaValidator
+
         validators = [PPTXSchemaValidator(unpacked_dir, original_file)]
 
     if not validators:

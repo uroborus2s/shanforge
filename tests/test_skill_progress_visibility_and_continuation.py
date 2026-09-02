@@ -220,8 +220,7 @@ def test_source_or_test_write_routes_carry_code_shape_constraints() -> None:
     ):
         assert phrase in section
 
-    status_package = controller.split("## 工作 skill 状态回写协议", maxsplit=1)[1].split(
-        "\n## ", maxsplit=1
-    )[0]
-    assert "code_shape_check: passed | failed | not_applicable" in status_package
-    assert "凡修改源码或测试代码不得用 N/A" in status_package
+    assert "references/work-skill-return-contract.md" in controller
+    contract = read("skills/using-shanforge/references/work-skill-return-contract.md")
+    assert "code_shape_check: passed | failed | not_applicable" in contract
+    assert "凡修改源码或测试代码不得用 N/A" in contract

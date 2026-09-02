@@ -5,7 +5,7 @@ description: 全平台 UI/UX 与动效设计、实现约束和质量评审。用
 
 # UI/UX Pro Max
 
-把产品意图转成可实现、可验证、尊重平台习惯的 UI/UX 与动效方案。先复用项目事实，再补设计判断；不要把趋势、数据库命中或单一平台规范当成通用答案。
+把产品意图转成可实现、可验证、尊重平台习惯的 UI/UX 与动效方案。先复用项目事实，再补设计判断；不要把趋势、设计知识检索命中或单一平台规范当成通用答案。
 
 ## 硬边界
 
@@ -74,7 +74,7 @@ python3 <skill-dir>/scripts/search.py "<关键词>" --domain <product|style|colo
 python3 <skill-dir>/scripts/search.py "<关键词>" --stack <react|nextjs|vue|swiftui|jetpack-compose|flutter|react-native|javafx|wpf|winui|avalonia|uno|uwp>
 ```
 
-检索结果只是候选输入。根据品牌、平台规范、可访问性、内容和实现成本筛选；不要把命中项原样拼成方案。
+设计知识检索命中或未命中都只是候选输入。根据品牌、平台规范、可访问性、内容和实现成本筛选；不要把命中项原样拼成方案。
 
 设计系统至少定义语义色、字体角色、间距、圆角、层级、图标、布局、组件状态、焦点、响应式/自适应规则和动效 token。页面级差异只写 override，不复制整套 token。
 

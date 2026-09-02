@@ -1,10 +1,25 @@
 from __future__ import annotations
 
+import json
+import subprocess
+import sys
+import tempfile
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 SKILL_ROOT = REPO_ROOT / "skills" / "stratix-service"
 OLD_SKILL_ROOT = REPO_ROOT / "skills" / "stratix-nodejs-backend"
+CHECKER = REPO_ROOT / "skills/stratix-service/scripts/check_compatibility.py"
+
+
+def write_fake_pnpm(path: Path, marker: Path, exit_code: int = 0) -> None:
+    path.write_text(
+        "#!/bin/sh\n"
+        f"printf '%s\\n' \"$*\" >> {marker}\n"
+        f"exit {exit_code}\n",
+        encoding="utf-8",
+    )
+    path.chmod(0o755)
 
 
 def read_skill_file(path: str) -> str:
@@ -273,3 +288,143 @@ def test_openai_metadata_points_to_new_skill_name() -> None:
         "Kysely",
     ):
         assert phrase in content
+
+
+def test_version_gate_smoke_runs_real_cli_after_lock_compatibility() -> None:
+    with tempfile.TemporaryDirectory() as directory:
+        project = Path(directory)
+        packages = {
+            "@stratix/core": "1.1.2",
+            "@stratix/forge": "1.1.4",
+            "@stratix/create": "1.1.2",
+            "@stratix/database": "1.1.1",
+            "@stratix/testing": "1.0.0-beta.1",
+        }
+        (project / "package.json").write_text(
+            json.dumps({"dependencies": packages}), encoding="utf-8"
+        )
+        (project / "pnpm-lock.yaml").write_text(
+            "\n".join(f"  {name}@{version}: {{}}" for name, version in packages.items()),
+            encoding="utf-8",
+        )
+        marker = project / "pnpm.calls"
+        bin_dir = project / "bin"
+        bin_dir.mkdir()
+        write_fake_pnpm(bin_dir / "pnpm", marker)
+        compatible = subprocess.run(
+            [sys.executable, str(CHECKER), str(project)],
+            text=True,
+            capture_output=True,
+            env={"PATH": str(bin_dir)},
+        )
+        assert compatible.returncode == 0, compatible.stdout
+        assert marker.read_text(encoding="utf-8").splitlines() == [
+            "exec stratix --help",
+            "exec stratix doctor",
+        ]
+
+
+def test_version_gate_rejects_lock_mismatch_without_running_smoke() -> None:
+    with tempfile.TemporaryDirectory() as directory:
+        project = Path(directory)
+        packages = {
+            "@stratix/core": "1.1.2",
+            "@stratix/forge": "1.1.4",
+            "@stratix/create": "1.1.2",
+            "@stratix/database": "1.1.1",
+            "@stratix/testing": "1.0.0-beta.1",
+        }
+        (project / "package.json").write_text(
+            json.dumps({"dependencies": packages}), encoding="utf-8"
+        )
+        (project / "pnpm-lock.yaml").write_text(
+            "\n".join(
+                f"  {name}@{'1.1.3' if name == '@stratix/core' else version}: {{}}"
+                for name, version in packages.items()
+            ),
+            encoding="utf-8",
+        )
+        marker = project / "pnpm.calls"
+        bin_dir = project / "bin"
+        bin_dir.mkdir()
+        write_fake_pnpm(bin_dir / "pnpm", marker)
+        incompatible = subprocess.run(
+            [sys.executable, str(CHECKER), str(project)],
+            text=True,
+            capture_output=True,
+            env={"PATH": str(bin_dir)},
+        )
+        assert incompatible.returncode == 1
+        assert "lock" in incompatible.stdout
+        assert not marker.exists()
+
+
+def test_cli_smoke_failure_fails_closed() -> None:
+    with tempfile.TemporaryDirectory() as directory:
+        project = Path(directory)
+        packages = {
+            "@stratix/core": "1.1.2",
+            "@stratix/forge": "1.1.4",
+            "@stratix/create": "1.1.2",
+            "@stratix/database": "1.1.1",
+            "@stratix/testing": "1.0.0-beta.1",
+        }
+        (project / "package.json").write_text(
+            json.dumps({"dependencies": packages}), encoding="utf-8"
+        )
+        (project / "pnpm-lock.yaml").write_text(
+            "\n".join(f"  {name}@{version}: {{}}" for name, version in packages.items()),
+            encoding="utf-8",
+        )
+        marker = project / "pnpm.calls"
+        bin_dir = project / "bin"
+        bin_dir.mkdir()
+        write_fake_pnpm(bin_dir / "pnpm", marker, exit_code=1)
+        result = subprocess.run(
+            [sys.executable, str(CHECKER), str(project)],
+            text=True,
+            capture_output=True,
+            env={"PATH": str(bin_dir)},
+        )
+        assert result.returncode == 1
+        assert marker.read_text(encoding="utf-8").splitlines() == ["exec stratix --help"]
+
+
+def test_version_gate_rejects_incompatible_package_fixture() -> None:
+    with tempfile.TemporaryDirectory() as directory:
+        project = Path(directory)
+        packages = {
+            "@stratix/core": "1.1.2",
+            "@stratix/forge": "1.1.4",
+            "@stratix/create": "1.1.2",
+            "@stratix/database": "1.1.1",
+            "@stratix/testing": "1.0.0-beta.1",
+        }
+        (project / "package.json").write_text(
+            json.dumps({"dependencies": packages}), encoding="utf-8"
+        )
+        (project / "pnpm-lock.yaml").write_text(
+            "\n".join(f"  {name}@{version}: {{}}" for name, version in packages.items()),
+            encoding="utf-8",
+        )
+        packages["@stratix/core"] = "1.1.3"
+        (project / "package.json").write_text(
+            json.dumps({"dependencies": packages}), encoding="utf-8"
+        )
+        incompatible = subprocess.run(
+            [sys.executable, str(CHECKER), str(project)], text=True, capture_output=True
+        )
+        assert incompatible.returncode == 1
+        assert "@stratix/core" in incompatible.stdout
+
+
+def test_version_gate_rejects_non_object_dependency_map_without_traceback(tmp_path: Path) -> None:
+    (tmp_path / "package.json").write_text(json.dumps({"dependencies": []}), encoding="utf-8")
+
+    result = subprocess.run(
+        [sys.executable, str(CHECKER), str(tmp_path)], text=True, capture_output=True
+    )
+
+    assert result.returncode == 1
+    assert "dependencies must be an object" in result.stdout
+    assert "Traceback" not in result.stderr

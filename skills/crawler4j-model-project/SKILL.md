@@ -16,7 +16,7 @@ description: 使用 crawler4j `0.4.0` 的 `core-native-v2` 模块协议创建、
 
 ## 版本兼容门
 
-任何 `0.4.0` / `core-native-v2` 指导或命令前，先读取目标项目的实际 CLI/包版本、`module.yaml.runtime_api` 与可得的 `.crawler4j/manifest.lock.json` 协议事实；可用时交叉核对 CLI 的 `--version`、项目依赖/lock 和 manifest。仅当实际版本为 `0.4.0` 且协议为 `core-native-v2` 时，才继续给出或执行本 skill 的命令。新项目在生成前也必须先确认 CLI/包为 `0.4.0`，生成后立即核对新建 `module.yaml` 与 manifest。
+任何 `0.4.0` / `core-native-v2` 指导或命令前，先读取目标项目的实际 CLI/包版本、`module.yaml.runtime_api` 与 `.crawler4j/manifest.lock.json` 协议事实。manifest lock 必须存在、是合法 JSON object；不假设其顶层 schema，内容正确性由后续结构检查判定。先运行 `python <skill-dir>/scripts/check_compatibility.py <project>`（或用 `--cli-version` 提前传入已读取的版本）：它先验证 lock 和 `module.yaml` 协议，退出码为 0 才实际执行 `crawler4j --version`；版本为 `0.4.0` 后再执行 `crawler4j module check structure` smoke。`--cli-version` 不会跳过实际 version smoke。仅当实际版本为 `0.4.0` 且协议为 `core-native-v2` 时，才继续给出或执行本 skill 的命令。新项目在生成前也必须先确认 CLI/包为 `0.4.0`，生成后立即核对新建 `module.yaml` 与 manifest。
 
 缺版本、未知或不兼容时，立即 `blocked`；不执行 init、generate、lock、check、package、host 或 release 命令，也不安装或升级。回执只报告：
 

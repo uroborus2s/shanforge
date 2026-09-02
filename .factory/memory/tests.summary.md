@@ -1,7 +1,9 @@
 # 测试摘要
 
-- 当前阶段：`SOFTWARE-ENGINEERING-SKILL-REMEDIATION-001 / closed`
-- 当前验证结论：整改后完整 pytest `322 passed / 4 subtests passed`；Ruff、38/38 Skill validator、黑盒 9/9 和 diff check 全部通过。
+- 当前阶段：`SOFTWARE-ENGINEERING-SKILL-AUDIT-CLOSURE-001 / closed`
+- 当前验证结论：完整 pytest `356 passed / 11 subtests passed`；Ruff、38/38 Skill validator、响应黑盒 18/18、TaskCard 图 11/11、ledger 唯一性、代码形态和 diff check 全部通过。
+
+- 2026-09-02：最终报告写入后重新执行完整质量门。系统 Python 运行 validator 因缺 PyYAML 未实际执行，uv 沙箱运行因缓存权限未实际执行；获准读取现有 uv 缓存后为 `38/38 passed`。首次 memory closeout 把当前工作项写成 `none`，导致主线 ledger 快照测试 `355 passed / 1 failed`；根因是恢复器要求会话卡保留最近已关闭工作项，状态字段修正后重新执行完整测试。最终有效结果为 pytest `356 passed / 11 subtests passed`、Ruff passed、响应黑盒 `18 passed`、TaskCard 图 11/11、work item ledger 69 条和 session ledger 2 条均合法且唯一、无嵌套命名函数/lambda、diff check passed。
 
 - 2026-09-02：T08 首轮全量为 `316 passed / 2 failed / 4 subtests passed`，根因为 `writing-plans/SKILL.md` 错误拥有项目级下一动作；修复和评审整改后为 `322 passed / 4 subtests passed`。Memory closeout 又发现会话卡字段名与 ledger 身份不一致，`321 passed / 1 failed`；修复后最终仍为 `322 passed / 4 subtests passed`。评审整改定向 41 passed；Ruff、38/38 validator、黑盒 9/9、JSONL 和 diff check 通过。
 

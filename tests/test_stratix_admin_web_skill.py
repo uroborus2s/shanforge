@@ -31,9 +31,11 @@ def test_development_order_requires_component_inventory_before_pages() -> None:
     content = read_skill()
 
     for phrase in (
-        "先总结相似组件，再开发公共组件，再开发每个页面和页面逻辑",
-        "梳理页面清单",
-        "梳理组件清单",
+        "查既有页面和组件",
+        "页面/组件文件路径",
+        "可复用布局/状态/交互模式",
+        "与目标页面的差异",
+        "产出页面清单和组件清单",
         "先实现已确认会被两个以上页面复用的公共组件",
         "再逐页实现页面结构",
     ):

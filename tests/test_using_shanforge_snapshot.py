@@ -13,6 +13,64 @@ SCRIPT = ROOT / "skills" / "using-shanforge" / "scripts" / "project_snapshot.py"
 
 
 class ProjectSnapshotTest(unittest.TestCase):
+    def test_plan_template_task_card_ledger_and_snapshot_are_connected(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            project = Path(directory)
+            work_item = project / ".factory" / "workitems" / "WI-ROUNDTRIP"
+            briefs = work_item / "task-briefs"
+            briefs.mkdir(parents=True)
+            (project / ".factory" / "project.json").write_text(
+                json.dumps({"project_name": "计划贯通", "stage": "IMPLEMENTATION"}),
+                encoding="utf-8",
+            )
+            plan = (ROOT / "skills/writing-plans/references/workitem-plan-template.md").read_text(
+                encoding="utf-8"
+            )
+            (work_item / "plan.md").write_text(
+                plan.replace(
+                    "| `<WBS-ID>` |  | <可验收交付物> | `planned | current | completed` |",
+                    "| WBS-ROUNDTRIP-01 |  | 快照贯通 | current |",
+                )
+                .replace("<功能名称>", "计划贯通")
+                .replace("<WORKITEM-ID>", "WI-ROUNDTRIP")
+                .replace("<WBS-ID>", "WBS-ROUNDTRIP-01")
+                .replace("<TASK-CARD-ID>", "WI-ROUNDTRIP-T01"),
+                encoding="utf-8",
+            )
+            (briefs / "WI-ROUNDTRIP-T01.md").write_text(
+                (ROOT / "skills/writing-plans/references/task-brief-template.md")
+                .read_text(encoding="utf-8")
+                .replace("<WORKITEM-ID>", "WI-ROUNDTRIP")
+                .replace("<TASK-CARD-ID>", "WI-ROUNDTRIP-T01")
+                .replace("<WBS-ID>", "WBS-ROUNDTRIP-01")
+                .replace("<owner>", "snapshot-owner")
+                .replace("<TASK-CARD-ID,... | none>", "none")
+                .replace("<gate>", "verification")
+                .replace("<action>", "run tests"),
+                encoding="utf-8",
+            )
+            (work_item / "ledger.jsonl").write_text(
+                json.dumps(
+                    {
+                        "work_item_id": "WI-ROUNDTRIP",
+                        "task_card_id": "WI-ROUNDTRIP-T01",
+                        "wbs_id": "WBS-ROUNDTRIP-01",
+                        "status": "active",
+                        "current_gate": "verification",
+                        "next_required_action": "run tests",
+                    }
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+
+            self._run(project)
+
+            site = project / ".factory/cache/site/current"
+            plan_page = (site / "plans/WI-ROUNDTRIP.html").read_text(encoding="utf-8")
+            task_page = (site / "tasks/WI-ROUNDTRIP-T01.html").read_text(encoding="utf-8")
+            self.assertIn("WBS-ROUNDTRIP-01", plan_page)
+            self.assertIn("正在进行", task_page)
     def test_review_approval_does_not_complete_task_card_or_wbs(self) -> None:
         loaded = runpy.run_path(str(SCRIPT))
         category = loaded["_category"]

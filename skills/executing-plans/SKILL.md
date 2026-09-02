@@ -41,7 +41,7 @@ description: 有 written implementation plan 但不使用子 agent，或需要�
 ## 任务 gate
 
 - 执行前必须确认当前 task brief 是已授权的唯一任务；不并发、不跳号、不提前进入后续任务。
-- 缺目标、验收结果、依赖、允许文件或必要验证命令时不得开始执行；不强制无关设计章节或 `N/A` 占位。
+- 缺目标、验收标准、依赖、允许文件或必要验证命令时不得开始执行；不强制无关设计章节或 `N/A` 占位。
 - 单个低、中风险任务不要求 verification evidence、implementer report 或 review checkpoint；需要恢复时只写紧凑 ledger checkpoint。
 - 批次 / 里程碑缺最终验证证据、实现摘要、review input 或 ledger event 时，不得推进到 `ready_for_review`。
 - 发现 task brief 允许文件范围不足、测试命令缺失、验收口径缺失或计划与代码事实冲突时，停止并回写 `blocked` 或 `needs_user_input`。

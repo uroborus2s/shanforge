@@ -48,6 +48,13 @@ def test_writing_plans_skill_localizes_superpowers_semantics() -> None:
     assert "一步只做一个动作" not in skill
 
 
+def test_planning_preconditions_use_acceptance_criteria_not_results() -> None:
+    skill = read("skills/writing-plans/SKILL.md")
+
+    assert "需求和验收标准明确" in skill
+    assert "需求和验收结果明确" not in skill
+
+
 def test_writing_plans_excludes_simple_code_and_unit_test_changes() -> None:
     skill = read("skills/writing-plans/SKILL.md")
     metadata = read("skills/writing-plans/agents/openai.yaml")
@@ -190,7 +197,7 @@ def test_writing_plan_templates_use_minimal_tasks_and_one_batch_quality_gate() -
 
     for phrase in (
         "最小任务切片",
-        "目标和验收结果",
+        "目标和验收标准",
         "必要的定向测试或静态检查",
         "批次质量任务",
         "API 契约测试、服务测试和集成测试",
@@ -207,6 +214,7 @@ def test_writing_plan_templates_use_minimal_tasks_and_one_batch_quality_gate() -
         assert phrase in task_brief
 
     for stale in (
+        "目标和验收结果",
         "每个任务必须包含设计方案",
         "UI 写 `N/A` 时必须写原因",
         "验证证据：`.factory/workitems/<WORKITEM-ID>/evidence/task-N.md`",
@@ -214,6 +222,19 @@ def test_writing_plan_templates_use_minimal_tasks_and_one_batch_quality_gate() -
     ):
         assert stale not in workitem_plan
         assert stale not in task_brief
+
+
+def test_planning_templates_keep_distinct_wbs_and_task_card_contracts() -> None:
+    plan = read("skills/writing-plans/references/workitem-plan-template.md")
+    brief = read("skills/writing-plans/references/task-brief-template.md")
+    review = read("skills/writing-plans/references/plan-review-template.md")
+
+    assert "WBS 状态仅使用 `planned | current | completed`" in plan
+    assert "TaskCard 生命周期是独立字段" in plan
+    for content in (plan, brief):
+        assert "- owner:" in content
+        assert "- depends_on: `<TASK-CARD-ID,... | none>`" in content
+    assert "缺 owner、未知依赖、自依赖或依赖环" in review
 
 
 def test_writing_plans_openai_metadata_is_chinese() -> None:

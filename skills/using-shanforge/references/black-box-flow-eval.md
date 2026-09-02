@@ -38,6 +38,10 @@
 - `fast-path smoke` 只统计下面封闭定义的 11 条专用断言，不复用三个完整场景的领域内容或实际写入断言；每条专用断言都必须得到 2 分。
 - `gate smoke` 只统计下面封闭定义的 9 条 Gate 断言；每条必须得到 2 分。
 
+## `source_or_test_write` 派发观察
+
+此观察只验证 transcript 中的 `parent_tool_receipt` 结构，不调用真实 `spawn_agent`，也不把 pytest 说成子代理派发。实际派发证据由 T13 复核。授权 worker 的观察必须包含完整授权、父级真实工具回执字段（`task_card_id`、`requested_model`、`requested_reasoning_effort`、`fork_turns`、`agent_id` 或 `canonical_task`、`status: accepted`、`source: parent_tool_receipt`）和 worker `DONE` / `DONE_WITH_CONCERNS` / `NEEDS_CONTEXT` / `BLOCKED` 回执。worker `DONE` 后仍由父 Sol 复验：`close_allowed=false` 且 `next_action=parent_verification`，不得直接关闭任务。缺授权、缺回执、派发失败，或 `sol_source_writes` 非空时均 fail closed；不得由 Sol 静默写源码替代 worker。
+
 ### fast-path smoke 专用断言
 
 `FLOW-S6-direct-analysis-no-task-card`，最高 8 分：

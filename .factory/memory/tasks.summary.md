@@ -1,9 +1,11 @@
 # 任务摘要
 
-- 当前阶段：`SOFTWARE-ENGINEERING-SKILL-REMEDIATION-001 / closed`
-- 当前焦点：审计整改 T01–T08 已完成；全量验证 `322 passed / 4 subtests passed`，独立复审 `approved / C0-I0-M0`，当前无活动任务。
+- 当前阶段：`SOFTWARE-ENGINEERING-SKILL-AUDIT-CLOSURE-001 / closed`
+- 当前焦点：T09–T13 和 R01–R06 已完成；评分 `85.6 → 92.9`，45/45 Finding 已关闭，五专家 `approved / C0-I0-M0`，当前无活动任务。
 
 > 历史读取规则：以下所有带日期条目都是记录发生时的历史快照。条目中的“当前”“下一步”只表示当时状态，不得覆盖本文件顶部的当前焦点和当前动作。
+
+- 2026-09-02：`SOFTWARE-ENGINEERING-SKILL-AUDIT-CLOSURE-001` 完成 T09–T13 和 R01–R06；五专家复评覆盖 38 个 Skill、190/190 项评分，综合分 `85.6 → 92.9`。原始 C0/I27/M18 共 45 项关闭 `45/45`，最终 `approved / C0-I0-M0`。回源：`.factory/workitems/SOFTWARE-ENGINEERING-SKILL-AUDIT-CLOSURE-001/ledger.jsonl`。
 
 - 2026-09-02：`SOFTWARE-ENGINEERING-SKILL-REMEDIATION-001` 完成 T01–T08，统一 WBS/TaskCard 身份、评审/任务/产品状态、worker/evidence、人类可读开发测试 Bug 修复回复、风险分级验证、工具探测和版本失败关闭；最终 reviewer `approved / C0-I0-M0`。回源：`.factory/workitems/SOFTWARE-ENGINEERING-SKILL-REMEDIATION-001/ledger.jsonl`。
 

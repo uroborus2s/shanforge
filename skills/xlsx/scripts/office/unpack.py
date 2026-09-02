@@ -20,9 +20,6 @@ from pathlib import Path
 
 import defusedxml.minidom
 
-from helpers.merge_runs import merge_runs as do_merge_runs
-from helpers.simplify_redlines import simplify_redlines as do_simplify_redlines
-
 SMART_QUOTE_REPLACEMENTS = {
     "\u201c": "&#x201C;",  
     "\u201d": "&#x201D;",  
@@ -61,10 +58,14 @@ def unpack(
 
         if suffix == ".docx":
             if simplify_redlines:
+                from helpers.simplify_redlines import simplify_redlines as do_simplify_redlines
+
                 simplify_count, _ = do_simplify_redlines(str(output_path))
                 message += f", simplified {simplify_count} tracked changes"
 
             if merge_runs:
+                from helpers.merge_runs import merge_runs as do_merge_runs
+
                 merge_count, _ = do_merge_runs(str(output_path))
                 message += f", merged {merge_count} runs"
 

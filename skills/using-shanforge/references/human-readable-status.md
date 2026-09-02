@@ -95,6 +95,20 @@ file：skills/using-shanforge/references/human-readable-status.md；symbol：文
 
 唯一下一动作：运行受影响的回归测试；无需回复。
 
+## 发布示例
+
+### 处理结果
+
+发布候选：`registry.example/app@sha256:abc123`；环境：production。发布状态：released；健康检查：passed；冒烟结果：passed；缺陷：无。file：skills/release-deployment/SKILL.md；symbol：文档章节“发布回执”；change：补充最小发布回执边界；reason：让发布结果可被总控合并；verification：定向合同测试通过。
+
+### 验证与风险
+
+健康检查和关键冒烟均通过。风险：本回执不替代后续观察窗口；未发现缺陷。
+
+### 下一步
+
+唯一下一动作：继续既有授权范围内的发布后观察；无需回复。
+
 ## 技术记录
 
 正文之后可以附最小技术记录：相关内部 ID、Gate、路径、命令和原始状态。它只能支撑可追溯性，不能替代共享状态头、工作类型正文或用户可见的唯一下一动作。

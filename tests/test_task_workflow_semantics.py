@@ -146,10 +146,10 @@ def test_art_asset_pipeline_skill_outputs_confirmed_assets_only() -> None:
 
     for phrase in (
         "美术方向 + 资源管线",
-        "风格样张",
+        "独立美术样张",
         "用户确认美术方向",
         "资源清单",
-        "应用开发资源包",
+        "独立美术资源包",
         "游戏开发资源包",
         "候选图跨会话保留",
         "等待用户选择时不得删除",
@@ -166,6 +166,10 @@ def test_art_asset_pipeline_skill_outputs_confirmed_assets_only() -> None:
 
     assert "所有候选图先放 `tmp/`" not in skill
     assert "全部写入 `tmp/`" not in skill
+    assert "不属于 UI 项目流程的独立美术或游戏资源" in skill
+    assert "不承接 UI 项目中的素材阶段" in skill
+    assert "UI 美术图" not in skill
+    assert "art-asset-pipeline 承接 UI 项目素材" not in skill
 
 
 def test_black_box_eval_covers_task_card_creation_boundaries() -> None:

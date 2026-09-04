@@ -422,8 +422,8 @@ baseline work item 规则：
 | 创意、意图不清、需求未批准 | `brainstorming` | 用户提出新想法或目标不明确 | `brief_ready` 或 `needs_user_input` |
 | 需要 PRD、需求或验收标准 | `requirements-engineering` | brief 已清楚但需求未结构化 | `requirements_ready` |
 | 需要正式文档或技术方案 | `document-templates` / `doc-coauthoring` | 需要写设计、方案、说明文档 | `document_ready` |
-| 需要 UI / UX 方案 | `ui-ux-pro-max` | 当前缺少界面结构、交互、视觉系统或平台映射 | `design_ready` |
-| 需要美术方向或开发资源包 | `art-asset-pipeline` | 界面方案已确定或不适用，当前需要美术方向、UI 美术图、游戏素材、资源清单、确认图或最终资源包 | `ready_for_review` |
+| UI / UX 全流程 | `ui-ux-pro-max` | UI 项目需要界面结构、交互、视觉系统、高保真确认、全页面/平台扩展、UI 素材或开发交付 | `design_ready` |
+| 独立美术或游戏资源包 | `art-asset-pipeline` | 需要成套不属于 UI 项目流程的独立美术或游戏资源包 | `ready_for_review` |
 | 需求明确的简单代码变更 | `tdd-workflow` | 局部代码修改加对应单测即可完成，不含契约、架构、迁移、安全或外部风险，且用户未明确要求正式计划 | `passed`、`partial`、`failed` 或 `blocked` |
 | 已批准 brief / spec，但无 plan | `writing-plans` | 存在多个可验收交付物、跨模块协调、跨会话追踪，或用户明确要求正式计划 | `plan_ready`、`ready_for_review` 或 `not_applicable` |
 | plan 已批准，任务独立 | `subagent-driven-development` | 可拆成隔离任务执行 | `ready_for_review`、`blocked` 或 `needs_user_input` |

@@ -394,3 +394,4 @@
 - 2026-08-23：`TEST-GOVERNANCE-001` Red 为 `4 failed / 9 passed`；实现提交 `c4534ba` 的干净克隆最终为 `236 passed + 4 subtests`，Ruff、两个 Skill validator、25 JSON、36 JSONL、Git 状态和 diff check 全绿，失败/错误/跳过/未运行均为 0。
 - 2026-08-23：`TEST-GOVERNANCE-CLOSURE-001` 初始 Red `6 failed / 9 passed`，Review 整改 Red `3 failed / 12 passed / 1 deselected`；正式发布后治理专项 `16 passed`，实现提交 `ca436c9` 干净克隆 `246 passed / 4 subtests passed`，Ruff、案例/报告校验、两个 Skill validator、44 JSON、38 JSONL、diff 与 Git clean 全绿。
 - 2026-08-24：`MODEL-DISPATCH-RUNTIME-001` 首轮基线 Red `5 failed / 1 passed`、review 整改基线 Red `8 failed / 1 passed`，模型路由 Green `9 passed`；实现提交 `b270ae4` 干净克隆完整 pytest `273 passed`，Ruff、38/38 Skill validator、6 TOML、25 JSON、40 JSONL、diff 与 Git clean 全绿。
+- 2026-09-04：`UI-DESIGN-MASTER-001` 最终全仓 `360 passed / 11 subtests passed`，Ruff、`ui-ux-pro-max`、`art-asset-pipeline`、`using-shanforge` 三个 Skill validator 和 diff check 全部通过；失败、错误、阻塞、跳过、未运行均为 0。

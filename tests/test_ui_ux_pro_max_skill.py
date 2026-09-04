@@ -43,7 +43,12 @@ def test_skill_triggers_cover_all_requested_platforms_and_motion() -> None:
     ):
         assert phrase in frontmatter
 
-    assert "纯后端或只生成最终图片资源时不使用" in frontmatter
+    for phrase in (
+        "UI 项目全流程归本 skill",
+        "不含 UI 设计且只需单张最终图片时直接用 `imagegen`",
+        "成套不属于 UI 项目流程的独立美术或游戏资源包时用 `art-asset-pipeline`",
+    ):
+        assert phrase in frontmatter
 
 
 def test_main_entry_links_every_reference_directly() -> None:
@@ -56,17 +61,32 @@ def test_main_entry_links_every_reference_directly() -> None:
         assert (SKILL_DIR / "references" / name).is_file()
 
 
-def test_skill_keeps_specialized_routing_and_project_contract() -> None:
+def test_skill_owns_ui_assets_and_keeps_project_contract() -> None:
     content = read(SKILL)
 
     for specialized_skill in (
-        "art-asset-pipeline",
         "shadcn",
         "frontend-patterns",
         "webapp-testing",
         "skill-creator",
     ):
         assert specialized_skill in content
+
+    assert (
+        "`art-asset-pipeline` 只处理不属于 UI 项目流程的独立美术或游戏资源包"
+        in content
+    )
+    for phrase in (
+        "美术方向确认",
+        "资源清单确认",
+        "`assets/`",
+        "可编辑设计源或项目链接，并标明版本",
+    ):
+        assert phrase in content
+
+    handoff = read(SKILL_DIR / "references" / "design-workflow-and-deliverables.md")
+    assert "可直接消费的机器可读 token 文件" in handoff
+    assert "不需要时只提供平台变量映射" in handoff
 
     for phrase in (
         "非 Shanforge work item 的最终响应结尾必须单独回写",
@@ -98,18 +118,20 @@ def test_design_workflow_confirms_representative_pages_before_expansion() -> Non
     )
 
 
-def test_uiux_routes_design_boundary_and_keeps_art_assets_specialized() -> None:
+def test_uiux_and_art_asset_routes_are_mutually_exclusive() -> None:
     content = read(REPO_ROOT / "skills" / "using-shanforge" / "SKILL.md")
 
-    assert (
-        "当前缺少界面结构、交互、视觉系统或平台映射"
-        in content
+    ui_route = next(line for line in content.splitlines() if line.startswith("| UI / UX 全流程 |"))
+    asset_route = next(
+        line
+        for line in content.splitlines()
+        if line.startswith("| 独立美术或游戏资源包 |")
     )
-    assert (
-        "界面方案已确定或不适用，当前需要美术方向、UI 美术图、游戏素材、"
-        "资源清单、确认图或最终资源包"
-        in content
-    )
+
+    assert "高保真确认" in ui_route
+    assert "UI 素材" in ui_route
+    assert "不属于 UI 项目流程的独立美术或游戏资源包" in asset_route
+    assert "UI 素材" not in asset_route
     assert (
         "普通控件与通用图标默认由代码、平台能力、既有组件或既有图标库实现，不进入位图切图资源包。"
         in read(SKILL_DIR / "references" / "design-workflow-and-deliverables.md")
@@ -130,8 +152,8 @@ def test_platform_references_cover_native_constraints() -> None:
         "mobile-high-fidelity.md": (
             "Penpot 承载",
             "`imagegen`",
-            "`art-asset-pipeline`",
-            "不写入 `approved/`",
+            "`assets/`",
+            "资源清单确认",
             "不能直接当组件稿",
         ),
         "mini-programs.md": ("基础库", "包体", "真机", "宿主", "固定 88rpx"),
@@ -262,5 +284,5 @@ def test_codex_interface_metadata_is_present() -> None:
     content = read(SKILL_DIR / "agents" / "openai.yaml")
 
     assert 'display_name: "全平台 UI/UX Pro Max"' in content
-    assert "跨 Web、小程序、移动端与桌面端" in content
+    assert "UI 项目全流程" in content
     assert "$ui-ux-pro-max" in content

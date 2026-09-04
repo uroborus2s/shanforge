@@ -42,3 +42,5 @@ def test_skill_states_machine_checkable_manifest_fields() -> None:
 
     for phrase in ("`pack_type`", "`assets`", "`path`", "`source`", "临时路径", "缺失文件"):
         assert phrase in skill
+
+    assert "不属于 UI 项目流程" in skill

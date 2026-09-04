@@ -453,3 +453,4 @@
 - 2026-08-23：`TEST-GOVERNANCE-001` 已关闭；实现提交 `c4534ba` 的干净克隆为 `236 passed + 4 subtests`，Ruff、两个 Skill validator、25 JSON、36 JSONL、Git 状态和 diff check 全绿。
 - 2026-08-23：`TEST-GOVERNANCE-CLOSURE-001` 已关闭；同 reviewer 复审 `approved / 98 / C0-I0-M0`，正式发布测试计划 `v3.2.0` 与案例目录 `v1.0.0`；实现提交 `ca436c9` 的干净克隆 `246 passed / 4 subtests passed`，最终报告自动校验通过。
 - 2026-08-24：`MODEL-DISPATCH-RUNTIME-001` 已实现 Sol 主控、Luna/Terra worker 与 Terra/high 独立 reviewer 的真实父会话派发；两轮 changes_requested 的派发互斥、任务简报、跨 Skill 边界和状态投影问题已关闭，同一 reviewer 终审 `approved / 96 / C0-I0-M0`。实现提交 `b270ae4` 干净克隆完整 pytest `273 passed`，Ruff、38/38 Skill validator、解析、diff 与 Git clean 全绿，工作项关闭。
+- 2026-09-04：`UI-DESIGN-MASTER-001` 已关闭；`ui-ux-pro-max` 成为 UI 设计、素材和开发交付的唯一入口，`art-asset-pipeline` 收缩为非 UI 的成套独立美术或游戏资源管线。中文专家终审 `approved / 100 / C0-I0-M0`，全仓 `360 passed / 11 subtests passed`。

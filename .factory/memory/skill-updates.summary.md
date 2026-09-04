@@ -166,3 +166,4 @@
 - 首轮独立评审后进一步统一：任何仓内持久化都会升级；PRD 与 workflow/API/system architecture 的 Session 主链均为先分类、项目化后按需恢复；fast-path smoke 使用 11 条封闭专用断言和固定 22 分分母。
 - `TASK-SKILL-004` 已收敛第二批 32 个工作 Skill：消费者只保留共享合同链接，工作 Skill 透传本地 `status/needs`，`using-shanforge` 独占 `project_position/completion_level/stop_reason/scope_remaining/next_required_action` 项目状态信封；独立复审 `approved / 100 / C0 I0 M0`。
 - 2026-07-28：`stratix-service` 删除无业务价值的项目治理尾注，改为声明 Core 1.1.2、Forge 1.1.4、Create 1.1.2、Database 1.1.1、Testing 1.0.0-beta.1 适用基线；业务项目不读框架源码，版本差异交由 skill 维护者处理。独立复审 `approved / 100 / C0-I0-M0`。
+- 2026-09-04：`ui-ux-pro-max` 统一 UI 从结构、视觉、高保真、素材到开发交付的完整流程；`art-asset-pipeline` 仅处理非 UI 的成套独立美术或游戏资源包；`using-shanforge` 改为三分互斥路由。中文专家终审 `approved / 100 / C0-I0-M0`。

@@ -1,4 +1,4 @@
 interface:
   display_name: "全平台 UI/UX Pro Max"
-  short_description: "跨 Web、小程序、移动端与桌面端的 UI/UX 和动效设计"
-  default_prompt: "使用 $ui-ux-pro-max 为目标平台设计可实现、可验证的 UI/UX 与动效方案。"
+  short_description: "UI 项目全流程：跨平台 UI/UX、动效、素材和开发交付"
+  default_prompt: "使用 $ui-ux-pro-max 完成 UI 项目从 UI/UX、动效、素材到开发交付的可验证方案。"

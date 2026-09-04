@@ -1,7 +1,9 @@
 # 测试摘要
 
-- 当前阶段：`TECHNICAL-ASSESSMENT-RESPONSE-001 / closed`
-- 当前验证结论：完整 pytest `358 passed / 11 subtests passed`；Ruff、38/38 Skill validator、响应黑盒 19/19、当前 TaskCard 图、ledger 唯一性、代码形态和 diff check 全部通过。
+- 当前阶段：`UI-DESIGN-WORKFLOW-001 / closed`
+- 当前验证结论：全仓 pytest `360 passed / 11 subtests passed`；两份 Skill validator、全仓 Ruff、ledger 唯一性和 diff check 通过。
+
+- 2026-09-04：关键页面确认门和路由边界初始 RED `2 failed / 11 passed`；评审整改 RED `1 failed / 20 passed`。定向与相邻流程 `40 passed`；Memory 同步后首次全仓为 `359 passed / 1 failed / 11 subtests passed`，补齐最新 ledger 事件身份后最终全仓 `360 passed / 11 subtests passed`。两份 Skill validator、全仓 Ruff、ledger 和 diff check 通过。
 
 - 2026-09-03：技术评估回复合同首轮 Red `3 failed / 9 passed`，历史时点、示例语境和评审整改分别形成 `1 failed / 11 passed` 的定向 Red；最终定向 `12 passed`。完整质量门为 `358 passed / 11 subtests passed`，响应黑盒 `19 passed`，Ruff、38/38 validator、TaskCard 图、ledger、代码形态和 diff check 全部通过。
 

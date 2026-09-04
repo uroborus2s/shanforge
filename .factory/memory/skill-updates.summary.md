@@ -1,5 +1,7 @@
 # Skill Updates Summary
 
+- 当前（2026-09-04）：`ui-ux-pro-max` 通用流程新增“先确认少量代表性关键页面，再扩展其余页面和平台”；普通控件和通用图标默认不进入位图切图资源包。`using-shanforge` 改为按界面方案是否确定分阶段路由 UI/UX 与美术资源。中文专家复审 `approved / 100 / C0-I0-M0`。
+
 - 当前（2026-09-03）：`using-shanforge` 共享正文合同新增技术评估类型，按“需求 → 现象 → 代码 → 原因 → 影响 → 建议”解释问题；工作 Skill 回写合同新增 `technical_assessment_summary`；`humanizer` 保留评估时点和修复状态，不得把建议润色成已修复。独立复审 `approved / 100 / C0-I0-M0`，完整 pytest `358 passed / 11 subtests passed`。
 
 - 当前（2026-09-02）：`SOFTWARE-ENGINEERING-SKILL-AUDIT-CLOSURE-001` 已完成 T09–T13 和 R01–R06。开发、测试、Bug、修复、发布响应按工作类型提供可读事实；计划模板明确 WBS 状态、TaskCard 生命周期、owner 和依赖 DAG；Crawler4j/Stratix 使用真实 lock + CLI smoke；代码形态门拒绝嵌套函数和嵌套 lambda。五专家复评 `190/190`，综合分 `85.6 → 92.9`，45/45 Finding 关闭，最终 `approved / C0-I0-M0`。

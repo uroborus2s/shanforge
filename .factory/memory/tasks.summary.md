@@ -1,9 +1,11 @@
 # 任务摘要
 
-- 当前阶段：`TECHNICAL-ASSESSMENT-RESPONSE-001 / closed`
-- 当前焦点：技术评估回复合同 1/1 个 TaskCard 已关闭；独立复审 `approved / 100 / C0-I0-M0`，当前无活动任务。
+- 当前阶段：`UI-DESIGN-WORKFLOW-001 / closed`
+- 当前焦点：UI 设计工作流最小修订 1/1 个 TaskCard 已关闭；中文专家复审 `approved / 100 / C0-I0-M0`，当前无活动任务。
 
 > 历史读取规则：以下所有带日期条目都是记录发生时的历史快照。条目中的“当前”“下一步”只表示当时状态，不得覆盖本文件顶部的当前焦点和当前动作。
+
+- 2026-09-04：`UI-DESIGN-WORKFLOW-001` 已增加通用关键页面确认门、位图切图边界和按阶段互斥路由；中文专家首轮 `C0-I2-M0`，整改后复审 `approved / 100 / C0-I0-M0`，全仓 `360 passed / 11 subtests passed`。回源：`.factory/workitems/UI-DESIGN-WORKFLOW-001/ledger.jsonl`。
 
 - 2026-09-03：`TECHNICAL-ASSESSMENT-RESPONSE-001` 已补齐技术评估“需求 → 现象 → 代码 → 原因 → 影响 → 建议”事实链、共享回写字段和 humanizer 修复状态保护；首轮 1 个 Important 已整改，独立复审 `approved / 100 / C0-I0-M0`，完整 pytest `358 passed / 11 subtests passed`。回源：`.factory/workitems/TECHNICAL-ASSESSMENT-RESPONSE-001/ledger.jsonl`。
 

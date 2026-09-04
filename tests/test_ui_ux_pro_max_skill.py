@@ -89,6 +89,33 @@ def test_design_search_is_not_described_as_a_business_database() -> None:
     assert "数据库命中" not in content
 
 
+def test_design_workflow_confirms_representative_pages_before_expansion() -> None:
+    content = read(SKILL_DIR / "references" / "design-workflow-and-deliverables.md")
+
+    assert (
+        "先低保真验证结构，再完成少量代表性关键页面并确认视觉与组件规则，最后扩展其余页面和平台。"
+        in content
+    )
+
+
+def test_uiux_routes_design_boundary_and_keeps_art_assets_specialized() -> None:
+    content = read(REPO_ROOT / "skills" / "using-shanforge" / "SKILL.md")
+
+    assert (
+        "当前缺少界面结构、交互、视觉系统或平台映射"
+        in content
+    )
+    assert (
+        "界面方案已确定或不适用，当前需要美术方向、UI 美术图、游戏素材、"
+        "资源清单、确认图或最终资源包"
+        in content
+    )
+    assert (
+        "普通控件与通用图标默认由代码、平台能力、既有组件或既有图标库实现，不进入位图切图资源包。"
+        in read(SKILL_DIR / "references" / "design-workflow-and-deliverables.md")
+    )
+
+
 def test_platform_references_cover_native_constraints() -> None:
     expected = {
         "web.md": ("语义 HTML", "400%", "prefers-reduced-motion"),

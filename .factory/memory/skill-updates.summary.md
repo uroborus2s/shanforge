@@ -1,5 +1,7 @@
 # Skill Updates Summary
 
+- 当前（2026-09-05）：`UI-VISUAL-QUALITY-001` 已关闭，`ui-ux-pro-max` 改为候选检索、产品特异方向、优秀案例观察转化与实际截图迭代；新增 12 brief 合成实验输入。403 passed / 11 subtests passed，独立复审 approved / 96 / C0-I0-M0；当前宿主 symlink 已生效，真实 UI A/B 未运行。
+
 - 当前（2026-09-04）：`ui-ux-pro-max` 通用流程新增“先确认少量代表性关键页面，再扩展其余页面和平台”；普通控件和通用图标默认不进入位图切图资源包。`using-shanforge` 改为按界面方案是否确定分阶段路由 UI/UX 与美术资源。中文专家复审 `approved / 100 / C0-I0-M0`。
 
 - 当前（2026-09-03）：`using-shanforge` 共享正文合同新增技术评估类型，按“需求 → 现象 → 代码 → 原因 → 影响 → 建议”解释问题；工作 Skill 回写合同新增 `technical_assessment_summary`；`humanizer` 保留评估时点和修复状态，不得把建议润色成已修复。独立复审 `approved / 100 / C0-I0-M0`，完整 pytest `358 passed / 11 subtests passed`。

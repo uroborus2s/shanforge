@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import re
 import subprocess
 import sys
@@ -112,10 +113,95 @@ def test_design_search_is_not_described_as_a_business_database() -> None:
 def test_design_workflow_confirms_representative_pages_before_expansion() -> None:
     content = read(SKILL_DIR / "references" / "design-workflow-and-deliverables.md")
 
-    assert (
-        "先低保真验证结构，再完成少量代表性关键页面并确认视觉与组件规则，最后扩展其余页面和平台。"
-        in content
-    )
+    assert "同内容、同视口" in content
+    assert "默认比较三种真实视觉方向" in content
+
+
+def test_visual_direction_reference_records_evidence_and_experiment_boundary() -> None:
+    content = read(SKILL_DIR / "references" / "visual-direction-and-quality.md")
+
+    for phrase in (
+        "MIT Museum case study",
+        "未试用实时产品交互",
+        "不是 live app",
+        "同一模型、工具和预算",
+        "未参与生成的 reviewer",
+        "没有主要可用性回退",
+    ):
+        assert phrase in content
+
+
+def test_ui_design_briefs_cover_modes_platforms_and_observable_evidence() -> None:
+    fixture = json.loads(read(REPO_ROOT / "tests/fixtures/ui-design-briefs.json"))
+    briefs = fixture["briefs"]
+
+    assert fixture["fixture_kind"] == "synthetic_visual_experiment_input"
+    assert len(briefs) == 12
+    assert {brief["id"] for brief in briefs} == {
+        f"ui-brief-{number:02d}" for number in range(1, 13)
+    }
+    assert {brief["task_mode"] for brief in briefs} == {
+        "new",
+        "redesign",
+        "baseline-extension",
+        "local-fix",
+    }
+    assert {brief["surface"] for brief in briefs} == {"persuade", "operate", "read", "experience"}
+    assert {brief["platform"] for brief in briefs} >= {
+        "web",
+        "mini-program",
+        "apple",
+        "android",
+        "desktop",
+    }
+    record_ids = set()
+    for brief in briefs:
+        assert brief["sample_content"]
+        assert brief["viewports"]
+        assert brief["screenshot_success"]
+        assert brief["behavior_success"]
+        initial_data = brief["initial_data"]
+        assert initial_data["record_count"] == len(initial_data["records"])
+        for record in initial_data["records"]:
+            assert record["id"] and record["status"]
+            assert record["id"] not in record_ids
+            record_ids.add(record["id"])
+        assert brief["state_reason"]
+        assert brief["recovery_action"]
+        if brief["task_mode"] != "new":
+            baseline = brief["baseline"]
+            assert baseline["tokens"]["color"]
+            assert baseline["tokens"]["spacing_unit"]
+            assert baseline["tokens"]["font_stack"]
+            assert baseline["layout"]["regions"]
+            assert baseline["layout"]["sizing"]
+            assert all(
+                component["id"] and component["state"]
+                for component in baseline["components"]
+            )
+            assert baseline["preserved_behavior"]
+            assert baseline["allowed_change"]
+            assert baseline["protected"]
+            assert not set(baseline["allowed_change"]) & set(baseline["protected"])
+
+    by_id = {brief["id"]: brief for brief in briefs}
+    assert by_id["ui-brief-02"]["initial_data"]["record_count"] == 3
+    assert by_id["ui-brief-02"]["sample_content"]["title"] == by_id["ui-brief-02"][
+        "initial_data"
+    ]["records"][0]["title"]
+    assert by_id["ui-brief-03"]["initial_data"]["records"][2]["total_cny"] == 24.8
+    cooking_records = by_id["ui-brief-04"]["initial_data"]["records"]
+    assert len(cooking_records) == 8
+    assert cooking_records[2]["status"] == "active"
+    assert by_id["ui-brief-06"]["initial_data"]["record_count"] == 4
+    assert {record["status"] for record in by_id["ui-brief-06"]["initial_data"]["records"]} == {
+        "in-review",
+        "queued",
+        "decided",
+        "blocked",
+    }
+
+    assert "Do not prefill results" in fixture["experiment"]["protocol"]
 
 
 def test_uiux_and_art_asset_routes_are_mutually_exclusive() -> None:
@@ -153,7 +239,6 @@ def test_platform_references_cover_native_constraints() -> None:
             "Penpot 承载",
             "`imagegen`",
             "`assets/`",
-            "资源清单确认",
             "不能直接当组件稿",
         ),
         "mini-programs.md": ("基础库", "包体", "真机", "宿主", "固定 88rpx"),
@@ -167,6 +252,9 @@ def test_platform_references_cover_native_constraints() -> None:
         content = read(SKILL_DIR / "references" / name)
         for phrase in phrases:
             assert phrase in content, f"{name} missing {phrase}"
+
+    shared_visual_rules = read(SKILL_DIR / "references" / "visual-direction-and-quality.md")
+    assert "资源清单" in shared_visual_rules
 
 
 def test_admin_web_uses_one_component_icon_and_motion_baseline() -> None:

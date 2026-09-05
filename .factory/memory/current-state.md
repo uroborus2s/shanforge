@@ -1,7 +1,7 @@
 # 当前状态
 
 - 当前模式：`codex_desktop`
-- 当前阶段：`UI-DESIGN-MASTER-001 / CLOSED`
+- 当前阶段：`UI-VISUAL-QUALITY-001 / CLOSED`
 - 活跃任务数：0
 - 阻塞项数：0
 - 当前 Gate：`none`
@@ -16,10 +16,10 @@
 
 ## 最近事实
 
-- `ui-ux-pro-max` 统一承接 UI 从设计、高保真确认、素材生产到开发交付的全流程。
-- 非 UI 单张图片直接使用 `imagegen`；成套独立美术或游戏资源包进入 `art-asset-pipeline`。
-- UI 主交付包含带版本的可编辑设计源、按需机器可读 token、预览和带 manifest 的正式素材。
-- 独立中文语言专家复审 `approved / 100 / C0-I0-M0`；全仓 `360 passed / 11 subtests passed`，三个 Skill validator、Ruff 和 diff check 通过。
+- 用户已批准 UI 设计决策与美术质量重构，独立计划复审 approved。
+- 评审整改后全仓 403 passed / 11 subtests passed；Ruff、代码形状、validator 与 diff check 通过，独立复审 approved / 96 / C0-I0-M0。
+- 保持既有 UI 与非 UI 素材边界；本轮不生产最终 UI 或重做批准设计。
+- 12 组真实产品画面 A/B 尚未运行，测试通过不能代替美术验收。
 
 ## 唯一下一动作
 
@@ -27,10 +27,11 @@
 
 ## 历史回源
 
-- 最近 WorkItem：`.factory/workitems/UI-DESIGN-MASTER-001/`
-- Ledger：`.factory/workitems/UI-DESIGN-MASTER-001/ledger.jsonl`
-- Evidence：`.factory/workitems/UI-DESIGN-MASTER-001/evidence/completion-verification.md`
-- Review：`.factory/workitems/UI-DESIGN-MASTER-001/reviews/independent-review.md`
+- 最近 WorkItem：`.factory/workitems/UI-VISUAL-QUALITY-001/`
+- Ledger：`.factory/workitems/UI-VISUAL-QUALITY-001/ledger.jsonl`
+- Plan review：`.factory/workitems/UI-VISUAL-QUALITY-001/reviews/plan-review.md`
+- Evidence：`.factory/workitems/UI-VISUAL-QUALITY-001/evidence/verification.md`
+- Review：`.factory/workitems/UI-VISUAL-QUALITY-001/reviews/independent-rereview.md`
 - 稳定 Ledger 索引：`.factory/workitems/<WORKITEM-ID>/ledger.jsonl`
 - 非活跃任务摘要：`.factory/memory/tasks.summary.md`
 

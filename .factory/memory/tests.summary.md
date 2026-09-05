@@ -1,7 +1,9 @@
 # 测试摘要
 
-- 当前阶段：`UI-DESIGN-WORKFLOW-001 / closed`
-- 当前验证结论：全仓 pytest `360 passed / 11 subtests passed`；两份 Skill validator、全仓 Ruff、ledger 唯一性和 diff check 通过。
+- 当前阶段：`UI-VISUAL-QUALITY-001 / closed`
+- 当前验证结论：评审整改后完整 pytest `403 passed / 11 subtests passed`；目标 Ruff、代码形状、UI skill validator 和 diff check 通过。真实 12 组 UI A/B 未运行。
+
+- 2026-09-05：UI 候选与设计流程定向 56 passed；独立前向 SwiftUI 与 ASCII/cp1252 输出验证通过。review 首轮 3 Important 均关闭；固定数据/语义测试不是美术画面通过证据。
 
 - 2026-09-04：关键页面确认门和路由边界初始 RED `2 failed / 11 passed`；评审整改 RED `1 failed / 20 passed`。定向与相邻流程 `40 passed`；Memory 同步后首次全仓为 `359 passed / 1 failed / 11 subtests passed`，补齐最新 ledger 事件身份后最终全仓 `360 passed / 11 subtests passed`。两份 Skill validator、全仓 Ruff、ledger 和 diff check 通过。
 

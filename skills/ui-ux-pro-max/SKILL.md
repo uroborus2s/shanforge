@@ -24,7 +24,7 @@ description: 全平台 UI/UX、动效与 UI 素材交付。用于 Web、响应�
 
 | 任务 | 必读 |
 |---|---|
-| 新设计、重构、设计评审或交付 | [设计流程与交付物](references/design-workflow-and-deliverables.md) |
+| 新设计、重构、设计评审或交付 | [设计流程与交付物](references/design-workflow-and-deliverables.md) 和 [视觉方向与质量](references/visual-direction-and-quality.md) |
 | Web、H5、响应式页面、PWA | [Web 设计](references/web.md) |
 | React 管理后台、运营后台、数据后台 | [Web 设计](references/web.md) 和 [管理后台设计](references/admin-web.md) |
 | iOS、Android、小程序高保真视觉与美术交付 | [移动端高保真设计](references/mobile-high-fidelity.md)、目标平台 reference 和 [设计流程与交付物](references/design-workflow-and-deliverables.md) |
@@ -40,7 +40,7 @@ description: 全平台 UI/UX、动效与 UI 素材交付。用于 Web、响应�
 
 ### 1. 定义任务与证据
 
-确认任务属于新设计、现有界面改进、实现约束、设计评审或动效设计。提取：
+确认任务属于新设计/整体重设计、已有批准方向的扩展、局部修复、只读评审或动效设计。先确定目标平台和平台限制，再选视觉；已有批准方向只继承并扩展，局部修复直接解决目标问题，只读评审不写设计产物。新建或整体重设计才按 [视觉方向与质量](references/visual-direction-and-quality.md) 比较少量方向。提取：
 
 - 产品目标、核心用户、主要任务、业务优先级和成功指标。
 - 目标平台、设备等级、方向、窗口尺寸、输入方式、语言和无障碍范围。
@@ -59,12 +59,14 @@ description: 全平台 UI/UX、动效与 UI 素材交付。用于 Web、响应�
 
 ### 3. 形成设计系统
 
-项目没有可复用设计系统时，先运行：
+先按 `persuade`（说服/转化）、`operate`（高密度操作）、`read`（阅读/理解）、`experience`（沉浸体验）标记页面 surface；一个产品可以有多个 surface。先从产品事实写品牌方向记录：任务与内容优先级、布局骨架、字体层级/CJK、影像主体、1–2 个识别点、反方向、平台约束与截图/行为验证。检索只服务这个已明确的意图，不能先替产品决定构图、品牌或字体。
+
+项目没有可复用设计系统且已有明确检索意图时，可运行：
 
 以下 `<skill-dir>` 表示当前 `SKILL.md` 所在目录；执行前替换为该目录的实际绝对路径，不假设目标项目包含本 Skill 的 `scripts/`。
 
 ```bash
-python3 <skill-dir>/scripts/search.py "<产品 行业 语气 密度>" --design-system -p "<项目名>"
+python3 <skill-dir>/scripts/search.py "<保留原意的中英文关键词>" --design-system -p "<项目名>" --platform <platform> --surface <surface> --locale <locale>
 ```
 
 已有系统或只做局部评审时，不重新生成整套视觉语言。按需查询：
@@ -74,7 +76,7 @@ python3 <skill-dir>/scripts/search.py "<关键词>" --domain <product|style|colo
 python3 <skill-dir>/scripts/search.py "<关键词>" --stack <react|nextjs|vue|swiftui|jetpack-compose|flutter|react-native|javafx|wpf|winui|avalonia|uno|uwp>
 ```
 
-设计知识检索命中或未命中都只是候选输入。根据品牌、平台规范、可访问性、内容和实现成本筛选；不要把命中项原样拼成方案。
+设计知识检索命中或未命中都只是候选输入。中文请求由设计者在保留原意后提取中英文关键词，脚本不声称翻译；根据品牌、平台规范、可访问性、内容和实现成本筛选，不要把命中项原样拼成方案。未决项保留为未决，不以通用 Hero、字体或颜色补齐。
 
 设计系统至少定义语义色、字体角色、间距、圆角、层级、图标、布局、组件状态、焦点、响应式/自适应规则和动效 token。页面级差异只写 override，不复制整套 token。
 
@@ -97,7 +99,7 @@ python3 <skill-dir>/scripts/search.py "<关键词>" --stack <react|nextjs|vue|sw
 
 ### 6. 高保真、素材与交付
 
-按“低保真 → 少量代表性关键页确认 → 全页面/平台扩展”推进。需要品牌或内容型位图时，先以 `imagegen` 生成方向样张，取得美术方向确认后再提交资源清单；资源清单确认前不得生产正式素材。确认后将正式素材放入 `assets/`，以 manifest 记录路径、用途、尺寸、格式、来源和许可。
+按“低保真 → 少量代表性关键页确认 → 全页面/平台扩展”推进。仅在摄影、插画或纹理确为视觉必要时使用位图；方向样张可用 `imagegen`，但并非每个任务都必须生成。经美术方向确认与资源清单确认后，才生产正式素材并放入 `assets/`，以 manifest 记录路径、用途、尺寸、格式、来源和许可。组件、文字和通用图标保持可编辑的原生或代码实现。
 
 可编辑设计源或项目链接，并标明版本，是主交付；PNG/PDF 页面图只作评审或归档预览。普通控件、真实文字、状态和通用图标由组件、平台能力或既有图标库实现，不烘焙进图片。
 
@@ -115,6 +117,7 @@ python3 <skill-dir>/scripts/search.py "<关键词>" --stack <react|nextjs|vue|sw
 - 安全区、系统栏、横竖屏、分屏、窗口缩放、折叠屏或多显示器行为明确。
 - 动画可中断、尊重 reduced motion、不引发布局跳动，并在目标设备上测量流畅度。
 - 有可运行页面时，优先使用项目 lint/test/build、浏览器截图、模拟器或真机；未运行必须写明原因和风险。
+- 普通设计先以实际截图 critic：列出最多三项优先问题，修改后在同一视口复核。内容是否清晰、排版是否可读、资产是否一致、核心交互是否基本可用任一未达标时，不得仅凭自评推进。
 
 ## 风险与失败语义
 

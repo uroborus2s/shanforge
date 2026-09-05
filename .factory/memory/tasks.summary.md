@@ -1,7 +1,9 @@
 # 任务摘要
 
-- 当前阶段：`UI-DESIGN-WORKFLOW-001 / closed`
-- 当前焦点：UI 设计工作流最小修订 1/1 个 TaskCard 已关闭；中文专家复审 `approved / 100 / C0-I0-M0`，当前无活动任务。
+- 当前阶段：`UI-VISUAL-QUALITY-001 / closed`
+- 当前焦点：3/3 TaskCard 关闭；独立复审 approved / 96 / C0-I0-M0，全仓 403 passed / 11 subtests passed。真实 UI A/B 未运行。
+
+- 2026-09-05：候选检索、平台隔离、正式规则保护与优秀案例观察/美术迭代流程完成重构；新增 12 份固定合成实验输入。回源：`.factory/workitems/UI-VISUAL-QUALITY-001/ledger.jsonl`。
 
 > 历史读取规则：以下所有带日期条目都是记录发生时的历史快照。条目中的“当前”“下一步”只表示当时状态，不得覆盖本文件顶部的当前焦点和当前动作。
 

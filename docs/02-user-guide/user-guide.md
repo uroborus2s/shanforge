@@ -53,6 +53,18 @@ uv run python scripts/sync-codex-skills
 skill 自带的确定性脚本会随整个 skill 目录一起同步。目标项目不需要复制或调用
 Shanforge 仓库源码。
 
+UI 设计系统检索输出的是候选，不是已定稿视觉。例如：
+
+```bash
+python3 <skill-dir>/scripts/search.py "预约诊所 healthcare appointment calm" --design-system --platform web --surface persuade --locale zh-CN --stack react --json --persist -p care-console
+```
+
+`--json` 输出候选及未决项；`--persist` 只会在 `design-system/<project>/candidates/` 创建候选 JSON，不再生成或覆盖 `MASTER.md` 和页面正式文件。`dials` 只表达意图，不能替设计结论；`--domain` 与 `--design-system` 等冲突参数会报错。Flutter/React Native 等跨端栈需显式 `--platform`，不要假定单端。宿主若是仓内 skill 的 symlink 会自动读取最新内容；副本安装才按已有同步脚本实际支持范围操作，并在同步后回读，不假定存在单 skill 参数。
+
+API 迁移：`generate_design_system` 保留原位置参数并返回 `str`，`output_format=json` 时为 JSON 字符串；`DesignSystemGenerator.generate` 返回新的 candidates dict，旧 `style`/`colors`/`typography` 最终字段不兼容。非 JSON 的 `--persist` 同时显示候选文本和实际创建路径，不再自动决定 `MASTER`。
+
+新 UI 或整体重设计先确定平台，再用少量同内容、同视口的方向比较和真实截图核查收敛；已批准设计只继承扩展，局部修改不重做视觉。真实产品多端截图盲评必须另行运行，候选检索或静态检查不能替代它。
+
 ## 3. 第一轮会话怎么说
 
 推荐直接给 AI 这些信息：

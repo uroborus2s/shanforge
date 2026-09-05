@@ -1,0 +1,849 @@
+{
+    "schema_version": 1,
+    "fixture_kind": "synthetic_visual_experiment_input",
+    "experiment": {
+        "protocol": "Same old/new skill commit comparison uses one model, tools, and budget; randomize outputs as A/B; an uninvolved reviewer records identity, five 1-5 scores, source screenshots, and behavior evidence. Do not prefill results.",
+        "dimensions": [
+            "composition_hierarchy",
+            "cjk_typography",
+            "content_brand_specificity",
+            "image_consistency",
+            "detail_finish"
+        ],
+        "improved_rule": "new is improved only when a majority of dimensions are better and there is no major usability regression; otherwise unchanged, regressed, or incomplete"
+    },
+    "briefs": [
+        {
+            "id": "ui-brief-01",
+            "task_mode": "new",
+            "surface": "persuade",
+            "baseline": null,
+            "initial_data": {
+                "record_count": 2,
+                "records": [
+                    {
+                        "id": "doctor-zhou-lan",
+                        "status": "available",
+                        "name": "周岚",
+                        "specialty": "皮肤科"
+                    },
+                    {
+                        "id": "slot-2026-09-11-1430",
+                        "status": "available",
+                        "start": "2026-09-11T14:30:00+08:00",
+                        "fee_cny": 80
+                    }
+                ]
+            },
+            "state_reason": "new visitor has not selected a slot",
+            "recovery_action": "select another available slot",
+            "prompt": "为城市预约诊所设计中文首页。",
+            "context": "目标为首诊预约；不得假设既有品牌。",
+            "sample_content": {
+                "title": "今天就能约到的皮肤科",
+                "doctor": "周岚 主治医师",
+                "slot": "周五 14:30"
+            },
+            "page": "home",
+            "state": "default",
+            "platform": "web",
+            "stack": "react",
+            "viewports": [
+                "1440x900",
+                "390x844"
+            ],
+            "screenshot_success": "首诊、医生与最近时段在首屏可辨。",
+            "behavior_success": "选择时段后主操作可达确认页。"
+        },
+        {
+            "id": "ui-brief-02",
+            "task_mode": "new",
+            "surface": "read",
+            "baseline": null,
+            "initial_data": {
+                "record_count": 3,
+                "records": [
+                    {
+                        "id": "exh-after-rain",
+                        "status": "featured",
+                        "title": "After the Rain / 雨后",
+                        "date": "2026-09-12/2027-01-18",
+                        "artist": "Lin Wei / 林薇"
+                    },
+                    {
+                        "id": "exh-paper-sea",
+                        "status": "available",
+                        "title": "Paper Sea / 纸海",
+                        "date": "2026-10-03/2027-02-08",
+                        "artist": "Zhao Yu / 赵宇"
+                    },
+                    {
+                        "id": "exh-blue-hour",
+                        "status": "available",
+                        "title": "Blue Hour / 蓝调时刻",
+                        "date": "2026-11-01/2027-03-01",
+                        "artist": "He An / 何安"
+                    }
+                ]
+            },
+            "state_reason": "metadata is loading from the exhibition service",
+            "recovery_action": "retry loading the exhibition list",
+            "prompt": "Design a bilingual museum exhibition discovery page.",
+            "context": "English-first title with Chinese exhibition metadata; editorial imagery needs a real subject.",
+            "sample_content": {
+                "title": "After the Rain / 雨后",
+                "date": "12 Sep 2026—18 Jan 2027",
+                "artist": "Lin Wei / 林薇"
+            },
+            "page": "exhibition-discovery",
+            "state": "loading",
+            "platform": "web",
+            "stack": "nextjs",
+            "viewports": [
+                "1280x720",
+                "768x1024"
+            ],
+            "screenshot_success": "双语层级与加载占位不挤压日期。",
+            "behavior_success": "加载完成后展览卡可进入详情。"
+        },
+        {
+            "id": "ui-brief-03",
+            "task_mode": "new",
+            "surface": "operate",
+            "baseline": null,
+            "initial_data": {
+                "record_count": 3,
+                "records": [
+                    {
+                        "id": "sku-muscat-500g",
+                        "status": "selected",
+                        "name": "阳光玫瑰葡萄 500g",
+                        "unit_price_cny": 29.8,
+                        "quantity": 1
+                    },
+                    {
+                        "id": "coupon-autumn-5",
+                        "status": "applied",
+                        "discount_cny": 5
+                    },
+                    {
+                        "id": "checkout-total",
+                        "status": "payable",
+                        "subtotal_cny": 29.8,
+                        "discount_cny": 5,
+                        "total_cny": 24.8,
+                        "pickup_at": "2026-09-06T18:00:00+08:00"
+                    }
+                ]
+            },
+            "state_reason": "coupon has reduced the payable total",
+            "recovery_action": "remove coupon or choose a different pickup time",
+            "prompt": "为小程序设计中文社区团购结算页。",
+            "context": "触控优先，宿主返回语义必须保留。",
+            "sample_content": {
+                "item": "阳光玫瑰葡萄 500g",
+                "price": "¥29.80",
+                "pickup": "明日 18:00 前自提"
+            },
+            "page": "checkout",
+            "state": "coupon-applied",
+            "platform": "mini-program",
+            "stack": "taro",
+            "viewports": [
+                "375x812"
+            ],
+            "screenshot_success": "价格、优惠和自提时间不依赖颜色区分。",
+            "behavior_success": "提交订单按钮在安全区上方且可触达。"
+        },
+        {
+            "id": "ui-brief-04",
+            "task_mode": "new",
+            "surface": "experience",
+            "baseline": null,
+            "initial_data": {
+                "record_count": 8,
+                "records": [
+                    {
+                        "id": "step-01",
+                        "status": "complete",
+                        "text": "切牛肉"
+                    },
+                    {
+                        "id": "step-02",
+                        "status": "complete",
+                        "text": "煎香"
+                    },
+                    {
+                        "id": "step-03",
+                        "status": "active",
+                        "text": "小火炖煮",
+                        "timer_seconds_remaining": 1122
+                    },
+                    {
+                        "id": "step-04",
+                        "status": "pending",
+                        "text": "加入蘑菇"
+                    },
+                    {
+                        "id": "step-05",
+                        "status": "pending",
+                        "text": "收汁"
+                    },
+                    {
+                        "id": "step-06",
+                        "status": "pending",
+                        "text": "调味"
+                    },
+                    {
+                        "id": "step-07",
+                        "status": "pending",
+                        "text": "装盘"
+                    },
+                    {
+                        "id": "step-08",
+                        "status": "pending",
+                        "text": "上桌"
+                    }
+                ]
+            },
+            "state_reason": "the simmer timer is currently running",
+            "recovery_action": "pause timer or return to the previous step",
+            "prompt": "Design an iPad recipe cooking step screen in Chinese and English.",
+            "context": "Hands-free glanceability and timer are primary; do not imitate any award app.",
+            "sample_content": {
+                "title": "红酒炖牛肉 / Beef Bourguignon",
+                "step": "第 3 步 / Step 3",
+                "timer": "18:42"
+            },
+            "page": "cooking-step",
+            "state": "timer-running",
+            "platform": "apple",
+            "stack": "swiftui",
+            "viewports": [
+                "1024x768",
+                "834x1194"
+            ],
+            "screenshot_success": "步骤、计时和计量在分屏时仍可扫读。",
+            "behavior_success": "计时器可暂停，返回不丢失步骤。"
+        },
+        {
+            "id": "ui-brief-05",
+            "task_mode": "new",
+            "surface": "operate",
+            "baseline": null,
+            "initial_data": {
+                "record_count": 1,
+                "records": [
+                    {
+                        "id": "parcel-sf1234567890",
+                        "status": "station-unavailable",
+                        "tracking": "SF1234567890",
+                        "station": "青山驿站",
+                        "promised_date": "2026-09-05",
+                        "updated_at": "2026-09-05T10:20:00+08:00"
+                    }
+                ]
+            },
+            "state_reason": "station service cannot return the current parcel detail",
+            "recovery_action": "retry lookup or contact the pickup station",
+            "prompt": "为 Android 设计中文物流异常处理页。",
+            "context": "需要明确失败恢复，不用装饰掩盖异常。",
+            "sample_content": {
+                "tracking": "SF1234567890",
+                "status": "包裹暂存中",
+                "action": "联系驿站"
+            },
+            "page": "delivery-exception",
+            "state": "service-unavailable",
+            "platform": "android",
+            "stack": "jetpack-compose",
+            "viewports": [
+                "412x915",
+                "320x568"
+            ],
+            "screenshot_success": "异常原因、替代操作和重试区别清晰。",
+            "behavior_success": "系统 Back 返回列表，重试不阻塞其他操作。"
+        },
+        {
+            "id": "ui-brief-06",
+            "task_mode": "new",
+            "surface": "operate",
+            "baseline": null,
+            "initial_data": {
+                "record_count": 4,
+                "records": [
+                    {
+                        "id": "case-2026-0041",
+                        "status": "in-review",
+                        "claim": "Invoice total mismatch",
+                        "assignee": "陈默 / Mo Chen"
+                    },
+                    {
+                        "id": "case-2026-0042",
+                        "status": "queued",
+                        "claim": "Missing receipt",
+                        "assignee": "Unassigned"
+                    },
+                    {
+                        "id": "case-2026-0043",
+                        "status": "decided",
+                        "claim": "Duplicate charge",
+                        "assignee": "Ava Li"
+                    },
+                    {
+                        "id": "case-2026-0044",
+                        "status": "blocked",
+                        "claim": "Unreadable document",
+                        "assignee": "陈默 / Mo Chen"
+                    }
+                ]
+            },
+            "state_reason": "one case is decided while evidence review remains",
+            "recovery_action": "open remaining evidence or return to the queue",
+            "prompt": "Design a desktop bilingual evidence review queue.",
+            "context": "Keyboard and resizable window matter more than a marketing hero.",
+            "sample_content": {
+                "case": "CASE-2026-0041",
+                "claim": "Invoice total mismatch",
+                "assignee": "陈默 / Mo Chen"
+            },
+            "page": "review-queue",
+            "state": "partial-complete",
+            "platform": "desktop",
+            "stack": "winui",
+            "viewports": [
+                "1440x900",
+                "1024x768"
+            ],
+            "screenshot_success": "队列、证据和主操作在窄窗口有明确优先级。",
+            "behavior_success": "键盘可聚焦列表并打开独立详情。"
+        },
+        {
+            "id": "ui-brief-07",
+            "task_mode": "redesign",
+            "surface": "operate",
+            "baseline": {
+                "tokens": {
+                    "color": {
+                        "surface": "#FFFFFF",
+                        "text": "#1F2937",
+                        "status_warning": "#B45309"
+                    },
+                    "spacing_unit": "4px",
+                    "font_stack": "Inter, Noto Sans SC, sans-serif"
+                },
+                "layout": {
+                    "regions": [
+                        "sidebar",
+                        "page-header",
+                        "usage-summary",
+                        "data-table"
+                    ],
+                    "sizing": "sidebar 240px; content minmax(0, 1fr); table scrolls below 1024px"
+                },
+                "components": [
+                    {
+                        "id": "usage-filter",
+                        "state": "all-selected"
+                    },
+                    {
+                        "id": "usage-card",
+                        "state": "default"
+                    },
+                    {
+                        "id": "usage-table",
+                        "state": "loaded"
+                    }
+                ],
+                "preserved_behavior": [
+                    "filter state is restored from URL",
+                    "table sort remains available"
+                ],
+                "protected": [
+                    "data fields",
+                    "URL query keys",
+                    "table actions"
+                ],
+                "allowed_change": [
+                    "visual hierarchy",
+                    "layout composition",
+                    "typography treatment"
+                ]
+            },
+            "initial_data": {
+                "record_count": 3,
+                "records": [
+                    {
+                        "id": "team-east-sales",
+                        "status": "active",
+                        "name": "华东销售组",
+                        "usage_percent": 78
+                    },
+                    {
+                        "id": "subscription-pro",
+                        "status": "renewing",
+                        "renewal_date": "2026-09-17",
+                        "days_remaining": 12
+                    },
+                    {
+                        "id": "filter-default",
+                        "status": "selected",
+                        "value": "all"
+                    }
+                ]
+            },
+            "state_reason": "the team's default usage view is open",
+            "recovery_action": "apply or clear a URL-backed filter",
+            "prompt": "重设计已有 SaaS 用量概览，但保留现有数据字段。",
+            "context": "高密度操作页；需比较三种同内容方向。",
+            "sample_content": {
+                "team": "华东销售组",
+                "usage": "78%",
+                "renewal": "还有 12 天"
+            },
+            "page": "usage-overview",
+            "state": "default",
+            "platform": "web",
+            "stack": "react",
+            "viewports": [
+                "1440x900",
+                "1024x768"
+            ],
+            "screenshot_success": "三方向构图/信息组织/字型或影像实质不同。",
+            "behavior_success": "筛选后 URL 状态可恢复。"
+        },
+        {
+            "id": "ui-brief-08",
+            "task_mode": "redesign",
+            "surface": "read",
+            "baseline": {
+                "tokens": {
+                    "color": {
+                        "surface": "#F8F7F4",
+                        "text": "#202124",
+                        "action": "#155E75"
+                    },
+                    "spacing_unit": "4px",
+                    "font_stack": "Source Serif 4, Noto Serif SC, serif"
+                },
+                "layout": {
+                    "regions": [
+                        "search-header",
+                        "filter-row",
+                        "result-list",
+                        "availability"
+                    ],
+                    "sizing": "content max 960px; result rows stack below 640px"
+                },
+                "components": [
+                    {
+                        "id": "catalog-search",
+                        "state": "query-entered"
+                    },
+                    {
+                        "id": "catalog-filter",
+                        "state": "none"
+                    },
+                    {
+                        "id": "hold-action",
+                        "state": "enabled"
+                    }
+                ],
+                "preserved_behavior": [
+                    "search submits query",
+                    "clear filters restores all",
+                    "hold opens confirmation"
+                ],
+                "protected": [
+                    "search behavior",
+                    "availability count",
+                    "hold behavior"
+                ],
+                "allowed_change": [
+                    "result composition",
+                    "typography hierarchy",
+                    "image treatment"
+                ]
+            },
+            "initial_data": {
+                "record_count": 3,
+                "records": [
+                    {
+                        "id": "book-heat-will-kill",
+                        "status": "available",
+                        "title": "The Heat Will Kill You First",
+                        "copies": 3
+                    },
+                    {
+                        "id": "book-climate-fiction",
+                        "status": "available",
+                        "title": "The Ministry for the Future",
+                        "copies": 1
+                    },
+                    {
+                        "id": "filter-none",
+                        "status": "selected",
+                        "query": "climate / 气候",
+                        "value": "all"
+                    }
+                ]
+            },
+            "state_reason": "the search has no active narrowing criteria",
+            "recovery_action": "apply a filter, clear it, or place a hold",
+            "prompt": "Redesign a bilingual public-library search results page.",
+            "context": "Retain search and hold behaviors; compare directions without changing content.",
+            "sample_content": {
+                "query": "climate / 气候",
+                "result": "The Heat Will Kill You First",
+                "availability": "3 copies available"
+            },
+            "page": "search-results",
+            "state": "no-filters",
+            "platform": "web",
+            "stack": "vue",
+            "viewports": [
+                "1280x800",
+                "390x844"
+            ],
+            "screenshot_success": "结果、馆藏状态和保留动作优先于装饰。",
+            "behavior_success": "筛选、清除筛选与保留操作可观察。"
+        },
+        {
+            "id": "ui-brief-09",
+            "task_mode": "baseline-extension",
+            "surface": "operate",
+            "baseline": {
+                "tokens": {
+                    "color": {
+                        "brand": "#0F766E",
+                        "surface": "#FFFFFF",
+                        "text": "#172554"
+                    },
+                    "spacing_unit": "4rpx",
+                    "font_stack": "PingFang SC, Microsoft YaHei, sans-serif"
+                },
+                "layout": {
+                    "regions": [
+                        "member-header",
+                        "order-card",
+                        "bottom-navigation"
+                    ],
+                    "sizing": "page padding 32rpx; bottom navigation fixed above safe area"
+                },
+                "components": [
+                    {
+                        "id": "member-order-card",
+                        "state": "default"
+                    },
+                    {
+                        "id": "order-status-badge",
+                        "state": "delayed"
+                    },
+                    {
+                        "id": "support-action",
+                        "state": "enabled"
+                    }
+                ],
+                "preserved_behavior": [
+                    "back returns to preserved home scroll position",
+                    "bottom navigation remains unchanged"
+                ],
+                "protected": [
+                    "member-home composition",
+                    "brand color values",
+                    "bottom navigation"
+                ],
+                "allowed_change": [
+                    "order-detail content",
+                    "delayed-state copy",
+                    "support entry"
+                ]
+            },
+            "initial_data": {
+                "record_count": 2,
+                "records": [
+                    {
+                        "id": "order-a20260905",
+                        "status": "delayed",
+                        "total_cny": 168,
+                        "promised_date": "2026-09-05",
+                        "revised_date": "2026-09-06"
+                    },
+                    {
+                        "id": "shipment-a20260905-01",
+                        "status": "capacity-delayed",
+                        "carrier": "青山配送",
+                        "updated_at": "2026-09-05T09:00:00+08:00"
+                    }
+                ]
+            },
+            "state_reason": "courier capacity moved the promised delivery date",
+            "recovery_action": "contact support or return to the member home",
+            "prompt": "为已批准的会员首页补充中文订单详情。",
+            "context": "首页构图、品牌色和组件不可改动。",
+            "sample_content": {
+                "order": "订单 #A20260905",
+                "status": "待配送",
+                "total": "¥168.00"
+            },
+            "page": "order-detail",
+            "state": "delayed",
+            "platform": "mini-program",
+            "stack": "taro",
+            "viewports": [
+                "375x812"
+            ],
+            "screenshot_success": "延续批准基线，延迟原因和恢复动作清晰。",
+            "behavior_success": "返回保留原首页位置。"
+        },
+        {
+            "id": "ui-brief-10",
+            "task_mode": "baseline-extension",
+            "surface": "operate",
+            "baseline": {
+                "tokens": {
+                    "color": {
+                        "surface": "#F9FAFB",
+                        "text": "#111827",
+                        "pending": "#A16207"
+                    },
+                    "spacing_unit": "4pt",
+                    "font_stack": "SF Pro Text, PingFang SC, sans-serif"
+                },
+                "layout": {
+                    "regions": [
+                        "dashboard-summary",
+                        "transaction-list",
+                        "native-detail-stack"
+                    ],
+                    "sizing": "horizontal padding 20pt; detail uses system safe area"
+                },
+                "components": [
+                    {
+                        "id": "transaction-row",
+                        "state": "pending"
+                    },
+                    {
+                        "id": "transaction-amount",
+                        "state": "default"
+                    },
+                    {
+                        "id": "dispute-action",
+                        "state": "enabled"
+                    }
+                ],
+                "preserved_behavior": [
+                    "interactive back gesture works",
+                    "Dynamic Type does not truncate amount"
+                ],
+                "protected": [
+                    "dashboard hierarchy",
+                    "native navigation",
+                    "semantic pending color"
+                ],
+                "allowed_change": [
+                    "transaction detail layout",
+                    "pending explanation",
+                    "dispute guidance"
+                ]
+            },
+            "initial_data": {
+                "record_count": 1,
+                "records": [
+                    {
+                        "id": "txn-20260905-001",
+                        "status": "pending",
+                        "merchant": "青山书店",
+                        "amount_cny": -86,
+                        "date": "2026-09-05",
+                        "category": "阅读"
+                    }
+                ]
+            },
+            "state_reason": "merchant settlement has not completed",
+            "recovery_action": "open dispute guidance or return with the native gesture",
+            "prompt": "Extend an approved iOS finance dashboard with transaction detail.",
+            "context": "Do not redraw dashboard; preserve approved hierarchy and native navigation.",
+            "sample_content": {
+                "merchant": "青山书店",
+                "amount": "-¥86.00",
+                "date": "2026年9月5日"
+            },
+            "page": "transaction-detail",
+            "state": "pending",
+            "platform": "apple",
+            "stack": "swiftui",
+            "viewports": [
+                "393x852",
+                "834x1194"
+            ],
+            "screenshot_success": "金额、待处理状态和争议入口与基线一致。",
+            "behavior_success": "返回手势和 Dynamic Type 不截断金额。"
+        },
+        {
+            "id": "ui-brief-11",
+            "task_mode": "local-fix",
+            "surface": "operate",
+            "baseline": {
+                "tokens": {
+                    "color": {
+                        "surface": "hsl(0 0% 100%)",
+                        "text": "hsl(240 10% 3.9%)",
+                        "focus": "hsl(240 5.9% 10%)"
+                    },
+                    "spacing_unit": "0.25rem",
+                    "font_stack": "Inter, Noto Sans SC, sans-serif"
+                },
+                "layout": {
+                    "regions": [
+                        "admin-sidebar",
+                        "page-header",
+                        "users-table"
+                    ],
+                    "sizing": "table columns minmax(8rem, 1fr); horizontal scroll below 640px"
+                },
+                "components": [
+                    {
+                        "id": "invite-status-cell",
+                        "state": "expired"
+                    },
+                    {
+                        "id": "resend-invite",
+                        "state": "enabled"
+                    },
+                    {
+                        "id": "table-focus-ring",
+                        "state": "visible"
+                    }
+                ],
+                "preserved_behavior": [
+                    "keyboard table navigation",
+                    "resend invitation action"
+                ],
+                "protected": [
+                    "shadcn component baseline",
+                    "table columns",
+                    "user data"
+                ],
+                "allowed_change": [
+                    "expired status cell",
+                    "focus treatment",
+                    "resend feedback"
+                ]
+            },
+            "initial_data": {
+                "record_count": 1,
+                "records": [
+                    {
+                        "id": "invite-yifan-001",
+                        "status": "expired",
+                        "name": "王一帆",
+                        "email": "yifan@example.com",
+                        "expires_at": "2026-09-04T18:00:00+08:00"
+                    }
+                ]
+            },
+            "state_reason": "the invitation expiry time has passed",
+            "recovery_action": "resend the invitation without losing table focus",
+            "prompt": "修复管理后台用户表在 400% 缩放下的邀请状态。",
+            "context": "只改表格状态单元与焦点；不得重做页面或更换组件库。",
+            "sample_content": {
+                "name": "王一帆",
+                "email": "yifan@example.com",
+                "status": "邀请已过期"
+            },
+            "page": "users-table",
+            "state": "invite-expired",
+            "platform": "web",
+            "stack": "shadcn",
+            "viewports": [
+                "1280x800",
+                "320x568"
+            ],
+            "screenshot_success": "状态文字换行后仍可读，焦点可见。",
+            "behavior_success": "重新发送邀请可触发且 reduced-motion 不影响反馈。"
+        },
+        {
+            "id": "ui-brief-12",
+            "task_mode": "local-fix",
+            "surface": "operate",
+            "baseline": {
+                "tokens": {
+                    "color": {
+                        "surface": "#FFFFFF",
+                        "text": "#1C1B1F",
+                        "offline": "#7C2D12"
+                    },
+                    "spacing_unit": "4dp",
+                    "font_stack": "Roboto, Noto Sans SC, sans-serif"
+                },
+                "layout": {
+                    "regions": [
+                        "report-form",
+                        "save-area",
+                        "offline-feedback"
+                    ],
+                    "sizing": "content padding 16dp; retry action remains above navigation inset"
+                },
+                "components": [
+                    {
+                        "id": "report-form",
+                        "state": "edited"
+                    },
+                    {
+                        "id": "offline-banner",
+                        "state": "visible"
+                    },
+                    {
+                        "id": "retry-sync",
+                        "state": "enabled"
+                    }
+                ],
+                "preserved_behavior": [
+                    "entered content remains after retry failure",
+                    "retry can be interrupted"
+                ],
+                "protected": [
+                    "form layout",
+                    "field values",
+                    "save behavior"
+                ],
+                "allowed_change": [
+                    "offline feedback",
+                    "retry action",
+                    "sync status copy"
+                ]
+            },
+            "initial_data": {
+                "record_count": 1,
+                "records": [
+                    {
+                        "id": "report-218",
+                        "status": "unsynced-offline",
+                        "title": "巡检记录 #218",
+                        "saved_at": "2026-09-05T08:30:00+08:00",
+                        "body": "设备温度正常，待网络恢复后同步。"
+                    }
+                ]
+            },
+            "state_reason": "network connectivity is unavailable",
+            "recovery_action": "retry sync while retaining the entered report",
+            "prompt": "Fix Android offline save feedback for a Chinese field report.",
+            "context": "Only repair offline state and retry; keep approved form layout.",
+            "sample_content": {
+                "report": "巡检记录 #218",
+                "status": "离线，尚未同步",
+                "action": "重试同步"
+            },
+            "page": "field-report",
+            "state": "offline",
+            "platform": "android",
+            "stack": "jetpack-compose",
+            "viewports": [
+                "412x915"
+            ],
+            "screenshot_success": "离线、未同步和重试不是只靠颜色表达。",
+            "behavior_success": "重试可中断，失败后保留已填内容。"
+        }
+    ]
+}

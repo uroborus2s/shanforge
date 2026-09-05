@@ -9,6 +9,7 @@ import re
 from pathlib import Path
 from math import log
 from collections import defaultdict
+from operator import itemgetter
 
 # ============ CONFIGURATION ============
 DATA_DIR = Path(__file__).parent.parent / "data"
@@ -171,7 +172,7 @@ class BM25:
 
             scores.append((idx, score))
 
-        return sorted(scores, key=lambda x: x[1], reverse=True)
+        return sorted(scores, key=itemgetter(1), reverse=True)
 
 
 # ============ SEARCH FUNCTIONS ============
@@ -195,13 +196,23 @@ def _search_csv(filepath, search_cols, output_cols, query, max_results):
     bm25 = BM25()
     bm25.fit(documents)
     ranked = bm25.score(query)
+    query_tokens = bm25.tokenize(query)
 
     # Get top results with score > 0
     results = []
     for idx, score in ranked[:max_results]:
         if score > 0:
             row = data[idx]
-            results.append({col: row.get(col, "") for col in output_cols if col in row})
+            result = {col: row.get(col, "") for col in output_cols if col in row}
+            result["_source"] = {"file": filepath.name, "record": idx + 1}
+            result["_match_basis"] = {
+                "algorithm": "BM25 lexical match",
+                "lexical_score": score,
+                "matched_terms": list(dict.fromkeys(
+                    token for token in query_tokens if token in bm25.corpus[idx]
+                )),
+            }
+            results.append(result)
 
     return results
 

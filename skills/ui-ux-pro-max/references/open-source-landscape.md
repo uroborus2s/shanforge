@@ -33,6 +33,13 @@
 - 从 Taro 学习宿主能力矩阵和跨端分叉。
 - 从 Compose Samples、WinUI Gallery、Avalonia 学习原生/桌面平台适配。
 - 从 Motion 和 Lottie 学习运行时动效与资产管线边界。
+- 从 Anthropic frontend-design 与 Impeccable 学习产品特异性、视觉依据、critic 和迭代；不以其仓库热度替代质量，也不整包复制规则。
+
+## 原始案例学习入口（2026-09-05）
+
+- [MIT Museum case study](https://www.cogapp.com/work/mit-museum)：原作者案例文字与顶端截图已实际核对；具体观察、适用条件和禁止照抄项见 [视觉方向与质量](visual-direction-and-quality.md)。
+- [Linear UI redesign](https://linear.app/now/how-we-redesigned-the-linear-ui)：核对原文和作者发布的放大透视展示图；未将其写成 live app 交互或 before/after 比较。
+- [Apple Design Awards 2025](https://developer.apple.com/design/awards/2025/)：作为内容、交互和可访问性学习线索，不将获奖等同通用适用性。
 
 ## 更新检查
 

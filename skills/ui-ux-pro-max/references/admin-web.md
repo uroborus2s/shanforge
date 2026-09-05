@@ -52,7 +52,7 @@ React 管理后台、运营平台、配置中心、数据后台和内部工具�
 1. 没有明确状态、层级、反馈或连续性价值：不做动画。
 2. hover、focus、颜色、透明度、小范围展开收起：使用 CSS。
 3. 共享布局、可中断编排、拖拽、手势或复杂进退场：使用 `motion` / `motion/react`。
-4. 品牌矢量动画只有在已批准资产和性能预算下使用 Lottie/Rive，并转交 `art-asset-pipeline` 管理资产。
+4. 品牌矢量动画只有在已批准资产和性能预算下使用 Lottie/Rive；它们属于 UI 项目的 UI 资产，由本 skill 按资源清单和许可管理。仅不属于 UI 项目的独立美术或游戏资源包才交给 `art-asset-pipeline`。
 
 新管理后台禁止另行引入 `framer-motion`、GSAP、Anime.js、React Spring 或第二套通用动效库。确有 Motion 无法满足的需求时，先形成设计与技术决定，再修改项目级基线；不能由页面实现者自行添加。
 

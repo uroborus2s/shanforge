@@ -78,6 +78,8 @@ description: 项目状态查询、任务延续、项目事实修改、阶段切�
 4. 快速通道不得写任何仓内文件，不创建 WorkItem、TaskCard、ledger、evidence、review 或 memory，不输出项目位置快照，不返回工作 skill 状态包。
 5. 只返回当前会话答案或结构化分析；任何仓内持久化都属于项目影响，必须进入阶段二。
 
+处理模式只决定是否持久化，不得跳过适用的专业工作流。只有新项目、新产品、新功能或新需求，且关键目标、约束或成功标准存在实质缺口但用户只要会话内初步分析时，才调用无项目写入的 `brainstorming`：首轮一次只问一个最高价值问题，再基于回复形成分析；不得读取 `.factory/memory/`，不得创建 WorkItem、TaskCard 或 ledger。纯解释、已有事实分析，或输入完整且只要一次性分析，仍可直接返回。
+
 出现下列任一信号时不得使用快速通道，必须升级为项目化流程：
 
 - 继续或恢复既有任务。
@@ -225,7 +227,7 @@ Terra/Luna 只执行已授权任务包，不得改写上述字段、扩大范围
 ## 默认流程
 
 1. 按“简单任务快速通道”先根据当前消息判定处理模式。
-2. 命中 `direct_answer` 或 `lightweight_analysis` 时直接返回，不进入后续项目流程。
+2. 命中 `direct_answer` 或 `lightweight_analysis` 时不进入项目化流程；只有新项目、新产品、新功能或新需求且关键目标、约束或成功标准存在实质缺口时，先完成无写入 `brainstorming` 的单一最高价值问题和分析后返回。
 3. 其余请求再使用 `project-memory` 恢复项目上下文、当前 work item 和 ledger。
 4. 判断当前状态，不默认读取 `docs/` 长文。
 5. 检查是否存在 `pending_human_confirmation`，并按“真实人工 Gate”重新核实；旧状态、内部 checkpoint 或已撤销 Gate 不得使流程停止。

@@ -41,6 +41,20 @@ def test_flow_controller_defines_processing_modes_before_skill_routing() -> None
     )
 
 
+def test_lightweight_new_idea_analysis_still_uses_session_brainstorming() -> None:
+    skill = read("skills/using-shanforge/SKILL.md")
+
+    for phrase in (
+        "处理模式只决定是否持久化，不得跳过适用的专业工作流",
+        "新项目、新产品、新功能或新需求，且关键目标、约束或成功标准存在实质缺口",
+        "无项目写入的 `brainstorming`",
+        "首轮一次只问一个最高价值问题",
+        "不得读取 `.factory/memory/`，不得创建 WorkItem、TaskCard 或 ledger",
+        "纯解释、已有事实分析，或输入完整且只要一次性分析，仍可直接返回",
+    ):
+        assert phrase in skill
+
+
 def test_direct_analysis_and_tracked_task_share_output_contract() -> None:
     brainstorming = read("skills/brainstorming/SKILL.md")
     requirements = read("skills/requirements-engineering/SKILL.md")

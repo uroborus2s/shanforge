@@ -1,7 +1,7 @@
 # 当前状态
 
 - 当前模式：`codex_desktop`
-- 当前阶段：`UI-VISUAL-QUALITY-001 / CLOSED`
+- 当前阶段：`FLOW-INTAKE-BRAINSTORM-001 / CLOSED`
 - 活跃任务数：0
 - 阻塞项数：0
 - 当前 Gate：`none`
@@ -16,10 +16,11 @@
 
 ## 最近事实
 
-- 用户已批准 UI 设计决策与美术质量重构，独立计划复审 approved。
-- 评审整改后全仓 403 passed / 11 subtests passed；Ruff、代码形状、validator 与 diff check 通过，独立复审 approved / 96 / C0-I0-M0。
-- 保持既有 UI 与非 UI 素材边界；本轮不生产最终 UI 或重做批准设计。
-- 12 组真实产品画面 A/B 尚未运行，测试通过不能代替美术验收。
+- 新项目或新需求的轻量分析不再因“无项目写入”跳过专业澄清；关键目标、约束或成功标准有实质缺口时先进入无写入 `brainstorming`。
+- `FLOW-S12` 已纳入 fast-path 封闭评分，历史 22/22 保持不变，聚合为 30/30；四类错误 mutation 均被拒绝。
+- 独立复审 `approved / 100 / C0-I0-M0`。
+- memory 同步后前三次全仓验证暴露的 ledger identity、TaskCard ID 与 Gate 投影问题均已修复；最终为 405 passed / 11 subtests passed。
+- 真实模型交互语义质量未作为自动化验收执行。
 
 ## 唯一下一动作
 
@@ -27,11 +28,11 @@
 
 ## 历史回源
 
-- 最近 WorkItem：`.factory/workitems/UI-VISUAL-QUALITY-001/`
-- Ledger：`.factory/workitems/UI-VISUAL-QUALITY-001/ledger.jsonl`
-- Plan review：`.factory/workitems/UI-VISUAL-QUALITY-001/reviews/plan-review.md`
-- Evidence：`.factory/workitems/UI-VISUAL-QUALITY-001/evidence/verification.md`
-- Review：`.factory/workitems/UI-VISUAL-QUALITY-001/reviews/independent-rereview.md`
+- 最近 WorkItem：`.factory/workitems/FLOW-INTAKE-BRAINSTORM-001/`
+- Ledger：`.factory/workitems/FLOW-INTAKE-BRAINSTORM-001/ledger.jsonl`
+- Brief：`.factory/workitems/FLOW-INTAKE-BRAINSTORM-001/brief.md`
+- Evidence：`.factory/workitems/FLOW-INTAKE-BRAINSTORM-001/evidence/final-verification.md`
+- Review：`.factory/workitems/FLOW-INTAKE-BRAINSTORM-001/reviews/independent-rereview-iteration-2.md`
 - 稳定 Ledger 索引：`.factory/workitems/<WORKITEM-ID>/ledger.jsonl`
 - 非活跃任务摘要：`.factory/memory/tasks.summary.md`
 

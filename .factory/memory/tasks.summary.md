@@ -1,7 +1,9 @@
 # 任务摘要
 
-- 当前阶段：`UI-VISUAL-QUALITY-001 / closed`
-- 当前焦点：3/3 TaskCard 关闭；独立复审 approved / 96 / C0-I0-M0，全仓 403 passed / 11 subtests passed。真实 UI A/B 未运行。
+- 当前阶段：`FLOW-INTAKE-BRAINSTORM-001 / closed`
+- 当前焦点：1/1 TaskCard 关闭；独立复审 approved / 100 / C0-I0-M0，最终全仓 405 passed / 11 subtests passed。真实模型交互质量验收未运行。
+
+- 2026-09-06：轻量新项目/新需求分析的持久化判定与专业工作流已解耦；关键目标、约束或成功标准有实质缺口时先执行无写入 `brainstorming`。新增 FLOW-S12、30/30 聚合评分及四类 mutation。回源：`.factory/workitems/FLOW-INTAKE-BRAINSTORM-001/ledger.jsonl`。
 
 - 2026-09-05：候选检索、平台隔离、正式规则保护与优秀案例观察/美术迭代流程完成重构；新增 12 份固定合成实验输入。回源：`.factory/workitems/UI-VISUAL-QUALITY-001/ledger.jsonl`。
 

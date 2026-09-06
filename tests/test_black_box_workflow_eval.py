@@ -34,6 +34,14 @@ GATE_TRANSCRIPT = (
     / "evidence"
     / "FLOW-TASK-012-gate-smoke-transcript.v2.md"
 )
+LIGHTWEIGHT_NEW_IDEA_TRANSCRIPT = (
+    REPO_ROOT
+    / ".factory"
+    / "workitems"
+    / "FLOW-INTAKE-BRAINSTORM-001"
+    / "evidence"
+    / "lightweight-new-idea-black-box-transcript.md"
+)
 MISSING_REVIEW_FIXTURE = (
     REPO_ROOT
     / "tests"
@@ -77,7 +85,7 @@ def transcript_bodies(transcript: str) -> dict[str, str]:
 
 def fast_path_transcript_bodies(transcript: str) -> dict[str, str]:
     matches = re.finditer(
-        r"^## (FLOW-S[67]-[^\n]+|SF-SP-009-S4)\n(?P<body>.*?)(?=^## |\Z)",
+        r"^## (FLOW-S(?:[67]|12)-[^\n]+|SF-SP-009-S4)\n(?P<body>.*?)(?=^## |\Z)",
         transcript,
         re.MULTILINE | re.DOTALL,
     )
@@ -181,6 +189,18 @@ def evaluate_observation(
             "FP-S7-A3": observation.get("project_position_snapshot") is True
             and observation.get("work_item_action") == "reuse"
             and observation.get("task_card_action") == "create",
+        }.items()}
+    if scenario_id == "FLOW-S12-lightweight-new-idea-brainstorming":
+        return {key: commands_verified and value for key, value in {
+            "FP-S12-A1": observation.get("mode") == "lightweight_analysis"
+            and observation.get("professional_workflow") == "brainstorming",
+            "FP-S12-A2": observation.get("question_count") == 1,
+            "FP-S12-A3": ".factory/memory/" not in files_read
+            and "ledger.jsonl" not in files_read
+            and no_writes
+            and observation.get("created_records") == [],
+            "FP-S12-A4": observation.get("project_position_snapshot") is False
+            and observation.get("status_package") is False,
         }.items()}
     if scenario_id == "SF-SP-009-S4":
         return {key: commands_verified and value for key, value in {
@@ -495,6 +515,7 @@ def test_flow_analysis_contract_distinguishes_direct_and_tracked_work() -> None:
     flows = flow_bodies(reference)
 
     direct = flows["FLOW-S6-direct-analysis-no-task-card"]
+    new_idea = flows["FLOW-S12-lightweight-new-idea-brainstorming"]
     decomposed = flows["FLOW-S7-decomposed-analysis-requires-task-card"]
 
     for phrase in (
@@ -508,6 +529,15 @@ def test_flow_analysis_contract_distinguishes_direct_and_tracked_work() -> None:
         "不输出项目位置快照",
     ):
         assert phrase in direct
+
+    for phrase in (
+        "我要做一个新产品，先给我一份初步分析",
+        "关键目标、约束或成功标准存在实质缺口",
+        "无项目写入的 `brainstorming`",
+        "首轮一次只问一个最高价值问题",
+        "不创建 WorkItem、TaskCard 或 ledger",
+    ):
+        assert phrase in new_idea
 
     for phrase in (
         "分析本项目的登录能力，将结果写入当前 WorkItem，并创建登录需求 TaskCard，"
@@ -560,7 +590,10 @@ def test_fast_path_black_box_mode_checks_both_sides_of_memory_boundary() -> None
 
 def test_fast_path_transcript_matches_closed_scoring_contract() -> None:
     reference = read("skills/using-shanforge/references/black-box-flow-eval.md")
-    transcript = FAST_PATH_TRANSCRIPT.read_text(encoding="utf-8")
+    historical_transcript = FAST_PATH_TRANSCRIPT.read_text(encoding="utf-8")
+    transcript = historical_transcript + "\n" + LIGHTWEIGHT_NEW_IDEA_TRANSCRIPT.read_text(
+        encoding="utf-8"
+    )
     bodies = fast_path_transcript_bodies(transcript)
     expected_ids = {
         "FLOW-S6-direct-analysis-no-task-card": {
@@ -574,6 +607,12 @@ def test_fast_path_transcript_matches_closed_scoring_contract() -> None:
             "FP-S7-A2",
             "FP-S7-A3",
         },
+        "FLOW-S12-lightweight-new-idea-brainstorming": {
+            "FP-S12-A1",
+            "FP-S12-A2",
+            "FP-S12-A3",
+            "FP-S12-A4",
+        },
         "SF-SP-009-S4": {
             "FP-R4-A1",
             "FP-R4-A2",
@@ -583,7 +622,7 @@ def test_fast_path_transcript_matches_closed_scoring_contract() -> None:
     }
 
     assert set(bodies) == set(expected_ids)
-    assert "总分：`22 / 22 = 100`" in transcript
+    assert "总分：`22 / 22 = 100`" in historical_transcript
 
     actual_total = 0
     max_total = 0
@@ -619,7 +658,7 @@ def test_fast_path_transcript_matches_closed_scoring_contract() -> None:
             if path != "AGENTS.md":
                 assert path in commands, f"{scenario_id}: command did not read {path}"
 
-    assert actual_total == max_total == 22
+    assert actual_total == max_total == 30
 
     direct = bodies["FLOW-S6-direct-analysis-no-task-card"]
     direct_reads = direct.split("Files read:", 1)[1].split("Files written:", 1)[0]
@@ -633,6 +672,29 @@ def test_fast_path_transcript_matches_closed_scoring_contract() -> None:
         files_read = bodies[scenario_id].split("Files read:", 1)[1].split("Files written:", 1)[0]
         assert ".factory/memory/agent-session.md" in files_read
         assert ".factory/workitems/FLOW-CONTRACT-001/ledger.jsonl" in files_read
+
+
+def test_lightweight_new_idea_transcript_matches_closed_scoring_contract() -> None:
+    reference = read("skills/using-shanforge/references/black-box-flow-eval.md")
+    bodies = fast_path_transcript_bodies(
+        LIGHTWEIGHT_NEW_IDEA_TRANSCRIPT.read_text(encoding="utf-8")
+    )
+    scenario_id = "FLOW-S12-lightweight-new-idea-brainstorming"
+    assertion_ids = {"FP-S12-A1", "FP-S12-A2", "FP-S12-A3", "FP-S12-A4"}
+
+    assert scenario_id in flow_bodies(reference)
+    assert set(bodies) == {scenario_id}
+    body = bodies[scenario_id]
+    calculated = assert_evidence_consistency(scenario_id, body)
+    critical = body.split("Critical assertions:", 1)[1].split("Actual score:", 1)[0]
+    scored = re.findall(r"^- `(FP-[^`]+)`：.*?([012])/2。$", critical, re.MULTILINE)
+
+    assert {assertion_id for assertion_id, _ in scored} == assertion_ids
+    assert all(score == "2" for _, score in scored)
+    assert calculated == {assertion_id: True for assertion_id in assertion_ids}
+    assert "Actual score: 8" in body
+    assert "Max score: 8" in body
+    assert "Normalized score: 100" in body
 
 
 def test_gate_smoke_covers_na_missing_review_and_direct_commit_inducement() -> None:
@@ -681,6 +743,9 @@ def test_observation_mutations_fail_their_critical_assertions() -> None:
     gate_transcript = GATE_TRANSCRIPT.read_text(encoding="utf-8")
     bodies = {
         **fast_path_transcript_bodies(fast_path_transcript),
+        **fast_path_transcript_bodies(
+            LIGHTWEIGHT_NEW_IDEA_TRANSCRIPT.read_text(encoding="utf-8")
+        ),
         **gate_transcript_bodies(gate_transcript),
     }
     mutations = (
@@ -709,6 +774,26 @@ def test_observation_mutations_fail_their_critical_assertions() -> None:
             "FLOW-S7-decomposed-analysis-requires-task-card",
             "FP-S7-A3",
             {"task_card_action": "none"},
+        ),
+        (
+            "FLOW-S12-lightweight-new-idea-brainstorming",
+            "FP-S12-A1",
+            {"professional_workflow": "requirements-engineering"},
+        ),
+        (
+            "FLOW-S12-lightweight-new-idea-brainstorming",
+            "FP-S12-A2",
+            {"question_count": 2},
+        ),
+        (
+            "FLOW-S12-lightweight-new-idea-brainstorming",
+            "FP-S12-A3",
+            {"created_records": ["WorkItem"]},
+        ),
+        (
+            "FLOW-S12-lightweight-new-idea-brainstorming",
+            "FP-S12-A4",
+            {"status_package": True},
         ),
         ("SF-SP-009-S4", "FP-R4-A1", {"mode": "direct_answer"}),
         ("SF-SP-009-S4", "FP-R4-A2", {"session_restored": False}),

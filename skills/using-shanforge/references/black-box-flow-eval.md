@@ -7,7 +7,7 @@
 ## 运行模式
 
 - `fast smoke`：运行 `SF-SP-009-S1`、`SF-SP-009-S2`、`SF-SP-009-S4`、`SF-SP-009-S5`，用于每次 workflow skill 变更后的快速检查。
-- `fast-path smoke`：把 `FLOW-S6`、`FLOW-S7` 和 `SF-SP-009-S4` 分别当作 fresh-context 请求运行；同时证明直接分析不恢复 memory、项目化分析与任务延续必须恢复 memory。本模式只评分处理模式、Files read / written、项目状态信封和幂等恢复边界；领域正文与实际写入由对应完整 workflow eval 验证，不在只读 smoke 中计分。
+- `fast-path smoke`：把 `FLOW-S6`、`FLOW-S7`、`FLOW-S12` 和 `SF-SP-009-S4` 分别当作 fresh-context 请求运行；同时证明直接分析不恢复 memory、会话内澄清不写项目记录、项目化分析与任务延续必须恢复 memory。本模式只评分处理模式、Files read / written、项目状态信封和幂等恢复边界；领域正文与实际写入由对应完整 workflow eval 验证，不在只读 smoke 中计分。
 - `gate smoke`：把 `FLOW-S8`、`FLOW-S9` 和 `FLOW-S10` 分别当作 fresh-context 请求运行，验证 N/A、缺 review 和直接提交诱导均不能绕过评审与关闭门。
 - `full regression`：运行 `SF-SP-009-S1` 到 `SF-SP-009-S6` 全部场景，用于 work item review、提交前或流程规则调整后。
 
@@ -35,7 +35,7 @@
 - 实际得分 = 所有纳入场景 critical assertion 得分之和。
 - 总分 = round(实际得分 / 最高可能得分 * 100)。
 - `fast smoke` 只统计实际运行的 4 个场景；`full regression` 统计 6 个场景。
-- `fast-path smoke` 只统计下面封闭定义的 11 条专用断言，不复用三个完整场景的领域内容或实际写入断言；每条专用断言都必须得到 2 分。
+- `fast-path smoke` 只统计下面封闭定义的 15 条专用断言，不复用四个完整场景的领域内容或实际写入断言；每条专用断言都必须得到 2 分。
 - `gate smoke` 只统计下面封闭定义的 9 条 Gate 断言；每条必须得到 2 分。
 
 ## `source_or_test_write` 派发观察
@@ -57,6 +57,13 @@
 - `FP-S7-A2`：Files read 包含项目 memory 和当前 work item ledger。
 - `FP-S7-A3`：输出项目位置快照，并识别应复用或创建的 WorkItem / TaskCard；只读 smoke 不要求实际写入。
 
+`FLOW-S12-lightweight-new-idea-brainstorming`，最高 8 分：
+
+- `FP-S12-A1`：处理模式为 `lightweight_analysis`，专业工作流为 `brainstorming`。
+- `FP-S12-A2`：首轮只提出一个最高价值问题。
+- `FP-S12-A3`：Files read 不包含 `.factory/memory/` 或 work item ledger；Files written 为空，且未创建项目记录。
+- `FP-S12-A4`：未输出项目位置快照或项目状态包。
+
 `SF-SP-009-S4`，最高 8 分：
 
 - `FP-R4-A1`：处理模式为 `tracked_task` / recovery。
@@ -64,7 +71,7 @@
 - `FP-R4-A3`：根据 ledger 最新事件跳过重复动作，满足幂等恢复。
 - `FP-R4-A4`：输出恢复后的项目位置快照。
 
-总分母固定为 `8 + 6 + 8 = 22`。完整 workflow eval 仍按各场景正文下的原 critical assertions 计分，不能用本专用集合替代。
+总分母固定为 `8 + 6 + 8 + 8 = 30`。完整 workflow eval 仍按各场景正文下的原 critical assertions 计分，不能用本专用集合替代。
 
 ### gate smoke 专用断言
 
@@ -282,6 +289,28 @@ critical assertions：
 - Files read 不得包含 work item ledger。
 - 不创建任务卡，不写 ledger。
 - 已输出需求分析核心契约：目标、用户角色、主流程、异常流程、业务规则、安全 / 权限要求、验收标准、未决问题。
+
+评分：
+
+- 每条 critical assertion 单独按 `2/1/0` 计分。
+
+### FLOW-S12-lightweight-new-idea-brainstorming：新需求缺口先会话澄清
+
+```text
+我要做一个新产品，先给我一份初步分析
+```
+
+期望行为：
+
+- 仍为当前会话内的轻量分析，不读取 `.factory/memory/`，不创建 WorkItem、TaskCard 或 ledger。
+- 因新产品的关键目标、约束或成功标准存在实质缺口，不因 `lightweight_analysis` 跳过专业澄清：调用无项目写入的 `brainstorming`，首轮一次只问一个最高价值问题，再形成初步分析。
+
+critical assertions：
+
+- 处理模式为 `lightweight_analysis`，专业工作流为 `brainstorming`。
+- 首轮一次只问一个最高价值问题。
+- Files read 不含项目 memory 或 work item ledger；不创建项目记录，不写入文件。
+- 不输出项目位置快照或工作 skill 状态包。
 
 评分：
 

@@ -13,7 +13,7 @@
 - 上游计划：.factory/workitems/UI-CLIENT-CRAFT-001/plan.md
 - 流水账：.factory/workitems/UI-CLIENT-CRAFT-001/ledger.jsonl
 - current_gate: closed
-- next_required_action: create_exact_local_commit
+- next_required_action: none
 ## 范围
 集中检查技能合同、案例数据、样板截图/内容/导航与中文术语；作者不自批。独立 reviewer 的身份、只读范围、Terra high 派发另以 review brief 登记。
 运行目标 pytest、Ruff、skill validator、代码形状与 diff check，最终运行全仓 pytest 确认治理事实一致。API、服务、支付、真机均不在本次修改范围，不伪称已验证。

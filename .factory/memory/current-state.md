@@ -24,7 +24,7 @@
 
 ## 唯一下一动作
 
-- `create_exact_local_commit`
+- `none`
 
 ## 历史回源
 

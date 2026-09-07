@@ -1,7 +1,7 @@
 # 任务摘要
 
 - 当前阶段：`UI-CLIENT-CRAFT-001 / closed`
-- 当前焦点：3/3 TaskCard 关闭；独立评审 approved / 98 / C0-I0-M1，全仓 406 passed / 11 subtests passed。当前进入精确本地提交；三页候选未人工批准，不改 ita-club。
+- 当前焦点：3/3 TaskCard 关闭；独立评审 approved / 98 / C0-I0-M1，全仓 406 passed / 11 subtests passed。实现已本地提交 cb867e5，下一动作 none；三页候选未人工批准，不改 ita-club。
 
 - 2026-09-07：UI skill 已增加普通业务页样板与粗糙退回边界、对象关系构图和分层验收；有反馈三页候选完成 9 个页面/尺寸浏览器检查。回源：`.factory/workitems/UI-CLIENT-CRAFT-001/ledger.jsonl`。
 

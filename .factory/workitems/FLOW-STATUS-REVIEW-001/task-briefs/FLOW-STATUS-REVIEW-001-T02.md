@@ -4,7 +4,7 @@
 - 任务：FLOW-STATUS-REVIEW-001-T02
 - task_card_id: FLOW-STATUS-REVIEW-001-T02
 - wbs_id: WBS-FLOW-SR-02
-- 状态：completed
+- 状态：closed
 - owner: /root/flow_contracts（收口接管；初始实现 /root/flow_behavior_tests）
 - depends_on: none
 - review_status: approved

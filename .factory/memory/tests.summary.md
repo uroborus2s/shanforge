@@ -1,6 +1,6 @@
 # 测试摘要
 
-- 当前阶段：`FLOW-STATUS-REVIEW-001 / active`
+- 当前阶段：`FLOW-STATUS-REVIEW-001 / closed`
 - 当前验证结论：父与独立reviewer均复验全量416 passed / 11 subtests passed、行为6 passed，Ruff/shape/diff和25文件指纹通过；FLOW-SR-REV-I-01复审关闭，本范围approved。前两轮失败及oracle校准保留。回源：本工作项evidence/verification.md与reviews/independent-review.md。
 
 - 2026-09-07：上一 UI 批次完整 pytest 406 passed / 11 subtests passed；三页 × 320/390/430 浏览器检查通过；不是 A/B、真机或美术批准。

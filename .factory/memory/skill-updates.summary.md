@@ -1,6 +1,6 @@
 # Skill Updates Summary
 
-- 当前（2026-09-07）：FLOW-STATUS-REVIEW-001 独立复审approved；状态合同分离产品与本批/阶段与活动，需求矩阵补生命周期证据，评审取消默认总分并绑定候选/范围/标准/证据。首轮Important已关闭，全量416 passed / 11 subtests passed；仅剩本地提交，不评定其他产品。
+- 当前（2026-09-07）：FLOW-STATUS-REVIEW-001 已关闭，实现本地提交27fe2cd；状态合同分离产品与本批/阶段与活动，需求矩阵补生命周期证据，评审取消默认总分并绑定候选/范围/标准/证据。独立复审approved，首轮Important已关闭，全量416 passed / 11 subtests passed；未推送，不评定其他产品。
 
 - 当前（2026-09-07）：UI-CLIENT-CRAFT-001 已关闭；UI skill 已补业务关系构图、参考转化、视觉样板/正式资源边界与两层验收。已补高频普通业务页样板与退回边界；三页有反馈候选已验证，独立评审 approved / 98 / C0-I0-M1；不作为人工美术认可或受控 A/B 结论。
 

@@ -1,7 +1,7 @@
 # 状态与评审流程优化实施计划
 
 - 工作项：FLOW-STATUS-REVIEW-001
-- 状态：ready_for_commit
+- 状态：closed
 - 批准输入：本轮用户批准上轮建议；brief 的五项需求。
 - 架构：保留 skill-first 与现有需求矩阵，不新增 runtime；pytest 核对事实，独立前向试用生成真实回复，另一个 reviewer 核对正文。
 - 测试设计：本地文件场景，无服务、数据、凭证操作；事实判断与自由文本语义验证分层。
@@ -12,7 +12,7 @@
 |---|---|---|---|
 | WBS-FLOW-SR-01 | | 状态与证据评审合同 | completed |
 | WBS-FLOW-SR-02 | | 状态与评审行为回归 | completed |
-| WBS-FLOW-SR-03 | | 独立试用及集中质量收口 | current |
+| WBS-FLOW-SR-03 | | 独立试用及集中质量收口 | completed |
 
 ## 文件与职责
 

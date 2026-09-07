@@ -1,15 +1,15 @@
 # 当前状态
 
 - 当前模式：`codex_desktop`
-- 当前阶段：`FLOW-STATUS-REVIEW-001 / FLOW-STATUS-REVIEW-001-T03`（恢复定位）
-- 本批阶段：本地提交收口；产品总体阶段未重新核对
-- 活跃任务数：1
+- 当前阶段：`FLOW-STATUS-REVIEW-001 / CLOSED`
+- 本批阶段：已完成；产品总体阶段未重新核对
+- 活跃任务数：0
 - 阻塞项数：0
-- 当前 Gate：`closed`
+- 当前 Gate：`none`
 
 ## 活跃任务
 
-- `FLOW-STATUS-REVIEW-001-T03`：独立复审approved，唯一Important关闭；实现/验证无剩余，仅待本地提交。
+- 当前无活动任务。
 
 ## 阻塞项
 
@@ -19,11 +19,12 @@
 
 - 用户已批准落实总体/批次分离、需求遗漏核对、无默认总分和复审追溯。
 - 父全量416 passed / 11 subtests passed；行为6 passed；Ruff、形状、5个skill结构、25文件指纹与diff检查通过；原失败与校准过程保留在evidence。
+- 独立复审approved，唯一Important关闭；本批实现提交27fe2cd，未推送，五项要求无剩余。
 - 上一 UI 批次已关闭；详情降级到 tasks.summary 与旧 ledger，不改历史事实。
 
 ## 唯一下一动作
 
-- `create_exact_local_commit`
+- `none`
 
 ## 历史回源
 

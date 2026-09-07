@@ -4,7 +4,7 @@
 - 任务：FLOW-STATUS-REVIEW-001-T01
 - task_card_id: FLOW-STATUS-REVIEW-001-T01
 - wbs_id: WBS-FLOW-SR-01
-- 状态：completed
+- 状态：closed
 - owner: terra-worker
 - depends_on: none
 - review_status: approved

@@ -1,5 +1,7 @@
 # 变更摘要
 
+- 2026-09-07：FLOW-STATUS-REVIEW-001完成五项状态与评审流程优化，实现本地提交27fe2cd，未推送。分离产品/本批与阶段/活动，补需求证据矩阵、无默认评分与复审追溯、8场景真实回复及负向/新鲜性回归。独立首轮Important经整改复审关闭，全量416 passed / 11 subtests passed；只代表本批，不代表其他软件验收。
+
 - 2026-09-03：`TECHNICAL-ASSESSMENT-RESPONSE-001` 已关闭。技术评估回复统一按“需求 → 现象 → 代码 → 原因 → 影响 → 建议”说明问题，共享回写合同新增 `technical_assessment_summary`，humanizer 保留评估时点和修复状态。独立复审 `approved / 100 / C0-I0-M0`，完整 pytest `358 passed / 11 subtests passed`，38/38 Skill validator 和响应黑盒 19/19 通过。
 
 - 2026-09-01：`SOFTWARE-ENGINEERING-SKILL-AUDIT-001` 已关闭。中文语言、Skill 设计、软件工程、项目管理、沟通均覆盖 38/38，形成 `190/190` 逐项评分和 `85.6/100` 系统矩阵。审计为 `C0 / 原始 I27 / 原始 M18`、`changes_recommended`；审计提交 `4929f58`，没有修改任何 Skill 或测试，整改尚未实施。

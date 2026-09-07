@@ -4,7 +4,7 @@
 - 任务：FLOW-STATUS-REVIEW-001-T03
 - task_card_id: FLOW-STATUS-REVIEW-001-T03
 - wbs_id: WBS-FLOW-SR-03
-- 状态：active
+- 状态：closed
 - owner: independent-forward-worker
 - depends_on: FLOW-STATUS-REVIEW-001-T01, FLOW-STATUS-REVIEW-001-T02
 - 依赖事实：合同与回归设施已实现且定向检查通过；端到端观察是本任务产物，不是前置完成声明。
@@ -16,7 +16,7 @@
 - 上游计划：.factory/workitems/FLOW-STATUS-REVIEW-001/plan.md
 - 流水账：.factory/workitems/FLOW-STATUS-REVIEW-001/ledger.jsonl
 - current_gate: closed
-- next_required_action: create_exact_local_commit
+- next_required_action: none
 
 ## 试用授权
 

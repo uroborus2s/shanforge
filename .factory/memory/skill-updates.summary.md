@@ -1,5 +1,7 @@
 # Skill Updates Summary
 
+- 当前（2026-09-07）：UI-CLIENT-CRAFT-001 已关闭；UI skill 已补业务关系构图、参考转化、视觉样板/正式资源边界与两层验收。已补高频普通业务页样板与退回边界；三页有反馈候选已验证，独立评审 approved / 98 / C0-I0-M1；不作为人工美术认可或受控 A/B 结论。
+
 - 当前（2026-09-06）：`using-shanforge` 已把是否持久化与是否需要专业工作流解耦；新项目或新需求存在关键目标、约束或成功标准缺口时，即使只做会话内分析，也先执行无写入 `brainstorming` 并一次只问一个问题。FLOW-S12 封闭评分聚合 30/30，独立复审 approved / 100 / C0-I0-M0。
 
 - 当前（2026-09-05）：`UI-VISUAL-QUALITY-001` 已关闭，`ui-ux-pro-max` 改为候选检索、产品特异方向、优秀案例观察转化与实际截图迭代；新增 12 brief 合成实验输入。403 passed / 11 subtests passed，独立复审 approved / 96 / C0-I0-M0；当前宿主 symlink 已生效，真实 UI A/B 未运行。

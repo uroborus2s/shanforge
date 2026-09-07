@@ -1,0 +1,16 @@
+{
+  "source": "/Users/uroborus/NodeProject/ita-club/docs/ui/miniapp-handoff/flow-redesign/coach",
+  "observed_pngs": ["workbench-390.png", "schedule-390.png", "student-detail-390.png"],
+  "fixture_subset": {
+    "coach": "陈教练",
+    "venue": "ITA 城西球馆",
+    "sample_date": "2026-09-05",
+    "schedule": [
+      ["10:00", "少儿基础班", "1 号场", "已确认"],
+      ["14:00", "成人进阶课", "3 号室内硬地", "进行中"],
+      ["16:30", "田中健 · 私教课", "2 号场", "已确认"]
+    ],
+    "student": {"name":"王小雨","phone":"+81******4821","level":"NTRP 3.0","available":4,"locked":1,"completed":3}
+  },
+  "boundary": "Static candidate only; no API, permission, payment, sign-in, save, or scheduling behavior."
+}

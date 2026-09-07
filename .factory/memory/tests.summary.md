@@ -1,7 +1,7 @@
 # 测试摘要
 
-- 当前阶段：`FLOW-INTAKE-BRAINSTORM-001 / closed`
-- 当前验证结论：最终完整 pytest `405 passed / 11 subtests passed`；Ruff、代码形状、JSONL 和 diff check 通过。memory 同步后三个状态投影失败已逐项修复；真实模型交互质量验收未运行。
+- 当前阶段：`UI-CLIENT-CRAFT-001 / closed`
+- 当前验证结论：UI 定向 57 passed；完整 pytest 406 passed / 11 subtests passed；三页 × 320/390/430 浏览器截图及行为检查通过。初稿运行/事实/画面问题已整改；不是 A/B、真机或美术批准。
 
 - 2026-09-06：入口合同首轮 RED `2 failed`，评审整改 RED `2 failed`，聚合整改 RED `1 failed`；最终定向 `24 passed`。FLOW-S12 的四类 mutation 均被拒绝，fast-path 聚合为 `30/30`。
 

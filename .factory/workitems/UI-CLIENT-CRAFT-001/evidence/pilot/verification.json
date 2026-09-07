@@ -1,0 +1,27 @@
+{
+  "status": "passed",
+  "command": "PLAYWRIGHT_MODULE=… node verify.cjs",
+  "checks": [
+    "workbench-320",
+    "schedule-320",
+    "student-320",
+    "workbench-390",
+    "schedule-390",
+    "student-390",
+    "workbench-430",
+    "schedule-430",
+    "student-430"
+  ],
+  "assertions": [
+    "fixture values",
+    "no pageerror or console error",
+    "no horizontal overflow including expanded detail",
+    "navigation and return",
+    "no erroneous schedule-to-student mapping",
+    "disabled sign-in candidate",
+    "observation/review provenance"
+  ],
+  "limitations": [
+    "Static file URL; no API, login, permission, payment, or WeChat device validation."
+  ]
+}

@@ -63,7 +63,7 @@ python3 <skill-dir>/scripts/search.py "预约诊所 healthcare appointment calm"
 
 API 迁移：`generate_design_system` 保留原位置参数并返回 `str`，`output_format=json` 时为 JSON 字符串；`DesignSystemGenerator.generate` 返回新的 candidates dict，旧 `style`/`colors`/`typography` 最终字段不兼容。非 JSON 的 `--persist` 同时显示候选文本和实际创建路径，不再自动决定 `MASTER`。
 
-新 UI 或整体重设计先确定平台，再用少量同内容、同视口的方向比较和真实截图核查收敛；已批准设计只继承扩展，局部修改不重做视觉。真实产品多端截图盲评必须另行运行，候选检索或静态检查不能替代它。
+新 UI 或整体重设计先确定平台、业务对象和关系如何组织页面，再用少量同内容、同视口的方向比较和真实截图核查收敛；已批准设计只继承扩展，局部修改不重做视觉。工具/操作页不等于后台模板，即使不需图片也要以信息层级、排版、密度和状态反馈服务任务。方向样板与正式美术资源职责不同；设计质量截图验收与实现还原验收也要分开。真实产品多端截图盲评必须另行运行，候选检索、静态检查或 AI 自评不能替代它。
 
 ## 3. 第一轮会话怎么说
 

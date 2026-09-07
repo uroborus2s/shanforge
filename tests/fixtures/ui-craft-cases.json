@@ -1,0 +1,50 @@
+{
+  "fixture_kind": "ui_craft_execution_input",
+  "skill_references": [
+    "skills/ui-ux-pro-max/SKILL.md",
+    "skills/ui-ux-pro-max/references/visual-direction-and-quality.md",
+    "skills/ui-ux-pro-max/references/design-workflow-and-deliverables.md"
+  ],
+  "cases": [
+    {
+      "id": "coach-operate-workspace",
+      "original_request": "为教练工作端设计当天学员处理页。",
+      "task_mode": "new",
+      "surface": "operate",
+      "known_facts": ["教练需查看学员、预约和到店状态", "手机端优先", "没有可用摄影资产"],
+      "allowed_scope": ["任务流", "对象关系构图", "可编辑组件和状态", "截图与行为验收"],
+      "observable_success": ["同屏能区分待处理预约与对应学员", "处理后状态和下一操作可见", "无图时仍能快速扫描"],
+      "prohibitions": ["不得按商品类型套页", "不得把 operate 做成通用后台模板", "不得预填验收结果"]
+    },
+    {
+      "id": "imaging-experience-client",
+      "original_request": "为影像主导的客户端检查结果页确定视觉方向。",
+      "task_mode": "new",
+      "surface": "experience",
+      "known_facts": ["影像是理解结果的主体", "文字说明与下一步预约必须可编辑", "需要确认影像授权"],
+      "allowed_scope": ["少量方向样板", "影像职责", "组件层和资源层分离", "同视口截图 critic"],
+      "observable_success": ["影像主体、结论和下一步层级明确", "样板不含最终烘焙文字或控件", "资源清单能说明来源和许可"],
+      "prohibitions": ["不得把整页生成图当最终交付", "不得未经确认生产正式素材", "不得预填验收结果"]
+    },
+    {
+      "id": "approved-baseline-extension",
+      "original_request": "在已批准的预约基线中增加改期状态。",
+      "task_mode": "baseline-extension",
+      "surface": "operate",
+      "known_facts": ["现有 token、构图和组件规则已批准", "改期会影响预约与教练两个对象", "只新增一个状态路径"],
+      "allowed_scope": ["继承基线", "新增改期状态和恢复路径", "实现还原验收"],
+      "observable_success": ["改期前后两个对象的状态关系可见", "现有构图和组件规则未被重做", "实现页面与设计源状态对应"],
+      "prohibitions": ["不得重新比较新视觉方向", "不得替换已批准素材", "不得预填验收结果"]
+    },
+    {
+      "id": "local-fix-or-read-only",
+      "original_request": "检查或修复长中文标题在预约详情页的换行。",
+      "task_mode": "local-fix",
+      "surface": "read",
+      "known_facts": ["问题限于详情标题", "现有页面基线已批准", "是否实施取决于用户授权"],
+      "allowed_scope": ["只读评审或标题组件局部修复", "真实长文案截图复核", "记录未验证项"],
+      "observable_success": ["能指出受影响组件和触发文案", "修复时同视口不出现孤字或遮挡", "只读时不写设计或资产"],
+      "prohibitions": ["不得重做页面视觉", "不得新增美术资源", "不得预填验收结果"]
+    }
+  ]
+}

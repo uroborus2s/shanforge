@@ -1,47 +1,44 @@
 # Agent 会话卡
 
-- 生成时间：2026-09-06
+- 生成时间：2026-09-07
 - 项目：`shanforge`
-- 项目整体进度：`FLOW-INTAKE-BRAINSTORM-001` 已完成 1/1 个 TaskCard
-- 当前工作项：`FLOW-INTAKE-BRAINSTORM-001`
-- 当前任务：`FLOW-INTAKE-BRAINSTORM-001-T01`
-- 当前 WBS：`WBS-FLOW-INTAKE-01`
+- 项目整体进度：`UI-CLIENT-CRAFT-001` 3/3 TaskCard 已关闭；独立评审通过，待精确本地提交
+- 当前工作项：`UI-CLIENT-CRAFT-001`
+- 当前任务：`UI-CLIENT-CRAFT-001-T03`
+- 当前 WBS：`WBS-UI-CRAFT-03`
 - 当前状态：`closed`
 - 当前 Gate：`closed`
 - 停止原因：无
-- 下一动作：`none`
+- 下一动作：`create_exact_local_commit`
 
 ## 当前事实
 
-- 用户要求修复新项目初步分析跳过头脑风暴和必要信息收集的问题。
-- `using-shanforge` 现把处理模式与专业工作流分开：关键目标、约束或成功标准存在实质缺口时，轻量分析先进入无写入 `brainstorming` 并一次只问一个问题。
-- 新增 `FLOW-S12` 封闭黑盒场景、可重放 transcript、30/30 聚合评分和四类反向 mutation。
-- 两轮评审整改后独立复审 `approved / 100 / C0-I0-M0`。
-- memory 同步后前三次全仓验证依次暴露并修复 ledger canonical identity、活跃态 TaskCard ID 和 Gate 投影问题；第四次为 `405 passed / 11 subtests passed`。
-- 黑盒 transcript 是可重放流程证据，不替代真实模型交互质量验收。
+- 用户已授权优化 UI skill；ita-club 教练端只作为只读原稿，不改业务代码、数据或已批准首页。
+- T01 已补业务关系构图、真实参考转化、设计质量与实现还原分离验收，新增四类场景输入；主线程定向复验 57 passed。
+- T02 初始独立试做后，运行/事实检查与一次集中视觉整改已完成；父线程浏览器复验 9 张截图及行为断言通过，候选不等于人工批准。
+- 最终完整 pytest 406 passed / 11 subtests passed；独立评审 approved / 98 / C0-I0-M1，M-01 为正式采用前移出内部说明。
+- 上一工作项 FLOW-INTAKE-BRAINSTORM-001 已关闭，不恢复其 Gate。
 
 ## 已读取上下文
 
-- `.factory/memory/agent-session.md`：确认上一工作项已关闭，无可复用活动身份。
-- `.factory/workitems/FLOW-INTAKE-BRAINSTORM-001/`：本次身份、TDD、评审和派发回执。
-- `skills/using-shanforge/SKILL.md`、`skills/brainstorming/SKILL.md` 和 fast-path 黑盒合同：本次规则事实源。
+- 本工作项 brief、plan、task-briefs、ledger 和派发回执。
+- UI skill、skill-creator、执行/验证/评审合同与原始教练设计输入。
+- 用户指南按 doc-map 单文件回源；历史摘要只读顶部。
 
 ## 未读 / 已排除上下文
 
-- 未读取阶段 `docs/` 长文；本次不修改正式产品设计或架构事实。
-- 其他历史 work item 正文：不影响本次入口合同修复。
+- 不读取或修改其他产品正式文档、业务服务、数据库或凭证。
+- 不把原稿截图缺项等同于 Taro 运行时缺项；生产小程序未在本轮验收。
 
 ## 禁止动作
 
-- 不得重复执行已关闭的 `FLOW-INTAKE-BRAINSTORM-001-T01`。
-- 不得把所有轻量分析强制成头脑风暴；完整输入、纯解释和已有事实分析仍直接返回。
-- 不得把本地完成误报为远端发布。
-- 不得从旧 memory 历史条目恢复已关闭 Gate。
+- 不将静态测试、AI 自评或迁移试做当成人类美术批准、同条件 A/B 或产品验收。
+- 不将三页候选写入 ita-club 或变成通用页面模板。
+- 不推送，不安装新依赖，不修改全局配置或全局 memory。
 
 ## 恢复入口
 
-- `.factory/workitems/FLOW-INTAKE-BRAINSTORM-001/ledger.jsonl`
-- `.factory/workitems/FLOW-INTAKE-BRAINSTORM-001/brief.md`
-- `.factory/workitems/FLOW-INTAKE-BRAINSTORM-001/reviews/dispatch-receipts.jsonl`
-- `.factory/workitems/FLOW-INTAKE-BRAINSTORM-001/evidence/review-fix-verification.md`
-- `.factory/workitems/FLOW-INTAKE-BRAINSTORM-001/reviews/independent-rereview-iteration-2.md`
+- `.factory/workitems/UI-CLIENT-CRAFT-001/ledger.jsonl`
+- `.factory/workitems/UI-CLIENT-CRAFT-001/plan.md`
+- `.factory/workitems/UI-CLIENT-CRAFT-001/reviews/dispatch-receipts.jsonl`
+- `.factory/workitems/UI-CLIENT-CRAFT-001/task-briefs/UI-CLIENT-CRAFT-001-T03.md`

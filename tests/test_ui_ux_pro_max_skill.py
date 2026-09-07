@@ -204,6 +204,37 @@ def test_ui_design_briefs_cover_modes_platforms_and_observable_evidence() -> Non
     assert "Do not prefill results" in fixture["experiment"]["protocol"]
 
 
+def test_ui_craft_cases_are_actionable_without_claiming_visual_acceptance() -> None:
+    fixture = json.loads(read(REPO_ROOT / "tests/fixtures/ui-craft-cases.json"))
+    cases = fixture["cases"]
+
+    assert fixture["fixture_kind"] == "ui_craft_execution_input"
+    assert set(fixture["skill_references"]) == {
+        "skills/ui-ux-pro-max/SKILL.md",
+        "skills/ui-ux-pro-max/references/visual-direction-and-quality.md",
+        "skills/ui-ux-pro-max/references/design-workflow-and-deliverables.md",
+    }
+    assert all((REPO_ROOT / path).is_file() for path in fixture["skill_references"])
+    assert {case["id"] for case in cases} == {
+        "coach-operate-workspace",
+        "imaging-experience-client",
+        "approved-baseline-extension",
+        "local-fix-or-read-only",
+    }
+    for case in cases:
+        assert case["original_request"]
+        assert case["known_facts"]
+        assert case["allowed_scope"]
+        assert case["observable_success"]
+        assert case["prohibitions"]
+        assert "result" not in case
+
+    assert cases[0]["surface"] == "operate"
+    assert cases[1]["surface"] == "experience"
+    assert cases[2]["task_mode"] == "baseline-extension"
+    assert cases[3]["task_mode"] in {"local-fix", "read-only"}
+
+
 def test_uiux_and_art_asset_routes_are_mutually_exclusive() -> None:
     content = read(REPO_ROOT / "skills" / "using-shanforge" / "SKILL.md")
 

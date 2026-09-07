@@ -11,6 +11,10 @@
 - linked work item：
 - task review list：
 - verification evidence：
+- candidate_fingerprint：<工作树内容指纹或 commit；工作树不得只写 HEAD>
+- requirements_or_standard_version：
+- 已检查范围：
+- 未检查范围：
 
 ## Git Range
 
@@ -47,8 +51,7 @@ git diff <Base>..<Head>
 - reviewer_independence_evidence:
 - review_status: approved | changes_requested | self_check_passed
 - next_gate_status: return_to_orchestrator | pending_human_confirmation | needs_independent_review | changes_requested
-- author_self_check_score: <0-100 or n/a>
-- review_score: <0-100 or n/a>
+- scope_conclusion: 本范围通过 | 需整改 | 证据不足
 
 ## Strengths
 - <specific strength>
@@ -56,23 +59,26 @@ git diff <Base>..<Head>
 ## Issues
 
 ### Critical
-- [file:line] <issue>
+- Finding ID: <stable id>; status: open | fixed | accepted | not_reproduced; 证据: <path/command>; [file:line] <issue>
 
 ### Important
-- [file:line] <issue>
+- Finding ID: <stable id>; status: open | fixed | accepted | not_reproduced; 证据: <path/command>; [file:line] <issue>
 
 ### Minor
-- [file:line] <issue>
+- Finding ID: <stable id>; status: open | fixed | accepted | not_reproduced; 证据: <path/command>; [file:line] <issue>
 
 ## Assessment
 
 Ready to merge: Yes | No | With fixes
 Reasoning: <1-2 sentences>
+
+## 复审历史
+
+- Finding ID: <stable id>; status: <current status>; 证据: <new evidence>; 差异原因: <relative to prior review>
 ```
 
 ## 独立性门
 
 - `same_thread` 只能输出 `self_check_passed`。
-- `same_thread` 只能写 `author_self_check_score`，不得写 `review_score`。
 - 缺 `reviewer_type`、`reviewer_id` 或 `reviewer_independence_evidence` 时，`next_gate_status` 必须写 `needs_independent_review`。
 - 真实独立 reviewer 的 `approved` 默认写 `return_to_orchestrator`；仅真实人工 Gate 写 `pending_human_confirmation`。

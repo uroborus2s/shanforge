@@ -36,7 +36,7 @@ def test_requesting_code_review_forbids_same_thread_approved() -> None:
     assert "单线程 fallback" not in skill
 
 
-def test_review_rubric_requires_independence_metadata_for_score() -> None:
+def test_review_contract_defaults_to_evidence_decisions_not_scores() -> None:
     rubric = read("skills/requesting-code-review/references/review-score-rubric.md")
     task_template = read("skills/requesting-code-review/references/task-review-template.md")
     independent_template = read(
@@ -47,14 +47,20 @@ def test_review_rubric_requires_independence_metadata_for_score() -> None:
         assert "reviewer_type" in content
         assert "reviewer_id" in content
         assert "reviewer_independence_evidence" in content
-        assert "author_self_check_score" in content
-        assert "review_score" in content
         assert "same_thread" in content
         assert "needs_independent_review" in content
 
     assert "same_thread` 只能写 `self_check_passed`" in rubric
-    assert "没有 reviewer 独立性证据时，不得写 `review_score`" in rubric
     assert "没有 reviewer 独立性证据时，不得写 `approved`" in rubric
+    assert "默认不输出 `review_score` 或 `author_self_check_score`" in rubric
+    assert "仅在明确请求辅助评分时" in rubric
+    assert "评分不能决定通过、整改或 Gate" in rubric
+    assert "证据满足记其权重，不满足或缺证据记 0" in rubric
+    assert "分母为 0 则无法计算" in rubric
+    assert "不得按印象给小数或临时改检查项追高分" in rubric
+    for content in (task_template, independent_template):
+        assert "review_score:" not in content
+        assert "author_self_check_score:" not in content
 
 
 def test_workflow_plan_separates_review_verification_and_true_human_gates() -> None:

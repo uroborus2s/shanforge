@@ -67,15 +67,89 @@ def test_project_reply_preserves_the_complete_test_baseline_and_nonpassing_facts
         assert phrase in status
 
 
+def test_project_status_answers_product_completion_before_batch_progress() -> None:
+    status = (REPO_ROOT / "skills/using-shanforge/references/human-readable-status.md").read_text(
+        encoding="utf-8"
+    )
+    contract_path = REPO_ROOT / "skills/using-shanforge/references/work-skill-return-contract.md"
+    contract = contract_path.read_text(encoding="utf-8")
+
+    for phrase in (
+        "项目是否完成",
+        "总体阶段与当前活动",
+        "本批剩余",
+        "已批准产品剩余",
+        "未知/未验证与未开始",
+        "缺完整基线时写“未知”，不得估算",
+        "状态查询、代码评审、提交或修 bug 只说明当前活动",
+        "总体阶段未知；当前活动修复已知 bug；联调尚未运行",
+        "已知本批缺口可确定“产品尚不能交付”",
+        "进行中的 bug 修复是进行中，不属于未知/未验证与未开始",
+    ):
+        assert phrase in status
+    assert "`scope_remaining` 只表示当前已授权批次" in contract
+    assert "总体事实只由 `using-shanforge` 生成" in contract
+    assert "scope_reconciliation" in contract
+    assert "普通本批收口可为 `not_checked`，不因此阻塞连续执行" in contract
+    assert "已核对 | 核对不完整 | 尚未核对" in contract
+
+
+def test_status_snapshot_and_human_gate_do_not_default_to_scores() -> None:
+    skill = (REPO_ROOT / "skills/using-shanforge/SKILL.md").read_text(encoding="utf-8")
+    snapshot = skill.split("## 项目位置快照", maxsplit=1)[1].split("\n## ", maxsplit=1)[0]
+    human_gate = skill.split("## 人工确认门", maxsplit=1)[1].split("\n## ", maxsplit=1)[0]
+
+    for phrase in (
+        "项目是否完成：已完成 | 未完成 | 无法确认",
+        "总体阶段与当前活动",
+        "本批剩余",
+        "已批准产品剩余",
+        "未知/未验证与未开始",
+        "仅在完整批准分母可得时作为辅助定位",
+    ):
+        assert phrase in snapshot
+    assert "评分：<N> / 100" not in human_gate
+    assert "范围结论：本范围通过 | 需整改 | 证据不足" in human_gate
+    assert "已检查范围：" in human_gate
+    assert "未检查范围：" in human_gate
+    assert "complete | incomplete | unknown" not in snapshot
+    reconciliation = "遗漏核对：<已核对 | 核对不完整 | 尚未核对；基线定位/版本；未映射或未知项>"
+    assert reconciliation in snapshot
+
+
+def test_traceability_matrix_keeps_release_and_evidence_boundaries() -> None:
+    matrix = (
+        REPO_ROOT / "skills/document-templates/assets/templates/traceability/requirements-matrix.md"
+    ).read_text(encoding="utf-8")
+
+    for phrase in (
+        "需求/变更版本",
+        "页面",
+        "接口",
+        "任务",
+        "测试",
+        "设计/实现/集成/验收状态",
+        "发布状态",
+        "不适用必须写理由",
+        "延期或移出范围必须写批准依据",
+        "未验证不得标记为完成、验收通过或可发布",
+    ):
+        assert phrase in matrix
+
+
 def test_status_examples_are_real_consumable_three_part_responses_with_one_next_action() -> None:
     status = (
         REPO_ROOT / "skills/using-shanforge/references/human-readable-status.md"
     ).read_text(encoding="utf-8")
     examples = {
         "开发示例": (
-            "WBS 总数：5；已完成：2；进行中：1；未开始：1；阻塞：1",
-            "当前 TaskCard：SOFTWARE-ENGINEERING-SKILL-REMEDIATION-001-T04",
-            "可观察功能",
+            "项目是否完成：未完成",
+            "局部密码规则完成",
+            "完整登录尚未完成",
+            "总体阶段：无法确认（缺生命周期事实）",
+            "当前活动：状态复核",
+            "已批准产品剩余：未知（完整基线未提供）",
+            "遗漏核对：尚未核对",
             "验证：",
             "无需回复",
         ),

@@ -246,7 +246,13 @@ Terra/Luna 只执行已授权任务包，不得改写上述字段、扩大范围
 快照至少包含：
 
 ```text
-项目整体进度：第 <N>/<TOTAL> 步；<阶段名>；<阶段状态>
+项目是否完成：已完成 | 未完成 | 无法确认
+总体阶段与当前活动：<总体阶段及生命周期事实依据；当前活动>
+本批剩余：<当前已授权批次剩余；没有则写“无”>
+已批准产品剩余：<完整批准范围剩余；缺完整基线写“未知”>
+未知/未验证与未开始：<列表；没有则写“无”>
+遗漏核对：<已核对 | 核对不完整 | 尚未核对；基线定位/版本；未映射或未知项>
+项目整体进度（辅助定位）：第 <N>/<TOTAL> 步；仅完整批准分母可得时填写
 当前任务：<人类可读任务名>；<任务状态>
 已完成：<本轮已验证完成的结果>
 正在执行：<当前真实动作；没有则写“无”>
@@ -254,6 +260,9 @@ Terra/Luna 只执行已授权任务包，不得改写上述字段、扩大范围
 唯一下一动作：<下一项项目动作；完成态写“本任务无待办”>
 ```
 
+- `第 <N>/<TOTAL> 步` 仅在完整批准分母可得时作为辅助定位，不得代替上述总体结论。
+- 总体阶段只从产品生命周期事实读取或推断并标依据；状态查询、代码评审、提交和修 bug 是当前活动，不能自动成为总体阶段。缺生命周期事实写“无法确认”。
+- 退出回复中的“无需回复”只说明是否需用户输入，不能代替唯一下一动作；用户只问状态时下一动作是建议，不自动改业务。
 - 用户可见的下一动作必须描述项目动作，不得只写调用某个 skill。
 - “当前任务完成”“当前阶段完成”“项目整体完成”必须分开表达。
 - 没有真实停止条件时，`停止原因` 写“无”，并继续既有授权范围内的内部流程。
@@ -454,12 +463,19 @@ baseline work item 规则：
 
 ```text
 项目状态信封：
+- project_completion: complete | incomplete | unknown
+- overall_phase_and_current_activity: <总体阶段；当前活动>
 - project_position: <step / total / stage / task>
 - completion_level: none | task | stage | project
 - stop_reason: none | blocker | human_gate
 - scope_remaining: <已授权范围内剩余工作；没有则写“无”>
+- approved_product_remaining: <完整批准产品范围内剩余；缺完整基线写“未知”>
+- unknown_unverified_or_not_started: <未知、未验证与未开始项；没有则写“无”>
+- scope_reconciliation: <baseline locator/version; checked | incomplete | not_checked; unmapped or unknown items>
 - next_required_action: <唯一下一动作；没有则写“无”>
 ```
+
+普通本批收口不因 `scope_reconciliation=not_checked` 停止；必须如实说明基线定位/版本和未映射或未知项，不得把字段存在当作已核对。
 
 工作 Skill 的本地 `blocked`、`needs_user_input` 或 human-confirmation need 是输入事实；是否形成项目 blocker 或 human Gate，由本 skill 结合 ledger 判断。`direct_answer` 与 `lightweight_analysis` 不使用这两类状态包。
 
@@ -509,7 +525,7 @@ memory 只写恢复所需摘要：ID、状态、gate、`next_required_action`、
 
 可见性响应只写事实摘要。长命令输出、完整 diff、子 agent 全文和正式文档正文只给路径，不复制进当前会话。
 
-项目化任务最终收口必须明确写出项目位置快照。当前任务完成但项目未完成时，直接写“本任务完成，项目仍在第 N/TOTAL 步”，不得用模糊的“已完成”代替层级判断。快速通道只返回答案或分析结论，不附加项目快照。
+项目化任务最终收口必须明确写出项目位置快照。当前任务完成但项目未完成时，先写项目是否完成和已批准产品剩余，再写“本任务完成”；`第 N/TOTAL 步` 只能作为有完整分母时的辅助定位。快速通道只返回答案或分析结论，不附加项目快照。
 
 ## 提交门
 
@@ -533,7 +549,9 @@ memory 只写恢复所需摘要：ID、状态、gate、`next_required_action`、
 工作项：<ID>
 执行结果：通过 / 部分通过 / 失败
 评审结论：approved | changes_requested
-评分：<N> / 100
+范围结论：本范围通过 | 需整改 | 证据不足
+已检查范围：<需求/标准版本、候选与检查范围>
+未检查范围：<范围与原因>
 最终审计问题报告：<path>
 阻塞问题：Critical / Important / Minor 摘要
 已修复问题：<列表或 none>
@@ -546,7 +564,7 @@ memory 只写恢复所需摘要：ID、状态、gate、`next_required_action`、
 3. 暂停
 ```
 
-人工确认信息不能只输出评分；必须给出最终审计问题报告，列清 review 发现、修复状态、残留风险和验证证据。
+人工确认信息不得用默认评分代替结论；必须给出范围结论、已检查/未检查范围、最终审计问题报告、修复状态、残留风险和验证证据。
 
 人工没有明确确认前，不得进入下一阶段，不得关闭 work item，不得提交“最终完成”结论。
 

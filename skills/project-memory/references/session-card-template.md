@@ -6,7 +6,12 @@
 - 时间：<ISO-8601>
 - Actor：<Codex | Gemini | 其他>
 - 阶段：<BRAINSTORM | REQUIREMENTS | DESIGN | PLAN | IMPLEMENTATION | TESTING | ACCEPTANCE | RELEASE | MAINTENANCE>
-- 项目整体进度：`<work_item_id> / <task_card_id>`
+- 项目是否完成：是 | 否 | 未知（缺完整基线时）
+- 总体阶段与当前活动：
+- 本批剩余：
+- 已批准产品剩余：
+- 未知/未验证与未开始：
+- 项目整体进度（辅助定位）：<完整批准分母可得时填写；否则“无法计算”；不代替上述总体/批次字段>
 - 当前工作项：<work_item_id 或 none>
 - 当前任务：<task_card_id 或 none>
 - 当前 WBS：<wbs_id 或 none>

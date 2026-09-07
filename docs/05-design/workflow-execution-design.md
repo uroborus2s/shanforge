@@ -23,6 +23,7 @@ Shanforge 是由代理宿主加载的 `skill-first` 协作资产，不提供仓�
 - 项目化写入必须有既存 WorkItem、TaskCard、精确 `allowed_paths`、`forbidden_actions`、`current_gate` 和 `write_policy`。
 - `using-shanforge` 是唯一流程路由 owner；工作 Skill 只回传本职输出、证据、状态和所需 Gate。
 - Review、验证、人工确认、提交与发布相互独立，任何一项不能替代另一项。
+- 项目状态先回答项目是否完成，并区分总体阶段与当前活动、本批剩余、已批准产品剩余、未知/未验证与未开始；缺完整基线写未知，不估算。本批 `scope_remaining` 不得冒充产品总体事实。
 
 ## 完整软件项目会话归因模型
 
@@ -218,6 +219,7 @@ package 和 ledger 事实，不以单个低、中风险任务的 checkpoint 冒�
 
 - Review 不能替代 verification。
 - Verification 不能替代 human confirmation。
+- Review 仅对绑定的候选、需求/标准版本和已检查范围作结论；工作树使用内容指纹。默认结论为本范围通过、需整改或证据不足，复审保留 Finding ID、状态、证据和差异原因；默认不输出分数。
 - 低、中风险任务不逐项独立评审；批次或里程碑集中 Review。
 - 有 Critical 必须 `changes_requested`；Important 默认 `changes_requested`，除非用户明确接受风险。
 - Reviewer `approved` 只完成 Review Gate；正式发布、风险接受或不可逆取舍才进入 `pending_human_confirmation`。
@@ -275,3 +277,5 @@ package 和 ledger 事实，不以单个低、中风险任务的 checkpoint 冒�
 | `v1.4.0` | 增加设计至生产阶段门、变更归因、候选修复复测、最终发布回归和部署闭环 | 2026-08-08 | `AI_EXECUTOR` | `集中质量门` | `uroborus` |
 | `v1.5.0` | 固化 Sol 唯一控制、复杂度分级及 Terra/Luna 受控执行路由 | 2026-08-23 | `AI_EXECUTOR` | `集中质量门` | `uroborus` |
 | `v2.0.0` | 收口为 Skill-first 生命周期矩阵、方法选择与过程数据边界 | 2026-09-01 | `AI_EXECUTOR` | `集中质量门` | `uroborus` |
+
+候选修订（2026-09-07）：项目总体/本批状态分离、版本化追踪和证据化范围评审待 `FLOW-STATUS-REVIEW-001` 评审；未正式发布。

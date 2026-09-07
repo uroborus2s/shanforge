@@ -28,7 +28,7 @@
 
 `task_id/task_type 表示正式任务身份`，`skill 表示执行者身份`；二者不是替代关系。不得统一或改写工作 Skill 的既有专业输出，也不得为了共享本合同而收窄其 `status`、`outputs`、`evidence`、`needs`、真实 blocker 或人工确认语义。
 
-`human_summary` 是可直接翻译的本职结论；其余三项按适用性提供，缺失时总控不得猜测。工作 Skill 不得推断 WBS 分母、产品功能完成度或项目完成层级；项目完成层级仍由 `using-shanforge` 结合项目事实决定。
+`human_summary` 是可直接翻译的本职结论；其余三项按适用性提供，缺失时总控不得猜测。工作 Skill 不得推断 WBS 分母、产品功能完成度或项目完成层级；项目完成层级仍由 `using-shanforge` 结合项目事实决定，总体事实只由 `using-shanforge` 生成。
 
 `code_shape_check` 只有本轮没有修改代码时才可 `not_applicable`；凡修改源码或测试代码不得用 N/A，必须回写 `passed` 或 `failed`。
 
@@ -85,14 +85,25 @@ Bug、修复或代码写入结果的 `change_locations` 必须逐项使用以下
 `using-shanforge` 接收本职结果包后，结合当前 work item ledger、review ledger、已授权范围和真实 Gate，统一生成：
 
 ```text
+- project_completion: complete | incomplete | unknown
+- overall_phase_and_current_activity: <总体阶段；当前活动>
 - project_position: <第 N/TOTAL 步 / 阶段 / 当前任务>
 - completion_level: none | task | stage | project
 - stop_reason: none | blocker | human_gate
 - scope_remaining: <已授权范围内剩余工作；没有则写“无”>
+- approved_product_remaining: <完整批准产品范围内剩余；缺完整基线写“未知”>
+- unknown_unverified_or_not_started: <未知、未验证与未开始项；没有则写“无”>
+- scope_reconciliation: <基线定位/版本；checked | incomplete | not_checked；未映射或未知项>
 - next_required_action: <唯一 `next_required_action`；没有则写“无”>
 ```
 
 没有真实 blocker 或有效 human Gate 时，`stop_reason` 必须是 `none`；既有授权范围内仍有内部验证、评审、整改或收口动作时继续路由，不把内部 checkpoint 变成用户 Gate。
+
+`scope_remaining` 只表示当前已授权批次，不能推导已批准产品的剩余或完成。总控先回答项目是否完成，再分别报告总体阶段与当前活动、已批准产品剩余和未知/未验证/未开始；缺完整基线明确“未知”，不得估算。
+
+已知本批缺口可确定产品尚不能交付；缺完整产品基线时必须分开写“已知缺口”和“完整产品剩余未知”，不得以本批缺口替代完整产品剩余。进行中的 bug 修复属于当前进行中，不得列为未知/未验证与未开始。
+
+`scope_reconciliation` 记录完整批准需求/变更的核对依据和结果；普通本批收口可为 `not_checked`，不因此阻塞连续执行，但必须列出基线定位/版本和未映射或未知项。用户可见时翻译为“已核对 | 核对不完整 | 尚未核对”；基线不存在不得写已核对，存在已知缺陷不得把全部状态写成未知。字段存在不等于已核对或已验收。
 
 ## 适用边界
 

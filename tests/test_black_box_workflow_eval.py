@@ -379,8 +379,11 @@ def test_black_box_flow_eval_defines_scoring_and_failure_gates() -> None:
         "任一 critical assertion 为 0 分则失败",
         "不得读取实现 diff",
         "不得调用中心脚本",
-        "不得把实现者自检写成 approved",
         "不得在没有根因和回归测试时声明 bug 修复完成",
+        "本批 / 本范围完成",
+        "产品整体完成",
+        "评分只用于封闭 critical assertion 的计数",
+        "不是 review 质量分",
     ):
         assert phrase in reference
 
@@ -494,7 +497,6 @@ def test_flow_controller_owns_flow_contract_scenarios_and_gates() -> None:
         "baseline work item",
         "缺 evidence 时阻塞关闭",
         "最终审计问题报告",
-        "不能只输出评分",
     ):
         assert phrase in skill
 

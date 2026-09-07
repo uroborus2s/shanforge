@@ -1,14 +1,15 @@
 # 当前状态
 
 - 当前模式：`codex_desktop`
-- 当前阶段：`UI-CLIENT-CRAFT-001 / CLOSED`
-- 活跃任务数：0
+- 当前阶段：`FLOW-STATUS-REVIEW-001 / FLOW-STATUS-REVIEW-001-T03`（恢复定位）
+- 本批阶段：本地提交收口；产品总体阶段未重新核对
+- 活跃任务数：1
 - 阻塞项数：0
-- 当前 Gate：`none`
+- 当前 Gate：`closed`
 
 ## 活跃任务
 
-- 当前无活动任务。
+- `FLOW-STATUS-REVIEW-001-T03`：独立复审approved，唯一Important关闭；实现/验证无剩余，仅待本地提交。
 
 ## 阻塞项
 
@@ -16,20 +17,18 @@
 
 ## 最近事实
 
-- UI skill 已补业务关系驱动构图、实际参考转化与两层视觉验收；定向 57 passed。
-- 三页原型使用现有 fixture，只保存在本工作项 evidence，不改 ita-club。
-- 隔离 Playwright 9 张截图与行为检查通过；完整 pytest 406 passed / 11 subtests passed。
-- 独立评审 approved / 98 / C0-I0-M1；M-01 为正式采用前移出内部说明。
-- 迁移试做不是受控 A/B、真机验收或人工美术批准。
+- 用户已批准落实总体/批次分离、需求遗漏核对、无默认总分和复审追溯。
+- 父全量416 passed / 11 subtests passed；行为6 passed；Ruff、形状、5个skill结构、25文件指纹与diff检查通过；原失败与校准过程保留在evidence。
+- 上一 UI 批次已关闭；详情降级到 tasks.summary 与旧 ledger，不改历史事实。
 
 ## 唯一下一动作
 
-- `none`
+- `create_exact_local_commit`
 
 ## 历史回源
 
-- 最近 WorkItem：`.factory/workitems/UI-CLIENT-CRAFT-001/`
-- Ledger：`.factory/workitems/UI-CLIENT-CRAFT-001/ledger.jsonl`
+- 最近 WorkItem：`.factory/workitems/FLOW-STATUS-REVIEW-001/`
+- Ledger：`.factory/workitems/FLOW-STATUS-REVIEW-001/ledger.jsonl`
 - 稳定 Ledger 索引：`.factory/workitems/<WORKITEM-ID>/ledger.jsonl`
 - 非活跃任务摘要：`.factory/memory/tasks.summary.md`
 

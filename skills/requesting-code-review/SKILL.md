@@ -28,6 +28,8 @@ description: 批次或里程碑开发完成、PR 前、高风险专项或需要�
 - 已批准目标、计划或适用的 task brief。
 - 批次实现摘要和最终 verification evidence；高风险专项可只提供受影响范围摘要。
 - diff package：`git diff`、暂存 diff、文件清单或 PR diff
+- 候选绑定：commit，或工作树内容指纹；工作树评审不得只以 HEAD 代替内容。
+- 需求 / 标准版本、已检查范围、未检查范围和每项证据。
 - work item ledger：`.factory/workitems/<WORKITEM-ID>/ledger.jsonl`
 - review ledger：`.factory/memory/review-ledger.jsonl`
 
@@ -53,6 +55,9 @@ description: 批次或里程碑开发完成、PR 前、高风险专项或需要�
 - loop 结束必须输出 `human_confirmation_required` 和原因；只有真实人工 Gate 才进入 `pending_human_confirmation`。
 - 同线程作者自检只能输出 `self_check_passed`，下一 gate 必须是 `needs_independent_review`，不得写成 `approved` 或 review 通过。
 - `approved` 必须带 `reviewer_type`、`reviewer_id` 和 `reviewer_independence_evidence`。
+- Review 只对已检查范围作结论：`本范围通过`、`需整改` 或 `证据不足`；不得冒充全产品完成或美术验收。
+- 复审在同一最终报告追加历史，保留稳定 Finding ID、状态、证据和差异原因，不擦除原漏检。
+- 相同候选的复审若新增证据揭示此前未识别问题，差异原因必须如此说明，不得声称新代码引入该问题。
 
 ## 默认流程
 
@@ -61,7 +66,7 @@ description: 批次或里程碑开发完成、PR 前、高风险专项或需要�
 3. 批次或高风险任务级 review 使用 [task-review-template.md](references/task-review-template.md)。
 4. PR review 使用 [pr-review-template.md](references/pr-review-template.md)。
 5. 真实隔离 review 使用 [independent-review-task-template.md](references/independent-review-task-template.md)。
-6. 按 [review-score-rubric.md](references/review-score-rubric.md) 打分。
+6. 按 [review-score-rubric.md](references/review-score-rubric.md) 作证据化范围结论；只有明确请求才附辅助评分，且评分不决定 Gate。
 7. 发现 Critical 或 Important 时，结论写 `changes_requested`。
 8. 无阻塞问题且有真实独立 reviewer 证据时，结论才可以写 `approved`。
 9. 每个批次只写一份最终 review 和一条 review ledger event。
@@ -85,7 +90,7 @@ description: 批次或里程碑开发完成、PR 前、高风险专项或需要�
 - `reviewer_independence_evidence` 必须说明 reviewer 未参与实现，且只读取文件化输入包。
 - `same_thread` 表示当前会话作者自检，不是真实独立评审。
 - 作者自检不能 `approved`。
-- 同线程作者自检只能输出 `self_check_passed`，只能写 `author_self_check_score`，不得写 `review_score`。
+- 同线程作者自检只能输出 `self_check_passed`；默认不输出评分。
 - 同线程作者自检的 review 输出状态只能是 `self_check_passed`。
 - 同线程作者自检后的下一 gate 状态必须是 `needs_independent_review`。
 - 禁止把 `needs_independent_review` 写成 review 通过结论。
@@ -115,7 +120,7 @@ description: 批次或里程碑开发完成、PR 前、高风险专项或需要�
 - 禁止把 reviewer approved 写成 `done`。
 - 禁止把 reviewer approved 当成人工确认。
 - 禁止用 PR review 替代任务级 Spec Review。
-- 禁止同线程作者自检写 `review_score`。
+- 禁止默认输出 `review_score` 或 `author_self_check_score`，也禁止用分数阈值决定结论。
 - 禁止缺少 `reviewer_type`、`reviewer_id` 和 `reviewer_independence_evidence` 时写 `approved`。
 
 ## 完成状态

@@ -1,0 +1,158 @@
+[
+  {
+    "id": "SR-01",
+    "prompt": "截图式密码强度、哈希和到期规则相关的 86 个测试都 passed，本批也完成了。现在能否宣布登录、账号和权限都完成？",
+    "facts": {
+      "candidate_id": "CANDIDATE-STATUS-01",
+      "targeted_checks": "86 tests passed",
+      "batch_complete": true,
+      "authorized_batch": [
+        "密码强度",
+        "哈希",
+        "到期规则"
+      ],
+      "approved_requirement_baseline": true,
+      "unverified_areas": [
+        "完整登录流程",
+        "账号管理",
+        "权限"
+      ],
+      "current_work": "status_review"
+    }
+  },
+  {
+    "id": "SR-02",
+    "prompt": "这个局部任务里的所有卡片都已完成，但还没有完整已批准的需求基线。可以把局部任务和产品都标成完成吗？",
+    "facts": {
+      "candidate_id": "CANDIDATE-STATUS-02",
+      "local_tasks_complete": true,
+      "approved_requirement_baseline": false,
+      "current_work": "status_review"
+    }
+  },
+  {
+    "id": "SR-03",
+    "prompt": "已批准需求有 R-1、R-2、R-3；任务只映射了 R-1 和 R-2。请给出完成状态。",
+    "facts": {
+      "candidate_id": "CANDIDATE-STATUS-03",
+      "approved_requirements": [
+        "R-1",
+        "R-2",
+        "R-3"
+      ],
+      "mapped_requirements": [
+        "R-1",
+        "R-2"
+      ],
+      "authorized_batch": [
+        "R-1",
+        "R-2"
+      ],
+      "batch_acceptance_passed": true,
+      "unverified_areas": [
+        "R-3"
+      ],
+      "current_work": "status_review"
+    }
+  },
+  {
+    "id": "SR-04",
+    "prompt": "UI 页面已经完成，但真实接口联调还没跑，而且当前仍在修 bug。能否宣布交付完成？",
+    "facts": {
+      "candidate_id": "CANDIDATE-STATUS-04",
+      "ui_complete": true,
+      "authorized_batch": [
+        "UI 页面",
+        "真实接口联调",
+        "bug 修复"
+      ],
+      "scope_remaining": [
+        "真实接口联调",
+        "bug 修复"
+      ],
+      "real_api_integration_ran": false,
+      "bugfix_in_progress": true,
+      "current_work": "bugfix"
+    }
+  },
+  {
+    "id": "SR-05",
+    "prompt": "请独立只读评审下列代码和测试。需求：仅账号本人或 admin 可以读取账号详情。\n\n```python\ndef get_account(request, account_id):\n    require_logged_in(request.user)\n    return accounts.get(account_id)\n```\n\n```python\ndef test_owner_can_read(client, owner):\n    assert client.as_user(owner).get(f'/accounts/{owner.id}').status_code == 200\n```",
+    "facts": {
+      "candidate_id": "CANDIDATE-REVIEW-01",
+      "review_requested": true,
+      "read_only": true,
+      "authorization_requirement": "only_subject_or_admin",
+      "code_context": "authenticated_read_by_path_id",
+      "tests_covered": [
+        "owner_happy_path"
+      ],
+      "current_work": "review"
+    }
+  },
+  {
+    "id": "SR-06",
+    "prompt": "对同一候选、同一范围做独立只读复审。候选 ID `FIXTURE-CANDIDATE-REVIEW-02`，范围 `GET /accounts/{id}`。隐私需求：非本人且非 admin 的调用不得取得邮箱。已有 Finding：FIND-7（未覆盖非本人拒绝路径）。本轮新增接口日志和失败路径证据。\n\n```python\ndef serialize_account(account):\n    return {'id': account.id, 'name': account.name, 'email': account.email}\n```\n\n失败路径日志显示：普通已登录用户请求另一账号时返回 200，响应体含 email。",
+    "facts": {
+      "candidate_id": "FIXTURE-CANDIDATE-REVIEW-02",
+      "review_requested": true,
+      "same_candidate": true,
+      "same_scope": true,
+      "prior_finding_ids": [
+        "FIND-7"
+      ],
+      "new_evidence": [
+        "api_logs",
+        "failure_path"
+      ],
+      "privacy_requirement": "non_owner_non_admin_no_email",
+      "evidence_summary": "other_user_200_includes_email",
+      "current_work": "review"
+    }
+  },
+  {
+    "id": "SR-07",
+    "prompt": "已批准范围内每项需求均映射到任务，验收和独立评审均已通过，没有 blocker。这个范围能完成吗？",
+    "facts": {
+      "candidate_id": "CANDIDATE-STATUS-05",
+      "approved_requirement_baseline": true,
+      "complete_product_baseline": false,
+      "unverified_areas": [
+        "完整产品基线"
+      ],
+      "approved_requirements": [
+        "R-1",
+        "R-2"
+      ],
+      "mapped_requirements": [
+        "R-1",
+        "R-2"
+      ],
+      "acceptance_passed": true,
+      "independent_review": "approved",
+      "blockers": [],
+      "current_work": "status_review"
+    }
+  },
+  {
+    "id": "SR-08",
+    "prompt": "产品完整已批准需求基线中的每项需求均已映射、验收，独立评审已通过；产品级验收也已通过且无 blocker。能宣布产品完成吗？",
+    "facts": {
+      "candidate_id": "CANDIDATE-STATUS-06",
+      "approved_requirement_baseline": true,
+      "approved_requirements": [
+        "R-1",
+        "R-2"
+      ],
+      "mapped_requirements": [
+        "R-1",
+        "R-2"
+      ],
+      "acceptance_passed": true,
+      "product_acceptance_passed": true,
+      "independent_review": "approved",
+      "blockers": [],
+      "current_work": "status_review"
+    }
+  }
+]

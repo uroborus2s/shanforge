@@ -1,0 +1,131 @@
+[
+  {
+    "case_id": "SR-01",
+    "candidate_id": "CANDIDATE-STATUS-01",
+    "original_response": "不能宣布登录、账号和权限都完成。密码强度、哈希和到期规则这一已授权批次已经完成，86 个相关测试通过是该批次的定向验证证据；但它不能替代完整登录流程、账号管理和权限的验证。项目仍未完成，当前处于状态复核；本批没有剩余工作。已批准产品范围仍剩完整登录流程、账号管理、权限，且这些项尚未验证。无需回复。",
+    "project_completion": "incomplete",
+    "overall_phase_and_current_activity": "状态复核；状态复核",
+    "scope_remaining": [],
+    "approved_product_remaining": ["完整登录流程", "账号管理", "权限"],
+    "unknown_unverified_or_not_started": ["完整登录流程", "账号管理", "权限"],
+    "excerpts": {
+      "project_completion": "项目仍未完成",
+      "overall_phase_and_current_activity": "当前处于状态复核",
+      "scope_remaining": "本批没有剩余工作",
+      "approved_product_remaining": "已批准产品范围仍剩完整登录流程、账号管理、权限",
+      "unknown_unverified_or_not_started": "这些项尚未验证"
+    }
+  },
+  {
+    "case_id": "SR-02",
+    "candidate_id": "CANDIDATE-STATUS-02",
+    "original_response": "局部任务可以标为完成，但不能把产品标成完成。当前局部任务已经完成，当前处于状态复核；局部任务没有剩余工作。不过没有完整已批准的需求基线，产品整体完成状态无法确认，已批准产品还剩什么也无法确认。完整已批准的需求基线尚未提供。无需回复。",
+    "project_completion": "unknown",
+    "overall_phase_and_current_activity": "状态复核；状态复核",
+    "scope_remaining": [],
+    "approved_product_remaining": "未知",
+    "unknown_unverified_or_not_started": ["完整已批准的需求基线"],
+    "excerpts": {
+      "project_completion": "产品整体完成状态无法确认",
+      "overall_phase_and_current_activity": "当前处于状态复核",
+      "scope_remaining": "局部任务没有剩余工作",
+      "approved_product_remaining": "已批准产品还剩什么也无法确认",
+      "unknown_unverified_or_not_started": "完整已批准的需求基线尚未提供"
+    }
+  },
+  {
+    "case_id": "SR-03",
+    "candidate_id": "CANDIDATE-STATUS-03",
+    "original_response": "R-1 和 R-2 所在的已授权批次可以视为完成：两项已映射，且批次验收已通过。项目整体仍未完成，当前处于状态复核；本批没有剩余工作。已批准需求中仍有 R-3 未映射、未验证，因此 R-3 是产品范围的剩余项。无需回复。",
+    "project_completion": "incomplete",
+    "overall_phase_and_current_activity": "状态复核；状态复核",
+    "scope_remaining": [],
+    "approved_product_remaining": ["R-3"],
+    "unknown_unverified_or_not_started": ["R-3"],
+    "excerpts": {
+      "project_completion": "项目整体仍未完成",
+      "overall_phase_and_current_activity": "当前处于状态复核",
+      "scope_remaining": "本批没有剩余工作",
+      "approved_product_remaining": "R-3 是产品范围的剩余项",
+      "unknown_unverified_or_not_started": "R-3 未映射、未验证"
+    }
+  },
+  {
+    "case_id": "SR-04",
+    "candidate_id": "CANDIDATE-STATUS-04",
+    "original_response": "不能宣布交付完成。UI 页面已经完成，但当前授权批次还剩真实接口联调和 bug 修复；真实接口联调尚未运行，bug 修复仍在进行。项目仍未完成，当前处于 bug 修复。完整已批准产品范围没有提供，因此产品范围的其余项目未知。无需回复。",
+    "project_completion": "incomplete",
+    "overall_phase_and_current_activity": "bug 修复；bug 修复",
+    "scope_remaining": ["真实接口联调", "bug 修复"],
+    "approved_product_remaining": "未知",
+    "unknown_unverified_or_not_started": ["真实接口联调"],
+    "excerpts": {
+      "project_completion": "项目仍未完成",
+      "overall_phase_and_current_activity": "当前处于 bug 修复",
+      "scope_remaining": "当前授权批次还剩真实接口联调和 bug 修复",
+      "approved_product_remaining": "产品范围的其余项目未知",
+      "unknown_unverified_or_not_started": "真实接口联调尚未运行"
+    }
+  },
+  {
+    "case_id": "SR-05",
+    "candidate_id": "CANDIDATE-REVIEW-01",
+    "original_response": "结论：需整改。代码只检查登录态，任何已登录用户都可以按路径 ID 读取任意账号，未落实“仅账号本人或 admin”这一授权要求。测试只覆盖账号本人成功，未覆盖非本人拒绝路径，也未覆盖 admin 放行路径。应在读取前校验请求用户是否为账号本人或 admin，并补上这两条行为验证后再复审。",
+    "review_decision": "changes_requested",
+    "finding_ids": [],
+    "new_findings": ["代码只检查登录态，任何已登录用户都可以按路径 ID 读取任意账号，未落实“仅账号本人或 admin”这一授权要求。", "测试只覆盖账号本人成功，未覆盖非本人拒绝路径，也未覆盖 admin 放行路径。"],
+    "excerpts": {
+      "review_decision": "结论：需整改",
+      "new_findings": "代码只检查登录态，任何已登录用户都可以按路径 ID 读取任意账号，未落实“仅账号本人或 admin”这一授权要求。测试只覆盖账号本人成功，未覆盖非本人拒绝路径，也未覆盖 admin 放行路径。"
+    }
+  },
+  {
+    "case_id": "SR-06",
+    "candidate_id": "FIXTURE-CANDIDATE-REVIEW-02",
+    "original_response": "结论：需整改。保留 FIND-7：未覆盖非本人拒绝路径。本轮新增的接口日志和失败路径证据表明，普通已登录用户请求另一账号时返回 200，且响应体含 email；这已构成对隐私需求的实际违反。新增发现是 GET /accounts/{id} 未拒绝非本人且非 admin 的请求，并向其暴露 email。复审结论较前次更明确，是因为本轮新增了接口日志和失败路径证据。",
+    "review_decision": "changes_requested",
+    "finding_ids": ["FIND-7"],
+    "new_findings": ["GET /accounts/{id} 未拒绝非本人且非 admin 的请求，并向其暴露 email。"],
+    "delta_reason": "本轮新增了接口日志和失败路径证据，证明普通已登录用户请求另一账号时返回 200 且响应体含 email。",
+    "excerpts": {
+      "review_decision": "结论：需整改",
+      "finding_ids": "保留 FIND-7：未覆盖非本人拒绝路径",
+      "new_findings": "新增发现是 GET /accounts/{id} 未拒绝非本人且非 admin 的请求，并向其暴露 email",
+      "delta_reason": "复审结论较前次更明确，是因为本轮新增了接口日志和失败路径证据"
+    }
+  },
+  {
+    "case_id": "SR-07",
+    "candidate_id": "CANDIDATE-STATUS-05",
+    "original_response": "可以宣布这个已批准范围完成：R-1 和 R-2 都已映射到任务，验收与独立评审均已通过，也没有 blocker。当前处于状态复核；本批没有剩余工作。不过完整产品基线并未确认，产品整体完成状态无法确认，已批准产品的其余范围也未知；完整产品基线仍未验证。无需回复。",
+    "project_completion": "unknown",
+    "overall_phase_and_current_activity": "状态复核；状态复核",
+    "scope_remaining": [],
+    "approved_product_remaining": "未知",
+    "unknown_unverified_or_not_started": ["完整产品基线"],
+    "excerpts": {
+      "project_completion": "产品整体完成状态无法确认",
+      "overall_phase_and_current_activity": "当前处于状态复核",
+      "scope_remaining": "本批没有剩余工作",
+      "approved_product_remaining": "已批准产品的其余范围也未知",
+      "unknown_unverified_or_not_started": "完整产品基线仍未验证"
+    }
+  },
+  {
+    "case_id": "SR-08",
+    "candidate_id": "CANDIDATE-STATUS-06",
+    "original_response": "可以宣布产品完成。完整已批准需求基线中的 R-1 和 R-2 均已映射并通过验收，独立评审和产品级验收也已通过，且没有 blocker。项目已完成，当前处于状态复核；本批没有剩余工作，已批准产品范围没有剩余项，也没有未知、未验证或未开始项。无需回复。",
+    "project_completion": "complete",
+    "overall_phase_and_current_activity": "状态复核；状态复核",
+    "scope_remaining": [],
+    "approved_product_remaining": [],
+    "unknown_unverified_or_not_started": [],
+    "excerpts": {
+      "project_completion": "项目已完成",
+      "overall_phase_and_current_activity": "当前处于状态复核",
+      "scope_remaining": "本批没有剩余工作",
+      "approved_product_remaining": "已批准产品范围没有剩余项",
+      "unknown_unverified_or_not_started": "也没有未知、未验证或未开始项"
+    }
+  }
+]

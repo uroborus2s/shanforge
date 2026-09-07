@@ -11,6 +11,10 @@
 - verification evidence：
 - diff package：
 - ledger：
+- candidate_fingerprint：<工作树内容指纹或 commit；工作树不得只写 HEAD>
+- requirements_or_standard_version：
+- 已检查范围：
+- 未检查范围：
 
 ## Spec Review
 
@@ -44,23 +48,26 @@
 - reviewer_independence_evidence:
 - review_status: approved | changes_requested | self_check_passed
 - next_gate_status: return_to_orchestrator | pending_human_confirmation | needs_independent_review | changes_requested
-- author_self_check_score: <0-100 or n/a>
-- review_score: <0-100 or n/a>
+- scope_conclusion: 本范围通过 | 需整改 | 证据不足
 
 ## Findings
 
 ### Critical
-- [file:line] <issue> - <impact>
+- Finding ID: <stable id>; status: open | fixed | accepted | not_reproduced; 证据: <path/command>; [file:line] <issue> - <impact>
 
 ### Important
-- [file:line] <issue> - <impact>
+- Finding ID: <stable id>; status: open | fixed | accepted | not_reproduced; 证据: <path/command>; [file:line] <issue> - <impact>
 
 ### Minor
-- [file:line] <issue> - <impact>
+- Finding ID: <stable id>; status: open | fixed | accepted | not_reproduced; 证据: <path/command>; [file:line] <issue> - <impact>
 
 ## Verification
 
 - <command>: <real result>
+
+## 复审历史
+
+- Finding ID: <stable id>; status: <current status>; 证据: <new evidence>; 差异原因: <relative to prior review>
 
 ## Gate
 
@@ -76,7 +83,6 @@ return_to_orchestrator | pending_human_confirmation | needs_independent_review |
 ## 独立性门
 
 - `same_thread` 只能输出 `self_check_passed`。
-- `same_thread` 只能写 `author_self_check_score`，不得写 `review_score`。
 - 没有 `reviewer_type`、`reviewer_id` 和 `reviewer_independence_evidence` 时，`next_gate_status` 必须写 `needs_independent_review`。
 - `needs_independent_review` 不是 review 通过结论。
 - `approved` 必须来自真实独立 reviewer。

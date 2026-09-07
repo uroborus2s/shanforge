@@ -72,7 +72,7 @@ def test_requesting_code_review_references_define_review_packages() -> None:
             "Independent Review Task",
             "不要读取实现者会话历史",
             "重新读取输入包",
-            "review score",
+            "范围结论",
             "pending_human_confirmation",
         ),
         "skills/requesting-code-review/references/review-score-rubric.md": (
@@ -81,7 +81,7 @@ def test_requesting_code_review_references_define_review_packages() -> None:
             "测试充分性",
             "代码质量",
             "文档与记忆同步",
-            "100",
+            "仅在明确请求辅助评分时",
         ),
     }
 
@@ -110,6 +110,30 @@ def test_review_gate_rejects_self_approval_and_requires_reviewer_na_decision() -
         "未被 reviewer 接受的 N/A 不得通过 review",
     ):
         assert phrase in skill
+
+
+def test_review_templates_bind_scope_candidate_requirements_and_rereview_history() -> None:
+    for path in (
+        "skills/requesting-code-review/references/task-review-template.md",
+        "skills/requesting-code-review/references/independent-review-task-template.md",
+        "skills/requesting-code-review/references/pr-review-template.md",
+    ):
+        content = read(path)
+        for phrase in (
+            "candidate_fingerprint",
+            "requirements_or_standard_version",
+            "已检查范围",
+            "未检查范围",
+            "证据",
+            "复审历史",
+            "Finding ID",
+            "差异原因",
+        ):
+            assert phrase in content, path
+
+    skill = read("skills/requesting-code-review/SKILL.md")
+    assert "新增证据揭示此前未识别问题" in skill
+    assert "不得声称新代码引入" in skill
 
 
 def test_receiving_code_review_skill_requires_verification_before_changes() -> None:

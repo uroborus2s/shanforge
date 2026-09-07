@@ -1,0 +1,178 @@
+[
+  {
+    "case_id": "SR-01",
+    "candidate_id": "CANDIDATE-STATUS-01",
+    "original_response": "不能宣布登录、账号和权限都完成。\n\n处理结果：项目是否完成：无法确认。密码强度、哈希和到期规则这一已授权批次已完成，且 86 个相关测试通过；但这只能证明这三项规则的局部结果。完整登录流程、账号管理和权限仍未验证，不能由局部测试推导为完成。总体阶段：无法确认，因为未提供产品生命周期事实；当前活动：状态核对。本批剩余：无。已批准产品剩余：完整登录流程、账号管理、权限。未知/未验证与未开始：完整登录流程、账号管理、权限。遗漏核对：尚未核对；已批准需求基线已提供，但上述范围尚未逐项完成核对。\n\n下一步：唯一下一动作是核对完整登录、账号管理和权限的已批准需求及验证证据。无需回复。",
+    "project_completion": "unknown",
+    "overall_phase": "无法确认",
+    "current_activity": "状态核对",
+    "scope_remaining": "无",
+    "approved_product_remaining": "完整登录流程、账号管理、权限",
+    "unknown_unverified_or_not_started": "完整登录流程、账号管理、权限",
+    "scope_reconciliation": "尚未核对；已批准需求基线已提供，但完整登录流程、账号管理和权限尚未逐项完成核对。",
+    "next_action": "核对完整登录、账号管理和权限的已批准需求及验证证据。",
+    "excerpts": {
+      "project_completion": "项目是否完成：无法确认。",
+      "overall_phase": "总体阶段：无法确认，因为未提供产品生命周期事实",
+      "current_activity": "当前活动：状态核对。",
+      "scope_remaining": "本批剩余：无。",
+      "approved_product_remaining": "已批准产品剩余：完整登录流程、账号管理、权限。",
+      "unknown_unverified_or_not_started": "未知/未验证与未开始：完整登录流程、账号管理、权限。",
+      "scope_reconciliation": "遗漏核对：尚未核对；已批准需求基线已提供，但上述范围尚未逐项完成核对。",
+      "next_action": "唯一下一动作是核对完整登录、账号管理和权限的已批准需求及验证证据。"
+    }
+  },
+  {
+    "case_id": "SR-02",
+    "candidate_id": "CANDIDATE-STATUS-02",
+    "original_response": "局部任务可以标为完成，但不能把产品标为完成。\n\n处理结果：项目是否完成：无法确认。局部任务中的所有卡片已完成，能够说明该局部任务完成；完整已批准的需求基线尚未提供，因此无法判断产品范围、产品剩余或产品是否完成。总体阶段：无法确认；当前活动：状态核对。本批剩余：无。已批准产品剩余：未知。未知/未验证与未开始：完整已批准需求基线以及由其定义的产品范围。遗漏核对：尚未核对；基线未提供，无法完成产品范围映射。\n\n下一步：唯一下一动作是补齐并核对完整已批准的需求基线，再判断产品完成状态。无需回复。",
+    "project_completion": "unknown",
+    "overall_phase": "无法确认",
+    "current_activity": "状态核对",
+    "scope_remaining": "无",
+    "approved_product_remaining": "未知",
+    "unknown_unverified_or_not_started": "完整已批准需求基线以及由其定义的产品范围",
+    "scope_reconciliation": "尚未核对；基线未提供，无法完成产品范围映射。",
+    "next_action": "补齐并核对完整已批准的需求基线，再判断产品完成状态。",
+    "excerpts": {
+      "project_completion": "项目是否完成：无法确认。",
+      "overall_phase": "总体阶段：无法确认",
+      "current_activity": "当前活动：状态核对。",
+      "scope_remaining": "本批剩余：无。",
+      "approved_product_remaining": "已批准产品剩余：未知。",
+      "unknown_unverified_or_not_started": "未知/未验证与未开始：完整已批准需求基线以及由其定义的产品范围。",
+      "scope_reconciliation": "遗漏核对：尚未核对；基线未提供，无法完成产品范围映射。",
+      "next_action": "唯一下一动作是补齐并核对完整已批准的需求基线，再判断产品完成状态。"
+    }
+  },
+  {
+    "case_id": "SR-03",
+    "candidate_id": "CANDIDATE-STATUS-03",
+    "original_response": "当前已授权批次可以视为完成，但不能宣布完整已批准需求完成。\n\n处理结果：项目是否完成：未完成。R-1、R-2 已映射到任务，且本批验收已通过；R-3 已批准但尚未映射，也未验证。本批剩余：无。总体阶段：无法确认，因为没有产品生命周期事实；当前活动：状态核对。已批准产品剩余：R-3。未知/未验证与未开始：R-3。遗漏核对：核对不完整；已批准基线为 R-1、R-2、R-3，R-1 和 R-2 已映射，R-3 未映射。\n\n下一步：唯一下一动作是为 R-3 建立任务映射并完成验收。无需回复。",
+    "project_completion": "incomplete",
+    "overall_phase": "无法确认",
+    "current_activity": "状态核对",
+    "scope_remaining": "无",
+    "approved_product_remaining": "R-3",
+    "unknown_unverified_or_not_started": "R-3",
+    "scope_reconciliation": "核对不完整；已批准基线为 R-1、R-2、R-3，R-1 和 R-2 已映射，R-3 未映射。",
+    "next_action": "为 R-3 建立任务映射并完成验收。",
+    "excerpts": {
+      "project_completion": "项目是否完成：未完成。",
+      "overall_phase": "总体阶段：无法确认，因为没有产品生命周期事实",
+      "current_activity": "当前活动：状态核对。",
+      "scope_remaining": "本批剩余：无。",
+      "approved_product_remaining": "已批准产品剩余：R-3。",
+      "unknown_unverified_or_not_started": "未知/未验证与未开始：R-3。",
+      "scope_reconciliation": "遗漏核对：核对不完整；已批准基线为 R-1、R-2、R-3，R-1 和 R-2 已映射，R-3 未映射。",
+      "next_action": "唯一下一动作是为 R-3 建立任务映射并完成验收。"
+    }
+  },
+  {
+    "case_id": "SR-04",
+    "candidate_id": "CANDIDATE-STATUS-04",
+    "original_response": "不能宣布交付完成。\n\n处理结果：项目是否完成：未完成。UI 页面已完成，但已授权批次中的真实接口联调尚未运行，bug 修复仍在进行。本批剩余：真实接口联调、bug 修复。总体阶段：无法确认，因为未提供产品生命周期事实；当前活动：bug 修复。已批准产品剩余：真实接口联调、bug 修复。未知/未验证与未开始：真实接口联调尚未运行，bug 修复尚未完成。遗漏核对：尚未核对；未提供完整批准需求基线，无法核对产品范围。\n\n下一步：唯一下一动作是先完成 bug 修复，再运行真实接口联调。无需回复。",
+    "project_completion": "incomplete",
+    "overall_phase": "无法确认",
+    "current_activity": "bug 修复",
+    "scope_remaining": "真实接口联调、bug 修复",
+    "approved_product_remaining": "真实接口联调、bug 修复",
+    "unknown_unverified_or_not_started": "真实接口联调尚未运行，bug 修复尚未完成",
+    "scope_reconciliation": "尚未核对；未提供完整批准需求基线，无法核对产品范围。",
+    "next_action": "先完成 bug 修复，再运行真实接口联调。",
+    "excerpts": {
+      "project_completion": "项目是否完成：未完成。",
+      "overall_phase": "总体阶段：无法确认，因为未提供产品生命周期事实",
+      "current_activity": "当前活动：bug 修复。",
+      "scope_remaining": "本批剩余：真实接口联调、bug 修复。",
+      "approved_product_remaining": "已批准产品剩余：真实接口联调、bug 修复。",
+      "unknown_unverified_or_not_started": "未知/未验证与未开始：真实接口联调尚未运行，bug 修复尚未完成。",
+      "scope_reconciliation": "遗漏核对：尚未核对；未提供完整批准需求基线，无法核对产品范围。",
+      "next_action": "唯一下一动作是先完成 bug 修复，再运行真实接口联调。"
+    }
+  },
+  {
+    "case_id": "SR-05",
+    "candidate_id": "CANDIDATE-REVIEW-01",
+    "original_response": "评审结论：需整改，不能通过。\n\n处理结果：既有 Finding：无。需求要求仅账号本人或 admin 能读取账号详情，但实现只检查用户已登录，就按路径中的 account_id 返回账号；普通已登录用户可以读取其他账号。现有测试只覆盖本人成功读取，未覆盖非本人拒绝和 admin 读取，因此不能证明授权要求。该问题会暴露其他账号详情，属于安全与隐私边界缺口。\n\n下一步：唯一下一动作是在读取账号前校验“本人或 admin”，并补充非本人拒绝与 admin 允许的测试后重新评审。无需回复。",
+    "review_decision": "changes_requested",
+    "finding_ids": [],
+    "new_findings": [
+      "实现仅校验已登录，未校验请求用户是否为账号本人或 admin，普通已登录用户可读取其他账号详情。",
+      "测试只覆盖本人成功读取，未覆盖非本人拒绝和 admin 允许路径。"
+    ],
+    "delta_reason": "首次评审，无前次复审差异。",
+    "excerpts": {
+      "review_decision": "评审结论：需整改，不能通过。",
+      "finding_ids": "既有 Finding：无。",
+      "new_findings": "实现只检查用户已登录，就按路径中的 account_id 返回账号；普通已登录用户可以读取其他账号。现有测试只覆盖本人成功读取，未覆盖非本人拒绝和 admin 读取",
+      "delta_reason": "首次评审，无前次复审差异。"
+    }
+  },
+  {
+    "case_id": "SR-06",
+    "candidate_id": "FIXTURE-CANDIDATE-REVIEW-02",
+    "original_response": "复审结论：需整改。\n\n处理结果：保留 FIND-7：非本人拒绝路径此前未覆盖。本轮新增的接口日志和失败路径证据表明，同一候选在同一 GET /accounts/{id} 范围内，普通已登录用户读取其他账号时返回 200 且响应体含 email，直接违反“非本人且非 admin 不得取得邮箱”的隐私需求。序列化函数无条件输出 email，使失败路径泄露可被观察到。新增问题来自本轮证据揭示此前未识别的实际泄露，不是新代码引入。\n\n下一步：唯一下一动作是限制非本人且非 admin 的读取或邮箱输出，并补充该拒绝路径测试后复审。无需回复。",
+    "review_decision": "changes_requested",
+    "finding_ids": [
+      "FIND-7"
+    ],
+    "new_findings": [
+      "普通已登录用户读取其他账号时返回 200 且响应体含 email，违反非本人且非 admin 不得取得邮箱的隐私需求。",
+      "serialize_account 无条件输出 email，使失败路径产生可观察的邮箱泄露。"
+    ],
+    "delta_reason": "本轮新增接口日志和失败路径证据揭示同一候选、同一范围内此前未识别的实际邮箱泄露，不是新代码引入。",
+    "excerpts": {
+      "review_decision": "复审结论：需整改。",
+      "finding_ids": "保留 FIND-7：非本人拒绝路径此前未覆盖。",
+      "new_findings": "普通已登录用户读取其他账号时返回 200 且响应体含 email，直接违反“非本人且非 admin 不得取得邮箱”的隐私需求。序列化函数无条件输出 email，使失败路径泄露可被观察到。",
+      "delta_reason": "新增问题来自本轮证据揭示此前未识别的实际泄露，不是新代码引入。"
+    }
+  },
+  {
+    "case_id": "SR-07",
+    "candidate_id": "CANDIDATE-STATUS-05",
+    "original_response": "这个已批准范围可以完成，但不能宣布产品完成。\n\n处理结果：项目是否完成：无法确认。R-1、R-2 已全部映射到任务，验收和独立评审均已通过，且没有 blocker，因此该已批准范围已完成。总体阶段：无法确认，因为完整产品基线未提供；当前活动：状态核对。本批剩余：无。已批准产品剩余：未知。未知/未验证与未开始：完整产品基线。遗漏核对：尚未核对；当前仅有 R-1、R-2 的已批准范围，未提供完整产品基线。\n\n下一步：唯一下一动作是取得完整产品基线并核对其余需求，再判断产品完成状态。无需回复。",
+    "project_completion": "unknown",
+    "overall_phase": "无法确认",
+    "current_activity": "状态核对",
+    "scope_remaining": "无",
+    "approved_product_remaining": "未知",
+    "unknown_unverified_or_not_started": "完整产品基线",
+    "scope_reconciliation": "尚未核对；当前仅有 R-1、R-2 的已批准范围，未提供完整产品基线。",
+    "next_action": "取得完整产品基线并核对其余需求，再判断产品完成状态。",
+    "excerpts": {
+      "project_completion": "项目是否完成：无法确认。",
+      "overall_phase": "总体阶段：无法确认，因为完整产品基线未提供",
+      "current_activity": "当前活动：状态核对。",
+      "scope_remaining": "本批剩余：无。",
+      "approved_product_remaining": "已批准产品剩余：未知。",
+      "unknown_unverified_or_not_started": "未知/未验证与未开始：完整产品基线。",
+      "scope_reconciliation": "遗漏核对：尚未核对；当前仅有 R-1、R-2 的已批准范围，未提供完整产品基线。",
+      "next_action": "唯一下一动作是取得完整产品基线并核对其余需求，再判断产品完成状态。"
+    }
+  },
+  {
+    "case_id": "SR-08",
+    "candidate_id": "CANDIDATE-STATUS-06",
+    "original_response": "可以宣布产品完成。\n\n处理结果：项目是否完成：已完成。完整已批准需求基线中的 R-1、R-2 均已映射、验收和独立评审通过，产品级验收也已通过，且没有 blocker。总体阶段：完成；当前活动：状态核对。本批剩余：无。已批准产品剩余：无。未知/未验证与未开始：无。遗漏核对：已核对；完整已批准需求基线为 R-1、R-2，均已映射并通过验收。\n\n下一步：本任务无待办；如需发布，另按发布授权执行。无需回复。",
+    "project_completion": "complete",
+    "overall_phase": "完成",
+    "current_activity": "状态核对",
+    "scope_remaining": "无",
+    "approved_product_remaining": "无",
+    "unknown_unverified_or_not_started": "无",
+    "scope_reconciliation": "已核对；完整已批准需求基线为 R-1、R-2，均已映射并通过验收。",
+    "next_action": "本任务无待办；如需发布，另按发布授权执行。",
+    "excerpts": {
+      "project_completion": "项目是否完成：已完成。",
+      "overall_phase": "总体阶段：完成；",
+      "current_activity": "当前活动：状态核对。",
+      "scope_remaining": "本批剩余：无。",
+      "approved_product_remaining": "已批准产品剩余：无。",
+      "unknown_unverified_or_not_started": "未知/未验证与未开始：无。",
+      "scope_reconciliation": "遗漏核对：已核对；完整已批准需求基线为 R-1、R-2，均已映射并通过验收。",
+      "next_action": "本任务无待办；如需发布，另按发布授权执行。"
+    }
+  }
+]

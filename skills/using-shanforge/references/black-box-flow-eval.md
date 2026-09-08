@@ -44,6 +44,11 @@
 
 此观察只验证 transcript 中的 `parent_tool_receipt` 结构，不调用真实 `spawn_agent`，也不把 pytest 说成子代理派发。实际派发证据由 T13 复核。授权 worker 的观察必须包含完整授权、父级真实工具回执字段（`task_card_id`、`requested_model`、`requested_reasoning_effort`、`fork_turns`、`agent_id` 或 `canonical_task`、`status: accepted`、`source: parent_tool_receipt`）和 worker `DONE` / `DONE_WITH_CONCERNS` / `NEEDS_CONTEXT` / `BLOCKED` 回执。worker `DONE` 后仍由父会话复验：`close_allowed=false` 且 `next_action=parent_verification`，不得直接关闭任务。缺授权、缺回执、派发失败，或 `sol_source_writes` 非空时均 fail closed；该名称为既有观测字段，语义指主会话源码写入；不得由主会话静默写源码替代 worker。
 
+动态选档使用 `using-shanforge/SKILL.md` 的唯一“子任务模型决策表”。合同检查须覆盖不同角色/复杂度/风险/推理需求，
+以及省略 model/effort、继承父配置、`fork_turns=all`、不兼容 role、能力不支持和回执不匹配的拒绝；还要覆盖失败后显式重选、
+新 `dispatch_id` / 新 `spawn_agent` 与旧回执保留。此类检查只验证合同结构；独立前向试用保留原始响应，不能声称已验证模型内部身份或新 role 已被宿主加载。
+只读 analyst 的观察必须证明已有项目身份与父阶段、不改变阶段、不写文件、不自批；普通直接回答仍不创建身份或 ledger。
+
 ### fast-path smoke 专用断言
 
 `FLOW-S6-direct-analysis-no-task-card`，最高 8 分：

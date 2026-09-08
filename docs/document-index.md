@@ -5,9 +5,9 @@
 | 项目 | 内容 |
 |---|---|
 | 文档 ID | `TRACE-DOC-001` |
-| 正式版本 | `v2.5.0` |
+| 正式版本 | `v2.6.0` |
 | 当前修订 | 无 |
-| 来源候选 | `MODEL-ORCHESTRATOR-SELECTION-001` |
+| 来源候选 | `MODEL-DYNAMIC-DISPATCH-001` |
 | 发布事务 | `N/A（本次索引同步不产生发布事务）` |
 | 负责人 | `HUMAN_PROJECT_OWNER` |
 | 修改 / 审核 / 批准 | `uroborus` / `uroborus` / `uroborus` |
@@ -20,13 +20,13 @@
 | 路径 | 文档 ID | 标题 | 类型 | Owner | 正式版本 |
 |---|---|---|---|---|---|
 | `docs/index.md` | `DOC-NAV-ROOT-001` | 文档总入口 | `navigation` | `HUMAN_PROJECT_OWNER` | `v1.2.0` |
-| `docs/document-index.md` | `TRACE-DOC-001` | 文档索引与变更记录 | `traceability` | `HUMAN_PROJECT_OWNER` | `v2.5.0` |
+| `docs/document-index.md` | `TRACE-DOC-001` | 文档索引与变更记录 | `traceability` | `HUMAN_PROJECT_OWNER` | `v2.6.0` |
 | `docs/01-getting-started/index.md` | `DOC-NAV-GETTING-001` | 项目概览入口 | `navigation` | `HUMAN_PROJECT_OWNER` | `v1.0.0` |
 | `docs/01-getting-started/project-overview.md` | `DOC-PROJECT-OVERVIEW-001` | 项目概览 | `guide` | `HUMAN_PROJECT_OWNER` | `v1.1.0` |
 | `docs/01-getting-started/project-charter.md` | `DOC-PROJECT-CHARTER-001` | 项目章程 | `formal_baseline` | `HUMAN_PROJECT_OWNER` | `v3.0.0` |
 | `docs/01-getting-started/quick-start.md` | `DOC-QUICK-START-001` | 快速开始 | `guide` | `HUMAN_DEVELOPMENT_EXECUTOR` | `v1.0.0` |
 | `docs/02-user-guide/index.md` | `DOC-NAV-USER-001` | 用户指南入口 | `navigation` | `HUMAN_PRODUCT_ANALYST` | `v1.0.0` |
-| `docs/02-user-guide/user-guide.md` | `DOC-USER-GUIDE-001` | 使用指南 | `guide` | `HUMAN_PRODUCT_ANALYST` | `v1.4.0` |
+| `docs/02-user-guide/user-guide.md` | `DOC-USER-GUIDE-001` | 使用指南 | `guide` | `HUMAN_PRODUCT_ANALYST` | `v1.5.0` |
 | `docs/02-user-guide/prompt-templates.md` | `DOC-PROMPT-GUIDE-001` | 提示词速查 | `guide` | `HUMAN_PRODUCT_ANALYST` | `v1.0.0` |
 | `docs/03-developer-guide/index.md` | `DOC-NAV-DEVELOPER-001` | 开发者指南入口 | `navigation` | `HUMAN_ARCHITECTURE_DOMAIN_LEAD` | `v1.0.0` |
 | `docs/03-developer-guide/development-setup.md` | `DOC-DEVELOPMENT-SETUP-001` | 开发环境 | `guide` | `HUMAN_DEVELOPMENT_EXECUTOR` | `v1.0.0` |
@@ -34,7 +34,7 @@
 | `docs/03-developer-guide/interface-reference.md` | `DOC-INTERFACE-REFERENCE-001` | 接口与函数参考 | `reference` | `HUMAN_API_INTEGRATION_LEAD` | `v2.0.0` |
 | `docs/03-developer-guide/plugin-development.md` | `DOC-PLUGIN-DEVELOPMENT-001` | 插件开发 | `guide` | `HUMAN_DEVELOPMENT_EXECUTOR` | `v1.0.0` |
 | `docs/04-product/index.md` | `DOC-NAV-PRODUCT-001` | 产品与需求入口 | `navigation` | `HUMAN_REQUIREMENTS_LEAD` | `v1.0.0` |
-| `docs/04-product/prd.md` | `PRD-SHANFORGE-001` | 产品需求文档 | `formal_baseline` | `HUMAN_REQUIREMENTS_LEAD` | `v5.1.0` |
+| `docs/04-product/prd.md` | `PRD-SHANFORGE-001` | 产品需求文档 | `formal_baseline` | `HUMAN_REQUIREMENTS_LEAD` | `v5.2.0` |
 | `docs/04-product/requirements-matrix.md` | `TRACE-REQ-001` | 需求追踪矩阵 | `traceability` | `HUMAN_REQUIREMENTS_LEAD` | `v5.1.0` |
 | `docs/05-design/index.md` | `DOC-NAV-DESIGN-001` | 软件技术设计入口 | `navigation` | `HUMAN_ARCHITECTURE_DOMAIN_LEAD` | `v1.3.0` |
 | `docs/05-design/solution-overview.md` | `DESIGN-SOLUTION-001` | 总体方案与协作治理设计 | `formal_baseline` | `HUMAN_ARCHITECTURE_DOMAIN_LEAD` | `v4.0.0` |
@@ -45,7 +45,7 @@
 | `docs/05-design/api-design.md` | `DESIGN-API-001` | 接口与事件设计 | `formal_baseline` | `HUMAN_API_INTEGRATION_LEAD` | `v4.0.0` |
 | `docs/05-design/frontend-design.md` | `DESIGN-FRONTEND-001` | 前端架构与页面设计 | `formal_baseline` | `HUMAN_DEVELOPMENT_EXECUTOR` | `v2.0.0` |
 | `docs/05-design/ux-ui-design.md` | `DESIGN-UX-UI-001` | 用户体验、交互与 UI 设计 | `formal_baseline` | `HUMAN_UX_LEAD` | `v2.0.0` |
-| `docs/05-design/workflow-execution-design.md` | `PROC-TASK-EXECUTION-001` | 会话、任务与工作流执行设计 | `formal_baseline` | `HUMAN_PROJECT_OWNER` | `v2.1.0` |
+| `docs/05-design/workflow-execution-design.md` | `PROC-TASK-EXECUTION-001` | 会话、任务与工作流执行设计 | `formal_baseline` | `HUMAN_PROJECT_OWNER` | `v2.2.0` |
 | `docs/05-design/memory-design.md` | `DESIGN-MEMORY-001` | 记忆系统设计 | `formal_baseline` | `HUMAN_ARCHITECTURE_DOMAIN_LEAD` | `v4.0.0` |
 | `docs/05-design/interface-matrix.md` | `TRACE-API-001` | 接口与字段追踪矩阵 | `traceability` | `HUMAN_API_INTEGRATION_LEAD` | `v4.0.0` |
 | `docs/06-delivery/index.md` | `DOC-NAV-DELIVERY-001` | 质量、发布与运维入口 | `navigation` | `HUMAN_RELEASE_OPERATIONS_LEAD` | `v1.2.0` |
@@ -143,6 +143,7 @@
 
 | 版本 | 日期 | 变更内容 | 修改人 | 审核 | 批准 |
 |---|---|---|---|---|---|
+| `v2.6.0` | 2026-09-08 | 同步动态子任务选档相关 PRD、执行设计与用户指南版本及来源 | `AI_EXECUTOR` | 集中质量门 | `uroborus` |
 | `v2.5.0` | 2026-09-08 | 同步主会话模型解耦相关正式文档版本与来源 | `AI_EXECUTOR` | 集中质量门 | `uroborus` |
 | `v2.4.0` | 2026-09-01 | 同步生命周期基线、T02 设计版本及交付文档控制版本 | `AI_EXECUTOR` | 集中质量门 | `uroborus` |
 | `v2.3.0` | 2026-08-23 | 正式登记测试案例目录、测试计划与交付导航新版本 | `AI_EXECUTOR` | 独立 Reviewer | `uroborus` |

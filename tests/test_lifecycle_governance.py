@@ -247,7 +247,6 @@ def test_changed_governance_documents_name_this_work_item_as_source() -> None:
     expected_sources = {
         REQUIREMENTS: "SOFTWARE-LIFECYCLE-GOVERNANCE-001",
         DESIGN / "index.md": "SOFTWARE-LIFECYCLE-GOVERNANCE-001",
-        INDEX: "MODEL-ORCHESTRATOR-SELECTION-001",
     }
     mismatches = [
         str(path.relative_to(ROOT)) for path, source_id in expected_sources.items()
@@ -256,6 +255,17 @@ def test_changed_governance_documents_name_this_work_item_as_source() -> None:
     assert not mismatches, (
         "current governance documents do not declare their current source: " + ", ".join(mismatches)
     )
+    index = read(INDEX)
+    source = re.search(r"^\| 来源候选 \| `(?P<source>[^`]+)` \|$", index, re.MULTILINE)
+    version = re.search(r"^\| 正式版本 \| `(?P<version>v\d+\.\d+\.\d+)` \|$", index, re.MULTILINE)
+    assert source and source.group("source")
+    assert version
+    history_versions = re.findall(r"^\| `(v\d+\.\d+\.\d+)` \|", index, re.MULTILINE)
+    assert tuple(map(int, version.group("version")[1:].split("."))) == max(
+        tuple(map(int, value[1:].split("."))) for value in history_versions
+    )
+    index_row = next(line for line in index.splitlines() if "`docs/document-index.md`" in line)
+    assert f"| `{version.group('version')}` |" in index_row
 
 
 def test_lifecycle_governance_test_documents_have_current_controls() -> None:

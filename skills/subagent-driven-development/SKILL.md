@@ -46,8 +46,8 @@ description: 有已批准的 Shanforge work item plan，且任务相对独立、
 
 主控必须先把用户批准范围固化为授权执行包：目标、任务集合、依赖层、允许文件、共享契约、允许动作、禁止动作、验证命令、同范围整改边界和真实人工 Gate。
 
-worker Terra/Luna 只消费已授权路由包；`execution_authorized` 不为 `true` 时不得派发。执行者不得重算或改写
-`control_model`、`task_complexity`、`risk_level`、`execution_model`、`dispatch_required`、`dispatch_mode`、
+worker 只消费主会话独立选档的已授权路由包；`execution_authorized` 不为 `true` 时不得派发。执行者不得重算或改写
+`control_model`、`task_complexity`、`risk_level`、`reasoning_demand`、`capability_source`、`execution_model`、`dispatch_required`、`dispatch_mode`、
 `dispatch_role`、`requested_reasoning_effort`、`fork_turns`、`route_reason` 和 `escalation_triggers`。
 命中 `scope_expanded`、`input_conflict`、`risk_increased`、`verification_failed_twice` 或 `human_gate` 时，
 立即停止当前执行并把事实交还主会话；不得自行换模型或扩大授权。
@@ -55,10 +55,12 @@ worker Terra/Luna 只消费已授权路由包；`execution_authorized` 不为 `t
 `execution_authorized != true -> do_not_dispatch`
 
 worker 派发条件、非授权关闭条件和 reviewer 分支均以 `using-shanforge` 的“子代理严格派发判定”为唯一规范定义；本 skill 只引用该判定。授权 worker 实现只能调用已暴露的 `spawn_agent`：`model` 必须等于
-`execution_model`，Luna 使用 `low`、Terra 使用 `medium`，且 `fork_turns="none"`；`message` 必须包含完整 task brief、精确写集、禁令和验证命令。
-父会话必须在调用前生成稳定 `dispatch_id` 并保存工具成功返回的 `task_card_id`、`requested_model`、`requested_reasoning_effort`、`fork_turns`、
-`agent_id` 或 canonical task、`status: accepted`、`source: parent_tool_receipt`；`accepted` 不是子代理完成态。任一工具/模型/回执/模型一致性检查失败，置
-`dispatch_failed` 或 `worker_unavailable` 并交还主会话，不得静默代写或换模型。
+`execution_model`，`reasoning_effort` 必须等于 `requested_reasoning_effort`，选档只查该 skill 的“子任务模型决策表”，且 `fork_turns="none"`；`message` 必须包含完整 task brief、精确写集、禁令和验证命令。
+父会话必须在调用前生成稳定 `dispatch_id`，将真实调用参数与工具返回的 agent ID 合并保存为父回执，包含 `task_card_id`、`requested_model`、`requested_reasoning_effort`、`fork_turns`、
+`agent_id` 或 canonical task、`status: accepted`、`source: parent_tool_receipt`；`accepted` 不是子代理完成态。任一工具/模型/effort/角色/回执一致性检查失败，置
+`dispatch_failed` 或 `worker_unavailable` 并交还主会话，不得静默代写或换模型。父会话可在原授权内按唯一决策表重评，显式记录新理由并重派；变更模型、强度或角色须新 `dispatch_id` 和新 `spawn_agent`，保留旧回执。
+
+连续两次验证失败先补复现和证据、收窄任务，再由主会话考虑升档。`followup_task` 仅用于同模型、同强度、同角色补上下文；不能用跟随调用修改配置。
 
 ### 升级信号决策表
 

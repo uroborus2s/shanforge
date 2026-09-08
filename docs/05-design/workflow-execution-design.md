@@ -5,8 +5,8 @@
 | 项目 | 内容 |
 |---|---|
 | 文档 ID | `PROC-TASK-EXECUTION-001` |
-| 正式版本 | `v2.1.0` |
-| 来源候选 | `MODEL-ORCHESTRATOR-SELECTION-001` |
+| 正式版本 | `v2.2.0` |
+| 来源候选 | `MODEL-DYNAMIC-DISPATCH-001` |
 | 发布事务 | `N/A（本次文档同步不产生发布事务）` |
 | 负责人 | `HUMAN_PROJECT_OWNER` |
 | 修改 / 审核 / 批准 | `AI_EXECUTOR` / `集中质量门` / `uroborus` |
@@ -121,17 +121,19 @@ route:
   forbidden_actions: <actions>
   current_gate: <gate>
   write_policy: <policy>
-  dispatch_role: worker | reviewer | none
+  dispatch_role: worker | analyst | reviewer | none
   dispatch_required: true | false
   dispatch_mode: subagent | direct
 ```
 
-- `simple + low` 使用 `gpt-5.6-luna` / `low`；其余授权 worker 使用 `gpt-5.6-terra` / `medium`。
-- `execution-workflow` + `source_or_test_write` + 已授权：`dispatch_role: worker, dispatch_required: true, dispatch_mode: subagent`。
-- 独立 reviewer 使用 Terra / `high`、只读：`dispatch_role: reviewer, true, subagent`；冲突、范围扩大、风险上升、连续两次验证失败或人工 Gate 交还主会话。
-- 派发分支按顺序互斥；非独立 review、Gate 和最终收口仍由主会话控制。
-- 其余路由由主会话直接控制：`dispatch_role: none, false, direct`。
-- Terra/Luna 不得重新分级、自扩范围或自批完成；父会话的 `spawn_agent` 回执才是派发证据。
+- 模型/effort 唯一来源为 [子任务模型决策表](../../skills/using-shanforge/SKILL.md#子任务模型决策表)。路由记录 `control_model`、`task_complexity`、`risk_level`、`reasoning_demand`、`execution_model`、`requested_reasoning_effort`、`fork_turns`、`capability_source` 和 `route_reason`，每次按任务独立选择，不继承父配置。
+- `execution-workflow` + `source_or_test_write` + 已授权：`dispatch_role: worker, dispatch_required: true, dispatch_mode: subagent`，执行精确写集。
+- 独立 reviewer 的身份/范围和候选验证须完整，角色只读，实现者不能自批。review workflow 的状态写入由父会话记录，不授予 reviewer 文件写权限。
+- analyst 仅在 `processing_mode=project_workitem` 或 `tracked_task`、已有身份和父阶段、只读输入明确且父会话主动声明时派发。子任务使用 `direct-answer-workflow` / `no_project_write`，只返回证据/建议，不改变父工作流或阶段、不写文件、不自批。
+- 普通 `direct_answer` / `lightweight_analysis` 不创建身份或 ledger、不强制派发；非独立 review、Gate 和最终收口仍由主会话控制。其余路由为 `dispatch_role: none, false, direct`，不选模型。
+- 父会话显式传入 model、reasoning_effort、`fork_turns=none`，核对当前工具与角色能力。固定 preset 与选择冲突或只读角色未暴露即拒绝；`task-reader.toml` 的 TOML 校验不证明宿主已加载。父工具回执只证明请求被接受，不证明模型内部身份。
+- 工具、模型/effort、角色或回执异常时失败关闭，不静默降级、代写 worker 或代替 reviewer。analyst 不可用时父会话可继续已授权只读分析并记录未派发。
+- 阶段、范围或风险变化由父会话重评；连续两次验证失败先补复现/证据并收窄任务。原授权内可显式重选受支持且满足质量/风险下限的组合；改模型、强度或角色必须新 `dispatch_id` / 新 `spawn_agent`，保留旧回执，`followup_task` 只补同配置上下文。
 
 ## 工作流节点与转换
 
@@ -230,15 +232,15 @@ package 和 ledger 事实，不以单个低、中风险任务的 checkpoint 冒�
 | 阶段 | 触发 | 权威输入 | 准入 | 活动 | 输出 | 保存位置 | owner / 模型 | 验证 | 退出 Gate | 回流 |
 |---|---|---|---|---|---|---|---|---|---|---|
 | 分类与恢复 | 新消息或恢复请求 | 当前消息；TaskCard / ledger（项目化时） | 消息可判定 | 判定行为；按需恢复 | 路由包或直接答复 | WorkItem ledger；必要时 memory | `using-shanforge` / 主会话 | 身份、范围、Gate 完整 | `routed` / `blocked` | 缺身份走身份创建；缺事实澄清 |
-| 发现与 Spike | 不确定性影响决策 | 已知需求、约束、风险 | 探索范围已授权 | 时间盒调研、Spike 或原型 | 假设、结论、风险与下一决策 | WorkItem evidence / ledger | 专项 Skill / 主会话或 Terra | 可复现观察；不把原型当交付 | `decision_ready` | 结论回需求、设计或停止；原型不得越级发布 |
+| 发现与 Spike | 不确定性影响决策 | 已知需求、约束、风险 | 探索范围已授权 | 时间盒调研、Spike 或原型 | 假设、结论、风险与下一决策 | WorkItem evidence / ledger | 专项 Skill / 主会话或按表选档的只读 analyst | 可复现观察；不把原型当交付 | `decision_ready` | 结论回需求、设计或停止；原型不得越级发布 |
 | 需求 | 新需求或需求变更 | PRD、用户确认、Spike 结论 | 身份与写集有效 | 需求、AC、NFR、影响分析 | 受控需求候选与追踪关系 | 正式需求文档；ledger | requirements owner / 主会话 | 可追踪、无冲突 | `ready_for_review` | 变更回需求；设计歧义回澄清 |
 | 设计 | 已批准需求或明确变更 | 需求、架构边界、适用 Spike | 输入已确认 | 方案、边界、接口和风险设计 | 正式设计候选 | 对应 `docs/` owner；ledger | design owner / 主会话 | 追踪、边界和可实现性检查 | `design_ready` | 风险或需求变化回需求；实现反馈回设计 |
 | 计划与任务 | 复杂或多交付物实施 | 已批准需求 / 设计 | 范围和验收明确 | 分解计划、TaskCard、依赖与验证命令 | plan、授权任务包 | WorkItem plan / task briefs / ledger | planning owner / 主会话 | 路径、角色、Gate、验证命令完整 | `execution_authorized` | 简单任务可跳过正式计划，但不得跳过 WorkItem 身份、TDD 和定向验证 |
-| 实现 | 已授权 TaskCard | plan / task brief、允许路径、测试设计 | `execution_authorized` | 先失败后最小实现再通过（TDD） | 源码、文档或测试变更；状态包 | 授权路径；ledger / evidence | Terra 或 Luna；主会话已定级 | 定向测试、静态检查、diff | `ready_for_review` 或批次 checkpoint | 测试失败回实现；范围扩张或风险上升回主会话 |
-| Bug 根因 | 观察到缺陷、回归或异常 | 复现步骤、日志、调用链 | 症状可复现或明确缺口 | 复现、定位根因、最小修复 | 根因记录、修复与回归范围 | 授权路径；ledger / evidence | debugging owner / Terra | 根因证据与定向回归 | `root_cause_found` / `verification_passed` | 设计缺陷回设计；无法复现回澄清，禁止猜测式补丁 |
-| 测试与定向回归 | 实现、修复或测试任务 | AC、变更范围、测试计划 | 测试范围已授权 | 单元、集成或黑盒测试；定向回归 | 新鲜结果与失败摘要 | 测试路径；evidence / ledger | quality owner / Terra | 命令、exit code、结果 | `test_passed` / `test_failed` | 失败回实现或根因；契约缺口回需求 / 设计 |
-| 批次 Review | 批次、里程碑或高风险专项完成 | 实现摘要、diff、验证结果 | review 输入完整 | 独立只读 Review、finding 分流 | review decision | WorkItem reviews / ledger | 独立 reviewer / Terra | 独立性、finding 与受影响检查 | `approved` / `changes_requested` | 同范围整改后复审；风险接受才进入人工确认 |
-| 最终候选验证 | 候选准备完成 | 候选、适用完整测试命令、review | review 与验证前提满足 | 运行新鲜完整候选测试 | verification report | evidence / ledger | verification owner / Terra | 结果、exit code、环境与候选一致 | `verification_passed` | 失败回实现、测试或根因；不得用旧输出宣称通过 |
+| 实现 | 已授权 TaskCard | plan / task brief、允许路径、测试设计 | `execution_authorized` | 先失败后最小实现再通过（TDD） | 源码、文档或测试变更；状态包 | 授权路径；ledger / evidence | worker / 主会话按表选档 | 定向测试、静态检查、diff | `ready_for_review` 或批次 checkpoint | 测试失败回实现；范围扩张或风险上升回主会话 |
+| Bug 根因 | 观察到缺陷、回归或异常 | 复现步骤、日志、调用链 | 症状可复现或明确缺口 | 复现、定位根因、最小修复 | 根因记录、修复与回归范围 | 授权路径；ledger / evidence | debugging owner / 主会话；只读子任务按表选档 | 根因证据与定向回归 | `root_cause_found` / `verification_passed` | 设计缺陷回设计；无法复现回澄清，禁止猜测式补丁 |
+| 测试与定向回归 | 实现、修复或测试任务 | AC、变更范围、测试计划 | 测试范围已授权 | 单元、集成或黑盒测试；定向回归 | 新鲜结果与失败摘要 | 测试路径；evidence / ledger | quality owner / 按表选档 | 命令、exit code、结果 | `test_passed` / `test_failed` | 失败回实现或根因；契约缺口回需求 / 设计 |
+| 批次 Review | 批次、里程碑或高风险专项完成 | 实现摘要、diff、验证结果 | review 输入完整 | 独立只读 Review、finding 分流 | review decision | WorkItem reviews / ledger | 独立 reviewer / 按表选档 | 独立性、finding 与受影响检查 | `approved` / `changes_requested` | 同范围整改后复审；风险接受才进入人工确认 |
+| 最终候选验证 | 候选准备完成 | 候选、适用完整测试命令、review | review 与验证前提满足 | 运行新鲜完整候选测试 | verification report | evidence / ledger | verification owner / 主会话 | 结果、exit code、环境与候选一致 | `verification_passed` | 失败回实现、测试或根因；不得用旧输出宣称通过 |
 | 本地提交与远端交付 | 明确提交或远端请求 | 已通过候选、显式授权 | scope、review、verification 已满足 | 精确暂存、本地提交；按授权远端交接 | commit / remote receipt | Git；ledger / evidence | Git owner / 专项 Skill | staged diff、提交或工具 receipt | `commit_done` / `remote_done` | 无授权停止；远端失败回交付准备 |
 | 发布与运维 | 明确发布、回滚或事件请求 | 精确候选、最终测试、环境与人工授权 | `release_candidate_verified` | 项目既有发布入口、健康检查、观察、必要时回滚 | release / incident record | 交付文档；ledger / evidence | release owner / 人类授权的专项 Skill | 发布验证、健康检查和观察 | `released` / `rolled_back` / `blocked` | 失败回滚或回实现；事件回 Bug / 变更 |
 
@@ -246,7 +248,7 @@ package 和 ledger 事实，不以单个低、中风险任务的 checkpoint 冒�
 
 - 阶段门只确认本阶段的准入、输出和验证；它不替代下一阶段的 Review、最终候选测试或人工授权。
 - 简单、低风险的局部任务可不写正式计划；仍须具备 WorkItem 身份、TDD 与定向验证。复杂、多交付物、跨模块或高风险任务使用计划和受控子代理。
-- 主会话是复杂度、风险、模型路由和升级的唯一 owner。仅 `simple + low` 可派 Luna；其余已授权独立任务派 Terra。Terra/Luna 不得重新分级、自扩范围或自批完成。
+- 主会话是复杂度、风险、推理需求、模型路由和升级的唯一 owner。子任务按唯一模型决策表独立选档；子代理不得重新分级、自扩范围或自批完成。
 - Spike 与原型只用于降低不确定性；其输出必须回写为决策输入，不能替代设计、测试、Review 或发布验证。
 - TDD 适用于实现和修复：先以能失败的检查定义行为，再作最小实现。Bug 修复先证明根因，并覆盖受影响调用路径的定向回归。
 - 批次 Review 用于里程碑、批次收口或高风险路径；普通低、中风险任务不逐项制造 Review Gate。最终候选测试必须新鲜运行，发布验证只在明确发布边界适用。
@@ -276,6 +278,7 @@ package 和 ledger 事实，不以单个低、中风险任务的 checkpoint 冒�
 | `v1.3.1` | 明确低、中、高风险任务的确定性判定条件和信息不足时的升级规则 | 2026-08-01 | `AI_EXECUTOR` | `集中质量门` | `uroborus` |
 | `v1.4.0` | 增加设计至生产阶段门、变更归因、候选修复复测、最终发布回归和部署闭环 | 2026-08-08 | `AI_EXECUTOR` | `集中质量门` | `uroborus` |
 | `v1.5.0` | 固化 Sol 唯一控制、复杂度分级及 Terra/Luna 受控执行路由 | 2026-08-23 | `AI_EXECUTOR` | `集中质量门` | `uroborus` |
+| `v2.2.0` | 统一动态选档、项目化只读 analyst、显式派发与角色能力失败关闭合同 | 2026-09-08 | `AI_EXECUTOR` | `集中质量门` | `uroborus` |
 | `v2.1.0` | 主会话模型改为用户选择，保持 Terra/Luna 固定派发映射 | 2026-09-08 | `AI_EXECUTOR` | `集中质量门` | `uroborus` |
 | `v2.0.0` | 收口为 Skill-first 生命周期矩阵、方法选择与过程数据边界 | 2026-09-01 | `AI_EXECUTOR` | `集中质量门` | `uroborus` |
 

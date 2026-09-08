@@ -320,10 +320,22 @@ def test_formal_contract_preserves_v1_2_baseline_and_adds_delivery_workflows() -
         "3d5f4cbabda86312da0603db5662175453d12dd5966c788301b0c79c2cb4992f"
     )
     assert "批准前不得修改正式文档或同步 runtime Skill" in candidate
-    assert "| 正式版本 | `v2.1.0` |" in formal
-    assert "MODEL-ORCHESTRATOR-SELECTION-001" in formal
     assert "主会话" in formal
-    assert "| 来源候选 | `MODEL-ORCHESTRATOR-SELECTION-001` |" in formal
+    version_match = re.search(
+        r"^\| 正式版本 \| `(?P<version>v\d+\.\d+\.\d+)` \|$", formal, re.MULTILINE
+    )
+    source_match = re.search(r"^\| 来源候选 \| `(?P<source>[^`]+)` \|$", formal, re.MULTILINE)
+    assert version_match and source_match
+    version = version_match.group("version")
+    assert source_match.group("source") == "MODEL-DYNAMIC-DISPATCH-001"
+    history_versions = re.findall(r"^\| `(v\d+\.\d+\.\d+)` \|", formal, re.MULTILINE)
+    assert tuple(map(int, version[1:].split("."))) == max(
+        tuple(map(int, value[1:].split("."))) for value in history_versions
+    )
+    index_line = next(
+        line for line in read("docs/document-index.md").splitlines() if FORMAL_CONTRACT_PATH in line
+    )
+    assert f"| `{version}` |" in index_line
     assert "| 发布事务 | `N/A（本次文档同步不产生发布事务）` |" in formal
     assert "| `v1.2.0` | 发布完整项目会话归因" in formal
     assert "| `v1.3.0` | 开发期轻门禁" in formal

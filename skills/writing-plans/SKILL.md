@@ -212,4 +212,4 @@ review 输出写入 `.factory/workitems/<WORKITEM-ID>/reviews/plan-review.md`。
 
 项目化执行时，沿用 [工作 Skill 回写契约](../using-shanforge/references/work-skill-return-contract.md)；本 skill 的现有专业输出和失败语义不变。
 
-每张 task brief 原样复制模型路由字段，不重新计算；计划不得让 Terra/Luna 改写主会话的裁决。
+每张 task brief 复制主会话为本任务独立选择的模型路由字段，包含 `reasoning_demand`、`capability_source` 和 `route_reason`；选档只引用 `using-shanforge` 的“子任务模型决策表”。阶段、输入或风险变化交还主会话重评，执行者不得改写主会话的裁决。不得继承父会话模型/effort，或把规划时选择当作不可调整的永久配置。

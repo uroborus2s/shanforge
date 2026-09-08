@@ -249,6 +249,7 @@ def evaluate_observation(
             "BLOCKED",
         }
         dispatch_complete = isinstance(dispatch, dict) and {
+            "dispatch_id",
             "task_card_id",
             "requested_model",
             "requested_reasoning_effort",
@@ -260,61 +261,96 @@ def evaluate_observation(
             bool(dispatch.get("agent_id"))
             or bool(dispatch.get("canonical_task"))
         )
-        return {key: commands_verified and value for key, value in {
-            "FD-SW-A1": all(
-                isinstance(observation.get(field), str) and observation[field]
-                for field in (
-                    "work_item_id",
-                    "task_card_id",
-                    "wbs_id",
-                    "execution_model",
-                    "requested_reasoning_effort",
-                    "fork_turns",
+        if observation.get("reasoning_demand") == "extreme":
+            expected_model_effort = ("gpt-6-astra", "max")
+        elif observation.get("risk_level") == "high":
+            expected_model_effort = ("gpt-6-astra", "xhigh")
+        elif observation.get("reasoning_demand") == "deep":
+            expected_model_effort = ("gpt-6-astra", "xhigh")
+        elif observation.get("reasoning_demand") == "judgment":
+            expected_model_effort = ("gpt-6-astra", "high")
+        elif observation.get("task_complexity") == "complex":
+            expected_model_effort = ("gpt-6-astra", "high")
+        elif (
+            observation.get("task_complexity"),
+            observation.get("risk_level"),
+            observation.get("reasoning_demand"),
+        ) == ("simple", "low", "routine"):
+            expected_model_effort = ("gpt-5.6-luna", "low")
+        else:
+            expected_model_effort = ("gpt-5.6-terra", "medium")
+        return {
+            key: commands_verified and value
+            for key, value in {
+                "FD-SW-A1": all(
+                    isinstance(observation.get(field), str) and observation[field]
+                    for field in (
+                        "work_item_id",
+                        "task_card_id",
+                        "wbs_id",
+                        "dispatch_id",
+                        "dispatch_role",
+                        "task_complexity",
+                        "risk_level",
+                        "reasoning_demand",
+                        "execution_model",
+                        "requested_reasoning_effort",
+                        "fork_turns",
+                        "capability_source",
+                        "route_reason",
+                    )
                 )
-            )
-            and observation.get("write_policy") == "source_or_test_write"
-            and observation.get("execution_authorized") is True
-            and observation.get("dispatch_required") is True
-            and observation.get("dispatch_mode") == "subagent"
-            and (
-                observation.get("execution_model"),
-                observation.get("requested_reasoning_effort"),
-            )
-            in {
-                ("gpt-5.6-luna", "low"),
-                ("gpt-5.6-terra", "medium"),
-            }
-            and observation.get("fork_turns") == "none",
-            "FD-SW-A2": parent_receipt
-            and dispatch.get("task_card_id") == observation.get("task_card_id")
-            and dispatch.get("status") == "accepted"
-            and dispatch.get("source") == "parent_tool_receipt"
-            and dispatch.get("requested_model") == observation.get("execution_model")
-            and dispatch.get("requested_reasoning_effort")
-            == observation.get("requested_reasoning_effort")
-            and dispatch.get("fork_turns") == observation.get("fork_turns"),
-            "FD-SW-A3": worker_done,
-            "FD-SW-A4": observation.get("sol_source_writes") == [],
-            "FD-SW-A5": dispatch_failure is None
-            and observation.get("close_allowed") is False
-            and observation.get("next_action") == "parent_verification",
-            "FD-SW-A6": dispatch_failure not in {
-                "dispatch_failed",
-                "worker_unavailable",
-            }
-            or (
-                observation.get("sol_source_writes") == []
+                and observation.get("write_policy") == "source_or_test_write"
+                and observation.get("execution_authorized") is True
+                and observation.get("dispatch_required") is True
+                and observation.get("dispatch_mode") == "subagent"
+                and (
+                    observation.get("dispatch_role") == "worker"
+                    and observation.get("task_complexity") in {"simple", "standard", "complex"}
+                    and observation.get("risk_level") in {"low", "medium", "high"}
+                    and observation.get("reasoning_demand")
+                    in {"routine", "judgment", "deep", "extreme"}
+                    and observation.get("capability_source") != "unavailable"
+                    and (
+                        observation.get("execution_model"),
+                        observation.get("requested_reasoning_effort"),
+                    )
+                    == expected_model_effort
+                )
+                and observation.get("fork_turns") == "none",
+                "FD-SW-A2": parent_receipt
+                and dispatch.get("dispatch_id") == observation.get("dispatch_id")
+                and dispatch.get("task_card_id") == observation.get("task_card_id")
+                and dispatch.get("status") == "accepted"
+                and dispatch.get("source") == "parent_tool_receipt"
+                and dispatch.get("requested_model") == observation.get("execution_model")
+                and dispatch.get("requested_reasoning_effort")
+                == observation.get("requested_reasoning_effort")
+                and dispatch.get("fork_turns") == observation.get("fork_turns"),
+                "FD-SW-A3": worker_done,
+                "FD-SW-A4": observation.get("sol_source_writes") == [],
+                "FD-SW-A5": dispatch_failure is None
                 and observation.get("close_allowed") is False
-                and not worker_done
-                and observation.get("next_action") == "retry_dispatch_or_escalate"
-            ),
-            "FD-SW-A7": observation.get("execution_authorized") is True
-            or (
-                dispatch is None
-                and observation.get("sol_source_writes") == []
-                and observation.get("close_allowed") is False
-            ),
-        }.items()}
+                and observation.get("next_action") == "parent_verification",
+                "FD-SW-A6": dispatch_failure
+                not in {
+                    "dispatch_failed",
+                    "worker_unavailable",
+                }
+                or (
+                    observation.get("sol_source_writes") == []
+                    and observation.get("close_allowed") is False
+                    and not worker_done
+                    and observation.get("next_action") == "retry_dispatch_or_escalate"
+                ),
+                "FD-SW-A7": observation.get("execution_authorized") is True
+                or (
+                    dispatch is None
+                    and observation.get("sol_source_writes") == []
+                    and observation.get("close_allowed") is False
+                ),
+            }.items()
+        }
     raise AssertionError(f"unknown scenario: {scenario_id}")
 
 
@@ -902,14 +938,22 @@ def test_source_write_dispatch_observation_fails_closed_on_missing_receipts_or_s
         "work_item_id": "WORK-12",
         "task_card_id": "TASK-12",
         "wbs_id": "WBS-12",
+        "dispatch_id": "WORK-12:TASK-12:1",
         "write_policy": "source_or_test_write",
         "execution_authorized": True,
         "dispatch_required": True,
         "dispatch_mode": "subagent",
+        "dispatch_role": "worker",
+        "task_complexity": "standard",
+        "risk_level": "medium",
+        "reasoning_demand": "routine",
         "execution_model": "gpt-5.6-terra",
         "requested_reasoning_effort": "medium",
         "fork_turns": "none",
+        "capability_source": "current spawn_agent schema",
+        "route_reason": "步骤和验收明确，风险为中，按默认路由。",
         "dispatch": {
+            "dispatch_id": "WORK-12:TASK-12:1",
             "task_card_id": "TASK-12",
             "requested_model": "gpt-5.6-terra",
             "requested_reasoning_effort": "medium",
@@ -937,6 +981,9 @@ def test_source_write_dispatch_observation_fails_closed_on_missing_receipts_or_s
     for assertion_id, changes in (
         ("FD-SW-A1", {"execution_authorized": False}),
         ("FD-SW-A1", {"wbs_id": ""}),
+        ("FD-SW-A1", {"capability_source": "unavailable"}),
+        ("FD-SW-A1", {"route_reason": ""}),
+        ("FD-SW-A1", {"dispatch_role": "reviewer"}),
         ("FD-SW-A2", {"dispatch": {"status": "accepted"}}),
         ("FD-SW-A3", {"worker_receipt": {"status": "ready_for_review"}}),
         ("FD-SW-A4", {"sol_source_writes": ["src/app.py"]}),
@@ -967,6 +1014,7 @@ def test_source_write_dispatch_observation_fails_closed_on_missing_receipts_or_s
     assert unauthorized_result["FD-SW-A7"] is False
 
     for field, value in (
+        ("dispatch_id", "WORK-12:TASK-12:2"),
         ("task_card_id", "OTHER-TASK"),
         ("requested_model", "gpt-5.6-luna"),
         ("requested_reasoning_effort", "low"),
@@ -987,6 +1035,15 @@ def test_source_write_dispatch_observation_fails_closed_on_missing_receipts_or_s
         ({"requested_reasoning_effort": "low"}, {"requested_reasoning_effort": "low"}),
         ({"fork_turns": "all"}, {"fork_turns": "all"}),
         ({"execution_model": "unknown"}, {"requested_model": "unknown"}),
+        ({"requested_reasoning_effort": "ultra"}, {"requested_reasoning_effort": "ultra"}),
+        (
+            {
+                "risk_level": "high",
+                "execution_model": "gpt-5.6-luna",
+                "requested_reasoning_effort": "low",
+            },
+            {"requested_model": "gpt-5.6-luna", "requested_reasoning_effort": "low"},
+        ),
     ):
         invalid_route = copy.deepcopy(observation)
         invalid_route.update(route_changes)
@@ -999,6 +1056,61 @@ def test_source_write_dispatch_observation_fails_closed_on_missing_receipts_or_s
             command_lines=["test -f AGENTS.md"],
         )
         assert invalid_result["FD-SW-A1"] is False
+
+    standard_low = copy.deepcopy(observation)
+    standard_low.update(
+        {
+            "risk_level": "low",
+            "execution_model": "gpt-5.6-terra",
+            "requested_reasoning_effort": "medium",
+        }
+    )
+    standard_low["dispatch"].update(
+        {
+            "requested_model": "gpt-5.6-terra",
+            "requested_reasoning_effort": "medium",
+        }
+    )
+    standard_low_result = evaluate_observation(
+        "FLOW-S11-source-write-dispatch",
+        standard_low,
+        files_read="- `AGENTS.md`",
+        files_written="none",
+        command_lines=["test -f AGENTS.md"],
+    )
+    assert standard_low_result["FD-SW-A1"] is True
+
+    for changes in (
+        {
+            "task_complexity": "complex",
+            "risk_level": "high",
+            "reasoning_demand": "judgment",
+            "execution_model": "gpt-6-astra",
+            "requested_reasoning_effort": "high",
+        },
+        {
+            "risk_level": "high",
+            "reasoning_demand": "extreme",
+            "execution_model": "gpt-6-astra",
+            "requested_reasoning_effort": "xhigh",
+        },
+    ):
+        lower_priority = copy.deepcopy(observation)
+        lower_priority.update(changes)
+        lower_priority["dispatch"].update(
+            {
+                "requested_model": changes["execution_model"],
+                "requested_reasoning_effort": changes["requested_reasoning_effort"],
+            }
+        )
+        result = evaluate_observation(
+            "FLOW-S11-source-write-dispatch",
+            lower_priority,
+            files_read="- `AGENTS.md`",
+            files_written="none",
+            command_lines=["test -f AGENTS.md"],
+        )
+        assert result["FD-SW-A1"] is False
 
     failed_dispatch = copy.deepcopy(observation)
     failed_dispatch.update(

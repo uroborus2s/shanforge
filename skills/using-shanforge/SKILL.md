@@ -130,29 +130,35 @@ description: 项目状态查询、任务延续、项目事实修改、阶段切�
   只有 Critical、Important 或高风险路径变化才复审受影响范围。
 - 长周期项目可以按里程碑收口，但禁止退化为逐任务重复评审。用户明确要求逐任务评审时才覆盖本默认策略。
 
-## 主会话 / Terra / Luna 模型路由
+## 主会话与子任务模型路由
 
-主会话（模型由用户选择）是唯一总体设计、任务分级和模型路由 owner；Terra 和 Luna 不得重新分级。先使用上文风险规则得到
-`risk_level`，再由主会话确定复杂度：
+主会话（模型由用户选择）是总体设计、任务分级、模型路由和升级的唯一 owner。每次派发独立选择子模型和推理强度，不能继承父会话配置；即使选择相同模型，也必须记录本任务的选择理由。
+先使用上文风险规则得到 `risk_level`，再确定复杂度：
 
 - `simple`：满足“简单代码变更直接实施”的全部条件，且 `risk_level` 为 `low`。
 - `complex`：涉及架构或系统设计、公共契约、schema、迁移、安全或生产，包含三个及以上独立交付物，
   需要跨模块、跨会话或并行协调，或仍有未解决的设计歧义；信息不足时按 `complex`。
 - `standard`：既不满足 `simple`，也未命中 `complex`。
 
-确定性映射只有两条：
+主会话同时确定 `reasoning_demand`：`routine` 为步骤和验收明确；`judgment` 为需要设计、架构或调用链判断；
+`deep` 为疑难根因、并发状态或高风险验证；`extreme` 仅用于已有复现、候选根因和排查证据仍未解的单个难题。
+信息不足至少为 `judgment`，风险另按既有规则处理。`route_reason` 必须说明选档依据和证据；无证据不得使用 `max`。
 
-- `simple + low` -> `gpt-5.6-luna`。
-- `standard | complex | medium | high` -> `gpt-5.6-terra`。
+### 子任务模型决策表
 
-### Worker 执行模型决策表
+这是项目选档策略，不是官方对每类工作的要求。先校验角色、授权、输入、风险和当前宿主能力，再按首行命中；
+`*` 是兜底。选择满足任务的最低档，`routine` 不覆盖审查下限、高风险或复杂任务。`none` 不选模型。
 
-按表格顺序命中第一行；`*` 是兜底：
-
-| task_complexity | risk_level | execution_model |
-|---|---|---|
-| `simple` | `low` | `gpt-5.6-luna` |
-| `*` | `*` | `gpt-5.6-terra` |
+| dispatch_role | task_complexity | risk_level | reasoning_demand | execution_model | requested_reasoning_effort |
+|---|---|---|---|---|---|
+| `*` | `*` | `*` | `extreme` | `gpt-6-astra` | `max` |
+| `*` | `*` | `high` | `*` | `gpt-6-astra` | `xhigh` |
+| `*` | `*` | `*` | `deep` | `gpt-6-astra` | `xhigh` |
+| `reviewer` | `*` | `*` | `*` | `gpt-5.6-terra` | `high` |
+| `*` | `*` | `*` | `judgment` | `gpt-6-astra` | `high` |
+| `*` | `complex` | `*` | `*` | `gpt-6-astra` | `high` |
+| `*` | `simple` | `low` | `routine` | `gpt-5.6-luna` | `low` |
+| `*` | `*` | `*` | `*` | `gpt-5.6-terra` | `medium` |
 
 ### 执行授权决策表
 
@@ -167,44 +173,44 @@ description: 项目状态查询、任务延续、项目事实修改、阶段切�
 
 ### 子代理严格派发判定
 
-按表格顺序命中第一行；这是唯一可执行的派发条件。上表的执行模型决策只适用于 `worker`：
+按首个命中条件处理；worker、analyst、reviewer 使用上方唯一模型决策表：
 
 | 条件 | dispatch_role | dispatch_required / dispatch_mode | 模型与推理强度 |
 |---|---|---|---|
 | `workflow_id` / `write_policy` 与声明分支不匹配，或多个分支可命中 | `none` | `false / direct`；`input_conflict, do_not_dispatch` | N/A，交还主会话 |
-| `workflow_id=execution-workflow`、`write_policy=source_or_test_write` 且 `execution_authorized=true` | `worker` | `true / subagent` | `simple + low` 为 Luna/`low`；其余为 Terra/`medium` |
-| `workflow_id=review-workflow`、`write_policy=state_or_gate_write`、`reviewer_type=independent_subagent`、身份/范围完整且实现/验证完成 | `reviewer` | `true / subagent` | Terra/`high`，只读 |
+| `workflow_id=execution-workflow`、`write_policy=source_or_test_write` 且 `execution_authorized=true` | `worker` | `true / subagent` | 按子任务模型决策表；精确写集 |
+| `workflow_id=review-workflow`、`write_policy=state_or_gate_write`、`reviewer_type=independent_subagent`、身份/范围完整且实现/验证完成、`execution_authorized=true` | `reviewer` | `true / subagent` | 按子任务模型决策表；只读 |
+| `processing_mode=project_workitem` 或 `tracked_task`、已有任务身份和父阶段、明确只读输入、主会话主动声明 `dispatch_role=analyst`、子任务 `workflow_id=direct-answer-workflow` / `write_policy=no_project_write` 且 `execution_authorized=true` | `analyst` | `true / subagent` | 按子任务模型决策表；只读 |
 | `*` | `none` | `false / direct` | N/A，仍由主会话控制 |
 
-独立 reviewer 是质量门，不重算或改写 worker 的复杂度、风险、执行模型和授权。worker 与 reviewer 都必须按
-[Codex 工具合同](references/codex-tools.md) 真实派发；失败关闭规则对两者同样适用。
+analyst 仅返回证据和建议，不写文件、不自批，也不作为独立质量批准。它的子任务工作流只表示只读边界，不改变父工作流或阶段；沿用已有任务身份。
+普通 `direct_answer` / `lightweight_analysis` 不创建项目身份或 ledger、不强制派发。独立 reviewer 是质量门，不重算 worker 路由；实现者不能担任自己的 reviewer。
+任何声明的角色与输入不匹配都须 `input_conflict, do_not_dispatch`，不得落入默认 direct 或猜测纠正。
 
-任何声明的 worker/reviewer 与其 `workflow_id` 或 `write_policy` 不匹配，或同时满足两个派发分支时，固定写
-`input_conflict`、`do_not_dispatch` 并交还主会话；不得落入默认 direct 或猜测纠正。
+三个分支均按 [Codex 工具合同](references/codex-tools.md) 真实调用 `spawn_agent`，显式传入与路由一致的
+`model`、`reasoning_effort` 和 `fork_turns: "none"`，再保存、回读父工具回执。省略参数或用 `fork_turns=all` 继承均不合法。
+工具未暴露、调用失败、模型/effort 不支持、角色固定值冲突、回执缺失或与请求不一致时，写 `dispatch_failed` 或 `worker_unavailable` 并交还主会话。
+禁止静默降级、由主会话代写 worker 或代替 reviewer。analyst 不可用时，父会话可继续已授权只读分析，明确记录未派发。
 
-worker 分支固定为 `dispatch_required: true`、`dispatch_mode: subagent`；表中其余分支为
-`dispatch_required: false`、`dispatch_mode: direct` 或 reviewer 子代理，均按首个命中条件处理。
+### 路由字段与升级
 
-授权实现必须由父会话按 [Codex 工具合同](references/codex-tools.md) 显式调用 `spawn_agent`，传入与
-`execution_model` 完全一致的 `model`、规定的 `requested_reasoning_effort` 和 `fork_turns: "none"`，并在工具成功返回后记录父工具回执。
-工具未暴露、调用失败、显式模型不可用、回执缺失，或回执的 `requested_model` 与 `execution_model` 不一致时，写
-`dispatch_failed` 或 `worker_unavailable` 并停止交还主会话；严禁主会话静默代写或换模型。
-普通项目化路由包追加并持久化以下字段：
-
-字段机器名保持不变，按中文用途读取：任务身份：`work_item_id`、`task_card_id`、`wbs_id`（来自基础 route）；控制/复杂度：`control_model`、`task_complexity`；风险/范围：`risk_level`、`execution_authorized`、`route_reason`；派发：`execution_model`、`dispatch_role`、`dispatch_required`、`dispatch_mode`、`requested_reasoning_effort`、`fork_turns`；Gate/升级：`current_gate`、`escalation_triggers`。字段值仍供机器消费，不翻译或改名。
+普通项目化路由包保留基础身份、范围与 Gate，并追加下列字段。字段机器名不改名，中文用途分组为：
+任务身份：`work_item_id`、`task_card_id`、`wbs_id`（来自基础 route）；控制/复杂度：`control_model`、`task_complexity`、`risk_level`、`reasoning_demand`；风险/范围：`execution_authorized`、`capability_source`、`route_reason`；派发：`execution_model`、`dispatch_role`、`dispatch_required`、`dispatch_mode`、`requested_reasoning_effort`、`fork_turns`；Gate/升级：`current_gate`、`escalation_triggers`。
 
 ```text
 control_model: <用户所选主会话模型>
 task_complexity: simple | standard | complex
 risk_level: low | medium | high
-execution_model: gpt-5.6-luna | gpt-5.6-terra
+reasoning_demand: routine | judgment | deep | extreme
+execution_model: gpt-5.6-luna | gpt-5.6-terra | gpt-6-astra
 execution_authorized: true | false
-dispatch_role: worker | reviewer | none
+dispatch_role: worker | analyst | reviewer | none
 dispatch_required: true | false
 dispatch_mode: subagent | direct
-requested_reasoning_effort: low | medium | high
+requested_reasoning_effort: low | medium | high | xhigh | max
 fork_turns: none
-route_reason: <命中的复杂度、风险和 Gate 规则>
+capability_source: <当前会话工具 schema、可用 role 与核对结果>
+route_reason: <复杂度、风险、推理需求、Gate 与选档证据>
 escalation_triggers:
   - scope_expanded
   - input_conflict
@@ -213,8 +219,13 @@ escalation_triggers:
   - human_gate
 ```
 
-Terra/Luna 只执行已授权任务包，不得改写上述字段、扩大范围、自批 Review 或决定完成。任一升级触发器命中时
-停止当前执行并交还主会话；同一任务连续两次验证失败记为 `verification_failed_twice`。
+`dispatch_role=none` 时模型、effort、fork 和能力字段不适用，不伪造一次派发。`capability_source` 以当前工具暴露的可调用组合为准；
+官网支持不等于本会话可用。API effort 与 Codex/Work Ultra 分开：Ultra 是编排模式，不作为普通子任务默认 effort。
+
+子代理不得改写路由、扩大范围、自批 Review 或决定项目完成。阶段变化或升级触发器命中时由父会话重评；
+连续两次验证失败记为 `verification_failed_twice`，先补复现和证据、收窄任务，再考虑升档。
+改模型、强度或角色必须生成新 `dispatch_id` 并新调用 `spawn_agent`，保留旧路由和回执；`followup_task` 只用于同模型、同强度、同角色补充上下文。
+不可用时父会话可在原授权范围内重新选择受支持且满足质量/风险下限的组合，显式记录新理由并重派；不得静默降级或扩大权限。
 
 ### source_or_test_write 代码形状约束
 

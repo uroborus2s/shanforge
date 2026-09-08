@@ -19,7 +19,7 @@
 
 - 补充最小必要上下文。
 - 不散读整仓。
-- 重新派发同一任务。
+- 同模型、同强度、同角色可用 `followup_task` 补上下文；需要改变任一配置时由主会话创建新 `dispatch_id` 和新 `spawn_agent`。
 - ledger 记录 context supplied。
 
 ## BLOCKED
@@ -28,8 +28,8 @@
 
 - 上下文不足：补充上下文。
 - 任务过大：拆小任务。
-- 模型能力不足：保持原 `execution_model` 并交还主会话；由主会话补上下文、拆任务或改计划。
-- 模型或工具不可用：`worker_unavailable` 或 `dispatch_failed`，交还主会话；不得换模型或由主会话代写。
+- 模型能力不足：交还主会话，先补复现和证据、收窄任务；由主会话按唯一模型决策表重评，不能由 worker 自行升档。
+- 模型、effort、角色或工具不可用：`worker_unavailable` 或 `dispatch_failed`；主会话可在同一授权内显式重选受支持且满足质量/风险下限的组合，新路由、新派发并保留旧回执，不得静默降级或代写。
 - 计划错误：写入 `needs: plan_rewrite`，交还流程控制器。
 - 需要用户决策：停止并问用户。
 

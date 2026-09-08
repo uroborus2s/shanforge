@@ -1,0 +1,1218 @@
+--- /dev/null
++++ b/.codex/agents/task-reader.toml
+@@ -0,0 +1,4 @@
++name = "task-reader"
++description = "只读子任务：分析证据或独立评审，由父会话显式选择模型与推理强度。"
++developer_instructions = "仅执行任务包声明的 analyst 或 reviewer 职责。只读检查，不写文件、不改变父阶段、不扩大范围。analyst 只返回证据和建议，不作质量批准；reviewer 必须独立于实现者，按候选和证据给出 findings。模型与推理强度由父调用显式选择，角色不可扩大授权。"
++sandbox_mode = "read-only"
+--- a/AGENTS.md
++++ b/AGENTS.md
+@@ -4,7 +4,7 @@
+ - 先根据当前消息判定处理模式。无项目影响的直接回答和轻量分析不读取 `.factory/memory/`，不创建任务卡、ledger 或项目状态包。
+ - 项目状态查询、任务延续、项目事实修改或仓内持久化才进入项目化流程：默认先读 `.factory/memory/agent-session.md`；缺上下文再读 `.factory/memory/runtime-brief.md`、`.factory/memory/current-state.md`、`.factory/memory/doc-map.md`、`.factory/project.json` 和相关 summary。正式事实按 `doc-map.md` 单文件回源，不散读 `docs/`。
+ - 会话恢复：`skills/project-memory/SKILL.md`。流程路由、review gate、人工确认、提交门：`skills/using-shanforge/SKILL.md`。
+-- 已授权 `source_or_test_write` worker 与身份、范围完整的独立只读 reviewer 必须按模型派发合同子代理执行；主会话不得静默实现或代替 reviewer。Codex `spawn_agent` 参数、回执和失败关闭规则：`skills/using-shanforge/SKILL.md` 与 `skills/using-shanforge/references/codex-tools.md`；已批准计划的隔离 worker 实现：`skills/subagent-driven-development/SKILL.md`。
++- 已授权 `source_or_test_write` worker 与身份、范围完整的独立只读 reviewer 必须按任务独立选择模型与推理强度、显式派发子代理执行（不继承主会话配置）；主会话不得静默实现或代替 reviewer。Codex `spawn_agent` 参数、回执和失败关闭规则：`skills/using-shanforge/SKILL.md` 与 `skills/using-shanforge/references/codex-tools.md`；已批准计划的隔离 worker 实现：`skills/subagent-driven-development/SKILL.md`。
+ - `/技能名` 直接执行默认工作流；高风险动作真正执行前确认。
+ - 明确执行请求优先同轮落地；本地提交用 `gitcommitzh`，只提交当前任务范围。
+ - 只按真实命令和文件结果报告；禁止把计划、占位或进行中说成完成。
+--- a/docs/02-user-guide/user-guide.md
++++ b/docs/02-user-guide/user-guide.md
+@@ -5,8 +5,8 @@
+ | 项目 | 内容 |
+ |---|---|
+ | 文档 ID | `DOC-USER-GUIDE-001` |
+-| 正式版本 | `v1.4.0` |
+-| 来源候选 | `MODEL-ORCHESTRATOR-SELECTION-001` |
++| 正式版本 | `v1.5.0` |
++| 来源候选 | `MODEL-DYNAMIC-DISPATCH-001` |
+ | 发布事务 | `N/A（直接策略变更）` |
+ | 负责人 | `HUMAN_PRODUCT_ANALYST` |
+ | 修改 / 审核 / 批准 | `uroborus` / `uroborus` / `uroborus` |
+@@ -81,19 +81,21 @@
+ 
+ ## 4. 模型如何分工
+ 
+-当前 Codex 宿主能力按三层协作：用户所选主会话模型负责总体设计、风险和任务复杂度分级及最终路由；
+-`gpt-5.6-terra` 执行标准、复杂或中高风险的已授权任务；`gpt-5.6-luna` 只执行简单且低风险的已授权任务。
+-Terra/Luna 不能自行改级、扩范围或批准完成，出现范围、输入、风险、连续验证失败或人工 Gate 时交还主会话。
++用户所选主会话负责总体设计、任务复杂度/风险分级及最终路由。每个子任务独立选择模型与推理强度，
++以 [子任务模型决策表](../../skills/using-shanforge/SKILL.md#子任务模型决策表) 为唯一选档规则；记录推理需求、选择理由和当前工具能力来源。
++局部清楚且低风险的工作选低档，需要设计判断、深度排查或高风险验证时提高档位；普通独立 review 至少 Terra/high。
+ 
+-真实子代理派发有两个互斥分支：`execution-workflow` 的已授权源码或测试写入是 worker，简单且低风险使用 Luna（low），其余使用 Terra（medium）；
+-`review-workflow` 的 `state_or_gate_write`、身份和范围完整、实现和验证已完成的独立只读 review 是 reviewer，固定 Terra（high）。
+-workflow/写策略与声明分支不匹配，或两个分支同时可命中时会失败关闭并交还主会话；直接答复、设计、计划、非独立 review、Gate 和最终收口仍由主会话控制。
+-父会话每次都显式调用 `spawn_agent`，带上模型、推理强度和 `fork_turns="none"`，并保存成功工具回执；工具、模型或回执异常会失败关闭并交还主会话，不会由主会话静默代写、换模型或代替 reviewer。
++worker 执行已授权源码或测试写集；analyst 只在已有项目任务内回答明确的只读问题，不改变父阶段、不写文件、不自批；
++reviewer 独立只读评审，实现者不能自批。普通直接回答和轻量分析不创建项目身份或 ledger，也不强制派发。
+ 
+-`.codex/config.toml` 和 `.codex/agents/*.toml` 是宿主配置层，不是每次派发的证明。真实绑定以父会话的显式派发参数和成功回执为准；
+-仓内无法读取或验证模型内部身份。
++父会话每次显式调用 `spawn_agent`，带上独立选择的模型、推理强度和 `fork_turns="none"`，并保存成功工具回执。
++省略参数继承父配置、角色与模型/强度冲突、工具或能力不可用、回执异常都会失败关闭。父会话可在原授权范围内重评并明确重派，
++不能静默降级、代写 worker 或代替 reviewer；analyst 不可用时可继续已授权只读分析并说明未派发。
++连续两次验证失败先补复现和证据、收窄任务。改模型、强度或角色需新派发并保留旧回执，`followup_task` 只补同配置上下文。
+ 
+-这些名称描述当前项目可见的当前 Codex 宿主能力，不代表公开 API 型号、价格或可用性承诺。
++`.codex/config.toml` 和 `.codex/agents/*.toml` 是宿主配置，不是派发证明。现有固定 preset 保留，
++`task-reader.toml` 提供不固定模型/effort 的只读职责；TOML 校验不代表当前会话已加载该角色，必须核对工具实际暴露情况。
++父工具回执只证明宿主接受请求，仓内不能验证模型内部身份。官网 API 能力不等于当前会话可用；Codex/Work Ultra 是编排模式，不作普通子任务默认 effort。
+ 
+ ## 5. 常见场景
+ 
+@@ -146,6 +148,7 @@
+ 
+ | 版本 | 日期 | 变更 | 修改人 | 审核 | 批准 |
+ |---|---|---|---|---|---|
++| `v1.5.0` | 2026-09-08 | 说明子任务动态选档、只读职责、宿主能力与失败重派边界 | `AI_EXECUTOR` | `集中质量门` | `uroborus` |
+ | `v1.4.0` | 2026-09-08 | 主会话模型由用户选择，明确父会话控制职责 | `AI_EXECUTOR` | `集中质量门` | `uroborus` |
+ | `v1.3.0` | 2026-08-23 | 增加 Sol 控制分级和 Terra/Luna 受控执行说明 | `AI_EXECUTOR` | `集中质量门` | `uroborus` |
+ | `v1.2.0` | 2026-08-08 | 增加 Bug 风险分流、最终候选测试和发布部署入口 | `AI_EXECUTOR` | `集中质量门` | `uroborus` |
+--- a/docs/04-product/prd.md
++++ b/docs/04-product/prd.md
+@@ -6,8 +6,8 @@
+ |---|---|
+ | 项目名称 | 山海工枢 / shanforge |
+ | 文档编号 | `PRD-SHANFORGE-001` |
+-| 当前正式版本 | `v5.1.0` |
+-| 来源候选修订 | `MODEL-ORCHESTRATOR-SELECTION-001` |
++| 当前正式版本 | `v5.2.0` |
++| 来源候选修订 | `MODEL-DYNAMIC-DISPATCH-001` |
+ | 变更等级 | `MAJOR` |
+ | 状态 | 已批准并生效 |
+ | 负责人 / 变更 / 审核 / 批准 | `uroborus` |
+@@ -39,7 +39,7 @@
+ - 让简单任务走最短安全路径，让复杂任务具备完整设计、计划、Gate 和证据。
+ - 让正式事实、执行事实和恢复摘要各有唯一 owner。
+ - 让当前工作区与只含 Git 跟踪文件的环境可使用同一命令验证。
+-- 让用户所选主会话统一设计和分级，Terra/Luna 只执行明确授权的任务包。
++- 让用户所选主会话统一设计和分级，为每个子任务独立选择模型及推理强度，子代理只执行明确授权的任务包。
+ 
+ ### 2.3 非目标
+ 
+@@ -118,15 +118,14 @@
+ - AC-3：快照不提供编辑、审批、提交或发布入口。
+ - AC-4：工作项数量不等于产品功能完成率，缺证据时显示不可计算。
+ 
+-### REQ-SF-008：主会话/Terra/Luna 模型分层
++### REQ-SF-008：主会话与动态子任务选档
+ 
+ - AC-1：用户所选主会话是总体设计、任务复杂度/风险分级、模型路由和失败升级的唯一 owner。
+-- AC-2：Luna 只执行边界明确、低风险、单模块、验证快速的任务包。
+-- AC-3：Terra 执行中等复杂度、多文件或需要工程判断但无需主会话持续控制的任务包。
+-- AC-4：高风险、跨架构、接口兼容、数据迁移、安全、发布或需求不确定任务由主会话保持控制，
+-  只把独立、可验收子任务派给 Terra/Luna。
+-- AC-5：Terra/Luna 不得重新分级、自授权扩 scope、自批 review 或自批完成。
+-- AC-6：执行遇到输入冲突、范围扩张、连续失败、非预期架构影响或人工 Gate 时必须升级回主会话。
++- AC-2：按 [子任务模型决策表](../../skills/using-shanforge/SKILL.md#子任务模型决策表) 为每个子任务独立选择满足需求的最低模型/推理强度，记录 `reasoning_demand`、`capability_source` 和选档理由；不得继承父会话配置。
++- AC-3：worker 执行精确授权写集；analyst 仅在已有项目身份和父阶段内只读分析、不写文件或改变父阶段；独立 reviewer 不得由实现者自批。普通直接回答不创建项目身份或 ledger、不强制派发。
++- AC-4：派发显式传入模型、effort、`fork_turns=none`，核对当前宿主能力和 role 固定值。配置文件与官网能力不作为已加载角色或派发证明，回执只证明宿主接受请求；Ultra 不作普通子任务默认 effort。
++- AC-5：子代理不得重新分级、自授权扩 scope、自批 review 或自批项目完成。连续两次验证失败先补复现/证据、收窄任务；输入冲突、风险、范围或阶段变化交还主会话重评。
++- AC-6：能力、角色或回执异常时失败关闭。父会话可在原授权范围内显式重选满足质量/风险下限的受支持组合；改模型、强度或角色须新派发并保留旧回执，不得用 `followup_task` 改配置、静默降级或代写 worker / 代替 reviewer。
+ 
+ ### REQ-SF-009：权限与外部动作
+ 
+@@ -152,13 +151,14 @@
+ 2. 清理历史过程资产并完成工作区验证。
+ 3. 形成 T01 本地基线提交，从该提交执行干净环境复验。
+ 4. 由用户所选主会话固化任务分级、路由包和升级合同。
+-5. 验证 Terra/Luna 只执行授权任务且不能越权。
++5. 验证动态选档、显式派发、只读边界及失败重派，子代理只能执行授权任务。
+ 6. 集中 review、完整验证、本地提交并保持工作区干净。
+ 
+ ## 7. 正式版本历史
+ 
+ | 版本 | 变更 | 日期 | 修改 / 审核 / 批准 |
+ |---|---|---|---|
++| `v5.2.0` | 按任务动态选择子模型与推理强度，明确只读分析、角色能力和失败重派边界 | 2026-09-08 | `uroborus` |
+ | `v5.1.0` | 主会话模型改为用户选择，保留 Luna/Terra worker 与 reviewer 固定映射 | 2026-09-08 | `uroborus` |
+ | `v5.0.0` | 统一 skill-first 产品边界，废止仓内平台运行时，登记模型分层和干净环境要求 | 2026-08-23 | `uroborus` |
+ | `v4.2.0` | 历史：项目状态可读性与项目知识平台需求 | 2026-07-28 | `uroborus` |
+--- a/docs/05-design/workflow-execution-design.md
++++ b/docs/05-design/workflow-execution-design.md
+@@ -5,8 +5,8 @@
+ | 项目 | 内容 |
+ |---|---|
+ | 文档 ID | `PROC-TASK-EXECUTION-001` |
+-| 正式版本 | `v2.1.0` |
+-| 来源候选 | `MODEL-ORCHESTRATOR-SELECTION-001` |
++| 正式版本 | `v2.2.0` |
++| 来源候选 | `MODEL-DYNAMIC-DISPATCH-001` |
+ | 发布事务 | `N/A（本次文档同步不产生发布事务）` |
+ | 负责人 | `HUMAN_PROJECT_OWNER` |
+ | 修改 / 审核 / 批准 | `AI_EXECUTOR` / `集中质量门` / `uroborus` |
+@@ -121,17 +121,19 @@
+   forbidden_actions: <actions>
+   current_gate: <gate>
+   write_policy: <policy>
+-  dispatch_role: worker | reviewer | none
++  dispatch_role: worker | analyst | reviewer | none
+   dispatch_required: true | false
+   dispatch_mode: subagent | direct
+ ```
+ 
+-- `simple + low` 使用 `gpt-5.6-luna` / `low`；其余授权 worker 使用 `gpt-5.6-terra` / `medium`。
+-- `execution-workflow` + `source_or_test_write` + 已授权：`dispatch_role: worker, dispatch_required: true, dispatch_mode: subagent`。
+-- 独立 reviewer 使用 Terra / `high`、只读：`dispatch_role: reviewer, true, subagent`；冲突、范围扩大、风险上升、连续两次验证失败或人工 Gate 交还主会话。
+-- 派发分支按顺序互斥；非独立 review、Gate 和最终收口仍由主会话控制。
+-- 其余路由由主会话直接控制：`dispatch_role: none, false, direct`。
+-- Terra/Luna 不得重新分级、自扩范围或自批完成；父会话的 `spawn_agent` 回执才是派发证据。
++- 模型/effort 唯一来源为 [子任务模型决策表](../../skills/using-shanforge/SKILL.md#子任务模型决策表)。路由记录 `control_model`、`task_complexity`、`risk_level`、`reasoning_demand`、`execution_model`、`requested_reasoning_effort`、`fork_turns`、`capability_source` 和 `route_reason`，每次按任务独立选择，不继承父配置。
++- `execution-workflow` + `source_or_test_write` + 已授权：`dispatch_role: worker, dispatch_required: true, dispatch_mode: subagent`，执行精确写集。
++- 独立 reviewer 的身份/范围和候选验证须完整，角色只读，实现者不能自批。review workflow 的状态写入由父会话记录，不授予 reviewer 文件写权限。
++- analyst 仅在 `processing_mode=project_workitem` 或 `tracked_task`、已有身份和父阶段、只读输入明确且父会话主动声明时派发。子任务使用 `direct-answer-workflow` / `no_project_write`，只返回证据/建议，不改变父工作流或阶段、不写文件、不自批。
++- 普通 `direct_answer` / `lightweight_analysis` 不创建身份或 ledger、不强制派发；非独立 review、Gate 和最终收口仍由主会话控制。其余路由为 `dispatch_role: none, false, direct`，不选模型。
++- 父会话显式传入 model、reasoning_effort、`fork_turns=none`，核对当前工具与角色能力。固定 preset 与选择冲突或只读角色未暴露即拒绝；`task-reader.toml` 的 TOML 校验不证明宿主已加载。父工具回执只证明请求被接受，不证明模型内部身份。
++- 工具、模型/effort、角色或回执异常时失败关闭，不静默降级、代写 worker 或代替 reviewer。analyst 不可用时父会话可继续已授权只读分析并记录未派发。
++- 阶段、范围或风险变化由父会话重评；连续两次验证失败先补复现/证据并收窄任务。原授权内可显式重选受支持且满足质量/风险下限的组合；改模型、强度或角色必须新 `dispatch_id` / 新 `spawn_agent`，保留旧回执，`followup_task` 只补同配置上下文。
+ 
+ ## 工作流节点与转换
+ 
+@@ -230,15 +232,15 @@
+ | 阶段 | 触发 | 权威输入 | 准入 | 活动 | 输出 | 保存位置 | owner / 模型 | 验证 | 退出 Gate | 回流 |
+ |---|---|---|---|---|---|---|---|---|---|---|
+ | 分类与恢复 | 新消息或恢复请求 | 当前消息；TaskCard / ledger（项目化时） | 消息可判定 | 判定行为；按需恢复 | 路由包或直接答复 | WorkItem ledger；必要时 memory | `using-shanforge` / 主会话 | 身份、范围、Gate 完整 | `routed` / `blocked` | 缺身份走身份创建；缺事实澄清 |
+-| 发现与 Spike | 不确定性影响决策 | 已知需求、约束、风险 | 探索范围已授权 | 时间盒调研、Spike 或原型 | 假设、结论、风险与下一决策 | WorkItem evidence / ledger | 专项 Skill / 主会话或 Terra | 可复现观察；不把原型当交付 | `decision_ready` | 结论回需求、设计或停止；原型不得越级发布 |
++| 发现与 Spike | 不确定性影响决策 | 已知需求、约束、风险 | 探索范围已授权 | 时间盒调研、Spike 或原型 | 假设、结论、风险与下一决策 | WorkItem evidence / ledger | 专项 Skill / 主会话或按表选档的只读 analyst | 可复现观察；不把原型当交付 | `decision_ready` | 结论回需求、设计或停止；原型不得越级发布 |
+ | 需求 | 新需求或需求变更 | PRD、用户确认、Spike 结论 | 身份与写集有效 | 需求、AC、NFR、影响分析 | 受控需求候选与追踪关系 | 正式需求文档；ledger | requirements owner / 主会话 | 可追踪、无冲突 | `ready_for_review` | 变更回需求；设计歧义回澄清 |
+ | 设计 | 已批准需求或明确变更 | 需求、架构边界、适用 Spike | 输入已确认 | 方案、边界、接口和风险设计 | 正式设计候选 | 对应 `docs/` owner；ledger | design owner / 主会话 | 追踪、边界和可实现性检查 | `design_ready` | 风险或需求变化回需求；实现反馈回设计 |
+ | 计划与任务 | 复杂或多交付物实施 | 已批准需求 / 设计 | 范围和验收明确 | 分解计划、TaskCard、依赖与验证命令 | plan、授权任务包 | WorkItem plan / task briefs / ledger | planning owner / 主会话 | 路径、角色、Gate、验证命令完整 | `execution_authorized` | 简单任务可跳过正式计划，但不得跳过 WorkItem 身份、TDD 和定向验证 |
+-| 实现 | 已授权 TaskCard | plan / task brief、允许路径、测试设计 | `execution_authorized` | 先失败后最小实现再通过（TDD） | 源码、文档或测试变更；状态包 | 授权路径；ledger / evidence | Terra 或 Luna；主会话已定级 | 定向测试、静态检查、diff | `ready_for_review` 或批次 checkpoint | 测试失败回实现；范围扩张或风险上升回主会话 |
+-| Bug 根因 | 观察到缺陷、回归或异常 | 复现步骤、日志、调用链 | 症状可复现或明确缺口 | 复现、定位根因、最小修复 | 根因记录、修复与回归范围 | 授权路径；ledger / evidence | debugging owner / Terra | 根因证据与定向回归 | `root_cause_found` / `verification_passed` | 设计缺陷回设计；无法复现回澄清，禁止猜测式补丁 |
+-| 测试与定向回归 | 实现、修复或测试任务 | AC、变更范围、测试计划 | 测试范围已授权 | 单元、集成或黑盒测试；定向回归 | 新鲜结果与失败摘要 | 测试路径；evidence / ledger | quality owner / Terra | 命令、exit code、结果 | `test_passed` / `test_failed` | 失败回实现或根因；契约缺口回需求 / 设计 |
+-| 批次 Review | 批次、里程碑或高风险专项完成 | 实现摘要、diff、验证结果 | review 输入完整 | 独立只读 Review、finding 分流 | review decision | WorkItem reviews / ledger | 独立 reviewer / Terra | 独立性、finding 与受影响检查 | `approved` / `changes_requested` | 同范围整改后复审；风险接受才进入人工确认 |
+-| 最终候选验证 | 候选准备完成 | 候选、适用完整测试命令、review | review 与验证前提满足 | 运行新鲜完整候选测试 | verification report | evidence / ledger | verification owner / Terra | 结果、exit code、环境与候选一致 | `verification_passed` | 失败回实现、测试或根因；不得用旧输出宣称通过 |
++| 实现 | 已授权 TaskCard | plan / task brief、允许路径、测试设计 | `execution_authorized` | 先失败后最小实现再通过（TDD） | 源码、文档或测试变更；状态包 | 授权路径；ledger / evidence | worker / 主会话按表选档 | 定向测试、静态检查、diff | `ready_for_review` 或批次 checkpoint | 测试失败回实现；范围扩张或风险上升回主会话 |
++| Bug 根因 | 观察到缺陷、回归或异常 | 复现步骤、日志、调用链 | 症状可复现或明确缺口 | 复现、定位根因、最小修复 | 根因记录、修复与回归范围 | 授权路径；ledger / evidence | debugging owner / 主会话；只读子任务按表选档 | 根因证据与定向回归 | `root_cause_found` / `verification_passed` | 设计缺陷回设计；无法复现回澄清，禁止猜测式补丁 |
++| 测试与定向回归 | 实现、修复或测试任务 | AC、变更范围、测试计划 | 测试范围已授权 | 单元、集成或黑盒测试；定向回归 | 新鲜结果与失败摘要 | 测试路径；evidence / ledger | quality owner / 按表选档 | 命令、exit code、结果 | `test_passed` / `test_failed` | 失败回实现或根因；契约缺口回需求 / 设计 |
++| 批次 Review | 批次、里程碑或高风险专项完成 | 实现摘要、diff、验证结果 | review 输入完整 | 独立只读 Review、finding 分流 | review decision | WorkItem reviews / ledger | 独立 reviewer / 按表选档 | 独立性、finding 与受影响检查 | `approved` / `changes_requested` | 同范围整改后复审；风险接受才进入人工确认 |
++| 最终候选验证 | 候选准备完成 | 候选、适用完整测试命令、review | review 与验证前提满足 | 运行新鲜完整候选测试 | verification report | evidence / ledger | verification owner / 主会话 | 结果、exit code、环境与候选一致 | `verification_passed` | 失败回实现、测试或根因；不得用旧输出宣称通过 |
+ | 本地提交与远端交付 | 明确提交或远端请求 | 已通过候选、显式授权 | scope、review、verification 已满足 | 精确暂存、本地提交；按授权远端交接 | commit / remote receipt | Git；ledger / evidence | Git owner / 专项 Skill | staged diff、提交或工具 receipt | `commit_done` / `remote_done` | 无授权停止；远端失败回交付准备 |
+ | 发布与运维 | 明确发布、回滚或事件请求 | 精确候选、最终测试、环境与人工授权 | `release_candidate_verified` | 项目既有发布入口、健康检查、观察、必要时回滚 | release / incident record | 交付文档；ledger / evidence | release owner / 人类授权的专项 Skill | 发布验证、健康检查和观察 | `released` / `rolled_back` / `blocked` | 失败回滚或回实现；事件回 Bug / 变更 |
+ 
+@@ -246,7 +248,7 @@
+ 
+ - 阶段门只确认本阶段的准入、输出和验证；它不替代下一阶段的 Review、最终候选测试或人工授权。
+ - 简单、低风险的局部任务可不写正式计划；仍须具备 WorkItem 身份、TDD 与定向验证。复杂、多交付物、跨模块或高风险任务使用计划和受控子代理。
+-- 主会话是复杂度、风险、模型路由和升级的唯一 owner。仅 `simple + low` 可派 Luna；其余已授权独立任务派 Terra。Terra/Luna 不得重新分级、自扩范围或自批完成。
++- 主会话是复杂度、风险、推理需求、模型路由和升级的唯一 owner。子任务按唯一模型决策表独立选档；子代理不得重新分级、自扩范围或自批完成。
+ - Spike 与原型只用于降低不确定性；其输出必须回写为决策输入，不能替代设计、测试、Review 或发布验证。
+ - TDD 适用于实现和修复：先以能失败的检查定义行为，再作最小实现。Bug 修复先证明根因，并覆盖受影响调用路径的定向回归。
+ - 批次 Review 用于里程碑、批次收口或高风险路径；普通低、中风险任务不逐项制造 Review Gate。最终候选测试必须新鲜运行，发布验证只在明确发布边界适用。
+@@ -276,6 +278,7 @@
+ | `v1.3.1` | 明确低、中、高风险任务的确定性判定条件和信息不足时的升级规则 | 2026-08-01 | `AI_EXECUTOR` | `集中质量门` | `uroborus` |
+ | `v1.4.0` | 增加设计至生产阶段门、变更归因、候选修复复测、最终发布回归和部署闭环 | 2026-08-08 | `AI_EXECUTOR` | `集中质量门` | `uroborus` |
+ | `v1.5.0` | 固化 Sol 唯一控制、复杂度分级及 Terra/Luna 受控执行路由 | 2026-08-23 | `AI_EXECUTOR` | `集中质量门` | `uroborus` |
++| `v2.2.0` | 统一动态选档、项目化只读 analyst、显式派发与角色能力失败关闭合同 | 2026-09-08 | `AI_EXECUTOR` | `集中质量门` | `uroborus` |
+ | `v2.1.0` | 主会话模型改为用户选择，保持 Terra/Luna 固定派发映射 | 2026-09-08 | `AI_EXECUTOR` | `集中质量门` | `uroborus` |
+ | `v2.0.0` | 收口为 Skill-first 生命周期矩阵、方法选择与过程数据边界 | 2026-09-01 | `AI_EXECUTOR` | `集中质量门` | `uroborus` |
+ 
+--- a/docs/document-index.md
++++ b/docs/document-index.md
+@@ -26,7 +26,7 @@
+ | `docs/01-getting-started/project-charter.md` | `DOC-PROJECT-CHARTER-001` | 项目章程 | `formal_baseline` | `HUMAN_PROJECT_OWNER` | `v3.0.0` |
+ | `docs/01-getting-started/quick-start.md` | `DOC-QUICK-START-001` | 快速开始 | `guide` | `HUMAN_DEVELOPMENT_EXECUTOR` | `v1.0.0` |
+ | `docs/02-user-guide/index.md` | `DOC-NAV-USER-001` | 用户指南入口 | `navigation` | `HUMAN_PRODUCT_ANALYST` | `v1.0.0` |
+-| `docs/02-user-guide/user-guide.md` | `DOC-USER-GUIDE-001` | 使用指南 | `guide` | `HUMAN_PRODUCT_ANALYST` | `v1.1.0` |
++| `docs/02-user-guide/user-guide.md` | `DOC-USER-GUIDE-001` | 使用指南 | `guide` | `HUMAN_PRODUCT_ANALYST` | `v1.5.0` |
+ | `docs/02-user-guide/prompt-templates.md` | `DOC-PROMPT-GUIDE-001` | 提示词速查 | `guide` | `HUMAN_PRODUCT_ANALYST` | `v1.0.0` |
+ | `docs/03-developer-guide/index.md` | `DOC-NAV-DEVELOPER-001` | 开发者指南入口 | `navigation` | `HUMAN_ARCHITECTURE_DOMAIN_LEAD` | `v1.0.0` |
+ | `docs/03-developer-guide/development-setup.md` | `DOC-DEVELOPMENT-SETUP-001` | 开发环境 | `guide` | `HUMAN_DEVELOPMENT_EXECUTOR` | `v1.0.0` |
+@@ -34,7 +34,7 @@
+ | `docs/03-developer-guide/interface-reference.md` | `DOC-INTERFACE-REFERENCE-001` | 接口与函数参考 | `reference` | `HUMAN_API_INTEGRATION_LEAD` | `v2.0.0` |
+ | `docs/03-developer-guide/plugin-development.md` | `DOC-PLUGIN-DEVELOPMENT-001` | 插件开发 | `guide` | `HUMAN_DEVELOPMENT_EXECUTOR` | `v1.0.0` |
+ | `docs/04-product/index.md` | `DOC-NAV-PRODUCT-001` | 产品与需求入口 | `navigation` | `HUMAN_REQUIREMENTS_LEAD` | `v1.0.0` |
+-| `docs/04-product/prd.md` | `PRD-SHANFORGE-001` | 产品需求文档 | `formal_baseline` | `HUMAN_REQUIREMENTS_LEAD` | `v5.0.0` |
++| `docs/04-product/prd.md` | `PRD-SHANFORGE-001` | 产品需求文档 | `formal_baseline` | `HUMAN_REQUIREMENTS_LEAD` | `v5.2.0` |
+ | `docs/04-product/requirements-matrix.md` | `TRACE-REQ-001` | 需求追踪矩阵 | `traceability` | `HUMAN_REQUIREMENTS_LEAD` | `v5.1.0` |
+ | `docs/05-design/index.md` | `DOC-NAV-DESIGN-001` | 软件技术设计入口 | `navigation` | `HUMAN_ARCHITECTURE_DOMAIN_LEAD` | `v1.3.0` |
+ | `docs/05-design/solution-overview.md` | `DESIGN-SOLUTION-001` | 总体方案与协作治理设计 | `formal_baseline` | `HUMAN_ARCHITECTURE_DOMAIN_LEAD` | `v4.0.0` |
+@@ -45,7 +45,7 @@
+ | `docs/05-design/api-design.md` | `DESIGN-API-001` | 接口与事件设计 | `formal_baseline` | `HUMAN_API_INTEGRATION_LEAD` | `v4.0.0` |
+ | `docs/05-design/frontend-design.md` | `DESIGN-FRONTEND-001` | 前端架构与页面设计 | `formal_baseline` | `HUMAN_DEVELOPMENT_EXECUTOR` | `v2.0.0` |
+ | `docs/05-design/ux-ui-design.md` | `DESIGN-UX-UI-001` | 用户体验、交互与 UI 设计 | `formal_baseline` | `HUMAN_UX_LEAD` | `v2.0.0` |
+-| `docs/05-design/workflow-execution-design.md` | `PROC-TASK-EXECUTION-001` | 会话、任务与工作流执行设计 | `formal_baseline` | `HUMAN_PROJECT_OWNER` | `v2.0.0` |
++| `docs/05-design/workflow-execution-design.md` | `PROC-TASK-EXECUTION-001` | 会话、任务与工作流执行设计 | `formal_baseline` | `HUMAN_PROJECT_OWNER` | `v2.2.0` |
+ | `docs/05-design/memory-design.md` | `DESIGN-MEMORY-001` | 记忆系统设计 | `formal_baseline` | `HUMAN_ARCHITECTURE_DOMAIN_LEAD` | `v4.0.0` |
+ | `docs/05-design/interface-matrix.md` | `TRACE-API-001` | 接口与字段追踪矩阵 | `traceability` | `HUMAN_API_INTEGRATION_LEAD` | `v4.0.0` |
+ | `docs/06-delivery/index.md` | `DOC-NAV-DELIVERY-001` | 质量、发布与运维入口 | `navigation` | `HUMAN_RELEASE_OPERATIONS_LEAD` | `v1.2.0` |
+--- a/skills/subagent-driven-development/SKILL.md
++++ b/skills/subagent-driven-development/SKILL.md
+@@ -46,8 +46,8 @@
+ 
+ 主控必须先把用户批准范围固化为授权执行包：目标、任务集合、依赖层、允许文件、共享契约、允许动作、禁止动作、验证命令、同范围整改边界和真实人工 Gate。
+ 
+-worker Terra/Luna 只消费已授权路由包；`execution_authorized` 不为 `true` 时不得派发。执行者不得重算或改写
+-`control_model`、`task_complexity`、`risk_level`、`execution_model`、`dispatch_required`、`dispatch_mode`、
++worker 只消费主会话独立选档的已授权路由包；`execution_authorized` 不为 `true` 时不得派发。执行者不得重算或改写
++`control_model`、`task_complexity`、`risk_level`、`reasoning_demand`、`capability_source`、`execution_model`、`dispatch_required`、`dispatch_mode`、
+ `dispatch_role`、`requested_reasoning_effort`、`fork_turns`、`route_reason` 和 `escalation_triggers`。
+ 命中 `scope_expanded`、`input_conflict`、`risk_increased`、`verification_failed_twice` 或 `human_gate` 时，
+ 立即停止当前执行并把事实交还主会话；不得自行换模型或扩大授权。
+@@ -55,10 +55,12 @@
+ `execution_authorized != true -> do_not_dispatch`
+ 
+ worker 派发条件、非授权关闭条件和 reviewer 分支均以 `using-shanforge` 的“子代理严格派发判定”为唯一规范定义；本 skill 只引用该判定。授权 worker 实现只能调用已暴露的 `spawn_agent`：`model` 必须等于
+-`execution_model`，Luna 使用 `low`、Terra 使用 `medium`，且 `fork_turns="none"`；`message` 必须包含完整 task brief、精确写集、禁令和验证命令。
+-父会话必须在调用前生成稳定 `dispatch_id` 并保存工具成功返回的 `task_card_id`、`requested_model`、`requested_reasoning_effort`、`fork_turns`、
+-`agent_id` 或 canonical task、`status: accepted`、`source: parent_tool_receipt`；`accepted` 不是子代理完成态。任一工具/模型/回执/模型一致性检查失败，置
+-`dispatch_failed` 或 `worker_unavailable` 并交还主会话，不得静默代写或换模型。
++`execution_model`，`reasoning_effort` 必须等于 `requested_reasoning_effort`，选档只查该 skill 的“子任务模型决策表”，且 `fork_turns="none"`；`message` 必须包含完整 task brief、精确写集、禁令和验证命令。
++父会话必须在调用前生成稳定 `dispatch_id`，将真实调用参数与工具返回的 agent ID 合并保存为父回执，包含 `task_card_id`、`requested_model`、`requested_reasoning_effort`、`fork_turns`、
++`agent_id` 或 canonical task、`status: accepted`、`source: parent_tool_receipt`；`accepted` 不是子代理完成态。任一工具/模型/effort/角色/回执一致性检查失败，置
++`dispatch_failed` 或 `worker_unavailable` 并交还主会话，不得静默代写或换模型。父会话可在原授权内按唯一决策表重评，显式记录新理由并重派；变更模型、强度或角色须新 `dispatch_id` 和新 `spawn_agent`，保留旧回执。
++
++连续两次验证失败先补复现和证据、收窄任务，再由主会话考虑升档。`followup_task` 仅用于同模型、同强度、同角色补上下文；不能用跟随调用修改配置。
+ 
+ ### 升级信号决策表
+ 
+--- a/skills/subagent-driven-development/references/status-handling-checklist.md
++++ b/skills/subagent-driven-development/references/status-handling-checklist.md
+@@ -19,7 +19,7 @@
+ 
+ - 补充最小必要上下文。
+ - 不散读整仓。
+-- 重新派发同一任务。
++- 同模型、同强度、同角色可用 `followup_task` 补上下文；需要改变任一配置时由主会话创建新 `dispatch_id` 和新 `spawn_agent`。
+ - ledger 记录 context supplied。
+ 
+ ## BLOCKED
+@@ -28,8 +28,8 @@
+ 
+ - 上下文不足：补充上下文。
+ - 任务过大：拆小任务。
+-- 模型能力不足：保持原 `execution_model` 并交还主会话；由主会话补上下文、拆任务或改计划。
+-- 模型或工具不可用：`worker_unavailable` 或 `dispatch_failed`，交还主会话；不得换模型或由主会话代写。
++- 模型能力不足：交还主会话，先补复现和证据、收窄任务；由主会话按唯一模型决策表重评，不能由 worker 自行升档。
++- 模型、effort、角色或工具不可用：`worker_unavailable` 或 `dispatch_failed`；主会话可在同一授权内显式重选受支持且满足质量/风险下限的组合，新路由、新派发并保留旧回执，不得静默降级或代写。
+ - 计划错误：写入 `needs: plan_rewrite`，交还流程控制器。
+ - 需要用户决策：停止并问用户。
+ 
+--- a/skills/using-shanforge/SKILL.md
++++ b/skills/using-shanforge/SKILL.md
+@@ -130,29 +130,35 @@
+   只有 Critical、Important 或高风险路径变化才复审受影响范围。
+ - 长周期项目可以按里程碑收口，但禁止退化为逐任务重复评审。用户明确要求逐任务评审时才覆盖本默认策略。
+ 
+-## 主会话 / Terra / Luna 模型路由
+-
+-主会话（模型由用户选择）是唯一总体设计、任务分级和模型路由 owner；Terra 和 Luna 不得重新分级。先使用上文风险规则得到
+-`risk_level`，再由主会话确定复杂度：
++## 主会话与子任务模型路由
++
++主会话（模型由用户选择）是总体设计、任务分级、模型路由和升级的唯一 owner。每次派发独立选择子模型和推理强度，不能继承父会话配置；即使选择相同模型，也必须记录本任务的选择理由。
++先使用上文风险规则得到 `risk_level`，再确定复杂度：
+ 
+ - `simple`：满足“简单代码变更直接实施”的全部条件，且 `risk_level` 为 `low`。
+ - `complex`：涉及架构或系统设计、公共契约、schema、迁移、安全或生产，包含三个及以上独立交付物，
+   需要跨模块、跨会话或并行协调，或仍有未解决的设计歧义；信息不足时按 `complex`。
+ - `standard`：既不满足 `simple`，也未命中 `complex`。
+ 
+-确定性映射只有两条：
+-
+-- `simple + low` -> `gpt-5.6-luna`。
+-- `standard | complex | medium | high` -> `gpt-5.6-terra`。
+-
+-### Worker 执行模型决策表
+-
+-按表格顺序命中第一行；`*` 是兜底：
+-
+-| task_complexity | risk_level | execution_model |
+-|---|---|---|
+-| `simple` | `low` | `gpt-5.6-luna` |
+-| `*` | `*` | `gpt-5.6-terra` |
++主会话同时确定 `reasoning_demand`：`routine` 为步骤和验收明确；`judgment` 为需要设计、架构或调用链判断；
++`deep` 为疑难根因、并发状态或高风险验证；`extreme` 仅用于已有复现、候选根因和排查证据仍未解的单个难题。
++信息不足至少为 `judgment`，风险另按既有规则处理。`route_reason` 必须说明选档依据和证据；无证据不得使用 `max`。
++
++### 子任务模型决策表
++
++这是项目选档策略，不是官方对每类工作的要求。先校验角色、授权、输入、风险和当前宿主能力，再按首行命中；
++`*` 是兜底。选择满足任务的最低档，`routine` 不覆盖审查下限、高风险或复杂任务。`none` 不选模型。
++
++| dispatch_role | task_complexity | risk_level | reasoning_demand | execution_model | requested_reasoning_effort |
++|---|---|---|---|---|---|
++| `*` | `*` | `*` | `extreme` | `gpt-6-astra` | `max` |
++| `*` | `*` | `high` | `*` | `gpt-6-astra` | `xhigh` |
++| `*` | `*` | `*` | `deep` | `gpt-6-astra` | `xhigh` |
++| `reviewer` | `*` | `*` | `*` | `gpt-5.6-terra` | `high` |
++| `*` | `*` | `*` | `judgment` | `gpt-6-astra` | `high` |
++| `*` | `complex` | `*` | `*` | `gpt-6-astra` | `high` |
++| `*` | `simple` | `low` | `routine` | `gpt-5.6-luna` | `low` |
++| `*` | `*` | `*` | `*` | `gpt-5.6-terra` | `medium` |
+ 
+ ### 执行授权决策表
+ 
+@@ -167,44 +173,44 @@
+ 
+ ### 子代理严格派发判定
+ 
+-按表格顺序命中第一行；这是唯一可执行的派发条件。上表的执行模型决策只适用于 `worker`：
++按首个命中条件处理；worker、analyst、reviewer 使用上方唯一模型决策表：
+ 
+ | 条件 | dispatch_role | dispatch_required / dispatch_mode | 模型与推理强度 |
+ |---|---|---|---|
+ | `workflow_id` / `write_policy` 与声明分支不匹配，或多个分支可命中 | `none` | `false / direct`；`input_conflict, do_not_dispatch` | N/A，交还主会话 |
+-| `workflow_id=execution-workflow`、`write_policy=source_or_test_write` 且 `execution_authorized=true` | `worker` | `true / subagent` | `simple + low` 为 Luna/`low`；其余为 Terra/`medium` |
+-| `workflow_id=review-workflow`、`write_policy=state_or_gate_write`、`reviewer_type=independent_subagent`、身份/范围完整且实现/验证完成 | `reviewer` | `true / subagent` | Terra/`high`，只读 |
++| `workflow_id=execution-workflow`、`write_policy=source_or_test_write` 且 `execution_authorized=true` | `worker` | `true / subagent` | 按子任务模型决策表；精确写集 |
++| `workflow_id=review-workflow`、`write_policy=state_or_gate_write`、`reviewer_type=independent_subagent`、身份/范围完整且实现/验证完成、`execution_authorized=true` | `reviewer` | `true / subagent` | 按子任务模型决策表；只读 |
++| `processing_mode=project_workitem` 或 `tracked_task`、已有任务身份和父阶段、明确只读输入、主会话主动声明 `dispatch_role=analyst`、子任务 `workflow_id=direct-answer-workflow` / `write_policy=no_project_write` 且 `execution_authorized=true` | `analyst` | `true / subagent` | 按子任务模型决策表；只读 |
+ | `*` | `none` | `false / direct` | N/A，仍由主会话控制 |
+ 
+-独立 reviewer 是质量门，不重算或改写 worker 的复杂度、风险、执行模型和授权。worker 与 reviewer 都必须按
+-[Codex 工具合同](references/codex-tools.md) 真实派发；失败关闭规则对两者同样适用。
+-
+-任何声明的 worker/reviewer 与其 `workflow_id` 或 `write_policy` 不匹配，或同时满足两个派发分支时，固定写
+-`input_conflict`、`do_not_dispatch` 并交还主会话；不得落入默认 direct 或猜测纠正。
+-
+-worker 分支固定为 `dispatch_required: true`、`dispatch_mode: subagent`；表中其余分支为
+-`dispatch_required: false`、`dispatch_mode: direct` 或 reviewer 子代理，均按首个命中条件处理。
+-
+-授权实现必须由父会话按 [Codex 工具合同](references/codex-tools.md) 显式调用 `spawn_agent`，传入与
+-`execution_model` 完全一致的 `model`、规定的 `requested_reasoning_effort` 和 `fork_turns: "none"`，并在工具成功返回后记录父工具回执。
+-工具未暴露、调用失败、显式模型不可用、回执缺失，或回执的 `requested_model` 与 `execution_model` 不一致时，写
+-`dispatch_failed` 或 `worker_unavailable` 并停止交还主会话；严禁主会话静默代写或换模型。
+-普通项目化路由包追加并持久化以下字段：
+-
+-字段机器名保持不变，按中文用途读取：任务身份：`work_item_id`、`task_card_id`、`wbs_id`（来自基础 route）；控制/复杂度：`control_model`、`task_complexity`；风险/范围：`risk_level`、`execution_authorized`、`route_reason`；派发：`execution_model`、`dispatch_role`、`dispatch_required`、`dispatch_mode`、`requested_reasoning_effort`、`fork_turns`；Gate/升级：`current_gate`、`escalation_triggers`。字段值仍供机器消费，不翻译或改名。
++analyst 仅返回证据和建议，不写文件、不自批，也不作为独立质量批准。它的子任务工作流只表示只读边界，不改变父工作流或阶段；沿用已有任务身份。
++普通 `direct_answer` / `lightweight_analysis` 不创建项目身份或 ledger、不强制派发。独立 reviewer 是质量门，不重算 worker 路由；实现者不能担任自己的 reviewer。
++任何声明的角色与输入不匹配都须 `input_conflict, do_not_dispatch`，不得落入默认 direct 或猜测纠正。
++
++三个分支均按 [Codex 工具合同](references/codex-tools.md) 真实调用 `spawn_agent`，显式传入与路由一致的
++`model`、`reasoning_effort` 和 `fork_turns: "none"`，再保存、回读父工具回执。省略参数或用 `fork_turns=all` 继承均不合法。
++工具未暴露、调用失败、模型/effort 不支持、角色固定值冲突、回执缺失或与请求不一致时，写 `dispatch_failed` 或 `worker_unavailable` 并交还主会话。
++禁止静默降级、由主会话代写 worker 或代替 reviewer。analyst 不可用时，父会话可继续已授权只读分析，明确记录未派发。
++
++### 路由字段与升级
++
++普通项目化路由包保留基础身份、范围与 Gate，并追加下列字段。字段机器名不改名，中文用途分组为：
++任务身份：`work_item_id`、`task_card_id`、`wbs_id`（来自基础 route）；控制/复杂度：`control_model`、`task_complexity`、`risk_level`、`reasoning_demand`；风险/范围：`execution_authorized`、`capability_source`、`route_reason`；派发：`execution_model`、`dispatch_role`、`dispatch_required`、`dispatch_mode`、`requested_reasoning_effort`、`fork_turns`；Gate/升级：`current_gate`、`escalation_triggers`。
+ 
+ ```text
+ control_model: <用户所选主会话模型>
+ task_complexity: simple | standard | complex
+ risk_level: low | medium | high
+-execution_model: gpt-5.6-luna | gpt-5.6-terra
++reasoning_demand: routine | judgment | deep | extreme
++execution_model: gpt-5.6-luna | gpt-5.6-terra | gpt-6-astra
+ execution_authorized: true | false
+-dispatch_role: worker | reviewer | none
++dispatch_role: worker | analyst | reviewer | none
+ dispatch_required: true | false
+ dispatch_mode: subagent | direct
+-requested_reasoning_effort: low | medium | high
++requested_reasoning_effort: low | medium | high | xhigh | max
+ fork_turns: none
+-route_reason: <命中的复杂度、风险和 Gate 规则>
++capability_source: <当前会话工具 schema、可用 role 与核对结果>
++route_reason: <复杂度、风险、推理需求、Gate 与选档证据>
+ escalation_triggers:
+   - scope_expanded
+   - input_conflict
+@@ -213,8 +219,13 @@
+   - human_gate
+ ```
+ 
+-Terra/Luna 只执行已授权任务包，不得改写上述字段、扩大范围、自批 Review 或决定完成。任一升级触发器命中时
+-停止当前执行并交还主会话；同一任务连续两次验证失败记为 `verification_failed_twice`。
++`dispatch_role=none` 时模型、effort、fork 和能力字段不适用，不伪造一次派发。`capability_source` 以当前工具暴露的可调用组合为准；
++官网支持不等于本会话可用。API effort 与 Codex/Work Ultra 分开：Ultra 是编排模式，不作为普通子任务默认 effort。
++
++子代理不得改写路由、扩大范围、自批 Review 或决定项目完成。阶段变化或升级触发器命中时由父会话重评；
++连续两次验证失败记为 `verification_failed_twice`，先补复现和证据、收窄任务，再考虑升档。
++改模型、强度或角色必须生成新 `dispatch_id` 并新调用 `spawn_agent`，保留旧路由和回执；`followup_task` 只用于同模型、同强度、同角色补充上下文。
++不可用时父会话可在原授权范围内重新选择受支持且满足质量/风险下限的组合，显式记录新理由并重派；不得静默降级或扩大权限。
+ 
+ ### source_or_test_write 代码形状约束
+ 
+--- a/skills/using-shanforge/agents/openai.yaml
++++ b/skills/using-shanforge/agents/openai.yaml
+@@ -1,4 +1,4 @@
+ interface:
+   display_name: "shanforge"
+   short_description: "判断阶段、变更归属和唯一下一步 skill，并闭合测试、发布与状态回写。"
+-  default_prompt: "使用 $using-shanforge 判断请求是否影响项目；无项目影响直接回答，有项目影响再恢复状态。主会话（模型由用户选择）控制并分级，Terra/Luna 执行已授权任务；按需求、设计、实现、测试或环境归因变更，选择唯一下一步 skill；工作 skill 只回写状态、证据和 needs。"
++  default_prompt: "使用 $using-shanforge 判断请求是否影响项目；无项目影响直接回答，有项目影响再恢复状态。主会话（模型由用户选择）控制并分级，按任务独立选择子模型与推理强度，显式派发 worker、只读 analyst 或独立 reviewer；按需求、设计、实现、测试或环境归因变更，选择唯一下一步 skill；工作 skill 只回写状态、证据和 needs。"
+--- a/skills/using-shanforge/references/black-box-flow-eval.md
++++ b/skills/using-shanforge/references/black-box-flow-eval.md
+@@ -43,6 +43,11 @@
+ ## `source_or_test_write` 派发观察
+ 
+ 此观察只验证 transcript 中的 `parent_tool_receipt` 结构，不调用真实 `spawn_agent`，也不把 pytest 说成子代理派发。实际派发证据由 T13 复核。授权 worker 的观察必须包含完整授权、父级真实工具回执字段（`task_card_id`、`requested_model`、`requested_reasoning_effort`、`fork_turns`、`agent_id` 或 `canonical_task`、`status: accepted`、`source: parent_tool_receipt`）和 worker `DONE` / `DONE_WITH_CONCERNS` / `NEEDS_CONTEXT` / `BLOCKED` 回执。worker `DONE` 后仍由父会话复验：`close_allowed=false` 且 `next_action=parent_verification`，不得直接关闭任务。缺授权、缺回执、派发失败，或 `sol_source_writes` 非空时均 fail closed；该名称为既有观测字段，语义指主会话源码写入；不得由主会话静默写源码替代 worker。
++
++动态选档使用 `using-shanforge/SKILL.md` 的唯一“子任务模型决策表”。合同检查须覆盖不同角色/复杂度/风险/推理需求，
++以及省略 model/effort、继承父配置、`fork_turns=all`、不兼容 role、能力不支持和回执不匹配的拒绝；还要覆盖失败后显式重选、
++新 `dispatch_id` / 新 `spawn_agent` 与旧回执保留。此类检查只验证合同结构；独立前向试用保留原始响应，不能声称已验证模型内部身份或新 role 已被宿主加载。
++只读 analyst 的观察必须证明已有项目身份与父阶段、不改变阶段、不写文件、不自批；普通直接回答仍不创建身份或 ledger。
+ 
+ ### fast-path smoke 专用断言
+ 
+--- a/skills/using-shanforge/references/codex-tools.md
++++ b/skills/using-shanforge/references/codex-tools.md
+@@ -1,6 +1,6 @@
+ ## 子代理工具映射
+ 
+-只在当前会话已暴露协作工具且任务符合 `subagent-driven-development` 边界时使用子代理，不修改用户全局 Codex 配置。当前工具职责：
++只在当前会话已暴露协作工具且符合 `using-shanforge` 派发判定时使用子代理，不修改用户全局 Codex 配置。当前工具职责：
+ 
+ - `spawn_agent`：创建有明确边界的子任务。
+ - `send_message`：向运行中或空闲代理发送补充信息，不触发新一轮。
+@@ -13,31 +13,46 @@
+ 
+ ## 可执行模型派发合同
+ 
+-只有以下两个互斥分支可以派发；父会话先生成稳定 `dispatch_id`，并把它放入 `message` 以绑定路由、调用和回执：
++worker、analyst、reviewer 的准入以 [子代理严格派发判定](../SKILL.md#子代理严格派发判定) 为准，
++模型和推理强度只按该 skill 的“子任务模型决策表”选择，本参考不另设映射。
++`workflow_id` / `write_policy` 与声明分支不匹配或多个分支可命中时，固定 `input_conflict, do_not_dispatch`；其余非派发任务保持 `dispatch_role=none, dispatch_required=false, dispatch_mode=direct`。
+ 
+-| 分支 | 前提 | `model` / `reasoning_effort` | sandbox 与输入 |
+-|---|---|---|---|
+-| `worker` | `execution-workflow`、`source_or_test_write`、已授权 | Luna/`low`（`simple + low`）或 Terra/`medium`（其余） | 精确写集内写入；完整 task brief、写集、禁令、验证命令 |
+-| `reviewer` | `review-workflow`、`state_or_gate_write`、`reviewer_type=independent_subagent`、身份/范围完整、实现/验证完成 | Terra/`high` | 只读；完整 review brief、候选范围、禁止写入、只读验证命令 |
++### 调用与角色能力
+ 
+-`workflow_id` / `write_policy` 与声明分支不匹配，或多个分支可命中时，固定 `input_conflict, do_not_dispatch` 并交还主会话；不得以默认 direct 修复冲突。其余任务不派发，保持 `dispatch_role=none, dispatch_required=false, dispatch_mode=direct`。父会话必须真实调用已暴露的 `spawn_agent`，不得只在文字中写模型名：
++父会话先核对当前 `spawn_agent` 的模型、effort、role 和隔离能力，将来源记入 `capability_source`。
++官方 API 支持某档不代表当前会话已暴露该组合；API effort 与 Codex/Work Ultra 编排模式不能混用。
++不得省略 `model` 或 `reasoning_effort` 让宿主继承父配置；本合同固定 `fork_turns="none"`，`fork_turns=all` 不接受模型/effort override。
++
++保留 `luna-worker`、`terra-worker`、`terra-reviewer` 三个固定 preset，只在其固定模型、effort 和职责与路由完全匹配时使用。
++`.codex/agents/task-reader.toml` 只固定只读职责和 `sandbox_mode=read-only`，供 analyst 或独立 reviewer 使用，不固定模型/effort。
++该文件通过 TOML 校验不代表当前宿主已加载；须在新会话实际暴露后才可调用。当前会话未暴露时明确不可用；普通独立 reviewer 可使用已暴露且匹配的 `terra-reviewer` / Terra/high。
++Astra 深度 reviewer 或 analyst 必须有已暴露且不冲突的只读角色；不得用可写 generic role 冒充只读。
++角色固定值与请求冲突即拒绝，不能省略参数绕过。worker 使用支持所选模型/effort、写入边界相符的角色。
++
++父会话生成稳定 `dispatch_id`，写入 message 以绑定路由、调用和回执，真实调用已暴露的工具：
+ 
+ ```text
+ spawn_agent({
+   task_name: <stable task-card-derived name>,
+-  message: <dispatch_id + 完整 task brief + allowed_paths + forbidden_actions + verification commands + status return format>,
++  agent_type: <当前已暴露且与路由及读写权限匹配的 role>,
++  message: <dispatch_id + 完整子任务 brief + allowed_paths + forbidden_actions + verification commands + status return format>,
+   model: <execution_model>,
+   reasoning_effort: <requested_reasoning_effort>,
+   fork_turns: "none"
+ })
+ ```
+ 
+-worker 的 `task brief` 指完整实现简报；reviewer 的同一 message 位置改为完整 review brief。worker 的 `model` 必须逐值等于路由包的 `execution_model`；Luna/worker 固定 `low`，Terra/worker 固定 `medium`。reviewer 固定
+-`model: gpt-5.6-terra`、`reasoning_effort: high` 和只读 sandbox，不改写 worker 路由。两分支的 `fork_turns: "none"` 都是必填项，
+-不得让执行者继承父会话整段历史。
++worker 的 message 使用完整实现简报和精确写集；reviewer 使用独立 review brief、候选、禁止写入和只读验证命令；
++analyst 使用明确分析问题、只读输入、已有任务身份和父阶段，禁止写文件、改变父阶段或自批。
++三个分支的 `model` / `reasoning_effort` 都必须逐值等于路由选择；子代理不继承父会话整段历史。
+ 
+-父会话必须在调用前生成稳定 `dispatch_id`，用它绑定路由、调用和回执。成功返回至少提供 canonical task 或 agent ID；
+-父会话随后保存并回读如下真实工具回执。子代理在消息中自报的模型不构成回执，也不得虚构模型内部身份：
++官方能力资料：[GPT-6 Astra 模型页](https://developers.openai.com/api/docs/models/gpt-6-astra)说明 API 推理档位；
++[子代理模型与推理配置](https://learn.chatgpt.com/docs/agent-configuration/subagents#choosing-models-and-reasoning)说明省略参数时的继承及客户端能力边界；
++[最新模型指南](https://developers.openai.com/api/docs/guides/latest-model)提供派发和验证建议。项目选档表是 Shanforge 策略，实际可用组合仍以当前会话工具为准。
++
++### 父工具回执与失败关闭
++
++工具成功返回至少提供 canonical task 或 agent ID。父会话将真实调用参数和返回值合并保存并回读：
+ 
+ ```text
+ dispatch_receipt:
+@@ -51,9 +66,14 @@
+   source: parent_tool_receipt
+ ```
+ 
+-`status: accepted` 只表示工具调用已成功接受，不是子代理完成态。该语义对两个分支相同。调用前先确认工具已暴露；工具未暴露、`spawn_agent` 失败、显式模型不可用、回执缺任一字段，或
+-`requested_model != execution_model` 时，结果只能是 `dispatch_failed` 或 `worker_unavailable` 并交还主会话。禁止用主会话
+-代写、替换模型或以子代理自报身份补足回执。
++`status: accepted` 只表示宿主接受了该请求，不是子代理完成态，也不证明底层模型内部身份。子代理自报不构成回执。
++工具未暴露、`spawn_agent` 失败、模型/effort 不支持、角色不可用或固定值冲突、回执缺字段，或回执的 dispatch_id、任务身份、模型、effort、fork 与请求不一致时，
++结果只能是 `dispatch_failed` 或 `worker_unavailable` 并交还主会话。禁止由主会话代写 worker、代替 reviewer、静默替换模型，或以子代理自报补足回执。
++analyst 不可用时父会话可继续已授权只读分析，并明确记录未派发。
++
++阶段或风险变化由父会话重评；连续两次失败先补复现/证据并收窄任务。需要改变模型、强度或角色时，新建 `dispatch_id` 和 `spawn_agent`，保留旧路由/回执。
++`followup_task` 只能在同模型、同强度、同角色下补充上下文，不具备修改这些配置的参数。
++不可用组合可以由父会话在同一授权范围内显式重选受支持且满足质量/风险下限的组合，再生成新路由重派，不能静默降级或改由父会话写实现。
+ 
+ ## 环境检测
+ 
+--- a/skills/writing-plans/SKILL.md
++++ b/skills/writing-plans/SKILL.md
+@@ -212,4 +212,4 @@
+ 
+ 项目化执行时，沿用 [工作 Skill 回写契约](../using-shanforge/references/work-skill-return-contract.md)；本 skill 的现有专业输出和失败语义不变。
+ 
+-每张 task brief 原样复制模型路由字段，不重新计算；计划不得让 Terra/Luna 改写主会话的裁决。
++每张 task brief 复制主会话为本任务独立选择的模型路由字段，包含 `reasoning_demand`、`capability_source` 和 `route_reason`；选档只引用 `using-shanforge` 的“子任务模型决策表”。阶段、输入或风险变化交还主会话重评，执行者不得改写主会话的裁决。不得继承父会话模型/effort，或把规划时选择当作不可调整的永久配置。
+--- a/skills/writing-plans/references/task-brief-template.md
++++ b/skills/writing-plans/references/task-brief-template.md
+@@ -25,16 +25,20 @@
+ - control_model: `<用户所选主会话模型 ID>`
+ - task_complexity: `simple | standard | complex`
+ - risk_level: `low | medium | high`
+-- execution_model: `gpt-5.6-luna | gpt-5.6-terra`
++- reasoning_demand: `routine | judgment | deep | extreme`
++- execution_model: `gpt-5.6-luna | gpt-5.6-terra | gpt-6-astra`
+ - execution_authorized: `true | false`
+ - write_policy: `source_or_test_write | project_fact_write | state_or_gate_write | no_project_write`
+-- dispatch_role: `worker | reviewer | none`
++- dispatch_role: `worker | analyst | reviewer | none`
+ - dispatch_required: `true | false`
+ - dispatch_mode: `subagent | direct`
+-- requested_reasoning_effort: `low | medium | high`
++- requested_reasoning_effort: `low | medium | high | xhigh | max`
+ - fork_turns: `none`
+-- route_reason:
++- capability_source: `<当前工具 schema 与 role 能力核对>`
++- route_reason: `<本任务选档依据与证据，max 必须有未解难题的排查证据>`
+ - escalation_triggers: `scope_expanded | input_conflict | risk_increased | verification_failed_twice | human_gate`
++
++选档只引用 `using-shanforge` 的“子任务模型决策表”；每次显式传入 model、reasoning_effort 和 fork_turns，不继承父配置。`dispatch_role=none` 时模型/effort/fork/能力字段不适用。analyst 沿用已有任务身份和父阶段，只读输入须明确，不写文件或自批。
+ 
+ ## 目标
+ 
+@@ -93,7 +97,7 @@
+ 
+ ## 派发回执
+ 
+-仅当 `dispatch_required: true` 时由父会话在调用前生成稳定 `dispatch_id`，并保存真实 `spawn_agent` 成功回执；worker 与独立 reviewer 都适用，子代理自报不算回执。
++仅当 `dispatch_required: true` 时由父会话在调用前生成稳定 `dispatch_id`，并保存真实 `spawn_agent` 成功回执；worker、analyst 与独立 reviewer 都适用，子代理自报不算回执。
+ 
+ - dispatch_id: `<父会话调用前生成的稳定 ID>`
+ - task_card_id: `<TASK-CARD-ID>`
+@@ -104,6 +108,8 @@
+ - status: `accepted（工具调用成功接受，不是子代理完成态）`
+ - source: `parent_tool_receipt`
+ 
++回执只证明宿主接受请求。改模型、强度或角色必须新 `dispatch_id` 和新 `spawn_agent` 并保留旧回执；`followup_task` 仅补充同配置上下文。
++
+ ## 完成口径
+ 
+ 低、中风险任务完成后继续批次，不单独进入 review。只有高风险专项或批次质量候选可以写
+--- a/tests/test_black_box_workflow_eval.py
++++ b/tests/test_black_box_workflow_eval.py
+@@ -249,6 +249,7 @@
+             "BLOCKED",
+         }
+         dispatch_complete = isinstance(dispatch, dict) and {
++            "dispatch_id",
+             "task_card_id",
+             "requested_model",
+             "requested_reasoning_effort",
+@@ -260,61 +261,124 @@
+             bool(dispatch.get("agent_id"))
+             or bool(dispatch.get("canonical_task"))
+         )
+-        return {key: commands_verified and value for key, value in {
+-            "FD-SW-A1": all(
+-                isinstance(observation.get(field), str) and observation[field]
+-                for field in (
+-                    "work_item_id",
+-                    "task_card_id",
+-                    "wbs_id",
+-                    "execution_model",
+-                    "requested_reasoning_effort",
+-                    "fork_turns",
++        return {
++            key: commands_verified and value
++            for key, value in {
++                "FD-SW-A1": all(
++                    isinstance(observation.get(field), str) and observation[field]
++                    for field in (
++                        "work_item_id",
++                        "task_card_id",
++                        "wbs_id",
++                        "dispatch_id",
++                        "dispatch_role",
++                        "task_complexity",
++                        "risk_level",
++                        "reasoning_demand",
++                        "execution_model",
++                        "requested_reasoning_effort",
++                        "fork_turns",
++                        "capability_source",
++                    )
+                 )
+-            )
+-            and observation.get("write_policy") == "source_or_test_write"
+-            and observation.get("execution_authorized") is True
+-            and observation.get("dispatch_required") is True
+-            and observation.get("dispatch_mode") == "subagent"
+-            and (
+-                observation.get("execution_model"),
+-                observation.get("requested_reasoning_effort"),
+-            )
+-            in {
+-                ("gpt-5.6-luna", "low"),
+-                ("gpt-5.6-terra", "medium"),
+-            }
+-            and observation.get("fork_turns") == "none",
+-            "FD-SW-A2": parent_receipt
+-            and dispatch.get("task_card_id") == observation.get("task_card_id")
+-            and dispatch.get("status") == "accepted"
+-            and dispatch.get("source") == "parent_tool_receipt"
+-            and dispatch.get("requested_model") == observation.get("execution_model")
+-            and dispatch.get("requested_reasoning_effort")
+-            == observation.get("requested_reasoning_effort")
+-            and dispatch.get("fork_turns") == observation.get("fork_turns"),
+-            "FD-SW-A3": worker_done,
+-            "FD-SW-A4": observation.get("sol_source_writes") == [],
+-            "FD-SW-A5": dispatch_failure is None
+-            and observation.get("close_allowed") is False
+-            and observation.get("next_action") == "parent_verification",
+-            "FD-SW-A6": dispatch_failure not in {
+-                "dispatch_failed",
+-                "worker_unavailable",
+-            }
+-            or (
+-                observation.get("sol_source_writes") == []
++                and observation.get("write_policy") == "source_or_test_write"
++                and observation.get("execution_authorized") is True
++                and observation.get("dispatch_required") is True
++                and observation.get("dispatch_mode") == "subagent"
++                and (
++                    observation.get("dispatch_role") == "worker"
++                    and observation.get("task_complexity") in {"simple", "standard", "complex"}
++                    and observation.get("risk_level") in {"low", "medium", "high"}
++                    and observation.get("reasoning_demand")
++                    in {"routine", "judgment", "deep", "extreme"}
++                    and observation.get("capability_source") != "unavailable"
++                    and (
++                        (
++                            observation.get("reasoning_demand") == "extreme"
++                            and (
++                                observation.get("execution_model"),
++                                observation.get("requested_reasoning_effort"),
++                            )
++                            == ("gpt-6-astra", "max")
++                        )
++                        or (
++                            (
++                                observation.get("risk_level") == "high"
++                                or observation.get("reasoning_demand") == "deep"
++                            )
++                            and (
++                                observation.get("execution_model"),
++                                observation.get("requested_reasoning_effort"),
++                            )
++                            == ("gpt-6-astra", "xhigh")
++                        )
++                        or (
++                            (
++                                observation.get("reasoning_demand") == "judgment"
++                                or observation.get("task_complexity") == "complex"
++                            )
++                            and (
++                                observation.get("execution_model"),
++                                observation.get("requested_reasoning_effort"),
++                            )
++                            == ("gpt-6-astra", "high")
++                        )
++                        or (
++                            (
++                                observation.get("task_complexity"),
++                                observation.get("risk_level"),
++                                observation.get("reasoning_demand"),
++                                observation.get("execution_model"),
++                                observation.get("requested_reasoning_effort"),
++                            )
++                            == ("simple", "low", "routine", "gpt-5.6-luna", "low")
++                        )
++                        or (
++                            (
++                                observation.get("task_complexity"),
++                                observation.get("risk_level"),
++                                observation.get("reasoning_demand"),
++                                observation.get("execution_model"),
++                                observation.get("requested_reasoning_effort"),
++                            )
++                            == ("standard", "medium", "routine", "gpt-5.6-terra", "medium")
++                        )
++                    )
++                )
++                and observation.get("fork_turns") == "none",
++                "FD-SW-A2": parent_receipt
++                and dispatch.get("dispatch_id") == observation.get("dispatch_id")
++                and dispatch.get("task_card_id") == observation.get("task_card_id")
++                and dispatch.get("status") == "accepted"
++                and dispatch.get("source") == "parent_tool_receipt"
++                and dispatch.get("requested_model") == observation.get("execution_model")
++                and dispatch.get("requested_reasoning_effort")
++                == observation.get("requested_reasoning_effort")
++                and dispatch.get("fork_turns") == observation.get("fork_turns"),
++                "FD-SW-A3": worker_done,
++                "FD-SW-A4": observation.get("sol_source_writes") == [],
++                "FD-SW-A5": dispatch_failure is None
+                 and observation.get("close_allowed") is False
+-                and not worker_done
+-                and observation.get("next_action") == "retry_dispatch_or_escalate"
+-            ),
+-            "FD-SW-A7": observation.get("execution_authorized") is True
+-            or (
+-                dispatch is None
+-                and observation.get("sol_source_writes") == []
+-                and observation.get("close_allowed") is False
+-            ),
+-        }.items()}
++                and observation.get("next_action") == "parent_verification",
++                "FD-SW-A6": dispatch_failure
++                not in {
++                    "dispatch_failed",
++                    "worker_unavailable",
++                }
++                or (
++                    observation.get("sol_source_writes") == []
++                    and observation.get("close_allowed") is False
++                    and not worker_done
++                    and observation.get("next_action") == "retry_dispatch_or_escalate"
++                ),
++                "FD-SW-A7": observation.get("execution_authorized") is True
++                or (
++                    dispatch is None
++                    and observation.get("sol_source_writes") == []
++                    and observation.get("close_allowed") is False
++                ),
++            }.items()
++        }
+     raise AssertionError(f"unknown scenario: {scenario_id}")
+ 
+ 
+@@ -902,14 +966,21 @@
+         "work_item_id": "WORK-12",
+         "task_card_id": "TASK-12",
+         "wbs_id": "WBS-12",
++        "dispatch_id": "WORK-12:TASK-12:1",
+         "write_policy": "source_or_test_write",
+         "execution_authorized": True,
+         "dispatch_required": True,
+         "dispatch_mode": "subagent",
++        "dispatch_role": "worker",
++        "task_complexity": "standard",
++        "risk_level": "medium",
++        "reasoning_demand": "routine",
+         "execution_model": "gpt-5.6-terra",
+         "requested_reasoning_effort": "medium",
+         "fork_turns": "none",
++        "capability_source": "current spawn_agent schema",
+         "dispatch": {
++            "dispatch_id": "WORK-12:TASK-12:1",
+             "task_card_id": "TASK-12",
+             "requested_model": "gpt-5.6-terra",
+             "requested_reasoning_effort": "medium",
+@@ -937,6 +1008,8 @@
+     for assertion_id, changes in (
+         ("FD-SW-A1", {"execution_authorized": False}),
+         ("FD-SW-A1", {"wbs_id": ""}),
++        ("FD-SW-A1", {"capability_source": "unavailable"}),
++        ("FD-SW-A1", {"dispatch_role": "reviewer"}),
+         ("FD-SW-A2", {"dispatch": {"status": "accepted"}}),
+         ("FD-SW-A3", {"worker_receipt": {"status": "ready_for_review"}}),
+         ("FD-SW-A4", {"sol_source_writes": ["src/app.py"]}),
+@@ -967,6 +1040,7 @@
+     assert unauthorized_result["FD-SW-A7"] is False
+ 
+     for field, value in (
++        ("dispatch_id", "WORK-12:TASK-12:2"),
+         ("task_card_id", "OTHER-TASK"),
+         ("requested_model", "gpt-5.6-luna"),
+         ("requested_reasoning_effort", "low"),
+@@ -987,6 +1061,15 @@
+         ({"requested_reasoning_effort": "low"}, {"requested_reasoning_effort": "low"}),
+         ({"fork_turns": "all"}, {"fork_turns": "all"}),
+         ({"execution_model": "unknown"}, {"requested_model": "unknown"}),
++        ({"requested_reasoning_effort": "ultra"}, {"requested_reasoning_effort": "ultra"}),
++        (
++            {
++                "risk_level": "high",
++                "execution_model": "gpt-5.6-luna",
++                "requested_reasoning_effort": "low",
++            },
++            {"requested_model": "gpt-5.6-luna", "requested_reasoning_effort": "low"},
++        ),
+     ):
+         invalid_route = copy.deepcopy(observation)
+         invalid_route.update(route_changes)
+--- /dev/null
++++ b/tests/test_dynamic_model_dispatch.py
+@@ -0,0 +1,172 @@
++from pathlib import Path
++
++import pytest
++
++ROOT = Path(__file__).resolve().parents[1]
++FIELDS = (
++    "dispatch_role",
++    "task_complexity",
++    "risk_level",
++    "reasoning_demand",
++    "execution_model",
++    "requested_reasoning_effort",
++)
++CASES = (
++    (
++        {
++            "dispatch_role": "worker",
++            "task_complexity": "simple",
++            "risk_level": "low",
++            "reasoning_demand": "routine",
++        },
++        ("gpt-5.6-luna", "low"),
++    ),
++    (
++        {
++            "dispatch_role": "worker",
++            "task_complexity": "standard",
++            "risk_level": "medium",
++            "reasoning_demand": "routine",
++        },
++        ("gpt-5.6-terra", "medium"),
++    ),
++    (
++        {
++            "dispatch_role": "worker",
++            "task_complexity": "complex",
++            "risk_level": "medium",
++            "reasoning_demand": "judgment",
++        },
++        ("gpt-6-astra", "high"),
++    ),
++    (
++        {
++            "dispatch_role": "worker",
++            "task_complexity": "simple",
++            "risk_level": "high",
++            "reasoning_demand": "routine",
++        },
++        ("gpt-6-astra", "xhigh"),
++    ),
++    (
++        {
++            "dispatch_role": "reviewer",
++            "task_complexity": "simple",
++            "risk_level": "low",
++            "reasoning_demand": "routine",
++        },
++        ("gpt-5.6-terra", "high"),
++    ),
++    (
++        {
++            "dispatch_role": "reviewer",
++            "task_complexity": "simple",
++            "risk_level": "high",
++            "reasoning_demand": "routine",
++        },
++        ("gpt-6-astra", "xhigh"),
++    ),
++    (
++        {
++            "dispatch_role": "reviewer",
++            "task_complexity": "standard",
++            "risk_level": "medium",
++            "reasoning_demand": "deep",
++        },
++        ("gpt-6-astra", "xhigh"),
++    ),
++    (
++        {
++            "dispatch_role": "worker",
++            "task_complexity": "standard",
++            "risk_level": "medium",
++            "reasoning_demand": "deep",
++        },
++        ("gpt-6-astra", "xhigh"),
++    ),
++    (
++        {
++            "dispatch_role": "worker",
++            "task_complexity": "standard",
++            "risk_level": "medium",
++            "reasoning_demand": "extreme",
++        },
++        ("gpt-6-astra", "max"),
++    ),
++)
++
++
++def decision_table() -> tuple[tuple[str, ...], tuple[tuple[str, ...], ...]]:
++    content = (ROOT / "skills/using-shanforge/SKILL.md").read_text(encoding="utf-8")
++    section = content.split("### 子任务模型决策表", maxsplit=1)[1].split("\n### ", maxsplit=1)[0]
++    table = [line for line in section.splitlines() if line.startswith("|")]
++    header = tuple(cell.strip().strip("`") for cell in table[0].strip("|").split("|"))
++    rows = tuple(
++        tuple(cell.strip().strip("`") for cell in line.strip("|").split("|")) for line in table[2:]
++    )
++    return header, rows
++
++
++def select(rows: tuple[tuple[str, ...], ...], **request: str) -> tuple[str, str]:
++    allowed = {
++        "dispatch_role": {"worker", "analyst", "reviewer"},
++        "task_complexity": {"simple", "standard", "complex"},
++        "risk_level": {"low", "medium", "high"},
++        "reasoning_demand": {"routine", "judgment", "deep", "extreme"},
++    }
++    assert all(request.get(field) in values for field, values in allowed.items())
++    for row in rows:
++        values = dict(zip(FIELDS, row, strict=True))
++        if all(values[field] in ("*", request[field]) for field in FIELDS[:4]):
++            return values["execution_model"], values["requested_reasoning_effort"]
++    raise AssertionError("missing fallback row")
++
++
++def assert_cases(rows: tuple[tuple[str, ...], ...]) -> None:
++    for request, expected in CASES:
++        assert select(rows, **request) == expected
++
++
++def test_dynamic_model_decision_table_has_first_match_routes() -> None:
++    header, rows = decision_table()
++    assert header == FIELDS
++    assert_cases(rows)
++    with pytest.raises(AssertionError):
++        select(
++            rows,
++            dispatch_role="worker",
++            task_complexity="unknown",
++            risk_level="unknown",
++            reasoning_demand="unknown",
++        )
++    with pytest.raises(AssertionError):
++        select(
++            rows,
++            dispatch_role="none",
++            task_complexity="simple",
++            risk_level="low",
++            reasoning_demand="routine",
++        )
++
++
++def test_lowering_high_risk_or_reviewer_rows_fails_the_shared_oracle() -> None:
++    _, rows = decision_table()
++    high_risk_mutation = list(rows)
++    high_risk_index = next(index for index, row in enumerate(rows) if row[2] == "high")
++    high_risk_mutation[high_risk_index] = (
++        *high_risk_mutation[high_risk_index][:2],
++        "low",
++        *high_risk_mutation[high_risk_index][3:],
++    )
++    with pytest.raises(AssertionError):
++        assert_cases(tuple(high_risk_mutation))
++
++    reviewer_mutation = list(rows)
++    reviewer_index = next(index for index, row in enumerate(rows) if row[0] == "reviewer")
++    reviewer_mutation[reviewer_index] = (
++        *reviewer_mutation[reviewer_index][:4],
++        "gpt-5.6-luna",
++        "low",
++    )
++    with pytest.raises(AssertionError):
++        assert_cases(tuple(reviewer_mutation))
+--- a/tests/test_model_tier_routing.py
++++ b/tests/test_model_tier_routing.py
+@@ -87,6 +87,14 @@
+             settings["sandbox_mode"],
+         )
+         assert actual == (model, effort, sandbox)
++
++    task_reader = read_toml(".codex/agents/task-reader.toml")
++    assert task_reader["name"] == "task-reader"
++    assert task_reader["description"]
++    assert task_reader["developer_instructions"]
++    assert task_reader["sandbox_mode"] == "read-only"
++    assert "model" not in task_reader
++    assert "model_reasoning_effort" not in task_reader
+ 
+ 
+ def test_current_contract_uses_parent_session_without_sol_owner_binding() -> None:
+@@ -106,15 +114,38 @@
+ 
+ 
+ def test_formal_document_versions_match_current_work_item() -> None:
+-    prd = read("docs/04-product/prd.md")
+-    design = read("docs/05-design/workflow-execution-design.md")
+-    guide = read("docs/02-user-guide/user-guide.md")
+-    assert "当前正式版本 | `v5.1.0`" in prd
+-    assert "MODEL-ORCHESTRATOR-SELECTION-001" in prd
+-    assert "正式版本 | `v2.1.0`" in design
+-    assert "MODEL-ORCHESTRATOR-SELECTION-001" in design
+-    assert "正式版本 | `v1.4.0`" in guide
+-    assert "| `v1.4.0` | 2026-09-08 |" in guide
++    index = read("docs/document-index.md")
++    documents = (
++        (
++            "docs/04-product/prd.md",
++            "PRD-SHANFORGE-001",
++            "v5.2.0",
++            "当前正式版本",
++        ),
++        (
++            "docs/05-design/workflow-execution-design.md",
++            "PROC-TASK-EXECUTION-001",
++            "v2.2.0",
++            "正式版本",
++        ),
++        (
++            "docs/02-user-guide/user-guide.md",
++            "DOC-USER-GUIDE-001",
++            "v1.5.0",
++            "正式版本",
++        ),
++    )
++    for path, document_id, version, version_label in documents:
++        content = read(path)
++        assert f"`{document_id}`" in content
++        assert f"| {version_label} | `{version}` |" in content
++        assert "| 来源候选" in content
++        assert "`MODEL-DYNAMIC-DISPATCH-001`" in content
++        assert f"| `{version}` |" in content
++        assert f"| `{path}` | `{document_id}` |" in index
++        assert f"| `{version}` |" in next(
++            line for line in index.splitlines() if f"| `{path}` |" in line
++        )
+ 
+ 
+ def test_strict_dispatch_table_requires_workflow_policy_and_authorization_together() -> None:
+@@ -122,36 +153,22 @@
+     tools_contract = read("skills/using-shanforge/references/codex-tools.md")
+ 
+     rows = markdown_table_rows_containing(controller, "workflow_id=execution-workflow")
+-    assert rows == [
+-        (
+-            "`workflow_id` / `write_policy` 与声明分支不匹配，或多个分支可命中",
+-            "`none`",
+-            "`false / direct`；`input_conflict, do_not_dispatch`",
+-            "N/A，交还主会话",
+-        ),
+-        (
+-            (
+-                "`workflow_id=execution-workflow`、`write_policy=source_or_test_write` 且 "
+-                "`execution_authorized=true`"
+-            ),
+-            "`worker`",
+-            "`true / subagent`",
+-            "`simple + low` 为 Luna/`low`；其余为 Terra/`medium`",
+-        ),
+-        (
+-            "`workflow_id=review-workflow`、`write_policy=state_or_gate_write`、`reviewer_type=independent_subagent`、身份/范围完整且实现/验证完成",
+-            "`reviewer`",
+-            "`true / subagent`",
+-            "Terra/`high`，只读",
+-        ),
+-        ("`*`", "`none`", "`false / direct`", "N/A，仍由主会话控制"),
++    assert [row[1] for row in rows] == [
++        "`none`",
++        "`worker`",
++        "`reviewer`",
++        "`analyst`",
++        "`none`",
+     ]
++    assert rows[1][2:] == ("`true / subagent`", "按子任务模型决策表；精确写集")
++    assert rows[2][2:] == ("`true / subagent`", "按子任务模型决策表；只读")
++    assert rows[3][2:] == ("`true / subagent`", "按子任务模型决策表；只读")
++    assert all(term in rows[3][0] for term in ("project_workitem", "tracked_task", "父阶段"))
+     conflict_row = rows[0]
+     assert all(
+-        term in " ".join(conflict_row)
+-        for term in ("input_conflict", "do_not_dispatch", "主会话")
++        term in " ".join(conflict_row) for term in ("input_conflict", "do_not_dispatch", "主会话")
+     )
+-    assert "`workflow_id` / `write_policy` 与声明分支不匹配，或多个分支可命中" in tools_contract
++    assert "input_conflict, do_not_dispatch" in tools_contract
+ 
+ 
+ def test_route_packages_require_write_policy_gate_and_dispatch_role() -> None:
+@@ -211,39 +228,36 @@
+         assert "<期望输出>" not in content
+ 
+ 
+-
+-
+ def test_spawn_contract_binds_the_authorized_route_to_a_parent_receipt() -> None:
+     tools_contract = read("skills/using-shanforge/references/codex-tools.md")
+     executor = read("skills/subagent-driven-development/SKILL.md")
+ 
+     for phrase in (
+-        "父会话先生成稳定 `dispatch_id`",
++        "父会话生成稳定 `dispatch_id`",
+         (
+-            "message: <dispatch_id + 完整 task brief + allowed_paths + forbidden_actions + "
++            "message: <dispatch_id + 完整子任务 brief + allowed_paths + forbidden_actions + "
+             "verification commands + status return format>"
+         ),
+         "model: <execution_model>",
+         "reasoning_effort: <requested_reasoning_effort>",
+         'fork_turns: "none"',
+-        "`status: accepted` 只表示工具调用已成功接受，不是子代理完成态。",
++        "`status: accepted` 只表示宿主接受了该请求，不是子代理完成态，",
+         "source: parent_tool_receipt",
+     ):
+         assert phrase in tools_contract
+ 
+-    assert "不得虚构模型内部身份" in tools_contract
++    assert "不证明底层模型内部身份" in tools_contract
++    assert "不得省略 `model` 或 `reasoning_effort`" in tools_contract
++    assert "角色不可用或固定值冲突" in tools_contract
++    assert "followup_task` 只能在同模型、同强度、同角色下补充上下文" in tools_contract
+     assert "父会话必须在调用前生成稳定 `dispatch_id`" in executor
+     assert "`accepted` 不是子代理完成态" in executor
+ 
+ 
+ def test_dispatch_failures_are_closed_without_model_substitution_or_inline_work() -> None:
+     tools_contract = read("skills/using-shanforge/references/codex-tools.md")
+-    checklist = read("skills/subagent-driven-development/references/status-handling-checklist.md")
+-
+     assert "结果只能是 `dispatch_failed` 或 `worker_unavailable` 并交还主会话" in tools_contract
+-    assert "禁止用主会话\n代写、替换模型" in tools_contract
+-    assert "不得换模型或由主会话代写" in checklist
+-    assert "fallback" not in checklist.lower()
++    assert "禁止由主会话代写 worker、代替 reviewer、静默替换模型" in tools_contract
+ 
+ 
+ def test_ledger_records_direct_creation_worker_dispatches_and_independent_review() -> None:
+@@ -310,11 +324,11 @@
+ def test_user_guide_discloses_the_host_configuration_boundary() -> None:
+     guide = read("docs/02-user-guide/user-guide.md")
+     for phrase in (
+-        "用户所选主会话模型",
+-        "gpt-5.6-terra",
+-        "gpt-5.6-luna",
+-        "当前 Codex 宿主能力",
+-        "不代表公开 API 型号、价格或可用性承诺",
++        "用户所选主会话负责总体设计、任务复杂度/风险分级及最终路由",
++        "子任务模型决策表",
++        "当前工具能力来源",
++        "TOML 校验不代表当前会话已加载该角色",
++        "Ultra 是编排模式",
+     ):
+         assert phrase in guide
+ 
+@@ -323,11 +337,9 @@
+     guide = read("docs/02-user-guide/user-guide.md")
+     design = read("docs/05-design/workflow-execution-design.md")
+ 
+-    assert "真实子代理派发有两个互斥分支" in guide
+-    assert "已授权源码或测试写入是 worker" in guide
+-    assert "独立只读 review 是 reviewer，固定 Terra（high）" in guide
+-    assert "非独立 review、Gate 和最终收口仍由主会话控制" in guide
+-    assert "派发分支按顺序互斥" in design
++    assert "worker 执行已授权源码或测试写集" in guide
++    assert "analyst 只在已有项目任务内回答明确的只读问题" in guide
++    assert "reviewer 独立只读评审，实现者不能自批" in guide
++    assert "普通 `direct_answer` / `lightweight_analysis` 不创建身份或 ledger" in design
+     assert "`dispatch_role: worker, dispatch_required: true, dispatch_mode: subagent`" in design
+-    assert "`dispatch_role: reviewer, true, subagent`" in design
+     assert "`dispatch_role: none, false, direct`" in design
+--- a/tests/test_residual_audit_contracts.py
++++ b/tests/test_residual_audit_contracts.py
+@@ -48,8 +48,8 @@
+ 
+     expected = (
+         "任务身份：`work_item_id`、`task_card_id`、`wbs_id`（来自基础 route）",
+-        "控制/复杂度：`control_model`、`task_complexity`",
+-        "风险/范围：`risk_level`、`execution_authorized`、`route_reason`",
++        "控制/复杂度：`control_model`、`task_complexity`、`risk_level`、`reasoning_demand`",
++        "风险/范围：`execution_authorized`、`capability_source`、`route_reason`",
+         "派发：`execution_model`、`dispatch_role`、`dispatch_required`、`dispatch_mode`、`requested_reasoning_effort`、`fork_turns`",
+         "Gate/升级：`current_gate`、`escalation_triggers`",
+     )

@@ -1,7 +1,9 @@
 # 测试摘要
 
-- 当前阶段：`MODEL-ORCHESTRATOR-SELECTION-001 / closed`
-- 当前验证结论：完整 pytest 418 passed / 11 subtests passed；五组定向49 passed；Ruff、JSONL、diff check 与历史 manifest 指纹通过。R6 独立终审 approved，无 Critical/Important。并行动态派发测试按任务边界未运行。回源：本工作项 `evidence/final-verification.md` 与 `reviews/independent-review.md`。
+- 当前阶段：`MODEL-DYNAMIC-DISPATCH-001 / ready_for_commit`
+- 当前验证结论：完整420 passed / 11 subtests passed，exit0；Ruff、三个skill validator、JSONL、diffcheck通过。代码形状与HEAD比较无新增违规，既有local permits保留。v5独立终审approved，12个场景为模拟，task-reader宿主加载未测。
+
+- 2026-09-08：前置MODEL-ORCHESTRATOR-SELECTION-001已关闭，实现1b64734，状态242af89；418 passed / 11 subtests，R6 approved。
 
 - 2026-09-07：上一 UI 批次完整 pytest 406 passed / 11 subtests passed；三页 × 320/390/430 浏览器检查通过；不是 A/B、真机或美术批准。
 

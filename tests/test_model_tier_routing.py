@@ -88,6 +88,14 @@ def test_host_model_configuration_declares_the_three_runtime_roles() -> None:
         )
         assert actual == (model, effort, sandbox)
 
+    task_reader = read_toml(".codex/agents/task-reader.toml")
+    assert task_reader["name"] == "task-reader"
+    assert task_reader["description"]
+    assert task_reader["developer_instructions"]
+    assert task_reader["sandbox_mode"] == "read-only"
+    assert "model" not in task_reader
+    assert "model_reasoning_effort" not in task_reader
+
 
 def test_current_contract_uses_parent_session_without_sol_owner_binding() -> None:
     worker_text = read(".codex/agents/luna-worker.toml") + read(".codex/agents/terra-worker.toml")
@@ -106,15 +114,38 @@ def test_current_contract_uses_parent_session_without_sol_owner_binding() -> Non
 
 
 def test_formal_document_versions_match_current_work_item() -> None:
-    prd = read("docs/04-product/prd.md")
-    design = read("docs/05-design/workflow-execution-design.md")
-    guide = read("docs/02-user-guide/user-guide.md")
-    assert "当前正式版本 | `v5.1.0`" in prd
-    assert "MODEL-ORCHESTRATOR-SELECTION-001" in prd
-    assert "正式版本 | `v2.1.0`" in design
-    assert "MODEL-ORCHESTRATOR-SELECTION-001" in design
-    assert "正式版本 | `v1.4.0`" in guide
-    assert "| `v1.4.0` | 2026-09-08 |" in guide
+    index = read("docs/document-index.md")
+    documents = (
+        (
+            "docs/04-product/prd.md",
+            "PRD-SHANFORGE-001",
+            "v5.2.0",
+            "当前正式版本",
+        ),
+        (
+            "docs/05-design/workflow-execution-design.md",
+            "PROC-TASK-EXECUTION-001",
+            "v2.2.0",
+            "正式版本",
+        ),
+        (
+            "docs/02-user-guide/user-guide.md",
+            "DOC-USER-GUIDE-001",
+            "v1.5.0",
+            "正式版本",
+        ),
+    )
+    for path, document_id, version, version_label in documents:
+        content = read(path)
+        assert f"`{document_id}`" in content
+        assert f"| {version_label} | `{version}` |" in content
+        assert "| 来源候选" in content
+        assert "`MODEL-DYNAMIC-DISPATCH-001`" in content
+        assert f"| `{version}` |" in content
+        assert f"| `{path}` | `{document_id}` |" in index
+        assert f"| `{version}` |" in next(
+            line for line in index.splitlines() if f"| `{path}` |" in line
+        )
 
 
 def test_strict_dispatch_table_requires_workflow_policy_and_authorization_together() -> None:
@@ -122,36 +153,22 @@ def test_strict_dispatch_table_requires_workflow_policy_and_authorization_togeth
     tools_contract = read("skills/using-shanforge/references/codex-tools.md")
 
     rows = markdown_table_rows_containing(controller, "workflow_id=execution-workflow")
-    assert rows == [
-        (
-            "`workflow_id` / `write_policy` 与声明分支不匹配，或多个分支可命中",
-            "`none`",
-            "`false / direct`；`input_conflict, do_not_dispatch`",
-            "N/A，交还主会话",
-        ),
-        (
-            (
-                "`workflow_id=execution-workflow`、`write_policy=source_or_test_write` 且 "
-                "`execution_authorized=true`"
-            ),
-            "`worker`",
-            "`true / subagent`",
-            "`simple + low` 为 Luna/`low`；其余为 Terra/`medium`",
-        ),
-        (
-            "`workflow_id=review-workflow`、`write_policy=state_or_gate_write`、`reviewer_type=independent_subagent`、身份/范围完整且实现/验证完成",
-            "`reviewer`",
-            "`true / subagent`",
-            "Terra/`high`，只读",
-        ),
-        ("`*`", "`none`", "`false / direct`", "N/A，仍由主会话控制"),
+    assert [row[1] for row in rows] == [
+        "`none`",
+        "`worker`",
+        "`reviewer`",
+        "`analyst`",
+        "`none`",
     ]
+    assert rows[1][2:] == ("`true / subagent`", "按子任务模型决策表；精确写集")
+    assert rows[2][2:] == ("`true / subagent`", "按子任务模型决策表；只读")
+    assert rows[3][2:] == ("`true / subagent`", "按子任务模型决策表；只读")
+    assert all(term in rows[3][0] for term in ("project_workitem", "tracked_task", "父阶段"))
     conflict_row = rows[0]
     assert all(
-        term in " ".join(conflict_row)
-        for term in ("input_conflict", "do_not_dispatch", "主会话")
+        term in " ".join(conflict_row) for term in ("input_conflict", "do_not_dispatch", "主会话")
     )
-    assert "`workflow_id` / `write_policy` 与声明分支不匹配，或多个分支可命中" in tools_contract
+    assert "input_conflict, do_not_dispatch" in tools_contract
 
 
 def test_route_packages_require_write_policy_gate_and_dispatch_role() -> None:
@@ -211,39 +228,36 @@ def test_task_briefs_follow_the_worker_and_reviewer_dispatch_contracts() -> None
         assert "<期望输出>" not in content
 
 
-
-
 def test_spawn_contract_binds_the_authorized_route_to_a_parent_receipt() -> None:
     tools_contract = read("skills/using-shanforge/references/codex-tools.md")
     executor = read("skills/subagent-driven-development/SKILL.md")
 
     for phrase in (
-        "父会话先生成稳定 `dispatch_id`",
+        "父会话生成稳定 `dispatch_id`",
         (
-            "message: <dispatch_id + 完整 task brief + allowed_paths + forbidden_actions + "
+            "message: <dispatch_id + 完整子任务 brief + allowed_paths + forbidden_actions + "
             "verification commands + status return format>"
         ),
         "model: <execution_model>",
         "reasoning_effort: <requested_reasoning_effort>",
         'fork_turns: "none"',
-        "`status: accepted` 只表示工具调用已成功接受，不是子代理完成态。",
+        "`status: accepted` 只表示宿主接受了该请求，不是子代理完成态，",
         "source: parent_tool_receipt",
     ):
         assert phrase in tools_contract
 
-    assert "不得虚构模型内部身份" in tools_contract
+    assert "不证明底层模型内部身份" in tools_contract
+    assert "不得省略 `model` 或 `reasoning_effort`" in tools_contract
+    assert "角色不可用或固定值冲突" in tools_contract
+    assert "followup_task` 只能在同模型、同强度、同角色下补充上下文" in tools_contract
     assert "父会话必须在调用前生成稳定 `dispatch_id`" in executor
     assert "`accepted` 不是子代理完成态" in executor
 
 
 def test_dispatch_failures_are_closed_without_model_substitution_or_inline_work() -> None:
     tools_contract = read("skills/using-shanforge/references/codex-tools.md")
-    checklist = read("skills/subagent-driven-development/references/status-handling-checklist.md")
-
     assert "结果只能是 `dispatch_failed` 或 `worker_unavailable` 并交还主会话" in tools_contract
-    assert "禁止用主会话\n代写、替换模型" in tools_contract
-    assert "不得换模型或由主会话代写" in checklist
-    assert "fallback" not in checklist.lower()
+    assert "禁止由主会话代写 worker、代替 reviewer、静默替换模型" in tools_contract
 
 
 def test_ledger_records_direct_creation_worker_dispatches_and_independent_review() -> None:
@@ -310,11 +324,11 @@ def test_ledger_records_direct_creation_worker_dispatches_and_independent_review
 def test_user_guide_discloses_the_host_configuration_boundary() -> None:
     guide = read("docs/02-user-guide/user-guide.md")
     for phrase in (
-        "用户所选主会话模型",
-        "gpt-5.6-terra",
-        "gpt-5.6-luna",
-        "当前 Codex 宿主能力",
-        "不代表公开 API 型号、价格或可用性承诺",
+        "用户所选主会话负责总体设计、任务复杂度/风险分级及最终路由",
+        "子任务模型决策表",
+        "当前工具能力来源",
+        "TOML 校验不代表当前会话已加载该角色",
+        "Ultra 是编排模式",
     ):
         assert phrase in guide
 
@@ -323,11 +337,9 @@ def test_user_guide_and_design_distinguish_independent_review_from_direct_work()
     guide = read("docs/02-user-guide/user-guide.md")
     design = read("docs/05-design/workflow-execution-design.md")
 
-    assert "真实子代理派发有两个互斥分支" in guide
-    assert "已授权源码或测试写入是 worker" in guide
-    assert "独立只读 review 是 reviewer，固定 Terra（high）" in guide
-    assert "非独立 review、Gate 和最终收口仍由主会话控制" in guide
-    assert "派发分支按顺序互斥" in design
+    assert "worker 执行已授权源码或测试写集" in guide
+    assert "analyst 只在已有项目任务内回答明确的只读问题" in guide
+    assert "reviewer 独立只读评审，实现者不能自批" in guide
+    assert "普通 `direct_answer` / `lightweight_analysis` 不创建身份或 ledger" in design
     assert "`dispatch_role: worker, dispatch_required: true, dispatch_mode: subagent`" in design
-    assert "`dispatch_role: reviewer, true, subagent`" in design
     assert "`dispatch_role: none, false, direct`" in design

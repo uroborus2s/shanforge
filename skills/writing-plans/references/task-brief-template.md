@@ -25,16 +25,20 @@
 - control_model: `<用户所选主会话模型 ID>`
 - task_complexity: `simple | standard | complex`
 - risk_level: `low | medium | high`
-- execution_model: `gpt-5.6-luna | gpt-5.6-terra`
+- reasoning_demand: `routine | judgment | deep | extreme`
+- execution_model: `gpt-5.6-luna | gpt-5.6-terra | gpt-6-astra`
 - execution_authorized: `true | false`
 - write_policy: `source_or_test_write | project_fact_write | state_or_gate_write | no_project_write`
-- dispatch_role: `worker | reviewer | none`
+- dispatch_role: `worker | analyst | reviewer | none`
 - dispatch_required: `true | false`
 - dispatch_mode: `subagent | direct`
-- requested_reasoning_effort: `low | medium | high`
+- requested_reasoning_effort: `low | medium | high | xhigh | max`
 - fork_turns: `none`
-- route_reason:
+- capability_source: `<当前工具 schema 与 role 能力核对>`
+- route_reason: `<本任务选档依据与证据，max 必须有未解难题的排查证据>`
 - escalation_triggers: `scope_expanded | input_conflict | risk_increased | verification_failed_twice | human_gate`
+
+选档只引用 `using-shanforge` 的“子任务模型决策表”；每次显式传入 model、reasoning_effort 和 fork_turns，不继承父配置。`dispatch_role=none` 时模型/effort/fork/能力字段不适用。analyst 沿用已有任务身份和父阶段，只读输入须明确，不写文件或自批。
 
 ## 目标
 
@@ -93,7 +97,7 @@
 
 ## 派发回执
 
-仅当 `dispatch_required: true` 时由父会话在调用前生成稳定 `dispatch_id`，并保存真实 `spawn_agent` 成功回执；worker 与独立 reviewer 都适用，子代理自报不算回执。
+仅当 `dispatch_required: true` 时由父会话在调用前生成稳定 `dispatch_id`，并保存真实 `spawn_agent` 成功回执；worker、analyst 与独立 reviewer 都适用，子代理自报不算回执。
 
 - dispatch_id: `<父会话调用前生成的稳定 ID>`
 - task_card_id: `<TASK-CARD-ID>`
@@ -103,6 +107,8 @@
 - agent_id / canonical_task:
 - status: `accepted（工具调用成功接受，不是子代理完成态）`
 - source: `parent_tool_receipt`
+
+回执只证明宿主接受请求。改模型、强度或角色必须新 `dispatch_id` 和新 `spawn_agent` 并保留旧回执；`followup_task` 仅补充同配置上下文。
 
 ## 完成口径
 

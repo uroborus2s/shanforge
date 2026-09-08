@@ -1,0 +1,22 @@
+{
+  ".codex/agents/task-reader.toml": "764cdf28ecc39167017f1d1900befd519d720f4a32df4085cb328aca8d5e6515",
+  "AGENTS.md": "ec3ca28197e406d5d068c784b577aabd4691428db1219a7c87961bb633b2833b",
+  "docs/02-user-guide/user-guide.md": "2f62bfce115bfa9cd0e43428ecf5d59cee96ab490fb12ede35110e55435533c4",
+  "docs/04-product/prd.md": "b13a29b0f691644f445272e3a56b4542cc0bb77aefd651a6a84c153f1e2c8294",
+  "docs/05-design/workflow-execution-design.md": "986f5c7a79f361f6acabf83d395688d7aab88d34c0c51fbcc48a61b91c7de24e",
+  "docs/document-index.md": "48db29d1b5a6d39fbcd16d2c377ab7c0863627d81ebd3cb24b9b21068c101ef1",
+  "skills/subagent-driven-development/SKILL.md": "b48f23f50cb5e4dcdb10c9ee8ac462f11bdc2702270933d135dbe1cd0fa89305",
+  "skills/subagent-driven-development/references/status-handling-checklist.md": "8676296babd3c175463c2d155bb31311344107373287512ecdb79ee1e75fb832",
+  "skills/using-shanforge/SKILL.md": "eb56adede857f718ea29a208b86797e5a723808d75fee32fa84755fe46628532",
+  "skills/using-shanforge/agents/openai.yaml": "46787ddfde4c1f30ddb197becf2166da3d83c65e531be15742e91214c0481dc6",
+  "skills/using-shanforge/references/black-box-flow-eval.md": "17bc9eef420737c1f64da02bc9121fcb2d39f6c21083b66222475b954e5bbd59",
+  "skills/using-shanforge/references/codex-tools.md": "4c0f9c678ec711daefe54c4a0d7e03ee6f69a428a9f2874e24127fde386264c6",
+  "skills/writing-plans/SKILL.md": "3de30dcc4c235ef05b311aa2b07cb5fdb9077e1f2ad3d32bb8fb400e4563567f",
+  "skills/writing-plans/references/task-brief-template.md": "e968e1bf24479d1b5f65a57d4d4322a6552db8ee69e9ad6f21238361aca38e6c",
+  "tests/test_black_box_workflow_eval.py": "b37f8f5848edc2c2a887527588ed187ea8cf12dd98fcaa3e06ca6c5aeecc11a8",
+  "tests/test_dynamic_model_dispatch.py": "cf3956b7c7737a7adf1a5c849d22b8343f81fa1acb0f4dfad8bd584dd875936d",
+  "tests/test_full_project_session_workflow_routing.py": "dd6d00d0c1efdded0c35d9c2e0beb230ec89feb8208a8d17c58c1f405e8d7eee",
+  "tests/test_model_tier_routing.py": "b752911a4717ae6c6ff129d65c4d1e7656c488510791bcfa111c49f333f64edd",
+  "tests/test_residual_audit_contracts.py": "5913687bd81d835cde715af4bb92a6bd70e99b7e0da9c2b3e72d297f1f5bee2d",
+  "tests/test_lifecycle_governance.py": "2dbcfa36ea545ae5aa4ad88223bc3a75d8eaf9121e2384d6fe79fec5a09532a8"
+}

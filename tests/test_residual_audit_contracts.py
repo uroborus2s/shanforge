@@ -48,8 +48,8 @@ def test_using_shanforge_route_fields_have_non_overlapping_chinese_groups() -> N
 
     expected = (
         "任务身份：`work_item_id`、`task_card_id`、`wbs_id`（来自基础 route）",
-        "控制/复杂度：`control_model`、`task_complexity`",
-        "风险/范围：`risk_level`、`execution_authorized`、`route_reason`",
+        "控制/复杂度：`control_model`、`task_complexity`、`risk_level`、`reasoning_demand`",
+        "风险/范围：`execution_authorized`、`capability_source`、`route_reason`",
         "派发：`execution_model`、`dispatch_role`、`dispatch_required`、`dispatch_mode`、`requested_reasoning_effort`、`fork_turns`",
         "Gate/升级：`current_gate`、`escalation_triggers`",
     )

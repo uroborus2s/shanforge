@@ -1,26 +1,28 @@
 # Agent 会话卡
 
-- 生成时间：2026-09-07
+- 生成时间：2026-09-08
 - 项目：`shanforge`
-- 项目是否完成：无法确认；本轮只评定已批准的流程优化批次
-- 总体阶段与当前活动：Shanforge 全产品阶段未核对；本批已完成，无活动开发任务
-- 本批剩余：无
+- 项目是否完成：无法确认；本轮只评定主会话模型解耦任务
+- 总体阶段与当前活动：Shanforge 全产品阶段未核对；本任务已通过终审和验证，待本地提交
+- 本批剩余：创建精确本地提交
 - 已批准产品剩余：未知（未核对 Shanforge 完整产品基线）
-- 未知/未验证与未开始：本批实现和验证无剩余；其他产品不在本轮范围
-- 遗漏核对：本批五项需求均有实现、验证和独立评审，无未映射项；Shanforge 全产品基线尚未核对
+- 未知/未验证与未开始：宿主侧实际模型选择未做 UI 验收；并行动态派发任务不在本任务范围
+- 遗漏核对：本任务验收项均有实现、验证和独立评审；Shanforge 全产品基线尚未核对
 - 项目整体进度：无法计算；不以本批任务数代表产品进度
-- 当前工作项：`FLOW-STATUS-REVIEW-001`
-- 当前任务：`FLOW-STATUS-REVIEW-001-T03`
-- 当前 WBS：`WBS-FLOW-SR-03`
-- 当前状态：`closed`
-- 当前 Gate：`closed`
+- 当前工作项：`MODEL-ORCHESTRATOR-SELECTION-001`
+- 当前任务：`MODEL-ORCHESTRATOR-SELECTION-001-T01`
+- 当前 WBS：`WBS-MODEL-ORCHESTRATOR-01`
+- 当前状态：`ready_for_commit`
+- 当前 Gate：`commit`
 - 停止原因：无
-- 下一动作：`none`
+- 下一动作：`create_exact_local_commit`
 
 ## 当前事实
 
-- 用户已批准上轮状态与评审优化建议；T01 修改现有合同，T02 补事实与行为回归，已真实派发。
-- 已完成：合同与测试修改、三轮真实试用、父全量416 passed / 11 subtests passed、行为6 passed；独立复审approved，FLOW-SR-REV-I-01已关闭。前两轮失败原样保留，实现已本地提交27fe2cd，未推送。
+- 项目配置不再固定主会话模型和推理强度；主会话模型由用户选择。
+- 子任务派发合同仍由主会话执行，Luna/Terra worker 与 Terra reviewer 的模型、强度和沙箱未变。
+- 全量418 passed / 11 subtests passed；R6 独立复审 approved，无剩余 Critical/Important。
+- 旧 FLOW-STATUS-REVIEW-001 manifest 已保持原始指纹；当前测试不再把历史候选当作可变缓存。
 - 不修改 ita-club 或医院项目，不生成它们的完成度。
 - UI-CLIENT-CRAFT-001 已关闭，本地提交 cb867e5 / b4706b4；其候选与生产边界不变，不恢复旧 Gate。
 
@@ -43,7 +45,7 @@
 
 ## 恢复入口
 
-- `.factory/workitems/FLOW-STATUS-REVIEW-001/ledger.jsonl`
-- `.factory/workitems/FLOW-STATUS-REVIEW-001/plan.md`
-- `.factory/workitems/FLOW-STATUS-REVIEW-001/reviews/dispatch-receipts.jsonl`
-- `.factory/workitems/FLOW-STATUS-REVIEW-001/task-briefs/FLOW-STATUS-REVIEW-001-T03.md`
+- `.factory/workitems/MODEL-ORCHESTRATOR-SELECTION-001/ledger.jsonl`
+- `.factory/workitems/MODEL-ORCHESTRATOR-SELECTION-001/reviews/independent-review.md`
+- `.factory/workitems/MODEL-ORCHESTRATOR-SELECTION-001/evidence/final-verification.md`
+- `.factory/workitems/MODEL-ORCHESTRATOR-SELECTION-001/task-briefs/MODEL-ORCHESTRATOR-SELECTION-001-T01.md`

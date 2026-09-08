@@ -50,25 +50,25 @@ worker Terra/Luna 只消费已授权路由包；`execution_authorized` 不为 `t
 `control_model`、`task_complexity`、`risk_level`、`execution_model`、`dispatch_required`、`dispatch_mode`、
 `dispatch_role`、`requested_reasoning_effort`、`fork_turns`、`route_reason` 和 `escalation_triggers`。
 命中 `scope_expanded`、`input_conflict`、`risk_increased`、`verification_failed_twice` 或 `human_gate` 时，
-立即停止当前执行并把事实交还 Sol；不得自行换模型或扩大授权。
+立即停止当前执行并把事实交还主会话；不得自行换模型或扩大授权。
 
 `execution_authorized != true -> do_not_dispatch`
 
 worker 派发条件、非授权关闭条件和 reviewer 分支均以 `using-shanforge` 的“子代理严格派发判定”为唯一规范定义；本 skill 只引用该判定。授权 worker 实现只能调用已暴露的 `spawn_agent`：`model` 必须等于
 `execution_model`，Luna 使用 `low`、Terra 使用 `medium`，且 `fork_turns="none"`；`message` 必须包含完整 task brief、精确写集、禁令和验证命令。
-父 Sol 必须在调用前生成稳定 `dispatch_id` 并保存工具成功返回的 `task_card_id`、`requested_model`、`requested_reasoning_effort`、`fork_turns`、
+父会话必须在调用前生成稳定 `dispatch_id` 并保存工具成功返回的 `task_card_id`、`requested_model`、`requested_reasoning_effort`、`fork_turns`、
 `agent_id` 或 canonical task、`status: accepted`、`source: parent_tool_receipt`；`accepted` 不是子代理完成态。任一工具/模型/回执/模型一致性检查失败，置
-`dispatch_failed` 或 `worker_unavailable` 并交还 Sol，不得静默代写或换模型。
+`dispatch_failed` 或 `worker_unavailable` 并交还主会话，不得静默代写或换模型。
 
 ### 升级信号决策表
 
 | signal | action |
 |---|---|
-| `scope_expanded` | `stop_and_return_to_sol` |
-| `input_conflict` | `stop_and_return_to_sol` |
-| `risk_increased` | `stop_and_return_to_sol` |
-| `verification_failed_twice` | `stop_and_return_to_sol` |
-| `human_gate` | `stop_and_return_to_sol` |
+| `scope_expanded` | `stop_and_return_to_parent_session` |
+| `input_conflict` | `stop_and_return_to_parent_session` |
+| `risk_increased` | `stop_and_return_to_parent_session` |
+| `verification_failed_twice` | `stop_and_return_to_parent_session` |
+| `human_gate` | `stop_and_return_to_parent_session` |
 
 - 批次内任务按依赖层连续推进；不要逐项请求继续。
 - 普通 task checkpoint 不是人工 Gate，也不是质量 Gate。子任务返回最小结果后继续，不生成逐任务 evidence、report 或 review input。
@@ -96,7 +96,7 @@ worker 回执是 TaskCard 层事实，不是批次控制器状态；控制器逐
 | `DONE` | 当前 TaskCard 实现结束；继续当前批次，不写批次状态 |
 | `DONE_WITH_CONCERNS` | 先处理 concerns；非阻塞时继续当前批次，不写批次状态 |
 | `NEEDS_CONTEXT` | 补最小上下文并重派；无法补足时写 `needs_user_input` |
-| `BLOCKED` | 写 `blocked` 并交还 Sol |
+| `BLOCKED` | 写 `blocked` 并交还主会话 |
 
 `DONE` 只表示该 TaskCard 的实现工作结束，不代表批次、产品或项目完成；不得从单个 worker `DONE` 推导 `ready_for_review`。
 只有集中 evidence、实现摘要、review input 和 ledger event 齐全的批次候选才可写 `ready_for_review`。
@@ -131,7 +131,7 @@ worker 回执是 TaskCard 层事实，不是批次控制器状态；控制器逐
 6. 按依赖层分批；同层任务卡满足并行 gate 时并行派发，否则按依赖顺序执行。
 7. 给实现者提供 [implementer-task-template.md](references/implementer-task-template.md)。
 8. 如果实现者返回 `NEEDS_CONTEXT`，补充最小上下文后重新派发。
-9. 如果实现者返回 `BLOCKED`，按 [status-handling-checklist.md](references/status-handling-checklist.md) 判断是补上下文、拆任务或向 Sol 升级；不得自行换模型。
+9. 如果实现者返回 `BLOCKED`，按 [status-handling-checklist.md](references/status-handling-checklist.md) 判断是补上下文、拆任务或向主会话升级；不得自行换模型。
 10. 如果实现者返回 `DONE_WITH_CONCERNS`，先读 concerns；若涉及正确性或范围，先处理再 review。
 11. 实现者只返回实现内容、测试结果、文件和 concerns；低、中风险任务不落盘独立过程材料。
 12. 并行批次或里程碑完成后，由主控生成一套实现摘要、最终 evidence 和 review input package。

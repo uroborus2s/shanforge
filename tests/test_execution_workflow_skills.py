@@ -94,7 +94,7 @@ def test_worker_statuses_have_one_controller_disposition() -> None:
         "| `DONE` | 当前 TaskCard 实现结束；继续当前批次，不写批次状态 |",
         "| `DONE_WITH_CONCERNS` | 先处理 concerns；非阻塞时继续当前批次，不写批次状态 |",
         "| `NEEDS_CONTEXT` | 补最小上下文并重派；无法补足时写 `needs_user_input` |",
-        "| `BLOCKED` | 写 `blocked` 并交还 Sol |",
+        "| `BLOCKED` | 写 `blocked` 并交还主会话 |",
     ):
         assert row in skill
 

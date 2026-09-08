@@ -212,4 +212,4 @@ review 输出写入 `.factory/workitems/<WORKITEM-ID>/reviews/plan-review.md`。
 
 项目化执行时，沿用 [工作 Skill 回写契约](../using-shanforge/references/work-skill-return-contract.md)；本 skill 的现有专业输出和失败语义不变。
 
-每张 task brief 原样复制模型路由字段，不重新计算；计划不得让 Terra/Luna 改写 Sol 的裁决。
+每张 task brief 原样复制模型路由字段，不重新计算；计划不得让 Terra/Luna 改写主会话的裁决。

@@ -301,6 +301,12 @@ def test_candidate_declares_per_workflow_nodes_transitions_and_human_gate_rules(
 def test_formal_contract_preserves_v1_2_baseline_and_adds_delivery_workflows() -> None:
     candidate = read(CANDIDATE_PATH)
     formal = read(FORMAL_CONTRACT_PATH)
+    model_routing = re.search(r"## 模型路由\n(?P<section>.*?)(?=\n## )", formal, re.DOTALL)
+    assert model_routing
+    routing_section = model_routing.group("section")
+    assert "用户所选主会话是复杂度、风险和模型路由的唯一 owner" in routing_section
+    assert "Sol 是唯一" not in routing_section
+    assert "Sol 唯一控制" not in routing_section
 
     assert "- 候选 ID：`FLOW-TASK-015-C001`" in candidate
     assert "- 候选版本：`v1.2.0`" in candidate
@@ -314,8 +320,10 @@ def test_formal_contract_preserves_v1_2_baseline_and_adds_delivery_workflows() -
         "3d5f4cbabda86312da0603db5662175453d12dd5966c788301b0c79c2cb4992f"
     )
     assert "批准前不得修改正式文档或同步 runtime Skill" in candidate
-    assert "| 正式版本 | `v2.0.0` |" in formal
-    assert "| 来源候选 | `SOFTWARE-LIFECYCLE-GOVERNANCE-001` |" in formal
+    assert "| 正式版本 | `v2.1.0` |" in formal
+    assert "MODEL-ORCHESTRATOR-SELECTION-001" in formal
+    assert "主会话" in formal
+    assert "| 来源候选 | `MODEL-ORCHESTRATOR-SELECTION-001` |" in formal
     assert "| 发布事务 | `N/A（本次文档同步不产生发布事务）` |" in formal
     assert "| `v1.2.0` | 发布完整项目会话归因" in formal
     assert "| `v1.3.0` | 开发期轻门禁" in formal

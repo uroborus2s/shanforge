@@ -1,5 +1,7 @@
 # 变更摘要
 
+- 2026-09-08：MODEL-ORCHESTRATOR-SELECTION-001 取消项目对主会话模型和推理强度的固定配置；主会话由用户选择，既有合同仅约束其对子任务的分级、派发、失败关闭和收口。Luna/Terra worker 与 Terra reviewer 映射未变；全量418 passed / 11 subtests passed，R6 独立终审 approved。旧行为候选 manifest 保持原指纹，不再作为当前合同文件缓存。
+
 - 2026-09-07：FLOW-STATUS-REVIEW-001完成五项状态与评审流程优化，实现本地提交27fe2cd，未推送。分离产品/本批与阶段/活动，补需求证据矩阵、无默认评分与复审追溯、8场景真实回复及负向/新鲜性回归。独立首轮Important经整改复审关闭，全量416 passed / 11 subtests passed；只代表本批，不代表其他软件验收。
 
 - 2026-09-03：`TECHNICAL-ASSESSMENT-RESPONSE-001` 已关闭。技术评估回复统一按“需求 → 现象 → 代码 → 原因 → 影响 → 建议”说明问题，共享回写合同新增 `technical_assessment_summary`，humanizer 保留评估时点和修复状态。独立复审 `approved / 100 / C0-I0-M0`，完整 pytest `358 passed / 11 subtests passed`，38/38 Skill validator 和响应黑盒 19/19 通过。

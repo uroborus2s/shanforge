@@ -130,10 +130,10 @@ description: 项目状态查询、任务延续、项目事实修改、阶段切�
   只有 Critical、Important 或高风险路径变化才复审受影响范围。
 - 长周期项目可以按里程碑收口，但禁止退化为逐任务重复评审。用户明确要求逐任务评审时才覆盖本默认策略。
 
-## Sol / Terra / Luna 模型路由
+## 主会话 / Terra / Luna 模型路由
 
-Sol 是唯一总体设计、任务分级和模型路由 owner；Terra 和 Luna 不得重新分级。先使用上文风险规则得到
-`risk_level`，再由 Sol 确定复杂度：
+主会话（模型由用户选择）是唯一总体设计、任务分级和模型路由 owner；Terra 和 Luna 不得重新分级。先使用上文风险规则得到
+`risk_level`，再由主会话确定复杂度：
 
 - `simple`：满足“简单代码变更直接实施”的全部条件，且 `risk_level` 为 `low`。
 - `complex`：涉及架构或系统设计、公共契约、schema、迁移、安全或生产，包含三个及以上独立交付物，
@@ -171,30 +171,30 @@ Sol 是唯一总体设计、任务分级和模型路由 owner；Terra 和 Luna �
 
 | 条件 | dispatch_role | dispatch_required / dispatch_mode | 模型与推理强度 |
 |---|---|---|---|
-| `workflow_id` / `write_policy` 与声明分支不匹配，或多个分支可命中 | `none` | `false / direct`；`input_conflict, do_not_dispatch` | N/A，交还 Sol |
+| `workflow_id` / `write_policy` 与声明分支不匹配，或多个分支可命中 | `none` | `false / direct`；`input_conflict, do_not_dispatch` | N/A，交还主会话 |
 | `workflow_id=execution-workflow`、`write_policy=source_or_test_write` 且 `execution_authorized=true` | `worker` | `true / subagent` | `simple + low` 为 Luna/`low`；其余为 Terra/`medium` |
 | `workflow_id=review-workflow`、`write_policy=state_or_gate_write`、`reviewer_type=independent_subagent`、身份/范围完整且实现/验证完成 | `reviewer` | `true / subagent` | Terra/`high`，只读 |
-| `*` | `none` | `false / direct` | N/A，仍由 Sol 控制 |
+| `*` | `none` | `false / direct` | N/A，仍由主会话控制 |
 
 独立 reviewer 是质量门，不重算或改写 worker 的复杂度、风险、执行模型和授权。worker 与 reviewer 都必须按
 [Codex 工具合同](references/codex-tools.md) 真实派发；失败关闭规则对两者同样适用。
 
 任何声明的 worker/reviewer 与其 `workflow_id` 或 `write_policy` 不匹配，或同时满足两个派发分支时，固定写
-`input_conflict`、`do_not_dispatch` 并交还 Sol；不得落入默认 direct 或猜测纠正。
+`input_conflict`、`do_not_dispatch` 并交还主会话；不得落入默认 direct 或猜测纠正。
 
 worker 分支固定为 `dispatch_required: true`、`dispatch_mode: subagent`；表中其余分支为
 `dispatch_required: false`、`dispatch_mode: direct` 或 reviewer 子代理，均按首个命中条件处理。
 
-授权实现必须由父 Sol 按 [Codex 工具合同](references/codex-tools.md) 显式调用 `spawn_agent`，传入与
+授权实现必须由父会话按 [Codex 工具合同](references/codex-tools.md) 显式调用 `spawn_agent`，传入与
 `execution_model` 完全一致的 `model`、规定的 `requested_reasoning_effort` 和 `fork_turns: "none"`，并在工具成功返回后记录父工具回执。
 工具未暴露、调用失败、显式模型不可用、回执缺失，或回执的 `requested_model` 与 `execution_model` 不一致时，写
-`dispatch_failed` 或 `worker_unavailable` 并停止交还 Sol；严禁 Sol 静默代写或换模型。
+`dispatch_failed` 或 `worker_unavailable` 并停止交还主会话；严禁主会话静默代写或换模型。
 普通项目化路由包追加并持久化以下字段：
 
 字段机器名保持不变，按中文用途读取：任务身份：`work_item_id`、`task_card_id`、`wbs_id`（来自基础 route）；控制/复杂度：`control_model`、`task_complexity`；风险/范围：`risk_level`、`execution_authorized`、`route_reason`；派发：`execution_model`、`dispatch_role`、`dispatch_required`、`dispatch_mode`、`requested_reasoning_effort`、`fork_turns`；Gate/升级：`current_gate`、`escalation_triggers`。字段值仍供机器消费，不翻译或改名。
 
 ```text
-control_model: gpt-5.6-sol
+control_model: <用户所选主会话模型>
 task_complexity: simple | standard | complex
 risk_level: low | medium | high
 execution_model: gpt-5.6-luna | gpt-5.6-terra
@@ -214,7 +214,7 @@ escalation_triggers:
 ```
 
 Terra/Luna 只执行已授权任务包，不得改写上述字段、扩大范围、自批 Review 或决定完成。任一升级触发器命中时
-停止当前执行并交还 Sol；同一任务连续两次验证失败记为 `verification_failed_twice`。
+停止当前执行并交还主会话；同一任务连续两次验证失败记为 `verification_failed_twice`。
 
 ### source_or_test_write 代码形状约束
 

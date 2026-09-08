@@ -3,6 +3,7 @@
 import copy
 import hashlib
 import json
+import re
 from pathlib import Path
 from typing import Any
 
@@ -15,6 +16,7 @@ EVIDENCE = REPO_ROOT / ".factory/workitems/FLOW-STATUS-REVIEW-001/evidence"
 V1 = EVIDENCE / "behavior-observations.json"
 RAW_INPUTS = EVIDENCE / "raw-behavior-inputs.json"
 MANIFEST = EVIDENCE / "candidate-sha256.txt"
+REVIEW_BRIEF = REPO_ROOT / ".factory/workitems/FLOW-STATUS-REVIEW-001/reviews/review-brief.md"
 
 
 def fixture() -> dict[str, Any]:
@@ -164,7 +166,7 @@ def test_real_independent_observations_match_closed_facts() -> None:
         assert valid(case, data["expected_oracles"][case["id"]], found[case["id"]])
 
 
-def test_behavior_evidence_is_bound_to_current_inputs() -> None:
+def test_historical_candidate_manifest_binds_current_evidence() -> None:
     data = fixture()
     manifest = {
         path: digest
@@ -172,12 +174,14 @@ def test_behavior_evidence_is_bound_to_current_inputs() -> None:
         if line
         for digest, path in [line.split("  ", maxsplit=1)]
     }
+    review_brief = REVIEW_BRIEF.read_text(encoding="utf-8")
+    recorded_manifest = re.search(
+        r"candidate_fingerprint：evidence/candidate-sha256\.txt，复审清单 SHA-256 `([0-9a-f]{64})`",
+        review_brief,
+    )
+    assert recorded_manifest
+    assert hashlib.sha256(MANIFEST.read_bytes()).hexdigest() == recorded_manifest.group(1)
     paths = (
-        "skills/using-shanforge/SKILL.md",
-        "skills/using-shanforge/references/human-readable-status.md",
-        "skills/using-shanforge/references/work-skill-return-contract.md",
-        "skills/requesting-code-review/SKILL.md",
-        "skills/requesting-code-review/references/review-score-rubric.md",
         ".factory/workitems/FLOW-STATUS-REVIEW-001/evidence/raw-behavior-inputs.json",
         ".factory/workitems/FLOW-STATUS-REVIEW-001/evidence/behavior-observations-v3.json",
     )

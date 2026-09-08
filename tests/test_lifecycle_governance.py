@@ -244,14 +244,17 @@ def test_design_index_lists_current_skill_first_designs() -> None:
 
 
 def test_changed_governance_documents_name_this_work_item_as_source() -> None:
-    current_documents = (REQUIREMENTS, DESIGN / "index.md", INDEX)
+    expected_sources = {
+        REQUIREMENTS: "SOFTWARE-LIFECYCLE-GOVERNANCE-001",
+        DESIGN / "index.md": "SOFTWARE-LIFECYCLE-GOVERNANCE-001",
+        INDEX: "MODEL-ORCHESTRATOR-SELECTION-001",
+    }
     mismatches = [
-        str(path.relative_to(ROOT))
-        for path in current_documents
-        if "| 来源候选 | `SOFTWARE-LIFECYCLE-GOVERNANCE-001` |" not in read(path)
+        str(path.relative_to(ROOT)) for path, source_id in expected_sources.items()
+        if f"| 来源候选 | `{source_id}` |" not in read(path)
     ]
     assert not mismatches, (
-        "current governance documents have stale source candidates: " + ", ".join(mismatches)
+        "current governance documents do not declare their current source: " + ", ".join(mismatches)
     )
 
 

@@ -28,8 +28,8 @@
 
 - 上下文不足：补充上下文。
 - 任务过大：拆小任务。
-- 模型能力不足：保持原 `execution_model` 并交还 Sol；由 Sol 补上下文、拆任务或改计划。
-- 模型或工具不可用：`worker_unavailable` 或 `dispatch_failed`，交还 Sol；不得换模型或由 Sol 代写。
+- 模型能力不足：保持原 `execution_model` 并交还主会话；由主会话补上下文、拆任务或改计划。
+- 模型或工具不可用：`worker_unavailable` 或 `dispatch_failed`，交还主会话；不得换模型或由主会话代写。
 - 计划错误：写入 `needs: plan_rewrite`，交还流程控制器。
 - 需要用户决策：停止并问用户。
 

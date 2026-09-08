@@ -22,7 +22,7 @@
 
 ## 模型路由
 
-- control_model: `gpt-5.6-sol`
+- control_model: `<用户所选主会话模型 ID>`
 - task_complexity: `simple | standard | complex`
 - risk_level: `low | medium | high`
 - execution_model: `gpt-5.6-luna | gpt-5.6-terra`
@@ -93,9 +93,9 @@
 
 ## 派发回执
 
-仅当 `dispatch_required: true` 时由父 Sol 在调用前生成稳定 `dispatch_id`，并保存真实 `spawn_agent` 成功回执；worker 与独立 reviewer 都适用，子代理自报不算回执。
+仅当 `dispatch_required: true` 时由父会话在调用前生成稳定 `dispatch_id`，并保存真实 `spawn_agent` 成功回执；worker 与独立 reviewer 都适用，子代理自报不算回执。
 
-- dispatch_id: `<父 Sol 调用前生成的稳定 ID>`
+- dispatch_id: `<父会话调用前生成的稳定 ID>`
 - task_card_id: `<TASK-CARD-ID>`
 - requested_model: `必须等于 execution_model`
 - requested_reasoning_effort:

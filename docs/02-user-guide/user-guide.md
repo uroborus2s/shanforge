@@ -5,8 +5,8 @@
 | 项目 | 内容 |
 |---|---|
 | 文档 ID | `DOC-USER-GUIDE-001` |
-| 正式版本 | `v1.3.0` |
-| 来源候选 | `2026-08-08 用户阶段门控与闭环优化决策` |
+| 正式版本 | `v1.4.0` |
+| 来源候选 | `MODEL-ORCHESTRATOR-SELECTION-001` |
 | 发布事务 | `N/A（直接策略变更）` |
 | 负责人 | `HUMAN_PRODUCT_ANALYST` |
 | 修改 / 审核 / 批准 | `uroborus` / `uroborus` / `uroborus` |
@@ -81,14 +81,14 @@ AI 应该先走 `using-shanforge`，必要时用 `project-memory` 恢复上下�
 
 ## 4. 模型如何分工
 
-当前 Codex 宿主能力按三层协作：`gpt-5.6-sol` 负责总体设计、风险和任务复杂度分级及最终路由；
+当前 Codex 宿主能力按三层协作：用户所选主会话模型负责总体设计、风险和任务复杂度分级及最终路由；
 `gpt-5.6-terra` 执行标准、复杂或中高风险的已授权任务；`gpt-5.6-luna` 只执行简单且低风险的已授权任务。
-Terra/Luna 不能自行改级、扩范围或批准完成，出现范围、输入、风险、连续验证失败或人工 Gate 时交还 Sol。
+Terra/Luna 不能自行改级、扩范围或批准完成，出现范围、输入、风险、连续验证失败或人工 Gate 时交还主会话。
 
 真实子代理派发有两个互斥分支：`execution-workflow` 的已授权源码或测试写入是 worker，简单且低风险使用 Luna（low），其余使用 Terra（medium）；
 `review-workflow` 的 `state_or_gate_write`、身份和范围完整、实现和验证已完成的独立只读 review 是 reviewer，固定 Terra（high）。
-workflow/写策略与声明分支不匹配，或两个分支同时可命中时会失败关闭并交还 Sol；直接答复、设计、计划、非独立 review、Gate 和最终收口仍由 Sol 控制。
-父会话每次都显式调用 `spawn_agent`，带上模型、推理强度和 `fork_turns="none"`，并保存成功工具回执；工具、模型或回执异常会失败关闭并交还 Sol，不会由 Sol 静默代写、换模型或代替 reviewer。
+workflow/写策略与声明分支不匹配，或两个分支同时可命中时会失败关闭并交还主会话；直接答复、设计、计划、非独立 review、Gate 和最终收口仍由主会话控制。
+父会话每次都显式调用 `spawn_agent`，带上模型、推理强度和 `fork_turns="none"`，并保存成功工具回执；工具、模型或回执异常会失败关闭并交还主会话，不会由主会话静默代写、换模型或代替 reviewer。
 
 `.codex/config.toml` 和 `.codex/agents/*.toml` 是宿主配置层，不是每次派发的证明。真实绑定以父会话的显式派发参数和成功回执为准；
 仓内无法读取或验证模型内部身份。
@@ -146,6 +146,7 @@ Bug 或修复更新会说明问题现象、影响、复现、已知原因、风�
 
 | 版本 | 日期 | 变更 | 修改人 | 审核 | 批准 |
 |---|---|---|---|---|---|
+| `v1.4.0` | 2026-09-08 | 主会话模型由用户选择，明确父会话控制职责 | `AI_EXECUTOR` | `集中质量门` | `uroborus` |
 | `v1.3.0` | 2026-08-23 | 增加 Sol 控制分级和 Terra/Luna 受控执行说明 | `AI_EXECUTOR` | `集中质量门` | `uroborus` |
 | `v1.2.0` | 2026-08-08 | 增加 Bug 风险分流、最终候选测试和发布部署入口 | `AI_EXECUTOR` | `集中质量门` | `uroborus` |
 | `v1.1.0` | 2026-07-28 | 明确 skill 自带脚本并取消目标项目源码依赖 | `uroborus` | `uroborus` | `uroborus` |

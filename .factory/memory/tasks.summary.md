@@ -1,7 +1,7 @@
 # 任务摘要
 
-- 当前阶段：`FLOW-STATUS-REVIEW-001 / closed`
-- 当前焦点：同reviewer复审approved，FLOW-SR-REV-I-01关闭；五项要求完成、3张任务卡关闭，实现本地提交27fe2cd，未推送；本批无待办，不评定其他软件项目是否完成。
+- 当前阶段：`MODEL-ORCHESTRATOR-SELECTION-001 / ready_for_commit`
+- 当前焦点：主会话模型选择与子任务派发合同已解耦；R6 独立终审 approved，全量418 passed / 11 subtests passed，待精确本地提交。并行动态派发任务不属于本任务。
 
 - 2026-09-07：UI-CLIENT-CRAFT-001 已关闭，本地提交 cb867e5 / b4706b4；三页候选未人工批准，不改 ita-club。原验证结论保留在该工作项 ledger。
 

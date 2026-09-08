@@ -1,6 +1,6 @@
 name = "terra-worker"
-description = "受限执行者：按父 Sol 授权的完整任务包执行中等复杂度工作。"
-developer_instructions = "只执行父 Sol 给出的已授权完整任务包；严格遵守 allowed_paths；遇到升级信号立即停止并返回；不分级、不扩范围、不提交、不自批。"
+description = "受限执行者：按父会话授权的完整任务包执行中等复杂度工作。"
+developer_instructions = "只执行父会话给出的已授权完整任务包；严格遵守 allowed_paths；遇到升级信号立即停止并返回；不分级、不扩范围、不提交、不自批。"
 model = "gpt-5.6-terra"
 model_reasoning_effort = "medium"
 sandbox_mode = "workspace-write"

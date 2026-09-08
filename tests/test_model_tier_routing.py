@@ -67,9 +67,9 @@ def verification_commands(path: str) -> list[str]:
 
 def test_host_model_configuration_declares_the_three_runtime_roles() -> None:
     config = read_toml(".codex/config.toml")
-    assert config["model"] == "gpt-5.6-sol"
-    assert config["model_reasoning_effort"] == "high"
-    assert config["agents"] == {"enabled": True, "max_concurrent_threads_per_session": 3}
+    assert "model" not in config
+    assert "model_reasoning_effort" not in config
+    assert config["agents"] == {"enabled": True, "max_concurrent_threads_per_session": 10}
 
     expected_agents = {
         "luna-worker": ("gpt-5.6-luna", "low", "workspace-write"),
@@ -89,6 +89,34 @@ def test_host_model_configuration_declares_the_three_runtime_roles() -> None:
         assert actual == (model, effort, sandbox)
 
 
+def test_current_contract_uses_parent_session_without_sol_owner_binding() -> None:
+    worker_text = read(".codex/agents/luna-worker.toml") + read(".codex/agents/terra-worker.toml")
+    contract = read("skills/using-shanforge/SKILL.md") + read(
+        "skills/using-shanforge/references/codex-tools.md"
+    )
+    assert "父会话" in worker_text
+    assert "父 Sol" not in worker_text
+    assert "主会话" in contract
+    assert "交还 Sol" not in contract
+    executor = read("skills/subagent-driven-development/SKILL.md")
+    assert executor.count("stop_and_return_to_parent_session") == 5
+    assert "stop_and_return_to_sol" not in executor
+    assert "改写主会话的裁决" in read("skills/writing-plans/SKILL.md")
+    assert "改写 Sol 的裁决" not in read("skills/writing-plans/SKILL.md")
+
+
+def test_formal_document_versions_match_current_work_item() -> None:
+    prd = read("docs/04-product/prd.md")
+    design = read("docs/05-design/workflow-execution-design.md")
+    guide = read("docs/02-user-guide/user-guide.md")
+    assert "当前正式版本 | `v5.1.0`" in prd
+    assert "MODEL-ORCHESTRATOR-SELECTION-001" in prd
+    assert "正式版本 | `v2.1.0`" in design
+    assert "MODEL-ORCHESTRATOR-SELECTION-001" in design
+    assert "正式版本 | `v1.4.0`" in guide
+    assert "| `v1.4.0` | 2026-09-08 |" in guide
+
+
 def test_strict_dispatch_table_requires_workflow_policy_and_authorization_together() -> None:
     controller = read("skills/using-shanforge/SKILL.md")
     tools_contract = read("skills/using-shanforge/references/codex-tools.md")
@@ -99,7 +127,7 @@ def test_strict_dispatch_table_requires_workflow_policy_and_authorization_togeth
             "`workflow_id` / `write_policy` 与声明分支不匹配，或多个分支可命中",
             "`none`",
             "`false / direct`；`input_conflict, do_not_dispatch`",
-            "N/A，交还 Sol",
+            "N/A，交还主会话",
         ),
         (
             (
@@ -116,12 +144,12 @@ def test_strict_dispatch_table_requires_workflow_policy_and_authorization_togeth
             "`true / subagent`",
             "Terra/`high`，只读",
         ),
-        ("`*`", "`none`", "`false / direct`", "N/A，仍由 Sol 控制"),
+        ("`*`", "`none`", "`false / direct`", "N/A，仍由主会话控制"),
     ]
     conflict_row = rows[0]
     assert all(
         term in " ".join(conflict_row)
-        for term in ("input_conflict", "do_not_dispatch", "Sol")
+        for term in ("input_conflict", "do_not_dispatch", "主会话")
     )
     assert "`workflow_id` / `write_policy` 与声明分支不匹配，或多个分支可命中" in tools_contract
 
@@ -190,7 +218,7 @@ def test_spawn_contract_binds_the_authorized_route_to_a_parent_receipt() -> None
     executor = read("skills/subagent-driven-development/SKILL.md")
 
     for phrase in (
-        "父 Sol 先生成稳定 `dispatch_id`",
+        "父会话先生成稳定 `dispatch_id`",
         (
             "message: <dispatch_id + 完整 task brief + allowed_paths + forbidden_actions + "
             "verification commands + status return format>"
@@ -204,7 +232,7 @@ def test_spawn_contract_binds_the_authorized_route_to_a_parent_receipt() -> None
         assert phrase in tools_contract
 
     assert "不得虚构模型内部身份" in tools_contract
-    assert "父 Sol 必须在调用前生成稳定 `dispatch_id`" in executor
+    assert "父会话必须在调用前生成稳定 `dispatch_id`" in executor
     assert "`accepted` 不是子代理完成态" in executor
 
 
@@ -212,9 +240,9 @@ def test_dispatch_failures_are_closed_without_model_substitution_or_inline_work(
     tools_contract = read("skills/using-shanforge/references/codex-tools.md")
     checklist = read("skills/subagent-driven-development/references/status-handling-checklist.md")
 
-    assert "结果只能是 `dispatch_failed` 或 `worker_unavailable` 并交还 Sol" in tools_contract
-    assert "禁止用 Sol\n代写、替换模型" in tools_contract
-    assert "不得换模型或由 Sol 代写" in checklist
+    assert "结果只能是 `dispatch_failed` 或 `worker_unavailable` 并交还主会话" in tools_contract
+    assert "禁止用主会话\n代写、替换模型" in tools_contract
+    assert "不得换模型或由主会话代写" in checklist
     assert "fallback" not in checklist.lower()
 
 
@@ -282,7 +310,7 @@ def test_ledger_records_direct_creation_worker_dispatches_and_independent_review
 def test_user_guide_discloses_the_host_configuration_boundary() -> None:
     guide = read("docs/02-user-guide/user-guide.md")
     for phrase in (
-        "gpt-5.6-sol",
+        "用户所选主会话模型",
         "gpt-5.6-terra",
         "gpt-5.6-luna",
         "当前 Codex 宿主能力",
@@ -298,7 +326,7 @@ def test_user_guide_and_design_distinguish_independent_review_from_direct_work()
     assert "真实子代理派发有两个互斥分支" in guide
     assert "已授权源码或测试写入是 worker" in guide
     assert "独立只读 review 是 reviewer，固定 Terra（high）" in guide
-    assert "非独立 review、Gate 和最终收口仍由 Sol 控制" in guide
+    assert "非独立 review、Gate 和最终收口仍由主会话控制" in guide
     assert "派发分支按顺序互斥" in design
     assert "`dispatch_role: worker, dispatch_required: true, dispatch_mode: subagent`" in design
     assert "`dispatch_role: reviewer, true, subagent`" in design

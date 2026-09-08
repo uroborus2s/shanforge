@@ -1,15 +1,15 @@
 # 当前状态
 
 - 当前模式：`codex_desktop`
-- 当前阶段：`FLOW-STATUS-REVIEW-001 / CLOSED`
-- 本批阶段：已完成；产品总体阶段未重新核对
-- 活跃任务数：0
+- 当前阶段：`MODEL-ORCHESTRATOR-SELECTION-001 / MODEL-ORCHESTRATOR-SELECTION-001-T01`
+- 本批阶段：实现、验证和独立终审完成；产品总体阶段未重新核对
+- 活跃任务数：1
 - 阻塞项数：0
-- 当前 Gate：`none`
+- 当前 Gate：`commit`
 
 ## 活跃任务
 
-- 当前无活动任务。
+- `MODEL-ORCHESTRATOR-SELECTION-001-T01`：待精确本地提交。
 
 ## 阻塞项
 
@@ -17,19 +17,19 @@
 
 ## 最近事实
 
-- 用户已批准落实总体/批次分离、需求遗漏核对、无默认总分和复审追溯。
-- 父全量416 passed / 11 subtests passed；行为6 passed；Ruff、形状、5个skill结构、25文件指纹与diff检查通过；原失败与校准过程保留在evidence。
-- 独立复审approved，唯一Important关闭；本批实现提交27fe2cd，未推送，五项要求无剩余。
+- 项目级主会话 `model` / `model_reasoning_effort` 固定项已删除，并发值保持 10。
+- 主会话由用户选择；模型合同只约束其对子任务的分级、派发、失败关闭和收口。
+- 全量418 passed / 11 subtests passed；R6 独立终审 approved，历史候选 manifest 指纹保持不变。
 - 上一 UI 批次已关闭；详情降级到 tasks.summary 与旧 ledger，不改历史事实。
 
 ## 唯一下一动作
 
-- `none`
+- 创建仅含 `MODEL-ORCHESTRATOR-SELECTION-001` 的本地提交。
 
 ## 历史回源
 
-- 最近 WorkItem：`.factory/workitems/FLOW-STATUS-REVIEW-001/`
-- Ledger：`.factory/workitems/FLOW-STATUS-REVIEW-001/ledger.jsonl`
+- 最近 WorkItem：`.factory/workitems/MODEL-ORCHESTRATOR-SELECTION-001/`
+- Ledger：`.factory/workitems/MODEL-ORCHESTRATOR-SELECTION-001/ledger.jsonl`
 - 稳定 Ledger 索引：`.factory/workitems/<WORKITEM-ID>/ledger.jsonl`
 - 非活跃任务摘要：`.factory/memory/tasks.summary.md`
 

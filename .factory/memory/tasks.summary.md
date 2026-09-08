@@ -1,7 +1,7 @@
 # 任务摘要
 
-- 当前阶段：`MODEL-ORCHESTRATOR-SELECTION-001 / ready_for_commit`
-- 当前焦点：主会话模型选择与子任务派发合同已解耦；R6 独立终审 approved，全量418 passed / 11 subtests passed，待精确本地提交。并行动态派发任务不属于本任务。
+- 当前阶段：`MODEL-ORCHESTRATOR-SELECTION-001 / closed`
+- 当前焦点：主会话模型选择与子任务派发合同已解耦；R6 独立终审 approved，全量418 passed / 11 subtests passed，本地提交 `1b64734`，未推送。并行动态派发任务不属于本任务。
 
 - 2026-09-07：UI-CLIENT-CRAFT-001 已关闭，本地提交 cb867e5 / b4706b4；三页候选未人工批准，不改 ita-club。原验证结论保留在该工作项 ledger。
 

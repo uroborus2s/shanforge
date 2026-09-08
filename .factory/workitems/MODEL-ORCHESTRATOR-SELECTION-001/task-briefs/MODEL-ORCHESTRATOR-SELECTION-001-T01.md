@@ -3,8 +3,8 @@
 - work_item_id: `MODEL-ORCHESTRATOR-SELECTION-001`
 - task_card_id: `MODEL-ORCHESTRATOR-SELECTION-001-T01`
 - wbs_id: `WBS-MODEL-ORCHESTRATOR-01`
-- status: `ready_for_commit`
-- current_gate: `commit`
+- status: `closed`
+- current_gate: `closed`
 - write_policy: `source_or_test_write`
 - control_model: `user_selected`
 - task_complexity: `simple`

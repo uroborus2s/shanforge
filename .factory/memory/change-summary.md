@@ -1,6 +1,6 @@
 # 变更摘要
 
-- 2026-09-08：MODEL-DYNAMIC-DISPATCH-001 已整合动态选档与显式派发合同、只读角色、正式说明及直接测试；v5独立终审和完整420 passed / 11 subtests passed已通过，进入本地提交。
+- 2026-09-08：MODEL-DYNAMIC-DISPATCH-001 已整合动态选档与显式派发合同、只读角色、正式说明及直接测试；v5独立终审和完整420 passed / 11 subtests passed已通过，实现提交7955a02，未推送。
 
 - 2026-09-08：MODEL-ORCHESTRATOR-SELECTION-001 取消项目对主会话模型和推理强度的固定配置；主会话由用户选择，既有合同仅约束其对子任务的分级、派发、失败关闭和收口。Luna/Terra worker 与 Terra reviewer 映射未变；全量418 passed / 11 subtests passed，R6 独立终审 approved，本地提交 `1b64734`，未推送。旧行为候选 manifest 保持原指纹，不再作为当前合同文件缓存。
 

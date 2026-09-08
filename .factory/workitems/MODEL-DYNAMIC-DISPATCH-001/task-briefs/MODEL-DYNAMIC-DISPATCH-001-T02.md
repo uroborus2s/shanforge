@@ -3,14 +3,14 @@
 - work_item_id: MODEL-DYNAMIC-DISPATCH-001
 - task_card_id: MODEL-DYNAMIC-DISPATCH-001-T02
 - wbs_id: WBS-MODEL-DYNAMIC-02
-- status: ready_for_commit
+- status: closed
 - owner: dynamic_dispatch_tests
 - priority: P1
 - task_scope: system
 - depends_on: MODEL-ORCHESTRATOR-SELECTION-001 的共享文件提交；新增测试可先写
 - review_status: approved
-- current_gate: commit
-- next_required_action: create_exact_local_commit
+- current_gate: closed
+- next_required_action: none
 - write_policy: source_or_test_write
 - control_model: user_selected
 - task_complexity: standard

@@ -1,6 +1,6 @@
 # 动态子模型与推理强度实施计划
 
-- 状态：ready_for_commit；实现、独立终审、验证与memory已同步。
+- 状态：closed；实现提交7955a02，独立终审、验证与memory已同步。
 - 架构：只改现有 skill 合同与消费它们的测试；无生产、网络 API、数据写入或新依赖。
 - 共享文件依赖：MODEL-ORCHESTRATOR-SELECTION-001 完成提交后开始 T01 和 T02 的已有文件编辑；本工作项材料和新增测试可先行。
 
@@ -8,7 +8,7 @@
 
 | id | parent_id | title | status |
 |---|---|---|---|
-| WBS-MODEL-DYNAMIC-00 | | 授权与批次质量收口 | ready_for_commit |
+| WBS-MODEL-DYNAMIC-00 | | 授权与批次质量收口 | done |
 | WBS-MODEL-DYNAMIC-01 | WBS-MODEL-DYNAMIC-00 | 当前合同及正式说明 | done |
 | WBS-MODEL-DYNAMIC-02 | WBS-MODEL-DYNAMIC-00 | 动态路由及拒绝行为验证 | done |
 | WBS-MODEL-DYNAMIC-03 | WBS-MODEL-DYNAMIC-00 | 独立试用与评审 | done |

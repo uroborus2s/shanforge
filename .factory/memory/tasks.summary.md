@@ -1,7 +1,7 @@
 # 任务摘要
 
-- 当前阶段：`MODEL-DYNAMIC-DISPATCH-001 / ready_for_commit`
-- 当前焦点：动态子任务合同已整合；v5独立批准20文件，完整420 passed / 11 subtests passed，进入本地提交。
+- 当前阶段：`MODEL-DYNAMIC-DISPATCH-001 / closed`
+- 当前焦点：动态子任务合同已整合；v5独立批准20文件，完整420 passed / 11 subtests passed，本地实现提交7955a02，未推送。
 
 - 2026-09-08：前置MODEL-ORCHESTRATOR-SELECTION-001已关闭，实现1b64734，状态242af89；418 passed / 11 subtests，R6 approved。
 

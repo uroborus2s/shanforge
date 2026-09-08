@@ -3,14 +3,14 @@
 - work_item_id: MODEL-DYNAMIC-DISPATCH-001
 - task_card_id: MODEL-DYNAMIC-DISPATCH-001-T03
 - wbs_id: WBS-MODEL-DYNAMIC-03
-- status: ready_for_commit
+- status: closed
 - owner: independent_review
 - priority: P1
 - task_scope: system
 - depends_on: T01 合同已落地；最终评审等待 T01/T02 完成和父验证
 - review_status: approved
-- current_gate: commit
-- next_required_action: create_exact_local_commit
+- current_gate: closed
+- next_required_action: none
 - write_policy: state_or_gate_write
 - control_model: user_selected
 - task_complexity: standard

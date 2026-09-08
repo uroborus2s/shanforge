@@ -3,14 +3,14 @@
 - work_item_id: MODEL-DYNAMIC-DISPATCH-001
 - task_card_id: MODEL-DYNAMIC-DISPATCH-001-T00
 - wbs_id: WBS-MODEL-DYNAMIC-00
-- status: ready_for_commit
+- status: closed
 - owner: main_session
 - priority: P1
 - task_scope: system
 - depends_on: none
 - review_status: approved
-- current_gate: commit
-- next_required_action: create_exact_local_commit
+- current_gate: closed
+- next_required_action: none
 - write_policy: project_fact_write
 - allowed_paths: .factory/workitems/MODEL-DYNAMIC-DISPATCH-001/
 - forbidden_actions: shared_source_write_before_handoff, modify_other_workitem, global_config_write, dependency_install, push, self_approve

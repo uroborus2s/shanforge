@@ -1,6 +1,6 @@
 # 测试摘要
 
-- 当前阶段：`MODEL-DYNAMIC-DISPATCH-001 / ready_for_commit`
+- 当前阶段：`MODEL-DYNAMIC-DISPATCH-001 / closed`
 - 当前验证结论：完整420 passed / 11 subtests passed，exit0；Ruff、三个skill validator、JSONL、diffcheck通过。代码形状与HEAD比较无新增违规，既有local permits保留。v5独立终审approved，12个场景为模拟，task-reader宿主加载未测。
 
 - 2026-09-08：前置MODEL-ORCHESTRATOR-SELECTION-001已关闭，实现1b64734，状态242af89；418 passed / 11 subtests，R6 approved。
